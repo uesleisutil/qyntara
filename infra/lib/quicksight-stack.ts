@@ -53,6 +53,7 @@ export class QuickSightConstruct extends Construct {
       awsAccountId: accountId,
       dataSetId: "b3tr-recommendations",
       name: "B3TR Daily Recommendations",
+      importMode: "SPICE",
       physicalTableMap: {
         "recommendations-table": {
           s3Source: {
@@ -86,6 +87,7 @@ export class QuickSightConstruct extends Construct {
       awsAccountId: accountId,
       dataSetId: "b3tr-data-quality",
       name: "B3TR Data Quality Metrics",
+      importMode: "SPICE",
       physicalTableMap: {
         "quality-table": {
           s3Source: {
@@ -120,6 +122,7 @@ export class QuickSightConstruct extends Construct {
       awsAccountId: accountId,
       dataSetId: "b3tr-ingestion",
       name: "B3TR Data Ingestion Status",
+      importMode: "SPICE",
       physicalTableMap: {
         "ingestion-table": {
           s3Source: {
