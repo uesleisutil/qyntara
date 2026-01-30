@@ -48,7 +48,7 @@ export class QuickSightConstruct extends Construct {
       ],
     });
 
-    // 2. DataSet - Recommendations (Minimal permissions)
+    // 2. DataSet - Recommendations (No permissions - will inherit from DataSource)
     const recommendationsDataSet = new quicksight.CfnDataSet(this, "RecommendationsDataSet", {
       awsAccountId: accountId,
       dataSetId: "b3tr-recommendations",
@@ -70,19 +70,9 @@ export class QuickSightConstruct extends Construct {
           },
         },
       },
-      permissions: [
-        {
-          principal: `arn:aws:quicksight:${region}:${accountId}:user/default/${username}`,
-          actions: [
-            "quicksight:DescribeDataSet",
-            "quicksight:DescribeDataSetPermissions",
-            "quicksight:PassDataSet",
-          ],
-        },
-      ],
     });
 
-    // 3. DataSet - Data Quality (Minimal permissions)
+    // 3. DataSet - Data Quality (No permissions - will inherit from DataSource)
     const dataQualityDataSet = new quicksight.CfnDataSet(this, "DataQualityDataSet", {
       awsAccountId: accountId,
       dataSetId: "b3tr-data-quality",
@@ -105,19 +95,9 @@ export class QuickSightConstruct extends Construct {
           },
         },
       },
-      permissions: [
-        {
-          principal: `arn:aws:quicksight:${region}:${accountId}:user/default/${username}`,
-          actions: [
-            "quicksight:DescribeDataSet",
-            "quicksight:DescribeDataSetPermissions",
-            "quicksight:PassDataSet",
-          ],
-        },
-      ],
     });
 
-    // 4. DataSet - Ingestion Monitoring (Minimal permissions)
+    // 4. DataSet - Ingestion Monitoring (No permissions - will inherit from DataSource)
     const ingestionDataSet = new quicksight.CfnDataSet(this, "IngestionDataSet", {
       awsAccountId: accountId,
       dataSetId: "b3tr-ingestion",
@@ -138,16 +118,6 @@ export class QuickSightConstruct extends Construct {
           },
         },
       },
-      permissions: [
-        {
-          principal: `arn:aws:quicksight:${region}:${accountId}:user/default/${username}`,
-          actions: [
-            "quicksight:DescribeDataSet",
-            "quicksight:DescribeDataSetPermissions",
-            "quicksight:PassDataSet",
-          ],
-        },
-      ],
     });
 
     // Outputs
