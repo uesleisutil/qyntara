@@ -1,0 +1,176 @@
+# Repository settings for B3TR
+repository:
+  name: b3-tactical-ranking
+  description: "🚀 Sistema MLOps automatizado para ranking tático de ações da B3 com AWS, SageMaker e DeepAR"
+  homepage: https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME
+  topics:
+    - aws
+    - mlops
+    - sagemaker
+    - deepar
+    - b3
+    - stocks
+    - machine-learning
+    - python
+    - cdk
+    - lambda
+    - eventbridge
+    - s3
+    - cloudwatch
+    - fintech
+    - trading
+  private: false
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+  default_branch: main
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+# Branch protection rules
+branches:
+  - name: main
+    protection:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "Lint & Test"
+          - "Infrastructure Validation"
+          - "Documentation Check"
+      enforce_admins: false
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        require_last_push_approval: false
+      restrictions: null
+      allow_force_pushes: false
+      allow_deletions: false
+
+# Labels for issues and PRs
+labels:
+  # Type labels
+  - name: "bug"
+    color: "d73a4a"
+    description: "Something isn't working"
+  
+  - name: "enhancement"
+    color: "a2eeef"
+    description: "New feature or request"
+  
+  - name: "documentation"
+    color: "0075ca"
+    description: "Improvements or additions to documentation"
+  
+  - name: "infrastructure"
+    color: "1d76db"
+    description: "AWS infrastructure and CDK changes"
+  
+  - name: "ml"
+    color: "7057ff"
+    description: "Machine learning and model-related changes"
+  
+  - name: "data-pipeline"
+    color: "008672"
+    description: "Data ingestion and processing pipeline"
+  
+  - name: "monitoring"
+    color: "e4e669"
+    description: "Monitoring, alerting, and observability"
+  
+  # Priority labels
+  - name: "priority:critical"
+    color: "b60205"
+    description: "Critical priority - system down"
+  
+  - name: "priority:high"
+    color: "d93f0b"
+    description: "High priority - important fix needed"
+  
+  - name: "priority:medium"
+    color: "fbca04"
+    description: "Medium priority - normal timeline"
+  
+  - name: "priority:low"
+    color: "0e8a16"
+    description: "Low priority - future enhancement"
+  
+  # Status labels
+  - name: "status:triage"
+    color: "ededed"
+    description: "Needs triage and investigation"
+  
+  - name: "status:in-progress"
+    color: "c5def5"
+    description: "Currently being worked on"
+  
+  - name: "status:blocked"
+    color: "b60205"
+    description: "Blocked by external dependency"
+  
+  - name: "status:ready-for-review"
+    color: "0e8a16"
+    description: "Ready for code review"
+  
+  # Component labels
+  - name: "component:lambda"
+    color: "ff9500"
+    description: "AWS Lambda functions"
+  
+  - name: "component:sagemaker"
+    color: "ff6b35"
+    description: "SageMaker training and inference"
+  
+  - name: "component:s3"
+    color: "ff4081"
+    description: "S3 data storage and management"
+  
+  - name: "component:eventbridge"
+    color: "9c27b0"
+    description: "EventBridge scheduling"
+  
+  - name: "component:cloudwatch"
+    color: "673ab7"
+    description: "CloudWatch monitoring and logs"
+  
+  # Special labels
+  - name: "good first issue"
+    color: "7057ff"
+    description: "Good for newcomers"
+  
+  - name: "help wanted"
+    color: "008672"
+    description: "Extra attention is needed"
+  
+  - name: "question"
+    color: "d876e3"
+    description: "Further information is requested"
+  
+  - name: "wontfix"
+    color: "ffffff"
+    description: "This will not be worked on"
+  
+  - name: "duplicate"
+    color: "cfd3d7"
+    description: "This issue or pull request already exists"
+  
+  - name: "dependencies"
+    color: "0366d6"
+    description: "Pull requests that update a dependency file"
+  
+  - name: "security"
+    color: "d73a4a"
+    description: "Security-related issues"
+  
+  - name: "performance"
+    color: "fbca04"
+    description: "Performance optimization"
+  
+  - name: "data-quality"
+    color: "1d76db"
+    description: "Data quality and validation issues"

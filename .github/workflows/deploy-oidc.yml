@@ -1,0 +1,65 @@
+name: Deploy with OIDC (Secure)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActions-B3TR-Deploy
+          aws-region: us-east-1
+
+      - name: Test AWS connection
+        run: |
+          echo "🔍 Testing AWS connection with OIDC..."
+          aws sts get-caller-identity
+          echo "✅ AWS connection successful!"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install CDK
+        run: |
+          npm install -g aws-cdk
+          cdk --version
+
+      - name: Install dependencies
+        working-directory: infra
+        run: npm ci
+
+      - name: CDK Bootstrap
+        working-directory: infra
+        run: |
+          echo "🔧 CDK Bootstrap..."
+          cdk bootstrap || echo "Bootstrap already exists"
+
+      - name: CDK Deploy
+        working-directory: infra
+        env:
+          DEEPAR_IMAGE_URI: ${{ secrets.DEEPAR_IMAGE_URI || '382416733822.dkr.ecr.us-east-1.amazonaws.com/forecasting-deepar:1' }}
+          BRAPI_SECRET_ID: ${{ secrets.BRAPI_SECRET_ID || 'brapi/pro/token' }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL || 'admin@example.com' }}
+        run: |
+          echo "🚀 Starting CDK deploy..."
+          cdk deploy --require-approval never --outputs-file outputs.json
+          echo "✅ Deploy successful!"
+          
+          if [ -f outputs.json ]; then
+            echo "📊 Deployment outputs:"
+            cat outputs.json
+          fi

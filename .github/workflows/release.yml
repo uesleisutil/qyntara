@@ -1,0 +1,175 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "First release - generating full changelog"
+            COMMITS=$(git log --oneline --pretty=format:"- %s (%h)" | head -20)
+          else
+            echo "Generating changelog since $LATEST_TAG"
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --oneline --pretty=format:"- %s (%h)")
+          fi
+          
+          # Create changelog
+          cat > CHANGELOG.md << EOF
+          # Changelog
+          
+          ## What's Changed
+          
+          $COMMITS
+          
+          ## 🚀 Features
+          - Automated MLOps pipeline for B3 stock ranking
+          - Real-time data ingestion from BRAPI Pro API
+          - DeepAR forecasting models on SageMaker
+          - Daily automated rankings generation
+          - Comprehensive monitoring and alerting
+          
+          ## 🏗️ Infrastructure
+          - AWS CDK infrastructure as code
+          - Lambda functions for data processing
+          - EventBridge for scheduling
+          - S3 for data lake storage
+          - CloudWatch for monitoring
+          
+          ## 📊 Data Pipeline
+          - 10 years historical data bootstrap
+          - 5-minute real-time ingestion during trading hours
+          - Automated data quality checks
+          - Model training and validation
+          
+          **Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ github.ref_name }}
+          EOF
+          
+          echo "changelog_file=CHANGELOG.md" >> $GITHUB_OUTPUT
+
+      - name: Create deployment package
+        run: |
+          # Create a deployment-ready package
+          mkdir -p release-package
+          
+          # Copy essential files
+          cp -r ml/ release-package/
+          cp -r infra/ release-package/
+          cp -r config/ release-package/
+          cp -r scripts/ release-package/
+          cp -r docs/ release-package/
+          cp README.md LICENSE pyproject.toml .env.example release-package/
+          
+          # Create deployment guide
+          cat > release-package/DEPLOYMENT.md << 'EOF'
+          # B3TR Deployment Guide
+          
+          ## Quick Deploy
+          
+          1. **Configure environment:**
+             ```bash
+             cp .env.example .env
+             # Edit .env with your settings
+             ```
+          
+          2. **Set up AWS credentials:**
+             ```bash
+             aws configure
+             ```
+          
+          3. **Deploy infrastructure:**
+             ```bash
+             ./scripts/setup.sh
+             ```
+          
+          4. **Configure BRAPI token:**
+             ```bash
+             aws secretsmanager create-secret \
+               --name "brapi/pro/token" \
+               --secret-string '{"token":"YOUR_TOKEN"}'
+             ```
+          
+          5. **Test system:**
+             ```bash
+             ./scripts/test-system.sh
+             ```
+          
+          ## What Gets Deployed
+          
+          - ✅ S3 bucket for data lake
+          - ✅ Lambda functions for data processing
+          - ✅ EventBridge schedules for automation
+          - ✅ SageMaker role for ML training
+          - ✅ CloudWatch monitoring and alerts
+          - ✅ SNS topic for notifications
+          
+          ## Post-Deployment
+          
+          The system will automatically:
+          - Download 10 years of historical data
+          - Start ingesting real-time quotes (5min intervals)
+          - Train ML models daily
+          - Generate stock rankings daily
+          - Monitor data quality and send alerts
+          
+          ## Support
+          
+          - 📖 Documentation: docs/
+          - 🐛 Issues: GitHub Issues
+          - 🔧 Troubleshooting: docs/troubleshooting.md
+          EOF
+          
+          # Create archive
+          tar -czf b3tr-${{ github.ref_name }}.tar.gz -C release-package .
+          zip -r b3tr-${{ github.ref_name }}.zip release-package/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: B3TR ${{ github.ref_name }}
+          body_path: ${{ steps.changelog.outputs.changelog_file }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+          files: |
+            b3tr-${{ github.ref_name }}.tar.gz
+            b3tr-${{ github.ref_name }}.zip
+            CHANGELOG.md
+          generate_release_notes: true
+
+      - name: Update documentation
+        run: |
+          echo "📦 Release ${{ github.ref_name }} created successfully!"
+          echo "🔗 Download: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+          echo "📋 Changelog: See release notes for detailed changes"
