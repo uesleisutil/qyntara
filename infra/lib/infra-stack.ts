@@ -18,6 +18,8 @@ import * as cw_actions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as secrets from "aws-cdk-lib/aws-secretsmanager";
 import * as cr from "aws-cdk-lib/custom-resources";
 
+import { QuickSightStack } from "./quicksight-stack";
+
 // Lê infra/.env (somente local). Em CI/prod você passa env vars no workflow.
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
@@ -310,6 +312,9 @@ export class InfraStack extends cdk.Stack {
 
     const monitorIngestionFn = mkPyLambda("MonitorIngestion", "ml.src.lambdas.monitor_ingestion.handler");
     const monitorQualityFn = mkPyLambda("MonitorModelQuality", "ml.src.lambdas.monitor_model_quality.handler");
+    
+    // Lambda para gerar dados de exemplo para QuickSight
+    const generateSampleDataFn = mkPyLambda("GenerateSampleData", "ml.src.lambdas.generate_sample_data.handler");
 
     // Bootstrap histórico diário (incremental + idempotente)
     const bootstrapHistoryFn = mkPyLambda(
@@ -436,11 +441,53 @@ export class InfraStack extends cdk.Stack {
     ingestionAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
 
     // -----------------------
+    // QuickSight Dashboard
+    // -----------------------
+    // Reutilizar a variável alertEmail já declarada acima
+    const finalAlertEmail = alertEmail || "admin@example.com";
+    
+    // Upload QuickSight manifest
+    const manifestContent = JSON.stringify({
+      "fileLocations": [
+        {
+          "URIPrefixes": [
+            `s3://${bucket.bucketName}/recommendations/`,
+            `s3://${bucket.bucketName}/monitoring/model_quality/`,
+            `s3://${bucket.bucketName}/monitoring/ingestion/`,
+            `s3://${bucket.bucketName}/curated/daily/`
+          ]
+        }
+      ],
+      "globalUploadSettings": {
+        "format": "JSON",
+        "delimiter": ",",
+        "textqualifier": "\"",
+        "containsHeader": "true"
+      }
+    }, null, 2);
+
+    new s3deploy.BucketDeployment(this, "DeployQuickSightManifest", {
+      sources: [s3deploy.Source.data("manifest.json", manifestContent)],
+      destinationBucket: bucket,
+      destinationKeyPrefix: "quicksight",
+      retainOnDelete: true,
+    });
+
+    const quickSightStack = new QuickSightStack(this, "QuickSight", {
+      bucket: bucket,
+      alertEmail: finalAlertEmail,
+    });
+
+    // -----------------------
     // Outputs
     // -----------------------
     new cdk.CfnOutput(this, "BucketName", { value: bucket.bucketName });
     new cdk.CfnOutput(this, "AlertsTopicArn", { value: alertsTopic.topicArn });
     new cdk.CfnOutput(this, "SageMakerRoleArn", { value: sagemakerRole.roleArn });
     new cdk.CfnOutput(this, "SsmPrefix", { value: ssmPrefix });
+    new cdk.CfnOutput(this, "QuickSightDashboardUrl", { 
+      value: quickSightStack.dashboardUrl,
+      description: "URL to access the B3TR MLOps Dashboard in QuickSight"
+    });
   }
 }
