@@ -18,7 +18,7 @@ import * as cw_actions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as secrets from "aws-cdk-lib/aws-secretsmanager";
 import * as cr from "aws-cdk-lib/custom-resources";
 
-import { QuickSightStack } from "./quicksight-stack";
+import { QuickSightConstruct } from "./quicksight-stack";
 
 // Lê infra/.env (somente local). Em CI/prod você passa env vars no workflow.
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
@@ -473,7 +473,7 @@ export class InfraStack extends cdk.Stack {
       retainOnDelete: true,
     });
 
-    const quickSightStack = new QuickSightStack(this, "QuickSight", {
+    const quickSightConstruct = new QuickSightConstruct(this, "QuickSight", {
       bucket: bucket,
       alertEmail: finalAlertEmail,
     });
@@ -486,7 +486,7 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, "SageMakerRoleArn", { value: sagemakerRole.roleArn });
     new cdk.CfnOutput(this, "SsmPrefix", { value: ssmPrefix });
     new cdk.CfnOutput(this, "QuickSightDashboardUrl", { 
-      value: quickSightStack.dashboardUrl,
+      value: quickSightConstruct.dashboardUrl,
       description: "URL to access the B3TR MLOps Dashboard in QuickSight"
     });
   }

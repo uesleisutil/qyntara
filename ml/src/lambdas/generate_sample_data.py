@@ -4,13 +4,12 @@ Executa uma vez para popular o dashboard com dados iniciais
 """
 
 import json
-import boto3
-import pandas as pd
-from datetime import datetime, timedelta
-import random
-from typing import Dict, Any
 import logging
+import random
+from datetime import datetime, timedelta
+from typing import Any
 
+import boto3
 from runtime_config import load_runtime_config
 
 logger = logging.getLogger()
@@ -22,7 +21,10 @@ s3 = boto3.client("s3")
 def generate_sample_recommendations(bucket: str, days: int = 30) -> None:
     """Gera dados de exemplo para recomendações diárias"""
     
-    tickers = ["PETR4", "VALE3", "ITUB4", "BBDC4", "ABEV3", "MGLU3", "WEGE3", "RENT3", "LREN3", "GGBR4"]
+    tickers = [
+        "PETR4", "VALE3", "ITUB4", "BBDC4", "ABEV3", 
+        "MGLU3", "WEGE3", "RENT3", "LREN3", "GGBR4"
+    ]
     sectors = {
         "PETR4": "Petróleo", "VALE3": "Mineração", "ITUB4": "Bancos", 
         "BBDC4": "Bancos", "ABEV3": "Bebidas", "MGLU3": "Varejo",
@@ -125,12 +127,26 @@ def generate_sample_ingestion_data(bucket: str, days: int = 7) -> None:
             
             # Simular dados de ingestão
             success_rate = random.uniform(0.85, 0.99)
-            status = "success" if success_rate > 0.90 else "warning" if success_rate > 0.80 else "error"
+            if success_rate > 0.90:
+                status = "success"
+            elif success_rate > 0.80:
+                status = "warning"
+            else:
+                status = "error"
             
-            records_ingested = random.randint(150, 250) if status == "success" else random.randint(50, 150)
-            execution_time_ms = random.randint(2000, 8000) if status == "success" else random.randint(8000, 15000)
+            if status == "success":
+                records_ingested = random.randint(150, 250)
+                execution_time_ms = random.randint(2000, 8000)
+            else:
+                records_ingested = random.randint(50, 150)
+                execution_time_ms = random.randint(8000, 15000)
             
-            error_message = "" if status == "success" else "Timeout na API BRAPI" if random.random() > 0.5 else "Rate limit exceeded"
+            if status == "success":
+                error_message = ""
+            elif random.random() > 0.5:
+                error_message = "Timeout na API BRAPI"
+            else:
+                error_message = "Rate limit exceeded"
             
             ingestion_data = {
                 "timestamp": timestamp.isoformat(),
@@ -157,7 +173,7 @@ def generate_sample_ingestion_data(bucket: str, days: int = 7) -> None:
         logger.info(f"Generated ingestion data for day {day}")
 
 
-def lambda_handler(event: Dict[str, Any], context) -> Dict[str, Any]:
+def lambda_handler(event: dict[str, Any], context) -> dict[str, Any]:
     """Handler principal"""
     
     try:

@@ -4,17 +4,17 @@ import * as quicksight from "aws-cdk-lib/aws-quicksight";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3 from "aws-cdk-lib/aws-s3";
 
-export interface QuickSightStackProps extends cdk.StackProps {
+export interface QuickSightConstructProps {
   bucket: s3.Bucket;
   alertEmail: string;
 }
 
-export class QuickSightStack extends cdk.Stack {
+export class QuickSightConstruct extends Construct {
   public readonly dataSourceArn: string;
   public readonly dashboardUrl: string;
 
-  constructor(scope: Construct, id: string, props: QuickSightStackProps) {
-    super(scope, id, props);
+  constructor(scope: Construct, id: string, props: QuickSightConstructProps) {
+    super(scope, id);
 
     const { bucket, alertEmail } = props;
     const accountId = cdk.Stack.of(this).account;
