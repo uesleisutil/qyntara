@@ -21,7 +21,8 @@ export class QuickSightConstruct extends Construct {
     const region = cdk.Stack.of(this).region;
 
     // Extrair username do email para QuickSight
-    const username = alertEmail.split('@')[0];
+    // Para usuários IAM, o username é o account ID
+    const username = accountId;
 
     // 1. Data Source - S3
     const dataSource = new quicksight.CfnDataSource(this, "B3TRDataSource", {
