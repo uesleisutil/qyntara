@@ -1,7 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as quicksight from "aws-cdk-lib/aws-quicksight";
-import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3 from "aws-cdk-lib/aws-s3";
 
 export interface QuickSightConstructProps {
@@ -16,15 +15,14 @@ export class QuickSightConstruct extends Construct {
   constructor(scope: Construct, id: string, props: QuickSightConstructProps) {
     super(scope, id);
 
-    const { bucket, alertEmail } = props;
+    const { bucket } = props;
     const accountId = cdk.Stack.of(this).account;
     const region = cdk.Stack.of(this).region;
 
-    // Extrair username do email para QuickSight
     // Para usuários IAM, o username é o account ID
     const username = accountId;
 
-    // 1. Data Source - S3
+    // 1. Data Source - S3 (Minimal permissions)
     const dataSource = new quicksight.CfnDataSource(this, "B3TRDataSource", {
       awsAccountId: accountId,
       dataSourceId: "b3tr-s3-datasource",
@@ -45,14 +43,12 @@ export class QuickSightConstruct extends Construct {
             "quicksight:DescribeDataSource",
             "quicksight:DescribeDataSourcePermissions",
             "quicksight:PassDataSource",
-            "quicksight:UpdateDataSource",
-            "quicksight:DeleteDataSource",
           ],
         },
       ],
     });
 
-    // 2. DataSet - Recommendations (Simplified)
+    // 2. DataSet - Recommendations (Minimal permissions)
     const recommendationsDataSet = new quicksight.CfnDataSet(this, "RecommendationsDataSet", {
       awsAccountId: accountId,
       dataSetId: "b3tr-recommendations",
@@ -80,18 +76,12 @@ export class QuickSightConstruct extends Construct {
             "quicksight:DescribeDataSet",
             "quicksight:DescribeDataSetPermissions",
             "quicksight:PassDataSet",
-            "quicksight:DescribeIngestion",
-            "quicksight:ListIngestions",
-            "quicksight:UpdateDataSet",
-            "quicksight:DeleteDataSet",
-            "quicksight:CreateIngestion",
-            "quicksight:CancelIngestion",
           ],
         },
       ],
     });
 
-    // 3. DataSet - Data Quality (Simplified)
+    // 3. DataSet - Data Quality (Minimal permissions)
     const dataQualityDataSet = new quicksight.CfnDataSet(this, "DataQualityDataSet", {
       awsAccountId: accountId,
       dataSetId: "b3tr-data-quality",
@@ -120,18 +110,12 @@ export class QuickSightConstruct extends Construct {
             "quicksight:DescribeDataSet",
             "quicksight:DescribeDataSetPermissions",
             "quicksight:PassDataSet",
-            "quicksight:DescribeIngestion",
-            "quicksight:ListIngestions",
-            "quicksight:UpdateDataSet",
-            "quicksight:DeleteDataSet",
-            "quicksight:CreateIngestion",
-            "quicksight:CancelIngestion",
           ],
         },
       ],
     });
 
-    // 4. DataSet - Ingestion Monitoring (Simplified)
+    // 4. DataSet - Ingestion Monitoring (Minimal permissions)
     const ingestionDataSet = new quicksight.CfnDataSet(this, "IngestionDataSet", {
       awsAccountId: accountId,
       dataSetId: "b3tr-ingestion",
@@ -158,12 +142,6 @@ export class QuickSightConstruct extends Construct {
             "quicksight:DescribeDataSet",
             "quicksight:DescribeDataSetPermissions",
             "quicksight:PassDataSet",
-            "quicksight:DescribeIngestion",
-            "quicksight:ListIngestions",
-            "quicksight:UpdateDataSet",
-            "quicksight:DeleteDataSet",
-            "quicksight:CreateIngestion",
-            "quicksight:CancelIngestion",
           ],
         },
       ],
