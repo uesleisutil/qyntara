@@ -1,0 +1,415 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.card h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+}
+
+.status-good { background-color: #10b981; }
+.status-warning { background-color: #f59e0b; }
+.status-critical { background-color: #ef4444; }
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.metric {
+  text-align: center;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e40af;
+}
+
+.metric-label {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.error-banner {
+  background: #fef2f2;
+  border: 2px solid #fecaca;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+}
+
+.error-banner-content {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  gap: 1rem;
+}
+
+.error-banner-icon {
+  color: #dc2626;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.error-banner-message {
+  flex: 1;
+  color: #991b1b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.error-banner-dismiss {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+}
+
+.error-banner-dismiss:hover {
+  background: #fee2e2;
+}
+
+.error-banner-dismiss:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+.recommendations-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.recommendations-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.recommendations-table th,
+.recommendations-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.recommendations-table th {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+}
+
+.recommendations-table tr:hover {
+  background: #f8fafc;
+}
+
+.rank-badge {
+  display: inline-block;
+  background: #1e40af;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.positive { color: #10b981; }
+.negative { color: #ef4444; }
+
+.chart-container {
+  height: 300px;
+  margin-top: 1rem;
+}
+
+.last-updated {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Responsive Design - Media Queries */
+
+/* Tablet (768x1024) and below */
+@media (max-width: 1024px) {
+  .container {
+    padding: 15px;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .header p {
+    font-size: 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .chart-container {
+    height: 250px;
+  }
+}
+
+/* Mobile (768px and below) - Vertical Stacking */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .header {
+    padding: 1.5rem 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header h1 {
+    font-size: 1.75rem;
+  }
+
+  .header p {
+    font-size: 0.9rem;
+  }
+
+  /* Force vertical stacking */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .card h3 {
+    font-size: 1.1rem;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .metric {
+    padding: 0.75rem;
+  }
+
+  .metric-value {
+    font-size: 1.25rem;
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+  }
+
+  .chart-container {
+    height: 200px;
+  }
+
+  .recommendations-table {
+    font-size: 0.875rem;
+  }
+
+  .recommendations-table th,
+  .recommendations-table td {
+    padding: 0.5rem;
+  }
+
+  .last-updated {
+    font-size: 0.8rem;
+    padding: 0.75rem;
+  }
+
+  .last-updated button {
+    display: block;
+    margin: 0.75rem auto 0 auto !important;
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .error-banner-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .error-banner-message {
+    font-size: 0.875rem;
+  }
+}
+
+/* Small Mobile (375x667 and below) */
+@media (max-width: 375px) {
+  .container {
+    padding: 8px;
+  }
+
+  .header {
+    padding: 1rem 0.75rem;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
+  }
+
+  .header p {
+    font-size: 0.85rem;
+  }
+
+  .card {
+    padding: 0.875rem;
+  }
+
+  .card h3 {
+    font-size: 1rem;
+  }
+
+  .metric-value {
+    font-size: 1.1rem;
+  }
+
+  .chart-container {
+    height: 180px;
+  }
+
+  .recommendations-table {
+    font-size: 0.8rem;
+  }
+
+  .recommendations-table th,
+  .recommendations-table td {
+    padding: 0.4rem;
+  }
+
+  .rank-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+}
+
+/* Desktop (1920x1080+) - Optimize for large screens */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1600px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .header h1 {
+    font-size: 3rem;
+  }
+
+  .header p {
+    font-size: 1.25rem;
+  }
+
+  .chart-container {
+    height: 350px;
+  }
+}

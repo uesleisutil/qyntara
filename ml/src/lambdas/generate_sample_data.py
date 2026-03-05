@@ -1,16 +1,16 @@
 """
-Lambda para gerar dados de exemplo para QuickSight
+Lambda para gerar dados de exemplo para o dashboard web
 Executa uma vez para popular o dashboard com dados iniciais
 """
 
 import json
 import logging
+import os
 import random
 from datetime import datetime, timedelta
 from typing import Any
 
 import boto3
-from runtime_config import load_runtime_config
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -181,18 +181,19 @@ def generate_sample_ingestion_data(bucket: str, days: int = 7) -> None:
         logger.info(f"Generated ingestion data for day {day}")
 
 
-def lambda_handler(event: dict[str, Any], context) -> dict[str, Any]:
+def handler(event: dict[str, Any], context) -> dict[str, Any]:
     """Handler principal"""
 
     try:
-        cfg = load_runtime_config()
+        # Get bucket from environment variable
+        bucket_name = os.environ["BUCKET"]
 
-        logger.info("Generating sample data for QuickSight dashboards...")
+        logger.info("Generating sample data for web dashboard...")
 
         # Gerar dados de exemplo
-        generate_sample_recommendations(cfg.bucket, days=30)
-        generate_sample_quality_data(cfg.bucket, days=30)
-        generate_sample_ingestion_data(cfg.bucket, days=7)
+        generate_sample_recommendations(bucket_name, days=30)
+        generate_sample_quality_data(bucket_name, days=30)
+        generate_sample_ingestion_data(bucket_name, days=7)
 
         logger.info("Sample data generation completed successfully")
 
@@ -201,7 +202,7 @@ def lambda_handler(event: dict[str, Any], context) -> dict[str, Any]:
             "body": json.dumps(
                 {
                     "message": "Sample data generated successfully",
-                    "bucket": cfg.bucket,
+                    "bucket": bucket_name,
                     "timestamp": datetime.now().isoformat(),
                 }
             ),

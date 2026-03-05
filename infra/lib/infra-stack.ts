@@ -17,17 +17,13 @@ import * as cw from "aws-cdk-lib/aws-cloudwatch";
 import * as cw_actions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as secrets from "aws-cdk-lib/aws-secretsmanager";
 import * as cr from "aws-cdk-lib/custom-resources";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 
-import { QuickSightConstruct } from "./quicksight-stack";
+
 
 // Lê infra/.env (somente local). Em CI/prod você passa env vars no workflow.
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
-
-function mustEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env var: ${name}`);
-  return v;
-}
 
 function envOr(name: string, fallback: string): string {
   const v = process.env[name];
@@ -146,9 +142,10 @@ export class InfraStack extends cdk.Stack {
     });
 
     // -----------------------
-    // Secret (BRAPI)
+    // Secret (BRAPI) - referenced by Lambda functions via environment
     // -----------------------
     const brapiSecret = secrets.Secret.fromSecretNameV2(this, "BrapiSecret", brapiSecretId);
+    // Note: brapiSecret is used implicitly by Lambda functions that access the secret via brapiSecretId
 
     // -----------------------
     // SNS Alerts
@@ -313,7 +310,7 @@ export class InfraStack extends cdk.Stack {
     const monitorIngestionFn = mkPyLambda("MonitorIngestion", "ml.src.lambdas.monitor_ingestion.handler");
     const monitorQualityFn = mkPyLambda("MonitorModelQuality", "ml.src.lambdas.monitor_model_quality.handler");
     
-    // Lambda para gerar dados de exemplo para QuickSight
+    // Lambda para gerar dados de exemplo para o dashboard web
     const generateSampleDataFn = mkPyLambda("GenerateSampleData", "ml.src.lambdas.generate_sample_data.handler");
 
     // Bootstrap histórico diário (incremental + idempotente)
@@ -418,6 +415,12 @@ export class InfraStack extends cdk.Stack {
     });
     trainModelRule.addTarget(new targets.LambdaFunction(trainModelFn));
 
+    // Geração de dados de exemplo para o dashboard (roda 1x por semana para manter dados atualizados)
+    const generateSampleDataRule = new events.Rule(this, "GenerateSampleDataWeekly", {
+      schedule: events.Schedule.expression("cron(0 23 ? * SUN *)"), // Domingo 20:00 BRT
+    });
+    generateSampleDataRule.addTarget(new targets.LambdaFunction(generateSampleDataFn));
+
     // -----------------------
     // Alarm -> SNS
     // -----------------------
@@ -441,42 +444,57 @@ export class InfraStack extends cdk.Stack {
     ingestionAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
 
     // -----------------------
-    // QuickSight Dashboard
+    // Dashboard Web (S3 + CloudFront) - Mais simples e barato que Amplify
     // -----------------------
-    // Reutilizar a variável alertEmail já declarada acima
-    const finalAlertEmail = alertEmail || "admin@example.com";
     
-    // Upload QuickSight manifest
-    const manifestContent = JSON.stringify({
-      "fileLocations": [
+    // Bucket para hospedar o dashboard (privado + CloudFront)
+    const dashboardBucket = new s3.Bucket(this, "DashboardBucket", {
+      bucketName: `${bucketPrefix}-dashboard-${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}`.slice(0, 63),
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
+    // Origin Access Control para CloudFront
+    const oac = new cloudfront.CfnOriginAccessControl(this, "DashboardOAC", {
+      originAccessControlConfig: {
+        name: "B3TR-Dashboard-OAC",
+        originAccessControlOriginType: "s3",
+        signingBehavior: "always",
+        signingProtocol: "sigv4",
+      },
+    });
+
+    // CloudFront distribution para HTTPS e performance
+    const distribution = new cloudfront.Distribution(this, "DashboardDistribution", {
+      defaultBehavior: {
+        origin: new origins.S3Origin(dashboardBucket),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      },
+      defaultRootObject: "index.html",
+      errorResponses: [
         {
-          "URIPrefixes": [
-            `s3://${bucket.bucketName}/recommendations/`,
-            `s3://${bucket.bucketName}/monitoring/model_quality/`,
-            `s3://${bucket.bucketName}/monitoring/ingestion/`,
-            `s3://${bucket.bucketName}/curated/daily/`
-          ]
-        }
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: "/index.html", // SPA routing
+        },
       ],
-      "globalUploadSettings": {
-        "format": "JSON",
-        "delimiter": ",",
-        "textqualifier": "\"",
-        "containsHeader": "true"
-      }
-    }, null, 2);
-
-    new s3deploy.BucketDeployment(this, "DeployQuickSightManifest", {
-      sources: [s3deploy.Source.data("manifest.json", manifestContent)],
-      destinationBucket: bucket,
-      destinationKeyPrefix: "quicksight",
-      retainOnDelete: true,
     });
 
-    const quickSightConstruct = new QuickSightConstruct(this, "QuickSight", {
-      bucket: bucket,
-      alertEmail: finalAlertEmail,
-    });
+    // Política do bucket para permitir acesso do CloudFront
+    dashboardBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:GetObject"],
+        resources: [`${dashboardBucket.bucketArn}/*`],
+        principals: [new iam.ServicePrincipal("cloudfront.amazonaws.com")],
+        conditions: {
+          StringEquals: {
+            "AWS:SourceArn": `arn:aws:cloudfront::${cdk.Aws.ACCOUNT_ID}:distribution/${distribution.distributionId}`,
+          },
+        },
+      })
+    );
 
     // -----------------------
     // Outputs
@@ -485,9 +503,14 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, "AlertsTopicArn", { value: alertsTopic.topicArn });
     new cdk.CfnOutput(this, "SageMakerRoleArn", { value: sagemakerRole.roleArn });
     new cdk.CfnOutput(this, "SsmPrefix", { value: ssmPrefix });
-    new cdk.CfnOutput(this, "QuickSightDashboardUrl", { 
-      value: quickSightConstruct.dashboardUrl,
-      description: "URL to access the B3TR MLOps Dashboard in QuickSight"
+    new cdk.CfnOutput(this, "DashboardUrl", {
+      value: `https://${distribution.distributionDomainName}`,
+      description: "URL do Dashboard Web B3TR"
+    });
+
+    new cdk.CfnOutput(this, "DashboardBucketName", {
+      value: dashboardBucket.bucketName,
+      description: "Nome do bucket para upload do dashboard"
     });
   }
 }
