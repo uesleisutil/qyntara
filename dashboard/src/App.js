@@ -1,3 +1,4 @@
+// Dashboard rebuild - 2026-03-05 22:35
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   TrendingUp, 
