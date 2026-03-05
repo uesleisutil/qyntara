@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   TrendingUp, 
   Activity, 
@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { getS3Client, getBucketName, validateCredentials, readS3Object, listS3Objects } from './utils/s3Config';
+import { validateCredentials, readS3Object, listS3Objects } from './utils/s3Config';
 import RecommendationsTable from './components/RecommendationsTable';
 import ModelQualityPanel from './components/ModelQualityPanel';
 import IngestionStatusPanel from './components/IngestionStatusPanel';
@@ -112,7 +112,7 @@ function App() {
   };
 
   // Carregar todos os dados
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     // Skip loading if there's a configuration error
     const validation = validateCredentials();
     if (!validation.isValid) {
@@ -178,14 +178,14 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
     // Atualizar a cada 5 minutos
     const interval = setInterval(loadData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadData]);
 
   // Calcular métricas de qualidade atual
   const currentQuality = qualityData.length > 0 ? qualityData[qualityData.length - 1] : null;

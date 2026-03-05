@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, XCircle, Wifi, Lock, FileWarning, Settings, X } from 'lucide-react';
+import { AlertTriangle, Wifi, Lock, FileWarning, Settings, X } from 'lucide-react';
 
 /**
  * ErrorBanner component displays prominent error messages with appropriate icons
