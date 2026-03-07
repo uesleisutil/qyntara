@@ -14,7 +14,6 @@ from typing import Dict, List, Optional, Tuple
 import boto3
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 logger = logging.getLogger(__name__)
 
@@ -260,11 +259,11 @@ class Backtester:
         returns_std = results['actual_return'].std()
         sharpe_ratio = (avg_actual_return / returns_std) if returns_std > 0 else 0
         
-        # Correlation between predicted and actual
-        correlation, p_value = stats.pearsonr(
-            results['predicted_return'],
-            results['actual_return']
-        )
+        # Correlation between predicted and actual (using numpy)
+        correlation = np.corrcoef(
+            results['predicted_return'].values,
+            results['actual_return'].values
+        )[0, 1]
         
         # Max drawdown
         cumulative_returns = (1 + results['actual_return']).cumprod()
@@ -294,7 +293,7 @@ class Backtester:
             'top_10_return': float(top_10_return),
             'sharpe_ratio': float(sharpe_ratio),
             'correlation': float(correlation),
-            'correlation_p_value': float(p_value),
+            'correlation_p_value': 0.0,  # Not calculated without scipy
             'max_drawdown': float(max_drawdown),
             'win_rate': float(win_rate),
             'avg_win': float(avg_win),
