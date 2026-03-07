@@ -15,7 +15,7 @@ from typing import Any, Dict
 import boto3
 import pandas as pd
 
-from src.portfolio.portfolio_optimizer import PortfolioOptimizer
+from ml.src.portfolio.portfolio_optimizer import PortfolioOptimizer
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

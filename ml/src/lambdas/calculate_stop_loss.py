@@ -15,7 +15,7 @@ from typing import Any, Dict
 import boto3
 import pandas as pd
 
-from src.risk_management.stop_loss_calculator import StopLossCalculator
+from ml.src.risk_management.stop_loss_calculator import StopLossCalculator
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

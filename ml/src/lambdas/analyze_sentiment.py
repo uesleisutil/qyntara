@@ -14,7 +14,7 @@ from typing import Any, Dict
 
 import boto3
 
-from src.sentiment.sentiment_analyzer import SentimentAnalyzer
+from ml.src.sentiment.sentiment_analyzer import SentimentAnalyzer
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

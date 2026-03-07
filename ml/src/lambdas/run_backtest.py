@@ -15,7 +15,7 @@ from typing import Any, Dict
 
 import boto3
 
-from src.backtesting.backtester import Backtester
+from ml.src.backtesting.backtester import Backtester
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
