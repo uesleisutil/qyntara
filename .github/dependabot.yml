@@ -1,5 +1,26 @@
 version: 2
 updates:
+  # Dashboard dependencies
+  - package-ecosystem: "npm"
+    directory: "/dashboard"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "uesleisutil"
+    labels:
+      - "dependencies"
+      - "security"
+      - "dashboard"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
   # NPM dependencies (CDK infrastructure)
   - package-ecosystem: "npm"
     directory: "/infra"
@@ -9,13 +30,15 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "YOUR_GITHUB_USERNAME"
+      - "uesleisutil"
     assignees:
-      - "YOUR_GITHUB_USERNAME"
+      - "uesleisutil"
+    labels:
+      - "dependencies"
+      - "infrastructure"
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
-    # Auto-merge minor and patch updates
     allow:
       - dependency-type: "direct"
         update-type: "version-update:semver-patch"
@@ -32,9 +55,13 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "YOUR_GITHUB_USERNAME"
+      - "uesleisutil"
     assignees:
-      - "YOUR_GITHUB_USERNAME"
+      - "uesleisutil"
+    labels:
+      - "dependencies"
+      - "python"
+      - "security"
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
@@ -48,9 +75,12 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 3
     reviewers:
-      - "YOUR_GITHUB_USERNAME"
+      - "uesleisutil"
     assignees:
-      - "YOUR_GITHUB_USERNAME"
+      - "uesleisutil"
+    labels:
+      - "dependencies"
+      - "github-actions"
     commit-message:
       prefix: "chore(ci)"
       include: "scope"

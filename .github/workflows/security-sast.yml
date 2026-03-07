@@ -1,0 +1,165 @@
+name: Security - SAST (Static Analysis)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 10 * * 2'  # Terça-feira às 10h UTC
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  bandit-python:
+    name: Bandit - Python Security Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Run Bandit
+        run: |
+          bandit -r . \
+            -f json \
+            -o bandit-report.json \
+            --exclude .venv,node_modules,build,dist \
+            --severity-level medium \
+            || true
+
+      - name: Run Bandit (console output)
+        run: |
+          bandit -r . \
+            --exclude .venv,node_modules,build,dist \
+            --severity-level medium \
+            -ll
+        continue-on-error: true
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+          retention-days: 30
+
+  semgrep:
+    name: Semgrep - Multi-language SAST
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/python
+            p/javascript
+            p/typescript
+            p/react
+            p/aws-lambda
+          generateSarif: true
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+
+  eslint-security:
+    name: ESLint Security - JavaScript/React
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./dashboard
+        run: |
+          npm install
+          npm install --save-dev eslint-plugin-security eslint-plugin-react-security
+
+      - name: Run ESLint Security
+        working-directory: ./dashboard
+        run: |
+          npx eslint . \
+            --ext .js,.jsx,.ts,.tsx \
+            --plugin security \
+            --plugin react-security \
+            --format json \
+            --output-file eslint-security-report.json \
+            || true
+        continue-on-error: true
+
+      - name: Upload ESLint report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eslint-security-report
+          path: dashboard/eslint-security-report.json
+          retention-days: 30
+
+  infrastructure-security:
+    name: CDK/CloudFormation Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install CDK
+        run: npm install -g aws-cdk
+
+      - name: Install dependencies
+        working-directory: ./infra
+        run: npm install
+
+      - name: Synthesize CloudFormation
+        working-directory: ./infra
+        run: cdk synth > cloudformation-template.yaml
+        continue-on-error: true
+
+      - name: Install cfn-lint
+        run: pip install cfn-lint
+
+      - name: Run cfn-lint
+        working-directory: ./infra
+        run: |
+          cfn-lint cloudformation-template.yaml \
+            --format json \
+            --output-file cfn-lint-report.json \
+            || true
+        continue-on-error: true
+
+      - name: Upload cfn-lint report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cfn-lint-report
+          path: infra/cfn-lint-report.json
+          retention-days: 30
