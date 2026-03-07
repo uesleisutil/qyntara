@@ -198,7 +198,16 @@ git push origin main
 - **GitHub Pages:** GRÁTIS ✅
 - **S3 (armazenamento):** ~$0.50/mês
 - **S3 (requests):** ~$0.10/mês
-- **Total:** ~$0.60/mês (muito mais barato que QuickSight!)
+- **Total:** ~$0.60/mês
+
+### 📊 Comparação com QuickSight (removido)
+
+| Solução | Custo Mensal | Economia |
+|---------|--------------|----------|
+| QuickSight (anterior) | $18-24/mês | - |
+| GitHub Pages (atual) | $0/mês | **$18-24/mês** ✅ |
+
+**Economia anual: ~$216-288/ano** 💰
 
 ## 📞 Suporte
 
