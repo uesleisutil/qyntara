@@ -281,3 +281,4 @@ O dashboard espera os seguintes arquivos no S3:
 - **Conteúdo**: Status e métricas de ingestão
 
 Para detalhes completos do schema, consulte o arquivo `design.md` na especificação do projeto.
+<!-- Last deploy: Sat Mar  7 12:20:50 -03 2026 -->
