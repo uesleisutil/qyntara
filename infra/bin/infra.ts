@@ -4,7 +4,7 @@ import { InfraStack } from "../lib/infra-stack";
 
 const app = new cdk.App();
 
-new InfraStack(app, "B3TacticalRankingStack", {
+new InfraStack(app, "B3TacticalRankingStackV2", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,

@@ -6,6 +6,7 @@ import * as dotenv from "dotenv";
 
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
+import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -325,20 +326,7 @@ export class InfraStack extends cdk.Stack {
     );
     bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
 
-    // Preparação automática de dados de treino
-    const prepareTrainingFn = mkPyLambda(
-      "PrepareTrainingData", 
-      "ml.src.lambdas.prepare_training_data.handler"
-    );
-
-    // Treinamento automático de modelo
-    const trainModelFn = mkPyLambda(
-      "TrainModel",
-      "ml.src.lambdas.train_model.handler"
-    );
-    bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
-
-    // SageMaker APIs
+    // SageMaker APIs (declarar antes de usar)
     const sagemakerApiPolicy = new iam.PolicyStatement({
       actions: [
         "sagemaker:CreateModel",
@@ -359,11 +347,79 @@ export class InfraStack extends cdk.Stack {
       actions: ["iam:PassRole"],
       resources: [sagemakerRole.roleArn],
     });
+
+    // Model Optimization Pipeline Lambdas
+    const featureEngineeringFn = mkPyLambda(
+      "FeatureEngineering",
+      "ml.src.lambdas.feature_engineering.handler"
+    );
+
+    // Hyperparameter optimization needs longer timeout and more memory
+    const optimizeHyperparametersFn = new lambda.Function(this, "OptimizeHyperparameters", {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      code: lambdaCode,
+      handler: "ml.src.lambdas.optimize_hyperparameters.handler",
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 2048,
+      logRetention: logs.RetentionDays.ONE_WEEK,
+      environment: commonEnv,
+      layers: [pythonLayer],
+    });
+    optimizeHyperparametersFn.addToRolePolicy(s3RwPolicy);
+    optimizeHyperparametersFn.addToRolePolicy(cwPutMetricPolicy);
+    optimizeHyperparametersFn.addToRolePolicy(ssmReadPolicy);
+
+    // Model training needs longer timeout and more memory
+    const trainModelsFn = new lambda.Function(this, "TrainModels", {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      code: lambdaCode,
+      handler: "ml.src.lambdas.train_models.handler",
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 2048,
+      logRetention: logs.RetentionDays.ONE_WEEK,
+      environment: commonEnv,
+      layers: [pythonLayer],
+    });
+    trainModelsFn.addToRolePolicy(s3RwPolicy);
+    trainModelsFn.addToRolePolicy(cwPutMetricPolicy);
+    trainModelsFn.addToRolePolicy(ssmReadPolicy);
+    trainModelsFn.addToRolePolicy(sagemakerApiPolicy);
+    trainModelsFn.addToRolePolicy(passRolePolicy);
+
+    const ensemblePredictFn = mkPyLambda(
+      "EnsemblePredict",
+      "ml.src.lambdas.ensemble_predict.handler"
+    );
+    ensemblePredictFn.addToRolePolicy(sagemakerApiPolicy);
+
+    const monitoringFn = mkPyLambda(
+      "Monitoring",
+      "ml.src.lambdas.monitoring.handler"
+    );
+
+    const dashboardApiFn = mkPyLambda(
+      "DashboardAPI",
+      "ml.src.lambdas.dashboard_api.handler"
+    );
+    
+    // Grant SNS publish permissions to monitoring Lambda
+    monitoringFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sns:Publish"],
+        resources: [alertsTopic.topicArn],
+      })
+    );
+
+    // Preparação automática de dados de treino
+    const prepareTrainingFn = mkPyLambda(
+      "PrepareTrainingData", 
+      "ml.src.lambdas.prepare_training_data.handler"
+    );
+
+    bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
     
     rankStartFn.addToRolePolicy(sagemakerApiPolicy);
     rankStartFn.addToRolePolicy(passRolePolicy);
-    trainModelFn.addToRolePolicy(sagemakerApiPolicy);
-    trainModelFn.addToRolePolicy(passRolePolicy);
 
     // -----------------------
     // EventBridge schedules (UTC)
@@ -409,17 +465,73 @@ export class InfraStack extends cdk.Stack {
     });
     prepareDataRule.addTarget(new targets.LambdaFunction(prepareTrainingFn));
 
-    // Treinamento de modelo: roda 1x por dia após preparação de dados
-    const trainModelRule = new events.Rule(this, "TrainModelDaily", {
-      schedule: events.Schedule.expression("cron(30 20 ? * MON-FRI *)"), // 17:30 BRT
-    });
-    trainModelRule.addTarget(new targets.LambdaFunction(trainModelFn));
-
     // Geração de dados de exemplo para o dashboard (roda 1x por semana para manter dados atualizados)
     const generateSampleDataRule = new events.Rule(this, "GenerateSampleDataWeekly", {
       schedule: events.Schedule.expression("cron(0 23 ? * SUN *)"), // Domingo 20:00 BRT
     });
     generateSampleDataRule.addTarget(new targets.LambdaFunction(generateSampleDataFn));
+
+    // Model Optimization Pipeline Schedules
+    
+    // Feature Engineering: roda diariamente após ingestão de dados
+    const featureEngineeringRule = new events.Rule(this, "FeatureEngineeringDaily", {
+      schedule: events.Schedule.expression("cron(0 22 ? * MON-FRI *)"), // 19:00 BRT
+    });
+    featureEngineeringRule.addTarget(new targets.LambdaFunction(featureEngineeringFn));
+
+    // Hyperparameter Optimization: roda mensalmente no primeiro dia útil
+    const optimizeHyperparametersRule = new events.Rule(this, "OptimizeHyperparametersMonthly", {
+      schedule: events.Schedule.expression("cron(0 2 1 * ? *)"), // 1st day of month, 23:00 BRT
+    });
+    optimizeHyperparametersRule.addTarget(new targets.LambdaFunction(optimizeHyperparametersFn));
+
+    // Model Training: roda semanalmente aos domingos
+    const trainModelsRule = new events.Rule(this, "TrainModelsWeekly", {
+      schedule: events.Schedule.expression("cron(0 3 ? * SUN *)"), // Domingo 00:00 BRT
+    });
+    trainModelsRule.addTarget(new targets.LambdaFunction(trainModelsFn));
+
+    // Ensemble Prediction: roda diariamente após feature engineering
+    const ensemblePredictRule = new events.Rule(this, "EnsemblePredictDaily", {
+      schedule: events.Schedule.expression("cron(30 22 ? * MON-FRI *)"), // 19:30 BRT
+    });
+    ensemblePredictRule.addTarget(new targets.LambdaFunction(ensemblePredictFn));
+
+    // Monitoring: roda diariamente após predictions
+    const monitoringRule = new events.Rule(this, "MonitoringDaily", {
+      schedule: events.Schedule.expression("cron(0 23 ? * MON-FRI *)"), // 20:00 BRT
+    });
+    monitoringRule.addTarget(new targets.LambdaFunction(monitoringFn));
+
+    // S3 Event Triggers
+    
+    // Trigger feature engineering when new raw data is uploaded
+    bucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(featureEngineeringFn),
+      { prefix: 'raw/', suffix: '.csv' }
+    );
+
+    // Trigger training when hyperparameters are updated
+    bucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(trainModelsFn),
+      { prefix: 'hyperparameters/', suffix: 'best_params.json' }
+    );
+
+    // Trigger predictions when new features are available
+    bucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(ensemblePredictFn),
+      { prefix: 'features/', suffix: 'features.csv' }
+    );
+
+    // Trigger monitoring when new predictions are available
+    bucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED,
+      new s3n.LambdaDestination(monitoringFn),
+      { prefix: 'predictions/', suffix: 'ensemble_predictions.json' }
+    );
 
     // -----------------------
     // Alarm -> SNS
@@ -443,59 +555,121 @@ export class InfraStack extends cdk.Stack {
 
     ingestionAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
 
-    // -----------------------
-    // Dashboard Web (S3 + CloudFront) - Mais simples e barato que Amplify
-    // -----------------------
+    // Model Optimization Pipeline Alarms
     
-    // Bucket para hospedar o dashboard (privado + CloudFront)
-    const dashboardBucket = new s3.Bucket(this, "DashboardBucket", {
-      bucketName: `${bucketPrefix}-dashboard-${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}`.slice(0, 63),
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
+    // Alarm for feature engineering failures
+    const featureEngineeringErrorMetric = featureEngineeringFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const featureEngineeringAlarm = new cw.Alarm(this, "FeatureEngineeringFailedAlarm", {
+      metric: featureEngineeringErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Feature engineering Lambda failed",
+    });
+    featureEngineeringAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
+    // Alarm for model training failures
+    const trainModelsErrorMetric = trainModelsFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const trainModelsAlarm = new cw.Alarm(this, "TrainModelsFailedAlarm", {
+      metric: trainModelsErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Model training Lambda failed",
+    });
+    trainModelsAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
+    // Alarm for ensemble prediction failures
+    const ensemblePredictErrorMetric = ensemblePredictFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const ensemblePredictAlarm = new cw.Alarm(this, "EnsemblePredictFailedAlarm", {
+      metric: ensemblePredictErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Ensemble prediction Lambda failed",
+    });
+    ensemblePredictAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
+    // Alarm for monitoring failures
+    const monitoringErrorMetric = monitoringFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const monitoringAlarm = new cw.Alarm(this, "MonitoringFailedAlarm", {
+      metric: monitoringErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Monitoring Lambda failed",
+    });
+    monitoringAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
+    // CloudWatch Dashboard for Model Optimization
+    const modelOptimizationDashboard = new cw.Dashboard(this, "ModelOptimizationDashboard", {
+      dashboardName: "B3TR-ModelOptimization",
     });
 
-    // Origin Access Control para CloudFront
-    const oac = new cloudfront.CfnOriginAccessControl(this, "DashboardOAC", {
-      originAccessControlConfig: {
-        name: "B3TR-Dashboard-OAC",
-        originAccessControlOriginType: "s3",
-        signingBehavior: "always",
-        signingProtocol: "sigv4",
-      },
-    });
-
-    // CloudFront distribution para HTTPS e performance
-    const distribution = new cloudfront.Distribution(this, "DashboardDistribution", {
-      defaultBehavior: {
-        origin: new origins.S3Origin(dashboardBucket),
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-      },
-      defaultRootObject: "index.html",
-      errorResponses: [
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: "/index.html", // SPA routing
-        },
-      ],
-    });
-
-    // Política do bucket para permitir acesso do CloudFront
-    dashboardBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: ["s3:GetObject"],
-        resources: [`${dashboardBucket.bucketArn}/*`],
-        principals: [new iam.ServicePrincipal("cloudfront.amazonaws.com")],
-        conditions: {
-          StringEquals: {
-            "AWS:SourceArn": `arn:aws:cloudfront::${cdk.Aws.ACCOUNT_ID}:distribution/${distribution.distributionId}`,
-          },
-        },
+    modelOptimizationDashboard.addWidgets(
+      new cw.GraphWidget({
+        title: "Lambda Invocations",
+        left: [
+          featureEngineeringFn.metricInvocations(),
+          trainModelsFn.metricInvocations(),
+          ensemblePredictFn.metricInvocations(),
+          monitoringFn.metricInvocations(),
+        ],
+        width: 12,
+      }),
+      new cw.GraphWidget({
+        title: "Lambda Errors",
+        left: [
+          featureEngineeringErrorMetric,
+          trainModelsErrorMetric,
+          ensemblePredictErrorMetric,
+          monitoringErrorMetric,
+        ],
+        width: 12,
       })
     );
 
+    modelOptimizationDashboard.addWidgets(
+      new cw.GraphWidget({
+        title: "Lambda Duration",
+        left: [
+          featureEngineeringFn.metricDuration(),
+          trainModelsFn.metricDuration(),
+          ensemblePredictFn.metricDuration(),
+          monitoringFn.metricDuration(),
+        ],
+        width: 12,
+      }),
+      new cw.GraphWidget({
+        title: "Lambda Throttles",
+        left: [
+          featureEngineeringFn.metricThrottles(),
+          trainModelsFn.metricThrottles(),
+          ensemblePredictFn.metricThrottles(),
+          monitoringFn.metricThrottles(),
+        ],
+        width: 12,
+      })
+    );
+
+    // -----------------------
+    // Dashboard Web - REMOVIDO (usando GitHub Pages)
+    // -----------------------
+    // Dashboard agora está hospedado no GitHub Pages:
+    // https://uesleisutil.github.io/b3-tactical-ranking
+    
     // -----------------------
     // Outputs
     // -----------------------
@@ -504,13 +678,28 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, "SageMakerRoleArn", { value: sagemakerRole.roleArn });
     new cdk.CfnOutput(this, "SsmPrefix", { value: ssmPrefix });
     new cdk.CfnOutput(this, "DashboardUrl", {
-      value: `https://${distribution.distributionDomainName}`,
-      description: "URL do Dashboard Web B3TR"
+      value: "https://uesleisutil.github.io/b3-tactical-ranking",
+      description: "URL do Dashboard Web B3TR (GitHub Pages)"
     });
-
-    new cdk.CfnOutput(this, "DashboardBucketName", {
-      value: dashboardBucket.bucketName,
-      description: "Nome do bucket para upload do dashboard"
+    new cdk.CfnOutput(this, "ModelOptimizationDashboardUrl", {
+      value: `https://console.aws.amazon.com/cloudwatch/home?region=${cdk.Aws.REGION}#dashboards:name=B3TR-ModelOptimization`,
+      description: "CloudWatch Dashboard for Model Optimization Pipeline"
+    });
+    new cdk.CfnOutput(this, "FeatureEngineeringLambda", {
+      value: featureEngineeringFn.functionName,
+      description: "Feature Engineering Lambda Function"
+    });
+    new cdk.CfnOutput(this, "TrainModelsLambda", {
+      value: trainModelsFn.functionName,
+      description: "Model Training Lambda Function"
+    });
+    new cdk.CfnOutput(this, "EnsemblePredictLambda", {
+      value: ensemblePredictFn.functionName,
+      description: "Ensemble Prediction Lambda Function"
+    });
+    new cdk.CfnOutput(this, "MonitoringLambda", {
+      value: monitoringFn.functionName,
+      description: "Monitoring Lambda Function"
     });
   }
 }
