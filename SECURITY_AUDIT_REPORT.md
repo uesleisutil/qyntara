@@ -28,7 +28,7 @@
 
 **Issue**:
 ```
-REACT_APP_AWS_ACCESS_KEY_ID=***REMOVED***
+REACT_APP_AWS_ACCESS_KEY_ID=AKIA****************
 ```
 
 **Risk**:
@@ -373,7 +373,7 @@ env:
 ### Immediate (Within 24 hours)
 
 1. **Rotate AWS Access Key** 🔴
-   - Rotate `***REMOVED***` in AWS IAM
+   - Rotate `AKIA****************` in AWS IAM
    - Update GitHub secrets with new key
    - Remove key from `.env.local` file
    - Document proper credential handling

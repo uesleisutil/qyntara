@@ -9,7 +9,7 @@
 
 An AWS access key was found in the local `.env.local` file:
 ```
-***REMOVED***
+AKIA****************
 ```
 
 **Status**: 
@@ -29,7 +29,7 @@ An AWS access key was found in the local `.env.local` file:
 
 # 2. Navigate to IAM > Users > [your-user] > Security credentials
 
-# 3. Find access key: ***REMOVED***
+# 3. Find access key: AKIA****************
 
 # 4. Click "Make inactive" to disable it
 
@@ -46,7 +46,7 @@ An AWS access key was found in the local `.env.local` file:
 
 ```bash
 # Check git history for any accidental commits
-git log --all --full-history -S "***REMOVED***"
+git log --all --full-history -S "AKIA****************"
 
 # Should return nothing - if it does, contact GitHub support immediately
 ```
@@ -87,7 +87,7 @@ After rotating the key, verify:
 
 **Bad** ❌:
 ```bash
-REACT_APP_AWS_ACCESS_KEY_ID=***REMOVED***
+REACT_APP_AWS_ACCESS_KEY_ID=AKIA****************
 ```
 
 **Good** ✅:
@@ -123,7 +123,7 @@ Monitor for unauthorized access:
 ```bash
 # Check recent API calls with the key
 aws cloudtrail lookup-events \
-  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=***REMOVED*** \
+  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIA**************** \
   --max-results 50
 ```
 
@@ -164,13 +164,13 @@ If you suspect the key was used by unauthorized parties:
 ```bash
 # 1. Disable the key immediately
 aws iam update-access-key \
-  --access-key-id ***REMOVED*** \
+  --access-key-id AKIA**************** \
   --status Inactive \
   --user-name [your-username]
 
 # 2. Check CloudTrail for unauthorized access
 aws cloudtrail lookup-events \
-  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=***REMOVED*** \
+  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIA**************** \
   --start-time $(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%S) \
   --max-results 1000
 

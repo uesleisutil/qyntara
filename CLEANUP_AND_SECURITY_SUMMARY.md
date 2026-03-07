@@ -46,7 +46,7 @@
 ### Critical Issues (1)
 
 1. **AWS Access Key in `.env.local`** 🔴
-   - **Key**: ***REMOVED***
+   - **Key**: AKIA****************
    - **Status**: Removed from file, needs rotation
    - **Risk**: Medium (not committed to git, but exposed locally)
    - **Action**: Rotate key immediately (see SECURITY_FIX_GUIDE.md)
@@ -118,7 +118,7 @@
 
 ```bash
 # 1. Go to AWS IAM Console
-# 2. Find key: ***REMOVED***
+# 2. Find key: AKIA****************
 # 3. Make inactive
 # 4. Create new key
 # 5. Update GitHub Secrets
@@ -132,7 +132,7 @@
 ```bash
 # Check CloudTrail for suspicious activity
 aws cloudtrail lookup-events \
-  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=***REMOVED*** \
+  --lookup-attributes AttributeKey=AccessKeyId,AttributeValue=AKIA**************** \
   --max-results 50
 ```
 
