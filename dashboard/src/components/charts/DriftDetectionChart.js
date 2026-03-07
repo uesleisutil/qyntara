@@ -65,9 +65,8 @@ const DriftDetectionChart = ({
     }
   };
 
-  // Get unique features and dates for axis
+  // Get unique features for axis
   const uniqueFeatures = [...new Set(driftData.map(d => d.feature))];
-  const uniqueDates = [...new Set(driftData.map(d => d.date))];
 
   return (
     <div className="w-full">

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { TrendingUp } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import EnsembleWeightsChart from '../charts/EnsembleWeightsChart';
 import StockSelector from '../filters/StockSelector';
 

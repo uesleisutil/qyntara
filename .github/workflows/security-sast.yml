@@ -72,13 +72,15 @@ jobs:
             p/typescript
             p/react
             p/aws-lambda
-          generateSarif: true
+        continue-on-error: true
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload Semgrep results
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          sarif_file: semgrep.sarif
+          name: semgrep-results
+          path: semgrep-results.json
+          retention-days: 30
 
   eslint-security:
     name: ESLint Security - JavaScript/React

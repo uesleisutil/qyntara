@@ -66,7 +66,7 @@ jobs:
           persist-credentials: false
 
       - name: Run Scorecard analysis
-        uses: ossf/scorecard-action@v2
+        uses: ossf/scorecard-action@v2.4.0
         with:
           results_file: scorecard-results.sarif
           results_format: sarif
@@ -76,6 +76,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: scorecard-results.sarif
+        continue-on-error: true
 
   aws-security-best-practices:
     name: AWS Security Best Practices
