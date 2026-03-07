@@ -1,4 +1,4 @@
-// Dashboard rebuild - 2026-03-05 22:35
+// Dashboard v2.0.0 - MLOps Pipeline Completo - 2026-03-07
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   TrendingUp, 

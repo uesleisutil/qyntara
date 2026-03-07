@@ -1,5 +1,9 @@
 # B3TR Dashboard
 
+**Versão:** 2.0.0  
+**Data:** 07/03/2026  
+**Status:** ✅ Produção
+
 Dashboard web para monitoramento do sistema B3 Tactical Ranking MLOps.
 
 ## 🚀 Características
