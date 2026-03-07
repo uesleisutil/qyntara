@@ -406,7 +406,7 @@ export class InfraStack extends cdk.Stack {
     const backtestingFn = new lambda.Function(this, "Backtesting", {
       runtime: lambda.Runtime.PYTHON_3_11,
       code: lambdaCode,
-      handler: "ml.src.lambdas.run_backtest.lambda_handler",
+      handler: "ml.src.lambdas.run_backtest.handler",
       timeout: cdk.Duration.minutes(15),
       memorySize: 2048,
       logRetention: logs.RetentionDays.ONE_WEEK,
@@ -419,13 +419,13 @@ export class InfraStack extends cdk.Stack {
 
     const portfolioOptimizerFn = mkPyLambda(
       "PortfolioOptimizer",
-      "ml.src.lambdas.optimize_portfolio.lambda_handler"
+      "ml.src.lambdas.optimize_portfolio.handler"
     );
 
     const sentimentAnalysisFn = new lambda.Function(this, "SentimentAnalysis", {
       runtime: lambda.Runtime.PYTHON_3_11,
       code: lambdaCode,
-      handler: "ml.src.lambdas.analyze_sentiment.lambda_handler",
+      handler: "ml.src.lambdas.analyze_sentiment.handler",
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_WEEK,
@@ -439,7 +439,7 @@ export class InfraStack extends cdk.Stack {
 
     const stopLossCalculatorFn = mkPyLambda(
       "StopLossCalculator",
-      "ml.src.lambdas.calculate_stop_loss.lambda_handler"
+      "ml.src.lambdas.calculate_stop_loss.handler"
     );
     
     // Grant SNS publish permissions to monitoring Lambda

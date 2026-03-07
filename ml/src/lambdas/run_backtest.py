@@ -23,7 +23,7 @@ logger.setLevel(logging.INFO)
 s3 = boto3.client('s3')
 
 
-def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Lambda handler for backtesting.
     
