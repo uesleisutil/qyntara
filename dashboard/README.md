@@ -282,3 +282,5 @@ O dashboard espera os seguintes arquivos no S3:
 
 Para detalhes completos do schema, consulte o arquivo `design.md` na especificação do projeto.
 <!-- Last deploy: Sat Mar  7 12:20:50 -03 2026 -->
+
+< Force deploy: Sat Mar  7 12:38:20 -03 2026 -->

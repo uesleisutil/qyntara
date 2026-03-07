@@ -5,18 +5,43 @@ import {
   Activity, 
   Database, 
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  BarChart3,
+  GitBranch,
+  Zap,
+  Target,
+  AlertTriangle,
+  Settings
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { validateCredentials, readS3Object, listS3Objects } from './utils/s3Config';
+
+// Componentes básicos
 import RecommendationsTable from './components/RecommendationsTable';
 import ModelQualityPanel from './components/ModelQualityPanel';
 import IngestionStatusPanel from './components/IngestionStatusPanel';
 import SystemStatusPanel from './components/SystemStatusPanel';
 import ErrorBanner from './components/ErrorBanner';
 
+// Charts avançados
+import MAPETimeSeriesChart from './components/charts/MAPETimeSeriesChart';
+import PredictionIntervalChart from './components/charts/PredictionIntervalChart';
+import FeatureImportanceChart from './components/charts/FeatureImportanceChart';
+import DriftDetectionChart from './components/charts/DriftDetectionChart';
+import EnsembleWeightsChart from './components/charts/EnsembleWeightsChart';
+import ModelComparisonChart from './components/charts/ModelComparisonChart';
+
+// Panels avançados
+import ModelPerformancePanel from './components/panels/ModelPerformancePanel';
+import EnsembleInsightsPanel from './components/panels/EnsembleInsightsPanel';
+import DriftMonitoringPanel from './components/panels/DriftMonitoringPanel';
+import FeatureAnalysisPanel from './components/panels/FeatureAnalysisPanel';
+import HyperparameterPanel from './components/panels/HyperparameterPanel';
+import ExplainabilityPanel from './components/panels/ExplainabilityPanel';
+
 function App() {
+  // Estados básicos
   const [recommendations, setRecommendations] = useState([]);
   const [qualityData, setQualityData] = useState([]);
   const [ingestionData, setIngestionData] = useState([]);
@@ -24,6 +49,17 @@ function App() {
   const [error, setError] = useState(null);
   const [errorType, setErrorType] = useState('general');
   const [lastUpdated, setLastUpdated] = useState(null);
+  
+  // Estados avançados para métricas de ML
+  const [driftData, setDriftData] = useState([]);
+  const [ensembleData, setEnsembleData] = useState(null);
+  const [featureImportance, setFeatureImportance] = useState([]);
+  const [hyperparameters, setHyperparameters] = useState(null);
+  const [modelMetrics, setModelMetrics] = useState([]);
+  const [predictionIntervals, setPredictionIntervals] = useState([]);
+  
+  // Estado para controlar visualização
+  const [activeTab, setActiveTab] = useState('overview'); // overview, performance, monitoring, advanced
 
   // Validate credentials on component mount
   useEffect(() => {
@@ -35,13 +71,12 @@ function App() {
     }
   }, []);
 
-  // Carregar recomendações mais recentes
+  // Carregar recomendações
   const loadRecommendations = async () => {
     try {
       const objects = await listS3Objects('recommendations/');
       if (objects.length === 0) return;
 
-      // Pegar o arquivo mais recente
       const latestObject = objects
         .filter(obj => obj.Key.endsWith('.json'))
         .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))[0];
@@ -49,16 +84,12 @@ function App() {
       if (latestObject) {
         const data = await readS3Object(latestObject.Key);
         if (data && data.recommendations) {
-          // Validate data structure
-          if (!Array.isArray(data.recommendations)) {
-            throw new Error('Invalid data format: recommendations is not an array');
-          }
           setRecommendations(data.recommendations);
         }
       }
     } catch (error) {
       console.error('Error loading recommendations:', error);
-      throw error; // Re-throw to be caught by loadData
+      throw error;
     }
   };
 
@@ -71,7 +102,7 @@ function App() {
       const qualityFiles = objects
         .filter(obj => obj.Key.endsWith('.json'))
         .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
-        .slice(0, 30); // Últimos 30 dias
+        .slice(0, 30);
 
       const qualityPromises = qualityFiles.map(obj => readS3Object(obj.Key));
       const qualityResults = await Promise.all(qualityPromises);
@@ -83,7 +114,7 @@ function App() {
       setQualityData(validQuality);
     } catch (error) {
       console.error('Error loading quality data:', error);
-      throw error; // Re-throw to be caught by loadData
+      throw error;
     }
   };
 
@@ -96,7 +127,7 @@ function App() {
       const ingestionFiles = objects
         .filter(obj => obj.Key.endsWith('.json'))
         .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
-        .slice(0, 48); // Últimas 48 horas
+        .slice(0, 48);
 
       const ingestionPromises = ingestionFiles.map(obj => readS3Object(obj.Key));
       const ingestionResults = await Promise.all(ingestionPromises);
@@ -108,13 +139,137 @@ function App() {
       setIngestionData(validIngestion);
     } catch (error) {
       console.error('Error loading ingestion data:', error);
-      throw error; // Re-throw to be caught by loadData
+      throw error;
+    }
+  };
+
+  // Carregar dados de drift
+  const loadDriftData = async () => {
+    try {
+      const objects = await listS3Objects('monitoring/drift/');
+      if (objects.length === 0) return;
+
+      const driftFiles = objects
+        .filter(obj => obj.Key.endsWith('.json'))
+        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
+        .slice(0, 30);
+
+      const driftPromises = driftFiles.map(obj => readS3Object(obj.Key));
+      const driftResults = await Promise.all(driftPromises);
+      
+      const validDrift = driftResults
+        .filter(data => data && data.timestamp)
+        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      
+      setDriftData(validDrift);
+    } catch (error) {
+      console.error('Error loading drift data:', error);
+    }
+  };
+
+  // Carregar dados de ensemble
+  const loadEnsembleData = async () => {
+    try {
+      const objects = await listS3Objects('models/ensemble/');
+      if (objects.length === 0) return;
+
+      const latestObject = objects
+        .filter(obj => obj.Key.endsWith('.json'))
+        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))[0];
+
+      if (latestObject) {
+        const data = await readS3Object(latestObject.Key);
+        setEnsembleData(data);
+      }
+    } catch (error) {
+      console.error('Error loading ensemble data:', error);
+    }
+  };
+
+  // Carregar feature importance
+  const loadFeatureImportance = async () => {
+    try {
+      const objects = await listS3Objects('features/importance/');
+      if (objects.length === 0) return;
+
+      const latestObject = objects
+        .filter(obj => obj.Key.endsWith('.json'))
+        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))[0];
+
+      if (latestObject) {
+        const data = await readS3Object(latestObject.Key);
+        if (data && data.features) {
+          setFeatureImportance(data.features);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading feature importance:', error);
+    }
+  };
+
+  // Carregar hiperparâmetros
+  const loadHyperparameters = async () => {
+    try {
+      const objects = await listS3Objects('hyperparameters/');
+      if (objects.length === 0) return;
+
+      const latestObject = objects
+        .filter(obj => obj.Key.includes('best_params') && obj.Key.endsWith('.json'))
+        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))[0];
+
+      if (latestObject) {
+        const data = await readS3Object(latestObject.Key);
+        setHyperparameters(data);
+      }
+    } catch (error) {
+      console.error('Error loading hyperparameters:', error);
+    }
+  };
+
+  // Carregar métricas de modelos
+  const loadModelMetrics = async () => {
+    try {
+      const objects = await listS3Objects('models/metrics/');
+      if (objects.length === 0) return;
+
+      const metricsFiles = objects
+        .filter(obj => obj.Key.endsWith('.json'))
+        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
+        .slice(0, 10);
+
+      const metricsPromises = metricsFiles.map(obj => readS3Object(obj.Key));
+      const metricsResults = await Promise.all(metricsPromises);
+      
+      const validMetrics = metricsResults.filter(data => data && data.model_name);
+      setModelMetrics(validMetrics);
+    } catch (error) {
+      console.error('Error loading model metrics:', error);
+    }
+  };
+
+  // Carregar intervalos de predição
+  const loadPredictionIntervals = async () => {
+    try {
+      const objects = await listS3Objects('predictions/intervals/');
+      if (objects.length === 0) return;
+
+      const latestObject = objects
+        .filter(obj => obj.Key.endsWith('.json'))
+        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))[0];
+
+      if (latestObject) {
+        const data = await readS3Object(latestObject.Key);
+        if (data && data.intervals) {
+          setPredictionIntervals(data.intervals);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading prediction intervals:', error);
     }
   };
 
   // Carregar todos os dados
   const loadData = useCallback(async () => {
-    // Skip loading if there's a configuration error
     const validation = validateCredentials();
     if (!validation.isValid) {
       return;
@@ -124,7 +279,6 @@ function App() {
     setError(null);
     setErrorType('general');
     
-    // Set up timeout warning (10 seconds)
     const timeoutWarning = setTimeout(() => {
       setError('A busca de dados está demorando mais que o esperado. Por favor, aguarde...');
       setErrorType('timeout');
@@ -135,15 +289,18 @@ function App() {
         loadRecommendations(),
         loadQualityData(),
         loadIngestionData(),
+        loadDriftData(),
+        loadEnsembleData(),
+        loadFeatureImportance(),
+        loadHyperparameters(),
+        loadModelMetrics(),
+        loadPredictionIntervals(),
       ]);
       
-      // Clear timeout warning if data loads successfully
       clearTimeout(timeoutWarning);
       
-      // Check for any failures and categorize errors
       const failures = results.filter(r => r.status === 'rejected');
       if (failures.length > 0) {
-        // Get the first error to determine error type
         const firstError = failures[0].reason;
         
         if (firstError && firstError.type) {
@@ -156,17 +313,13 @@ function App() {
         
         console.error('Some data sources failed to load:', failures);
       } else {
-        // Clear any timeout warnings if all data loaded successfully
         setError(null);
         setErrorType('general');
       }
       
       setLastUpdated(new Date());
     } catch (err) {
-      // Clear timeout warning
       clearTimeout(timeoutWarning);
-      
-      // Handle unexpected errors
       console.error('Error loading data:', err);
       
       if (err.type) {
@@ -183,15 +336,12 @@ function App() {
 
   useEffect(() => {
     loadData();
-    // Atualizar a cada 5 minutos
     const interval = setInterval(loadData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [loadData]);
 
-  // Calcular métricas de qualidade atual
+  // Calcular métricas
   const currentQuality = qualityData.length > 0 ? qualityData[qualityData.length - 1] : null;
-  
-  // Calcular taxa de sucesso da ingestão (últimas 24h) - for ingestion status panel
   const recentIngestion = ingestionData.filter(d => 
     new Date(d.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
   );
@@ -213,8 +363,8 @@ function App() {
   return (
     <div className="container">
       <header className="header">
-        <h1>B3 Tactical Ranking</h1>
-        <p>Dashboard de Monitoramento MLOps - Mercado Brasileiro</p>
+        <h1>B3 Tactical Ranking - MLOps Dashboard</h1>
+        <p>Monitoramento Completo de Performance e Métricas</p>
         {loading && (
           <div style={{ display: 'inline-flex', alignItems: 'center', marginLeft: '1rem', color: '#3b82f6' }}>
             <RefreshCw className="animate-spin" size={20} style={{ marginRight: '0.5rem' }} />
@@ -231,58 +381,252 @@ function App() {
         />
       )}
 
-      <div className="dashboard-grid">
-        {/* Recomendações Atuais */}
-        <div className="card">
-          <h3>
-            <TrendingUp size={20} />
-            Top 10 Recomendações
-            {recommendations.length > 0 && (
-              <span className="status-indicator status-good"></span>
-            )}
-          </h3>
-          
-          <RecommendationsTable recommendations={recommendations} />
-        </div>
-
-        {/* Qualidade do Modelo */}
-        <div className="card">
-          <h3>
-            <Activity size={20} />
-            Qualidade do Modelo
-            {currentQuality && (
-              <span className={`status-indicator status-${currentQuality.status}`}></span>
-            )}
-          </h3>
-          
-          <ModelQualityPanel qualityData={qualityData} />
-        </div>
-
-        {/* Status da Ingestão */}
-        <div className="card">
-          <h3>
-            <Database size={20} />
-            Ingestão de Dados
-            <span className={`status-indicator ${successRate >= 90 ? 'status-good' : successRate >= 70 ? 'status-warning' : 'status-critical'}`}></span>
-          </h3>
-          
-          <IngestionStatusPanel ingestionData={ingestionData} />
-        </div>
-
-        {/* Status Geral do Sistema */}
-        <div className="card">
-          <h3>
-            <CheckCircle size={20} />
-            Status do Sistema
-          </h3>
-          
-          <SystemStatusPanel 
-            recommendations={recommendations}
-            qualityData={qualityData}
-            ingestionData={ingestionData}
-          />
-        </div>
+      {/* Tabs de Navegação */}
+      <div style={{ 
+        display: 'flex', 
+        gap: '1rem', 
+        marginBottom: '2rem', 
+        borderBottom: '2px solid #e2e8f0',
+        padding: '0 1rem'
+      }}>
+        <button
+          onClick={() => setActiveTab('overview')}
+          style={{
+            padding: '1rem 1.5rem',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'overview' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'overview' ? '#3b82f6' : '#64748b',
+            fontWeight: activeTab === 'overview' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <TrendingUp size={20} />
+          Visão Geral
+        </button>
+        
+        <button
+          onClick={() => setActiveTab('performance')}
+          style={{
+            padding: '1rem 1.5rem',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'performance' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'performance' ? '#3b82f6' : '#64748b',
+            fontWeight: activeTab === 'performance' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <BarChart3 size={20} />
+          Performance do Modelo
+        </button>
+        
+        <button
+          onClick={() => setActiveTab('monitoring')}
+          style={{
+            padding: '1rem 1.5rem',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'monitoring' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'monitoring' ? '#3b82f6' : '#64748b',
+            fontWeight: activeTab === 'monitoring' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <Activity size={20} />
+          Monitoramento
+        </button>
+        
+        <button
+          onClick={() => setActiveTab('advanced')}
+          style={{
+            padding: '1rem 1.5rem',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'advanced' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'advanced' ? '#3b82f6' : '#64748b',
+            fontWeight: activeTab === 'advanced' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <Settings size={20} />
+          Avançado
+        </button>
       </div>
+
+      {/* Conteúdo baseado na tab ativa */}
+      {activeTab === 'overview' && (
+        <div className="dashboard-grid">
+          <div className="card">
+            <h3>
+              <TrendingUp size={20} />
+              Top 10 Recomendações
+              {recommendations.length > 0 && (
+                <span className="status-indicator status-good"></span>
+              )}
+            </h3>
+            <RecommendationsTable recommendations={recommendations} />
+          </div>
+
+          <div className="card">
+            <h3>
+              <Activity size={20} />
+              Qualidade do Modelo
+              {currentQuality && (
+                <span className={`status-indicator status-${currentQuality.status}`}></span>
+              )}
+            </h3>
+            <ModelQualityPanel qualityData={qualityData} />
+          </div>
+
+          <div className="card">
+            <h3>
+              <Database size={20} />
+              Ingestão de Dados
+              <span className={`status-indicator ${successRate >= 90 ? 'status-good' : successRate >= 70 ? 'status-warning' : 'status-critical'}`}></span>
+            </h3>
+            <IngestionStatusPanel ingestionData={ingestionData} />
+          </div>
+
+          <div className="card">
+            <h3>
+              <CheckCircle size={20} />
+              Status do Sistema
+            </h3>
+            <SystemStatusPanel 
+              recommendations={recommendations}
+              qualityData={qualityData}
+              ingestionData={ingestionData}
+            />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'performance' && (
+        <div className="dashboard-grid">
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <Target size={20} />
+              Performance Geral dos Modelos
+            </h3>
+            <ModelPerformancePanel 
+              qualityData={qualityData}
+              modelMetrics={modelMetrics}
+            />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <BarChart3 size={20} />
+              MAPE ao Longo do Tempo
+            </h3>
+            <MAPETimeSeriesChart data={qualityData} />
+          </div>
+
+          <div className="card">
+            <h3>
+              <GitBranch size={20} />
+              Comparação de Modelos
+            </h3>
+            <ModelComparisonChart data={modelMetrics} />
+          </div>
+
+          <div className="card">
+            <h3>
+              <Zap size={20} />
+              Intervalos de Predição
+            </h3>
+            <PredictionIntervalChart data={predictionIntervals} />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <GitBranch size={20} />
+              Insights do Ensemble
+            </h3>
+            <EnsembleInsightsPanel data={ensembleData} />
+          </div>
+
+          <div className="card">
+            <h3>
+              <BarChart3 size={20} />
+              Pesos do Ensemble
+            </h3>
+            <EnsembleWeightsChart data={ensembleData} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'monitoring' && (
+        <div className="dashboard-grid">
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <AlertTriangle size={20} />
+              Detecção de Drift
+            </h3>
+            <DriftMonitoringPanel data={driftData} />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <Activity size={20} />
+              Drift ao Longo do Tempo
+            </h3>
+            <DriftDetectionChart data={driftData} />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <Zap size={20} />
+              Importância das Features
+            </h3>
+            <FeatureImportanceChart data={featureImportance} />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <BarChart3 size={20} />
+              Análise de Features
+            </h3>
+            <FeatureAnalysisPanel data={featureImportance} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'advanced' && (
+        <div className="dashboard-grid">
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <Settings size={20} />
+              Hiperparâmetros Otimizados
+            </h3>
+            <HyperparameterPanel data={hyperparameters} />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <h3>
+              <Target size={20} />
+              Explicabilidade das Predições
+            </h3>
+            <ExplainabilityPanel 
+              featureImportance={featureImportance}
+              recommendations={recommendations}
+            />
+          </div>
+        </div>
+      )}
 
       {lastUpdated && (
         <div className="last-updated">
