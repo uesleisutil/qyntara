@@ -75,6 +75,6 @@ def load_config() -> AppConfig:
         epochs=_get_int("B3TR_EPOCHS", 30),
         train_instance_type=_get("B3TR_TRAIN_INSTANCE_TYPE", "ml.m5.large"),
         rank_instance_type=_get("B3TR_RANK_INSTANCE_TYPE", "ml.m5.large"),
-        top_n=_get_int("B3TR_TOP_N", 10),
+        top_n=_get_int("B3TR_TOP_N", 50),
         test_days=_get_int("B3TR_TEST_DAYS", 60),
     )

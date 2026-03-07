@@ -71,7 +71,7 @@ def generate_sample_recommendations(bucket: str, days: int = 30) -> None:
             )
 
         # Salvar no S3
-        key = f"recommendations/dt={dt.isoformat()}/top10.json"
+        key = f"recommendations/dt={dt.isoformat()}/top50.json"
         content = json.dumps({"recommendations": recommendations, "dt": dt.isoformat()}, indent=2)
 
         s3.put_object(

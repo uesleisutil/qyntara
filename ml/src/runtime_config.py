@@ -124,7 +124,7 @@ def load_runtime_config() -> RuntimeConfig:
         ),
         test_days=_require_int("B3TR_TEST_DAYS", "B3TR_TEST_DAYS", default=60),
         min_points=_require_int("B3TR_MIN_POINTS", "B3TR_MIN_POINTS", default=252),
-        top_n=_require_int("B3TR_TOP_N", "B3TR_TOP_N", default=10),
+        top_n=_require_int("B3TR_TOP_N", "B3TR_TOP_N", default=50),
         rank_lookback_days=_require_int(
             "B3TR_RANK_LOOKBACK_DAYS",
             "B3TR_RANK_LOOKBACK_DAYS",

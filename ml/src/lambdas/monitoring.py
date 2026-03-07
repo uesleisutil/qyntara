@@ -281,7 +281,7 @@ class MonitoringOrchestrator:
         )
         
         # Identify top performers (lowest MAPE)
-        top_performers = per_stock_metrics.nsmallest(10, 'mape')['symbol'].tolist()
+        top_performers = per_stock_metrics.nsmallest(50, 'mape')['symbol'].tolist()
         
         # Identify poor performers (highest MAPE)
         poor_performers = per_stock_metrics.nlargest(10, 'mape')['symbol'].tolist()

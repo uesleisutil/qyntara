@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * RecommendationsTable Component
  * 
- * Displays the top 10 stock recommendations in a table format with:
+ * Displays the top 50 stock recommendations in a table format with:
  * - Rank badges
  * - Ticker symbols
  * - Scores (as percentages)
@@ -16,10 +16,10 @@ import React from 'react';
  * - Uses React.memo to prevent unnecessary re-renders
  */
 const RecommendationsTable = React.memo(({ recommendations }) => {
-  // Sort recommendations by rank in ascending order and take top 10
+  // Sort recommendations by rank in ascending order and take top 50
   const sortedRecommendations = [...recommendations]
     .sort((a, b) => a.rank - b.rank)
-    .slice(0, 10);
+    .slice(0, 50);
 
   if (sortedRecommendations.length === 0) {
     return <p>Nenhuma recomendação disponível</p>;

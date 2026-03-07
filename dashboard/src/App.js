@@ -472,7 +472,7 @@ function App() {
           <div className="card">
             <h3>
               <TrendingUp size={20} />
-              Top 10 Recomendações
+              Top 50 Recomendações
               {recommendations.length > 0 && (
                 <span className="status-indicator status-good"></span>
               )}

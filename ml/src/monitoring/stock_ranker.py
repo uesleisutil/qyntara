@@ -259,13 +259,13 @@ class StockRanker:
         if report_date is None:
             report_date = datetime.now()
         
-        # Get top 10 performers
-        top_10 = self.get_top_n(current_ranking, n=10)
+        # Get top N performers (configurable)
+        top_n = self.get_top_n(current_ranking, n=50)
         
         report = {
             'report_date': report_date.isoformat(),
             'total_stocks': len(current_ranking),
-            'top_10_performers': top_10[['stock_symbol', 'rank', 'mape']].to_dict('records')
+            'top_performers': top_n[['stock_symbol', 'rank', 'mape']].to_dict('records')
         }
         
         # Add stability analysis if previous ranking provided
