@@ -20,3 +20,10 @@ statsmodels>=0.14.0
 # Utilities
 python-dateutil>=2.8.2
 pytz>=2023.3
+
+# Sentiment Analysis
+requests>=2.31.0
+textblob>=0.17.1
+
+# Portfolio Optimization
+scipy>=1.11.0

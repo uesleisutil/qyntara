@@ -402,6 +402,46 @@ export class InfraStack extends cdk.Stack {
       "ml.src.lambdas.dashboard_api.handler"
     );
     
+    // Advanced Features Lambdas
+    const backtestingFn = new lambda.Function(this, "Backtesting", {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      code: lambdaCode,
+      handler: "ml.src.lambdas.run_backtest.lambda_handler",
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 2048,
+      logRetention: logs.RetentionDays.ONE_WEEK,
+      environment: commonEnv,
+      layers: [pythonLayer],
+    });
+    backtestingFn.addToRolePolicy(s3RwPolicy);
+    backtestingFn.addToRolePolicy(cwPutMetricPolicy);
+    backtestingFn.addToRolePolicy(ssmReadPolicy);
+
+    const portfolioOptimizerFn = mkPyLambda(
+      "PortfolioOptimizer",
+      "ml.src.lambdas.optimize_portfolio.lambda_handler"
+    );
+
+    const sentimentAnalysisFn = new lambda.Function(this, "SentimentAnalysis", {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      code: lambdaCode,
+      handler: "ml.src.lambdas.analyze_sentiment.lambda_handler",
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 1024,
+      logRetention: logs.RetentionDays.ONE_WEEK,
+      environment: commonEnv,
+      layers: [pythonLayer],
+    });
+    sentimentAnalysisFn.addToRolePolicy(s3RwPolicy);
+    sentimentAnalysisFn.addToRolePolicy(cwPutMetricPolicy);
+    sentimentAnalysisFn.addToRolePolicy(ssmReadPolicy);
+    sentimentAnalysisFn.addToRolePolicy(secretsPolicy);
+
+    const stopLossCalculatorFn = mkPyLambda(
+      "StopLossCalculator",
+      "ml.src.lambdas.calculate_stop_loss.lambda_handler"
+    );
+    
     // Grant SNS publish permissions to monitoring Lambda
     monitoringFn.addToRolePolicy(
       new iam.PolicyStatement({
@@ -502,6 +542,32 @@ export class InfraStack extends cdk.Stack {
       schedule: events.Schedule.expression("cron(0 23 ? * MON-FRI *)"), // 20:00 BRT
     });
     monitoringRule.addTarget(new targets.LambdaFunction(monitoringFn));
+
+    // Advanced Features Schedules
+    
+    // Backtesting: roda diariamente para validar predições de 20 dias atrás
+    const backtestingRule = new events.Rule(this, "BacktestingDaily", {
+      schedule: events.Schedule.expression("cron(0 1 ? * MON-FRI *)"), // 22:00 BRT
+    });
+    backtestingRule.addTarget(new targets.LambdaFunction(backtestingFn));
+
+    // Portfolio Optimization: roda diariamente após recomendações
+    const portfolioOptimizerRule = new events.Rule(this, "PortfolioOptimizerDaily", {
+      schedule: events.Schedule.expression("cron(50 21 ? * MON-FRI *)"), // 18:50 BRT
+    });
+    portfolioOptimizerRule.addTarget(new targets.LambdaFunction(portfolioOptimizerFn));
+
+    // Sentiment Analysis: roda diariamente pela manhã
+    const sentimentAnalysisRule = new events.Rule(this, "SentimentAnalysisDaily", {
+      schedule: events.Schedule.expression("cron(0 12 ? * MON-FRI *)"), // 09:00 BRT
+    });
+    sentimentAnalysisRule.addTarget(new targets.LambdaFunction(sentimentAnalysisFn));
+
+    // Stop Loss Calculator: roda diariamente após recomendações
+    const stopLossCalculatorRule = new events.Rule(this, "StopLossCalculatorDaily", {
+      schedule: events.Schedule.expression("cron(45 21 ? * MON-FRI *)"), // 18:45 BRT
+    });
+    stopLossCalculatorRule.addTarget(new targets.LambdaFunction(stopLossCalculatorFn));
 
     // S3 Event Triggers
     
@@ -613,6 +679,64 @@ export class InfraStack extends cdk.Stack {
     });
     monitoringAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
 
+    // Advanced Features Alarms
+    
+    // Alarm for backtesting failures
+    const backtestingErrorMetric = backtestingFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const backtestingAlarm = new cw.Alarm(this, "BacktestingFailedAlarm", {
+      metric: backtestingErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Backtesting Lambda failed",
+    });
+    backtestingAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
+    // Alarm for portfolio optimizer failures
+    const portfolioOptimizerErrorMetric = portfolioOptimizerFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const portfolioOptimizerAlarm = new cw.Alarm(this, "PortfolioOptimizerFailedAlarm", {
+      metric: portfolioOptimizerErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Portfolio Optimizer Lambda failed",
+    });
+    portfolioOptimizerAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
+    // Alarm for sentiment analysis failures
+    const sentimentAnalysisErrorMetric = sentimentAnalysisFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const sentimentAnalysisAlarm = new cw.Alarm(this, "SentimentAnalysisFailedAlarm", {
+      metric: sentimentAnalysisErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Sentiment Analysis Lambda failed",
+    });
+    sentimentAnalysisAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
+    // Alarm for stop loss calculator failures
+    const stopLossCalculatorErrorMetric = stopLossCalculatorFn.metricErrors({
+      period: cdk.Duration.minutes(5),
+      statistic: "Sum",
+    });
+    
+    const stopLossCalculatorAlarm = new cw.Alarm(this, "StopLossCalculatorFailedAlarm", {
+      metric: stopLossCalculatorErrorMetric,
+      threshold: 1,
+      evaluationPeriods: 1,
+      alarmDescription: "Stop Loss Calculator Lambda failed",
+    });
+    stopLossCalculatorAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
+
     // CloudWatch Dashboard for Model Optimization
     const modelOptimizationDashboard = new cw.Dashboard(this, "ModelOptimizationDashboard", {
       dashboardName: "B3TR-ModelOptimization",
@@ -626,6 +750,8 @@ export class InfraStack extends cdk.Stack {
           trainModelsFn.metricInvocations(),
           ensemblePredictFn.metricInvocations(),
           monitoringFn.metricInvocations(),
+          backtestingFn.metricInvocations(),
+          portfolioOptimizerFn.metricInvocations(),
         ],
         width: 12,
       }),
@@ -636,6 +762,8 @@ export class InfraStack extends cdk.Stack {
           trainModelsErrorMetric,
           ensemblePredictErrorMetric,
           monitoringErrorMetric,
+          backtestingErrorMetric,
+          portfolioOptimizerErrorMetric,
         ],
         width: 12,
       })
@@ -649,16 +777,16 @@ export class InfraStack extends cdk.Stack {
           trainModelsFn.metricDuration(),
           ensemblePredictFn.metricDuration(),
           monitoringFn.metricDuration(),
+          backtestingFn.metricDuration(),
+          portfolioOptimizerFn.metricDuration(),
         ],
         width: 12,
       }),
       new cw.GraphWidget({
-        title: "Lambda Throttles",
+        title: "Advanced Features",
         left: [
-          featureEngineeringFn.metricThrottles(),
-          trainModelsFn.metricThrottles(),
-          ensemblePredictFn.metricThrottles(),
-          monitoringFn.metricThrottles(),
+          sentimentAnalysisFn.metricInvocations(),
+          stopLossCalculatorFn.metricInvocations(),
         ],
         width: 12,
       })
@@ -700,6 +828,22 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, "MonitoringLambda", {
       value: monitoringFn.functionName,
       description: "Monitoring Lambda Function"
+    });
+    new cdk.CfnOutput(this, "BacktestingLambda", {
+      value: backtestingFn.functionName,
+      description: "Backtesting Lambda Function"
+    });
+    new cdk.CfnOutput(this, "PortfolioOptimizerLambda", {
+      value: portfolioOptimizerFn.functionName,
+      description: "Portfolio Optimizer Lambda Function"
+    });
+    new cdk.CfnOutput(this, "SentimentAnalysisLambda", {
+      value: sentimentAnalysisFn.functionName,
+      description: "Sentiment Analysis Lambda Function"
+    });
+    new cdk.CfnOutput(this, "StopLossCalculatorLambda", {
+      value: stopLossCalculatorFn.functionName,
+      description: "Stop Loss Calculator Lambda Function"
     });
   }
 }
