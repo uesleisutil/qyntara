@@ -239,6 +239,13 @@ export class InfraStack extends cdk.Stack {
       "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:25"
     );
 
+    // Scipy layer (public layer from Klayers)
+    const scipyLayer = lambda.LayerVersion.fromLayerVersionArn(
+      this,
+      "ScipyLayer",
+      "arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p311-scipy:8"
+    );
+
     // -----------------------
     // Lambda code (repo root)
     // -----------------------
@@ -411,16 +418,25 @@ export class InfraStack extends cdk.Stack {
       memorySize: 2048,
       logRetention: logs.RetentionDays.ONE_WEEK,
       environment: commonEnv,
-      layers: [pythonLayer],
+      layers: [pythonLayer, scipyLayer],
     });
     backtestingFn.addToRolePolicy(s3RwPolicy);
     backtestingFn.addToRolePolicy(cwPutMetricPolicy);
     backtestingFn.addToRolePolicy(ssmReadPolicy);
 
-    const portfolioOptimizerFn = mkPyLambda(
-      "PortfolioOptimizer",
-      "ml.src.lambdas.optimize_portfolio.handler"
-    );
+    const portfolioOptimizerFn = new lambda.Function(this, "PortfolioOptimizer", {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      code: lambdaCode,
+      handler: "ml.src.lambdas.optimize_portfolio.handler",
+      timeout: cdk.Duration.minutes(10),
+      memorySize: 1024,
+      logRetention: logs.RetentionDays.ONE_WEEK,
+      environment: commonEnv,
+      layers: [pythonLayer, scipyLayer],
+    });
+    portfolioOptimizerFn.addToRolePolicy(s3RwPolicy);
+    portfolioOptimizerFn.addToRolePolicy(cwPutMetricPolicy);
+    portfolioOptimizerFn.addToRolePolicy(ssmReadPolicy);
 
     const sentimentAnalysisFn = new lambda.Function(this, "SentimentAnalysis", {
       runtime: lambda.Runtime.PYTHON_3_11,
