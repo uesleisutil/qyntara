@@ -30,6 +30,7 @@ MANIFEST
 .env.local
 .env.*
 !.env.example
+!.env.local.example
 .envrc
 .venv
 env/
