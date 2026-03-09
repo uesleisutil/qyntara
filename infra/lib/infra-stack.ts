@@ -20,6 +20,7 @@ import * as secrets from "aws-cdk-lib/aws-secretsmanager";
 import * as cr from "aws-cdk-lib/custom-resources";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
 
 
 
@@ -399,8 +400,73 @@ export class InfraStack extends cdk.Stack {
 
     const dashboardApiFn = mkPyLambda(
       "DashboardAPI",
-      "ml.src.lambdas.dashboard_api.handler"
+      "ml.src.lambdas.public_recommendations_api.handler"
     );
+    
+    // -----------------------
+    // API Gateway with API Key authentication
+    // -----------------------
+    const api = new apigateway.RestApi(this, "B3TRDashboardAPI", {
+      restApiName: "B3TR Dashboard API",
+      description: "Secure API for B3 Tactical Ranking Dashboard",
+      deployOptions: {
+        stageName: "prod",
+        throttlingRateLimit: 100,
+        throttlingBurstLimit: 200,
+      },
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowHeaders: ['Content-Type', 'X-Api-Key', 'Authorization'],
+      },
+    });
+
+    // Create API Key
+    const apiKey = api.addApiKey("DashboardApiKey", {
+      apiKeyName: "b3tr-dashboard-key",
+      description: "API Key for B3TR Dashboard access",
+    });
+
+    // Create Usage Plan
+    const usagePlan = api.addUsagePlan("DashboardUsagePlan", {
+      name: "B3TR Dashboard Usage Plan",
+      description: "Usage plan for dashboard API access",
+      throttle: {
+        rateLimit: 100,
+        burstLimit: 200,
+      },
+      quota: {
+        limit: 10000,
+        period: apigateway.Period.DAY,
+      },
+    });
+
+    usagePlan.addApiKey(apiKey);
+    usagePlan.addApiStage({
+      stage: api.deploymentStage,
+    });
+
+    // Lambda integration
+    const dashboardIntegration = new apigateway.LambdaIntegration(dashboardApiFn, {
+      proxy: true,
+      allowTestInvoke: false,
+    });
+
+    // Add endpoints
+    const recommendationsResource = api.root.addResource("recommendations");
+    recommendationsResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+
+    const metricsResource = api.root.addResource("metrics");
+    metricsResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+
+    const qualityResource = api.root.addResource("quality");
+    qualityResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
     
     // Advanced Features Lambdas
     const backtestingFn = new lambda.Function(this, "Backtesting", {
@@ -853,6 +919,14 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, "StopLossCalculatorLambda", {
       value: stopLossCalculatorFn.functionName,
       description: "Stop Loss Calculator Lambda Function"
+    });
+    new cdk.CfnOutput(this, "DashboardApiUrl", {
+      value: api.url,
+      description: "Dashboard API Gateway URL"
+    });
+    new cdk.CfnOutput(this, "DashboardApiKeyId", {
+      value: apiKey.keyId,
+      description: "Dashboard API Key ID (use 'aws apigateway get-api-key' to retrieve value)"
     });
   }
 }
