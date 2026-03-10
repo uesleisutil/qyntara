@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { Card } from '../shared/Card';
-import { LoadingSpinner } from '../shared/LoadingSpinner';
+import Card from '../shared/Card';
+import LoadingSpinner from '../shared/LoadingSpinner';
 
 /**
  * Painel de Performance do Modelo
@@ -12,7 +12,7 @@ import { LoadingSpinner } from '../shared/LoadingSpinner';
  * - Detecção de drift
  * - Necessidade de re-treino
  */
-export const ModelPerformancePanel = ({ s3Client, bucket }) => {
+const ModelPerformancePanel = ({ s3Client, bucket }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [performanceData, setPerformanceData] = useState([]);
@@ -368,7 +368,7 @@ export const ModelPerformancePanel = ({ s3Client, bucket }) => {
                     )}
                   </ul>
                   <p className="mt-2 font-mono text-xs bg-red-100 p-2 rounded">
-                    aws lambda invoke --function-name TrainSageMaker --payload '{"{"}{"}"lookback_days{"}"}: 365{"}"}' output.json
+                    aws lambda invoke --function-name TrainSageMaker --payload '&#123;"lookback_days": 365&#125;' output.json
                   </p>
                 </div>
               </div>
@@ -379,3 +379,5 @@ export const ModelPerformancePanel = ({ s3Client, bucket }) => {
     </div>
   );
 };
+
+export default ModelPerformancePanel;

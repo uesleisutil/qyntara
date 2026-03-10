@@ -40,10 +40,10 @@ jobs:
       - name: Build dashboard
         working-directory: ./dashboard
         env:
-          REACT_APP_AWS_REGION: ${{ secrets.AWS_REGION }}
-          REACT_APP_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          REACT_APP_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          REACT_APP_S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          REACT_APP_API_BASE_URL: https://og8m3nnj60.execute-api.us-east-1.amazonaws.com/prod
+          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+          REACT_APP_AWS_REGION: us-east-1
+          REACT_APP_S3_BUCKET: b3tr-200093399689-us-east-1
         run: npm run build
       
       - name: Upload artifact

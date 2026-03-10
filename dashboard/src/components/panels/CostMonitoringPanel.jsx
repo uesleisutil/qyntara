@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Card } from '../shared/Card';
-import { LoadingSpinner } from '../shared/LoadingSpinner';
+import Card from '../shared/Card';
+import LoadingSpinner from '../shared/LoadingSpinner';
 
 /**
  * Painel de Monitoramento de Custos

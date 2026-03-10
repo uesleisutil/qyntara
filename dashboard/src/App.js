@@ -39,7 +39,7 @@ import DriftMonitoringPanel from './components/panels/DriftMonitoringPanel';
 import FeatureAnalysisPanel from './components/panels/FeatureAnalysisPanel';
 import HyperparameterPanel from './components/panels/HyperparameterPanel';
 import ExplainabilityPanel from './components/panels/ExplainabilityPanel';
-import { ModelPerformancePanel as ModelPerformancePanelNew } from './components/panels/ModelPerformancePanel';
+import ModelPerformancePanelNew from './components/panels/ModelPerformancePanel';
 import { CostMonitoringPanel } from './components/panels/CostMonitoringPanel';
 import { SageMakerMonitoringPanel } from './components/panels/SageMakerMonitoringPanel';
 

@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
 /**
@@ -25,7 +26,7 @@ const Card = ({
   defaultCollapsed = false,
   padding = 'normal'
 }) => {
-  const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   const paddingClasses = {
     none: '',
@@ -138,9 +139,6 @@ const Card = ({
     </div>
   );
 };
-
-// Import React for useState
-import React from 'react';
 
 Card.propTypes = {
   title: PropTypes.string,

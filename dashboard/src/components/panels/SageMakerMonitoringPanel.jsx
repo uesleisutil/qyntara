@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '../shared/Card';
-import { LoadingSpinner } from '../shared/LoadingSpinner';
+import Card from '../shared/Card';
+import LoadingSpinner from '../shared/LoadingSpinner';
 
 /**
  * Painel de Monitoramento do SageMaker
