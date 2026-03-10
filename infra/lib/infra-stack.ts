@@ -399,6 +399,12 @@ export class InfraStack extends cdk.Stack {
       "ml.src.lambdas.public_recommendations_api.handler"
     );
     
+    // S3 Proxy Lambda para dashboard acessar dados do S3 via API
+    const s3ProxyFn = mkPyLambda(
+      "S3Proxy",
+      "ml.src.lambdas.s3_proxy.handler"
+    );
+    
     // -----------------------
     // API Gateway with API Key authentication
     // -----------------------
@@ -447,6 +453,11 @@ export class InfraStack extends cdk.Stack {
       proxy: true,
       allowTestInvoke: false,
     });
+    
+    const s3ProxyIntegration = new apigateway.LambdaIntegration(s3ProxyFn, {
+      proxy: true,
+      allowTestInvoke: false,
+    });
 
     // Add endpoints
     const recommendationsResource = api.root.addResource("recommendations");
@@ -462,6 +473,23 @@ export class InfraStack extends cdk.Stack {
     const qualityResource = api.root.addResource("quality");
     qualityResource.addMethod("GET", dashboardIntegration, {
       apiKeyRequired: true,
+    });
+    
+    // S3 Proxy endpoints
+    const s3ProxyResource = api.root.addResource("s3-proxy");
+    s3ProxyResource.addMethod("GET", s3ProxyIntegration, {
+      apiKeyRequired: true,
+      requestParameters: {
+        'method.request.querystring.key': false
+      }
+    });
+    
+    const s3ProxyListResource = s3ProxyResource.addResource("list");
+    s3ProxyListResource.addMethod("GET", s3ProxyIntegration, {
+      apiKeyRequired: true,
+      requestParameters: {
+        'method.request.querystring.prefix': false
+      }
     });
     
     // Advanced Features Lambdas
