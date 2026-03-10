@@ -106,8 +106,9 @@ function App() {
 
       if (latestObject) {
         const data = await readS3Object(latestObject.Key);
-        if (data && data.recommendations) {
-          setRecommendations(data.recommendations);
+        // API retorna 'items' para recomendações, não 'recommendations'
+        if (data && (data.items || data.recommendations)) {
+          setRecommendations(data.items || data.recommendations);
         }
       }
     } catch (error) {
