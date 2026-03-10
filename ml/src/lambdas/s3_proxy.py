@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 
 s3 = boto3.client('s3')
-BUCKET = os.environ['S3_BUCKET']
+BUCKET = os.environ['BUCKET']
 
 def handler(event, context):
     """
