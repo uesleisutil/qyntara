@@ -381,9 +381,6 @@ export class InfraStack extends cdk.Stack {
     const monitorSageMakerFn = mkPyLambda("MonitorSageMaker", "ml.src.lambdas.monitor_sagemaker.handler", {
       ALERTS_TOPIC_ARN: alertsTopic.topicArn,
     });
-    
-    // Lambda para gerar dados de exemplo para o dashboard web
-    const generateSampleDataFn = mkPyLambda("GenerateSampleData", "ml.src.lambdas.generate_sample_data.handler");
 
     // Bootstrap histórico diário (incremental + idempotente)
     const bootstrapHistoryFn = mkPyLambda(
@@ -396,55 +393,6 @@ export class InfraStack extends cdk.Stack {
       },
     );
     bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
-
-    // Model Optimization Pipeline Lambdas
-    const featureEngineeringFn = mkPyLambda(
-      "FeatureEngineering",
-      "ml.src.lambdas.feature_engineering.handler"
-    );
-
-    // Hyperparameter optimization needs longer timeout and more memory
-    const optimizeHyperparametersFn = new lambda.Function(this, "OptimizeHyperparameters", {
-      runtime: lambda.Runtime.PYTHON_3_11,
-      code: lambdaCode,
-      handler: "ml.src.lambdas.optimize_hyperparameters.handler",
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 2048,
-      logRetention: logs.RetentionDays.ONE_WEEK,
-      environment: commonEnv,
-      layers: [pythonLayer],
-    });
-    optimizeHyperparametersFn.addToRolePolicy(s3RwPolicy);
-    optimizeHyperparametersFn.addToRolePolicy(cwPutMetricPolicy);
-    optimizeHyperparametersFn.addToRolePolicy(ssmReadPolicy);
-
-    // Model training needs longer timeout and more memory
-    const trainModelsFn = new lambda.Function(this, "TrainModels", {
-      runtime: lambda.Runtime.PYTHON_3_11,
-      code: lambdaCode,
-      handler: "ml.src.lambdas.train_models.handler",
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 2048,
-      logRetention: logs.RetentionDays.ONE_WEEK,
-      environment: commonEnv,
-      layers: [pythonLayer],
-    });
-    trainModelsFn.addToRolePolicy(s3RwPolicy);
-    trainModelsFn.addToRolePolicy(cwPutMetricPolicy);
-    trainModelsFn.addToRolePolicy(ssmReadPolicy);
-    trainModelsFn.addToRolePolicy(sagemakerApiPolicy);
-    trainModelsFn.addToRolePolicy(passRolePolicy);
-
-    const ensemblePredictFn = mkPyLambda(
-      "EnsemblePredict",
-      "ml.src.lambdas.ensemble_predict.handler"
-    );
-    ensemblePredictFn.addToRolePolicy(sagemakerApiPolicy);
-
-    const monitoringFn = mkPyLambda(
-      "Monitoring",
-      "ml.src.lambdas.monitoring.handler"
-    );
 
     const dashboardApiFn = mkPyLambda(
       "DashboardAPI",
@@ -563,14 +511,6 @@ export class InfraStack extends cdk.Stack {
     const stopLossCalculatorFn = mkPyLambda(
       "StopLossCalculator",
       "ml.src.lambdas.calculate_stop_loss.handler"
-    );
-    
-    // Grant SNS publish permissions to monitoring Lambda
-    monitoringFn.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["sns:Publish"],
-        resources: [alertsTopic.topicArn],
-      })
     );
 
     // Preparação automática de dados de treino

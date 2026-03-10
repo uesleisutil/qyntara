@@ -1,7 +1,4 @@
 # Model implementations for ensemble forecasting
+# All models are now trained together in ml/src/sagemaker/train_ensemble.py
 
-from .deepar_model import DeepARModel
-# Prophet importado condicionalmente quando necessário
-# from .prophet_model import ProphetModel
-
-__all__ = ['DeepARModel']
+__all__ = []
