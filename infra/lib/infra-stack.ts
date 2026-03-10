@@ -323,7 +323,7 @@ export class InfraStack extends cdk.Stack {
         memorySize: 2048, // Mais memória para ML
         logRetention: logs.RetentionDays.ONE_WEEK,
         environment: { ...commonEnv, ...(extraEnv ?? {}) },
-        layers: [mlLayer], // Apenas ML layer (tem numpy, scipy, xgboost)
+        layers: [pythonLayer], // Usar pythonLayer que tem numpy, pandas, etc
       });
 
       fn.addToRolePolicy(s3RwPolicy);

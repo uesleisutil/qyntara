@@ -20,9 +20,16 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import boto3
-import numpy as np
-import pandas as pd
-import xgboost as xgb
+
+# Imports condicionais para ML
+try:
+    import numpy as np
+    import pandas as pd
+    import xgboost as xgb
+    HAS_ML_LIBS = True
+except ImportError:
+    HAS_ML_LIBS = False
+    logging.warning("Bibliotecas ML não disponíveis, usando modo fallback")
 
 from ml.src.features.advanced_features import AdvancedFeatureEngineer
 from ml.src.runtime_config import load_runtime_config
