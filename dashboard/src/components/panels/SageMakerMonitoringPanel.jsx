@@ -25,6 +25,7 @@ export const SageMakerMonitoringPanel = ({ s3Client, bucket }) => {
     // Atualizar a cada 2 minutos
     const interval = setInterval(loadSageMakerStatus, 2 * 60 * 1000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s3Client, bucket]);
 
   const loadSageMakerStatus = async () => {
@@ -86,8 +87,7 @@ export const SageMakerMonitoringPanel = ({ s3Client, bucket }) => {
       'Updating': 'blue',
       'SystemUpdating': 'blue',
       'RollingBack': 'yellow',
-      'Deleting': 'yellow',
-      'Failed': 'red'
+      'Deleting': 'yellow'
     };
     return statusMap[status] || 'gray';
   };

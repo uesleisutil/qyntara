@@ -21,6 +21,7 @@ const ModelPerformancePanel = ({ s3Client, bucket }) => {
 
   useEffect(() => {
     loadPerformanceData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s3Client, bucket]);
 
   const loadPerformanceData = async () => {

@@ -20,6 +20,7 @@ export const CostMonitoringPanel = ({ s3Client, bucket }) => {
 
   useEffect(() => {
     loadCostData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s3Client, bucket]);
 
   const loadCostData = async () => {
