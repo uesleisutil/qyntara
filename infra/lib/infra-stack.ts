@@ -616,44 +616,6 @@ export class InfraStack extends cdk.Stack {
     });
     prepareDataRule.addTarget(new targets.LambdaFunction(prepareTrainingFn));
 
-    // Geração de dados de exemplo para o dashboard (roda 1x por semana para manter dados atualizados)
-    const generateSampleDataRule = new events.Rule(this, "GenerateSampleDataWeekly", {
-      schedule: events.Schedule.expression("cron(0 23 ? * SUN *)"), // Domingo 20:00 BRT
-    });
-    generateSampleDataRule.addTarget(new targets.LambdaFunction(generateSampleDataFn));
-
-    // Model Optimization Pipeline Schedules
-    
-    // Feature Engineering: roda diariamente após ingestão de dados
-    const featureEngineeringRule = new events.Rule(this, "FeatureEngineeringDaily", {
-      schedule: events.Schedule.expression("cron(0 22 ? * MON-FRI *)"), // 19:00 BRT
-    });
-    featureEngineeringRule.addTarget(new targets.LambdaFunction(featureEngineeringFn));
-
-    // Hyperparameter Optimization: roda mensalmente no primeiro dia útil
-    const optimizeHyperparametersRule = new events.Rule(this, "OptimizeHyperparametersMonthly", {
-      schedule: events.Schedule.expression("cron(0 2 1 * ? *)"), // 1st day of month, 23:00 BRT
-    });
-    optimizeHyperparametersRule.addTarget(new targets.LambdaFunction(optimizeHyperparametersFn));
-
-    // Model Training: roda semanalmente aos domingos
-    const trainModelsRule = new events.Rule(this, "TrainModelsWeekly", {
-      schedule: events.Schedule.expression("cron(0 3 ? * SUN *)"), // Domingo 00:00 BRT
-    });
-    trainModelsRule.addTarget(new targets.LambdaFunction(trainModelsFn));
-
-    // Ensemble Prediction: roda diariamente após feature engineering
-    const ensemblePredictRule = new events.Rule(this, "EnsemblePredictDaily", {
-      schedule: events.Schedule.expression("cron(30 22 ? * MON-FRI *)"), // 19:30 BRT
-    });
-    ensemblePredictRule.addTarget(new targets.LambdaFunction(ensemblePredictFn));
-
-    // Monitoring: roda diariamente após predictions
-    const monitoringRule = new events.Rule(this, "MonitoringDaily", {
-      schedule: events.Schedule.expression("cron(0 23 ? * MON-FRI *)"), // 20:00 BRT
-    });
-    monitoringRule.addTarget(new targets.LambdaFunction(monitoringFn));
-
     // Advanced Features Schedules
     
     // Backtesting: roda diariamente para validar predições de 20 dias atrás
@@ -680,35 +642,7 @@ export class InfraStack extends cdk.Stack {
     });
     stopLossCalculatorRule.addTarget(new targets.LambdaFunction(stopLossCalculatorFn));
 
-    // S3 Event Triggers
-    
-    // Trigger feature engineering when new raw data is uploaded
-    bucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(featureEngineeringFn),
-      { prefix: 'raw/', suffix: '.csv' }
-    );
-
-    // Trigger training when hyperparameters are updated
-    bucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(trainModelsFn),
-      { prefix: 'hyperparameters/', suffix: 'best_params.json' }
-    );
-
-    // Trigger predictions when new features are available
-    bucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(ensemblePredictFn),
-      { prefix: 'features/', suffix: 'features.csv' }
-    );
-
-    // Trigger monitoring when new predictions are available
-    bucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(monitoringFn),
-      { prefix: 'predictions/', suffix: 'ensemble_predictions.json' }
-    );
+    // S3 Event Triggers - REMOVED (obsolete Lambdas)
 
     // -----------------------
     // Alarm -> SNS
@@ -731,64 +665,6 @@ export class InfraStack extends cdk.Stack {
     });
 
     ingestionAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
-
-    // Model Optimization Pipeline Alarms
-    
-    // Alarm for feature engineering failures
-    const featureEngineeringErrorMetric = featureEngineeringFn.metricErrors({
-      period: cdk.Duration.minutes(5),
-      statistic: "Sum",
-    });
-    
-    const featureEngineeringAlarm = new cw.Alarm(this, "FeatureEngineeringFailedAlarm", {
-      metric: featureEngineeringErrorMetric,
-      threshold: 1,
-      evaluationPeriods: 1,
-      alarmDescription: "Feature engineering Lambda failed",
-    });
-    featureEngineeringAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
-
-    // Alarm for model training failures
-    const trainModelsErrorMetric = trainModelsFn.metricErrors({
-      period: cdk.Duration.minutes(5),
-      statistic: "Sum",
-    });
-    
-    const trainModelsAlarm = new cw.Alarm(this, "TrainModelsFailedAlarm", {
-      metric: trainModelsErrorMetric,
-      threshold: 1,
-      evaluationPeriods: 1,
-      alarmDescription: "Model training Lambda failed",
-    });
-    trainModelsAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
-
-    // Alarm for ensemble prediction failures
-    const ensemblePredictErrorMetric = ensemblePredictFn.metricErrors({
-      period: cdk.Duration.minutes(5),
-      statistic: "Sum",
-    });
-    
-    const ensemblePredictAlarm = new cw.Alarm(this, "EnsemblePredictFailedAlarm", {
-      metric: ensemblePredictErrorMetric,
-      threshold: 1,
-      evaluationPeriods: 1,
-      alarmDescription: "Ensemble prediction Lambda failed",
-    });
-    ensemblePredictAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
-
-    // Alarm for monitoring failures
-    const monitoringErrorMetric = monitoringFn.metricErrors({
-      period: cdk.Duration.minutes(5),
-      statistic: "Sum",
-    });
-    
-    const monitoringAlarm = new cw.Alarm(this, "MonitoringFailedAlarm", {
-      metric: monitoringErrorMetric,
-      threshold: 1,
-      evaluationPeriods: 1,
-      alarmDescription: "Monitoring Lambda failed",
-    });
-    monitoringAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
 
     // Advanced Features Alarms
     
@@ -848,56 +724,42 @@ export class InfraStack extends cdk.Stack {
     });
     stopLossCalculatorAlarm.addAlarmAction(new cw_actions.SnsAction(alertsTopic));
 
-    // CloudWatch Dashboard for Model Optimization
-    const modelOptimizationDashboard = new cw.Dashboard(this, "ModelOptimizationDashboard", {
-      dashboardName: "B3TR-ModelOptimization",
+    // CloudWatch Dashboard for Advanced Features
+    const advancedFeaturesDashboard = new cw.Dashboard(this, "AdvancedFeaturesDashboard", {
+      dashboardName: "B3TR-AdvancedFeatures",
     });
 
-    modelOptimizationDashboard.addWidgets(
+    advancedFeaturesDashboard.addWidgets(
       new cw.GraphWidget({
         title: "Lambda Invocations",
         left: [
-          featureEngineeringFn.metricInvocations(),
-          trainModelsFn.metricInvocations(),
-          ensemblePredictFn.metricInvocations(),
-          monitoringFn.metricInvocations(),
           backtestingFn.metricInvocations(),
           portfolioOptimizerFn.metricInvocations(),
+          sentimentAnalysisFn.metricInvocations(),
+          stopLossCalculatorFn.metricInvocations(),
         ],
         width: 12,
       }),
       new cw.GraphWidget({
         title: "Lambda Errors",
         left: [
-          featureEngineeringErrorMetric,
-          trainModelsErrorMetric,
-          ensemblePredictErrorMetric,
-          monitoringErrorMetric,
           backtestingErrorMetric,
           portfolioOptimizerErrorMetric,
+          sentimentAnalysisErrorMetric,
+          stopLossCalculatorErrorMetric,
         ],
         width: 12,
       })
     );
 
-    modelOptimizationDashboard.addWidgets(
+    advancedFeaturesDashboard.addWidgets(
       new cw.GraphWidget({
         title: "Lambda Duration",
         left: [
-          featureEngineeringFn.metricDuration(),
-          trainModelsFn.metricDuration(),
-          ensemblePredictFn.metricDuration(),
-          monitoringFn.metricDuration(),
           backtestingFn.metricDuration(),
           portfolioOptimizerFn.metricDuration(),
-        ],
-        width: 12,
-      }),
-      new cw.GraphWidget({
-        title: "Advanced Features",
-        left: [
-          sentimentAnalysisFn.metricInvocations(),
-          stopLossCalculatorFn.metricInvocations(),
+          sentimentAnalysisFn.metricDuration(),
+          stopLossCalculatorFn.metricDuration(),
         ],
         width: 12,
       })
@@ -920,25 +782,9 @@ export class InfraStack extends cdk.Stack {
       value: "https://uesleisutil.github.io/b3-tactical-ranking",
       description: "URL do Dashboard Web B3TR (GitHub Pages)"
     });
-    new cdk.CfnOutput(this, "ModelOptimizationDashboardUrl", {
-      value: `https://console.aws.amazon.com/cloudwatch/home?region=${cdk.Aws.REGION}#dashboards:name=B3TR-ModelOptimization`,
-      description: "CloudWatch Dashboard for Model Optimization Pipeline"
-    });
-    new cdk.CfnOutput(this, "FeatureEngineeringLambda", {
-      value: featureEngineeringFn.functionName,
-      description: "Feature Engineering Lambda Function"
-    });
-    new cdk.CfnOutput(this, "TrainModelsLambda", {
-      value: trainModelsFn.functionName,
-      description: "Model Training Lambda Function"
-    });
-    new cdk.CfnOutput(this, "EnsemblePredictLambda", {
-      value: ensemblePredictFn.functionName,
-      description: "Ensemble Prediction Lambda Function"
-    });
-    new cdk.CfnOutput(this, "MonitoringLambda", {
-      value: monitoringFn.functionName,
-      description: "Monitoring Lambda Function"
+    new cdk.CfnOutput(this, "AdvancedFeaturesDashboardUrl", {
+      value: `https://console.aws.amazon.com/cloudwatch/home?region=${cdk.Aws.REGION}#dashboards:name=B3TR-AdvancedFeatures`,
+      description: "CloudWatch Dashboard for Advanced Features"
     });
     new cdk.CfnOutput(this, "BacktestingLambda", {
       value: backtestingFn.functionName,
