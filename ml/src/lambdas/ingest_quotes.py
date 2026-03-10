@@ -7,11 +7,29 @@ import boto3
 import requests
 
 s3 = boto3.client("s3")
+secrets = boto3.client("secretsmanager")
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 BUCKET = os.environ["BUCKET"]
-BRAPI_TOKEN = os.environ.get("BRAPI_TOKEN", "")
+BRAPI_SECRET_ID = os.environ.get("BRAPI_SECRET_ID", "brapi/pro/token")
+
+
+def get_brapi_token() -> str:
+    """Carrega token da BRAPI do Secrets Manager"""
+    try:
+        resp = secrets.get_secret_value(SecretId=BRAPI_SECRET_ID)
+        secret_str = resp.get("SecretString", "")
+        
+        # Pode ser JSON ou string simples
+        try:
+            secret_data = json.loads(secret_str)
+            return secret_data.get("token", secret_str)
+        except json.JSONDecodeError:
+            return secret_str
+    except Exception as e:
+        logger.error(f"Error loading BRAPI token: {e}")
+        return ""
 
 
 def handler(event, context):
@@ -22,6 +40,11 @@ def handler(event, context):
     dt_str = now.date().isoformat()
     
     try:
+        # Carregar token
+        brapi_token = get_brapi_token()
+        if not brapi_token:
+            logger.warning("No BRAPI token available, using free tier")
+        
         # Ler universo de ações
         universe_key = "config/universe.txt"
         try:
@@ -41,9 +64,11 @@ def handler(event, context):
         url = f"https://brapi.dev/api/quote/{tickers_str}"
         params = {
             "range": "1d",
-            "interval": "5m",
-            "token": BRAPI_TOKEN
+            "interval": "5m"
         }
+        
+        if brapi_token:
+            params["token"] = brapi_token
         
         logger.info(f"Fetching from BRAPI: {url}")
         response = requests.get(url, params=params, timeout=30)

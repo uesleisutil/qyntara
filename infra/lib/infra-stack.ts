@@ -337,7 +337,9 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     // Lambdas
     // -----------------------
-    const ingestFn = mkPyLambda("Quotes5mIngest", "ml.src.lambdas.ingest_quotes.handler");
+    const ingestFn = mkPyLambda("Quotes5mIngest", "ml.src.lambdas.ingest_quotes.handler", {
+      BRAPI_SECRET_ID: brapiSecretId,
+    });
     ingestFn.addToRolePolicy(secretsPolicy);
 
     // SageMaker APIs (declarar antes de usar)

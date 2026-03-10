@@ -61,6 +61,53 @@ const IngestionStatusPanel = React.memo(({ ingestionData }) => {
     return <p>Nenhum dado de ingestão disponível nas últimas 24 horas</p>;
   }
 
+  // Show warning if all executions failed
+  if (successfulExecutions === 0 && totalExecutions > 0) {
+    return (
+      <>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.5rem', 
+          marginBottom: '1rem',
+          padding: '1rem',
+          backgroundColor: '#fef3c7',
+          borderRadius: '0.5rem'
+        }}>
+          <AlertTriangle size={24} color="#f59e0b" />
+          <div>
+            <div style={{ fontWeight: 'bold', color: '#f59e0b' }}>
+              Ingestão sem sucesso nas últimas 24h
+            </div>
+            <div style={{ fontSize: '0.875rem', color: '#92400e' }}>
+              {totalExecutions} tentativas realizadas, mas nenhum dado novo foi ingerido. 
+              Isso pode indicar que a API externa não está retornando dados novos ou que a bolsa está fechada.
+            </div>
+          </div>
+        </div>
+        
+        <div className="metric-grid">
+          <div className="metric">
+            <div className="metric-value">0%</div>
+            <div className="metric-label">Taxa de Sucesso (24h)</div>
+          </div>
+          <div className="metric">
+            <div className="metric-value">{totalExecutions}</div>
+            <div className="metric-label">Tentativas (24h)</div>
+          </div>
+          <div className="metric">
+            <div className="metric-value">0</div>
+            <div className="metric-label">Sucessos</div>
+          </div>
+          <div className="metric">
+            <div className="metric-value">{failedExecutions}</div>
+            <div className="metric-label">Sem Dados</div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   // Prepare chart data (last 24 hours)
   const chartData = recentIngestion;
 
