@@ -54,7 +54,7 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState(null);
   
   // Estados avançados para métricas de ML
-  const [driftData, setDriftData] = useState([]);
+  const [driftData, setDriftData] = useState(null);
   const [ensembleData, setEnsembleData] = useState(null);
   const [featureImportance, setFeatureImportance] = useState([]);
   const [hyperparameters, setHyperparameters] = useState(null);
@@ -184,19 +184,15 @@ function App() {
       const objects = await listS3Objects('monitoring/drift/');
       if (objects.length === 0) return;
 
-      const driftFiles = objects
+      const latestObject = objects
         .filter(obj => obj.Key.endsWith('.json'))
-        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))
-        .slice(0, 30);
+        .sort((a, b) => new Date(b.LastModified) - new Date(a.LastModified))[0];
 
-      const driftPromises = driftFiles.map(obj => readS3Object(obj.Key));
-      const driftResults = await Promise.all(driftPromises);
-      
-      const validDrift = driftResults
-        .filter(data => data && data.timestamp)
-        .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      
-      setDriftData(validDrift);
+      if (latestObject) {
+        const data = await readS3Object(latestObject.Key);
+        // DriftMonitoringPanel espera um objeto, não um array
+        setDriftData(data);
+      }
     } catch (error) {
       console.error('Error loading drift data:', error);
     }
@@ -638,7 +634,7 @@ function App() {
               <Activity size={20} />
               Drift ao Longo do Tempo
             </h3>
-            <DriftDetectionChart data={driftData} />
+            <DriftDetectionChart data={driftData?.mape_history || []} />
           </div>
 
           <div className="card" style={{ gridColumn: '1 / -1' }}>
