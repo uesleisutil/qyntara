@@ -266,20 +266,29 @@ def generate_ranking(
     features_df = features_df.copy()
     features_df['predicted_return'] = predictions
     
-    # Score ajustado por risco
-    features_df['score'] = features_df['predicted_return'] / (features_df['vol_20d'] + 1e-6)
+    # Score ajustado por risco (usar volatility_20d se vol_20d não existir)
+    vol_col = 'vol_20d' if 'vol_20d' in features_df.columns else 'volatility_20d'
+    if vol_col not in features_df.columns:
+        # Fallback: usar apenas predicted_return como score
+        features_df['score'] = features_df['predicted_return']
+    else:
+        features_df['score'] = features_df['predicted_return'] / (features_df[vol_col] + 1e-6)
     
     features_df = features_df.sort_values('score', ascending=False)
     top_df = features_df.head(top_n)
     
     ranking = []
     for idx, row in top_df.iterrows():
+        # Usar volatility_20d se vol_20d não existir
+        vol_col = 'vol_20d' if 'vol_20d' in row.index else 'volatility_20d'
+        vol_value = float(row[vol_col]) if vol_col in row.index else 0.0
+        
         ranking.append({
             'ticker': row['ticker'],
             'last_close': float(row['last_close']),
             'pred_price_t_plus_20': float(row['last_close'] * (1 + row['predicted_return'])),
             'exp_return_20': float(row['predicted_return']),
-            'vol_20d': float(row['vol_20d']),
+            'vol_20d': vol_value,
             'score': float(row['score'])
         })
     

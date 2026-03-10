@@ -118,6 +118,10 @@ def _brapi_history(ticker: str, token: str, range_: str) -> dict[str, Any]:
     url = f"https://brapi.dev/api/quote/{ticker}?range={range_}&interval=1d"
     headers = {"Authorization": f"Bearer {token}"}
     r = _http.request("GET", url, headers=headers, timeout=30.0, retries=False)
+    if r.status == 404:
+        # Ticker não existe na BRAPI, retornar vazio
+        logger.warning(f"Ticker {ticker} não encontrado na BRAPI (404)")
+        return {"results": [{"historicalDataPrice": []}]}
     if r.status >= 400:
         raise RuntimeError(f"BRAPI {ticker} HTTP {r.status}: {r.data[:200]}")
     return json.loads(r.data.decode("utf-8"))
