@@ -50,7 +50,8 @@ def handler(event, context):
         try:
             obj = s3.get_object(Bucket=BUCKET, Key=universe_key)
             universe = obj["Body"].read().decode("utf-8").strip().split("\n")
-            universe = [t.strip() for t in universe if t.strip()]
+            # Filtrar comentários e linhas vazias
+            universe = [t.strip() for t in universe if t.strip() and not t.strip().startswith("#")]
         except Exception as e:
             logger.error(f"Error reading universe: {e}")
             universe = ["PETR4", "VALE3", "ITUB4", "BBDC4", "ABEV3"]  # Fallback
