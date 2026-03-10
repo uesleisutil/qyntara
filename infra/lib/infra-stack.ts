@@ -240,6 +240,13 @@ export class InfraStack extends cdk.Stack {
       "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:25"
     );
 
+    // ML Dependencies Layer (XGBoost, Pandas, NumPy, SciPy)
+    const mlLayer = lambda.LayerVersion.fromLayerVersionArn(
+      this,
+      "MLDependenciesLayer",
+      "arn:aws:lambda:us-east-1:200093399689:layer:b3tr-ml-deps:2"
+    );
+
     // -----------------------
     // Lambda code (repo root)
     // -----------------------
@@ -300,17 +307,54 @@ export class InfraStack extends cdk.Stack {
       return fn;
     };
 
+    // Factory para Lambdas com ML dependencies
+    const mkMLLambda = (
+      logicalId: string,
+      handlerPath: string,
+      extraEnv?: Record<string, string>,
+    ): lambda.Function => {
+      const fn = new lambda.Function(this, logicalId, {
+        runtime: lambda.Runtime.PYTHON_3_11,
+        code: lambdaCode,
+        handler: handlerPath,
+        timeout: cdk.Duration.minutes(15), // Mais tempo para ML
+        memorySize: 2048, // Mais memória para ML
+        logRetention: logs.RetentionDays.ONE_WEEK,
+        environment: { ...commonEnv, ...(extraEnv ?? {}) },
+        layers: [mlLayer], // Apenas ML layer (tem numpy, scipy, xgboost)
+      });
+
+      fn.addToRolePolicy(s3RwPolicy);
+      fn.addToRolePolicy(cwPutMetricPolicy);
+      fn.addToRolePolicy(ssmReadPolicy);
+      return fn;
+    };
+
     // -----------------------
     // Lambdas
     // -----------------------
     const ingestFn = mkPyLambda("Quotes5mIngest", "ml.src.lambdas.ingest_quotes.handler");
     ingestFn.addToRolePolicy(secretsPolicy);
 
-    const rankStartFn = mkPyLambda("RankStart", "ml.src.lambdas.rank_start.handler");
-    const rankFinalizeFn = mkPyLambda("RankFinalize", "ml.src.lambdas.rank_finalize.handler");
+    // SageMaker: Treinar modelos
+    const trainSageMakerFn = mkPyLambda("TrainSageMaker", "ml.src.lambdas.train_sagemaker.handler");
+    trainSageMakerFn.addToRolePolicy(sagemakerApiPolicy);
+    trainSageMakerFn.addToRolePolicy(passRolePolicy);
+    
+    // SageMaker: Ranking com inferência
+    const rankSageMakerFn = mkPyLambda("RankSageMaker", "ml.src.lambdas.rank_sagemaker.handler");
+    rankSageMakerFn.addToRolePolicy(sagemakerApiPolicy);
 
+    // Monitoramento
     const monitorIngestionFn = mkPyLambda("MonitorIngestion", "ml.src.lambdas.monitor_ingestion.handler");
     const monitorQualityFn = mkPyLambda("MonitorModelQuality", "ml.src.lambdas.monitor_model_quality.handler");
+    const monitorPerformanceFn = mkPyLambda("MonitorModelPerformance", "ml.src.lambdas.monitor_model_performance.handler", {
+      ALERTS_TOPIC_ARN: alertsTopic.topicArn,
+    });
+    const monitorCostsFn = mkPyLambda("MonitorCosts", "ml.src.lambdas.monitor_costs.handler");
+    const monitorSageMakerFn = mkPyLambda("MonitorSageMaker", "ml.src.lambdas.monitor_sagemaker.handler", {
+      ALERTS_TOPIC_ARN: alertsTopic.topicArn,
+    });
     
     // Lambda para gerar dados de exemplo para o dashboard web
     const generateSampleDataFn = mkPyLambda("GenerateSampleData", "ml.src.lambdas.generate_sample_data.handler");
@@ -533,8 +577,35 @@ export class InfraStack extends cdk.Stack {
 
     bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
     
-    rankStartFn.addToRolePolicy(sagemakerApiPolicy);
-    rankStartFn.addToRolePolicy(passRolePolicy);
+    // Permissões para Cost Explorer
+    const costExplorerPolicy = new iam.PolicyStatement({
+      actions: ["ce:GetCostAndUsage", "ce:GetCostForecast"],
+      resources: ["*"],
+    });
+    monitorCostsFn.addToRolePolicy(costExplorerPolicy);
+    
+    // Permissões SNS para monitoramento de performance
+    const snsPublishPolicy = new iam.PolicyStatement({
+      actions: ["sns:Publish"],
+      resources: [alertsTopic.topicArn],
+    });
+    monitorPerformanceFn.addToRolePolicy(snsPublishPolicy);
+    monitorSageMakerFn.addToRolePolicy(snsPublishPolicy);
+    
+    // Permissões SageMaker para monitoramento
+    const sagemakerReadPolicy = new iam.PolicyStatement({
+      actions: [
+        "sagemaker:ListTrainingJobs",
+        "sagemaker:DescribeTrainingJob",
+        "sagemaker:ListEndpoints",
+        "sagemaker:DescribeEndpoint",
+        "sagemaker:DescribeEndpointConfig",
+        "sagemaker:ListTransformJobs",
+        "sagemaker:DescribeTransformJob",
+      ],
+      resources: ["*"],
+    });
+    monitorSageMakerFn.addToRolePolicy(sagemakerReadPolicy);
 
     // -----------------------
     // EventBridge schedules (UTC)
@@ -553,20 +624,40 @@ export class InfraStack extends cdk.Stack {
     });
     monitorIngestRule.addTarget(new targets.LambdaFunction(monitorIngestionFn));
 
-    const rankStartRule = new events.Rule(this, "RankDailyStart", {
+    // Ranking SageMaker diário (18:10 BRT = 21:10 UTC)
+    const rankSageMakerRule = new events.Rule(this, "RankSageMakerDaily", {
       schedule: events.Schedule.expression("cron(10 21 ? * MON-FRI *)"),
     });
-    rankStartRule.addTarget(new targets.LambdaFunction(rankStartFn));
+    rankSageMakerRule.addTarget(new targets.LambdaFunction(rankSageMakerFn));
 
-    const rankFinalizeRule = new events.Rule(this, "RankDailyFinalize", {
-      schedule: events.Schedule.expression("cron(40 21 ? * MON-FRI *)"),
+    // Monitor de custos diário (08:00 UTC = 05:00 BRT)
+    const monitorCostsRule = new events.Rule(this, "MonitorCostsDaily", {
+      schedule: events.Schedule.expression("cron(0 8 * * ? *)"),
     });
-    rankFinalizeRule.addTarget(new targets.LambdaFunction(rankFinalizeFn));
+    monitorCostsRule.addTarget(new targets.LambdaFunction(monitorCostsFn));
+
+    // Manter rank_finalize por compatibilidade (desabilitado por padrão)
+    // const rankFinalizeRule = new events.Rule(this, "RankDailyFinalize", {
+    //   schedule: events.Schedule.expression("cron(40 21 ? * MON-FRI *)"),
+    // });
+    // rankFinalizeRule.addTarget(new targets.LambdaFunction(rankFinalizeFn));
 
     const monitorQualityRule = new events.Rule(this, "MonitorQualityDaily", {
       schedule: events.Schedule.expression("cron(0 22 ? * MON-FRI *)"),
     });
     monitorQualityRule.addTarget(new targets.LambdaFunction(monitorQualityFn));
+
+    // Monitor de performance do modelo: roda diariamente para validar predições de 20 dias atrás
+    const monitorPerformanceRule = new events.Rule(this, "MonitorPerformanceDaily", {
+      schedule: events.Schedule.expression("cron(30 22 ? * MON-FRI *)"), // 19:30 BRT
+    });
+    monitorPerformanceRule.addTarget(new targets.LambdaFunction(monitorPerformanceFn));
+    
+    // Monitor do SageMaker: roda a cada 5 minutos para detectar recursos ativos
+    const monitorSageMakerRule = new events.Rule(this, "MonitorSageMakerFrequent", {
+      schedule: events.Schedule.expression("cron(0/5 * * * ? *)"), // A cada 5 minutos
+    });
+    monitorSageMakerRule.addTarget(new targets.LambdaFunction(monitorSageMakerFn));
 
     // Bootstrap histórico: roda 30/30 min até terminar (depois a lambda deve “skipp ar”)
     const bootstrapRule = new events.Rule(this, "BootstrapHistorySchedule", {

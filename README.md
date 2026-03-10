@@ -1,480 +1,271 @@
-# 📈 B3 Tactical Ranking (B3TR)
+# B3 Tactical Ranking
 
-<div align="center">
+Sistema de recomendação de ações da B3 usando Machine Learning com SageMaker.
 
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![AWS](https://img.shields.io/badge/AWS-Cloud-orange.svg)
-![CDK](https://img.shields.io/badge/AWS_CDK-TypeScript-green.svg)
-![React](https://img.shields.io/badge/React-18.2-61DAFB.svg)
-![Status](https://img.shields.io/badge/Status-Production-success.svg)
-
-**Sistema MLOps automatizado para ranking tático de ações da B3 usando Machine Learning**
-
-[Documentação](docs/) • [Deploy Guide](DEPLOY_GUIDE.md) • [Arquitetura](docs/architecture.md) • [Dashboard](https://uesleisutil.github.io/b3-tactical-ranking)
-
-</div>
-
----
-
-## 🎯 Visão Geral
-
-O **B3 Tactical Ranking** é uma plataforma completa de MLOps que automatiza todo o ciclo de vida de análise quantitativa de ações da B3 (Bolsa de Valores Brasileira). O sistema utiliza modelos de Deep Learning (DeepAR) para prever movimentos de preços e gerar rankings diários das ações mais promissoras.
-
-### 🌟 Principais Características
-
-- **🤖 Machine Learning Automatizado**: Treinamento e inferência automáticos usando Amazon SageMaker DeepAR
-- **📊 Ingestão em Tempo Real**: Coleta de cotações a cada 5 minutos durante o pregão via BRAPI Pro
-- **🔄 Pipeline MLOps Completo**: Feature engineering, otimização de hiperparâmetros, treinamento e monitoramento
-- **📈 Dashboard Interativo**: Visualização em tempo real hospedada no GitHub Pages (gratuito)
-- **🔔 Alertas Inteligentes**: Monitoramento contínuo com notificações via SNS
-- **💰 Custo-Efetivo**: ~$27-43/mês na AWS (sem QuickSight)
-- **🚀 Deploy Automatizado**: Infraestrutura como código com AWS CDK
-
-## 🏗️ Arquitetura
+## Arquitetura
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         INGESTÃO DE DADOS                            │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
-│  │  BRAPI Pro   │───▶│   Lambda     │───▶│    S3 Data Lake      │  │
-│  │  (Cotações)  │    │  (Ingestão)  │    │  (Raw/Curated/...)   │  │
-│  └──────────────┘    └──────────────┘    └──────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      PIPELINE DE ML                                  │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
-│  │   Feature    │───▶│ Hyperparameter│───▶│   Model Training     │  │
-│  │ Engineering  │    │ Optimization  │    │   (SageMaker)        │  │
-│  └──────────────┘    └──────────────┘    └──────────────────────┘  │
-│                                │                                     │
-│                                ▼                                     │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
-│  │   Ensemble   │───▶│  Monitoring  │───▶│   Drift Detection    │  │
-│  │  Prediction  │    │  & Metrics   │    │   & Alerting         │  │
-│  └──────────────┘    └──────────────┘    └──────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    RANKING & VISUALIZAÇÃO                            │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
-│  │   Ranking    │───▶│  Dashboard   │───▶│   GitHub Pages       │  │
-│  │  Generation  │    │  (React)     │    │   (Gratuito)         │  │
-│  └──────────────┘    └──────────────┘    └──────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+TREINO (1x)                    INFERÊNCIA (Diária)
+───────────                    ────────────────────
+
+Lambda Train                   Lambda Rank
+    │                              │
+    ▼                              ▼
+SageMaker Training            Carregar Modelo S3
+    │                              │
+    ▼                              ▼
+model.tar.gz ──────────────▶  Predições In-Memory
+    │                              │
+    ▼                              ▼
+S3: models/                   S3: recommendations/
 ```
 
-### 🔧 Componentes Principais
+## Features
 
-#### AWS Lambda Functions
-| Função | Descrição | Frequência |
-|--------|-----------|------------|
-| **bootstrap_history_daily** | Download inicial de 10 anos de dados históricos | A cada 30min (até completar) |
-| **ingest_quotes** | Ingestão incremental de cotações em tempo real | A cada 5min (durante pregão) |
-| **feature_engineering** | Criação de features para ML | Diário + trigger S3 |
-| **optimize_hyperparameters** | Otimização de hiperparâmetros | Mensal |
-| **train_models** | Treinamento de modelos DeepAR | Semanal |
-| **ensemble_predict** | Predições usando ensemble de modelos | Diário |
-| **rank_start** | Inicia processo de ranking | Diário 18:10 BRT |
-| **rank_finalize** | Finaliza e publica ranking | Diário 18:40 BRT |
-| **monitor_ingestion** | Monitora qualidade da ingestão | A cada 5min |
-| **monitor_model_quality** | Monitora performance dos modelos | Diário |
-| **monitoring** | Monitoramento geral e drift detection | Diário |
+- ✅ 50+ features técnicas avançadas (RSI, MACD, Bollinger Bands, ATR, etc)
+- ✅ Walk-forward validation temporal (5 splits)
+- ✅ Feature selection automática (top 30)
+- ✅ Inferência in-memory (sem endpoint 24/7)
+- ✅ Monitoramento contínuo de performance
+- ✅ Detecção automática de drift
+- ✅ Alertas SNS para re-treino
+- ✅ Monitoramento de custos em tempo real
+- ✅ Monitoramento de instâncias SageMaker
+- ✅ Dashboard completo com métricas
+- ✅ Custo < $1/mês
 
-#### Amazon S3 (Data Lake)
-```
-s3://bucket/
-├── raw/quotes_5m/              # Dados brutos da BRAPI (5min)
-├── curated/daily_monthly/      # Dados históricos organizados
-├── training/deepar/            # Datasets para treinamento
-├── models/                     # Modelos treinados
-├── predictions/                # Previsões do modelo
-├── recommendations/            # Rankings finais (top 10)
-├── features/                   # Features engineered
-├── hyperparameters/            # Melhores hiperparâmetros
-└── monitoring/                 # Relatórios de monitoramento
-    ├── model_quality/          # Métricas de qualidade (MAPE, etc)
-    ├── ingestion/              # Status de ingestão
-    └── drift/                  # Detecção de drift
-```
+## Deployment
 
-#### Amazon SageMaker
-- **Algoritmo**: DeepAR (Deep Autoregressive Recurrent Network)
-- **Tipo de Instância**: ml.m5.large (configurável)
-- **Treinamento**: Automático via Lambda + EventBridge
-- **Inferência**: Batch Transform Jobs
-- **Ensemble**: Múltiplos modelos com pesos otimizados
-
-#### Dashboard Web (GitHub Pages)
-- **Framework**: React 18.2 + Recharts
-- **Hospedagem**: GitHub Pages (CDN global, gratuito)
-- **Acesso a Dados**: Leitura direta do S3 via AWS SDK
-- **Atualização**: Auto-refresh a cada 5 minutos
-- **URL**: https://uesleisutil.github.io/b3-tactical-ranking
-
-**Funcionalidades do Dashboard:**
-- ✅ Visualização de recomendações diárias (top 10 ações)
-- ✅ Gráficos de qualidade do modelo (MAPE, cobertura, intervalos de predição)
-- ✅ Monitoramento de ingestão de dados em tempo real
-- ✅ Indicadores de saúde do sistema
-- ✅ Análise de feature importance
-- ✅ Detecção de drift
-- ✅ Pesos do ensemble
-- ✅ Design responsivo (mobile-friendly)
-
-## 🚀 Quick Start
-
-### Pré-requisitos
-
-- ✅ **AWS CLI** configurado (`aws configure`)
-- ✅ **Node.js 18+** e **AWS CDK** (`npm i -g aws-cdk`)
-- ✅ **Python 3.11+**
-- ✅ **Token BRAPI Pro** ([brapi.dev](https://brapi.dev))
-- ✅ **Conta AWS** (região us-east-1 recomendada)
-
-### Deploy em 5 Minutos
+### 1. Pré-requisitos
 
 ```bash
-# 1. Clone o repositório
-git clone https://github.com/uesleisutil/b3-tactical-ranking.git
-cd b3-tactical-ranking
+# AWS CLI configurado
+aws configure
 
-# 2. Configure suas credenciais
-cp .env.example .env
-# Edite .env com suas configurações AWS
+# Node.js e CDK
+npm install -g aws-cdk
 
-# 3. Deploy da infraestrutura
-cd infra
-npm ci
-cdk bootstrap  # Apenas primeira vez
-cdk deploy --require-approval never
-
-# 4. Configure o token BRAPI
-aws secretsmanager create-secret \
-  --name "brapi/pro/token" \
-  --secret-string '{"token":"SEU_TOKEN_BRAPI"}'
-
-# 5. Configure email de alertas (opcional)
-aws sns subscribe \
-  --topic-arn $(aws cloudformation describe-stacks \
-    --stack-name B3TacticalRankingStackV2 \
-    --query 'Stacks[0].Outputs[?OutputKey==`AlertsTopicArn`].OutputValue' \
-    --output text) \
-  --protocol email \
-  --notification-endpoint seu-email@example.com
-
-# 6. Teste o sistema
-cd ..
-./scripts/test-system.sh
+# Python 3.11+
+python --version
 ```
 
-**Pronto!** 🎉 Seu sistema está rodando automaticamente na AWS.
+### 2. Deploy da Infraestrutura
 
-## � Estrutura do Projeto
-
-```
-b3-tactical-ranking/
-├── 📄 README.md                    # Este arquivo
-├── 📄 LICENSE                      # Licença MIT
-├── 📄 DEPLOY_GUIDE.md             # Guia detalhado de deploy
-├── 📄 QUICKSIGHT_REMOVAL.md       # Documentação remoção QuickSight
-│
-├── 📁 docs/                       # Documentação técnica
-│   ├── README.md                  # Índice da documentação
-│   ├── architecture.md            # Arquitetura detalhada
-│   ├── deployment.md              # Processo de deployment
-│   └── troubleshooting.md         # Solução de problemas
-│
-├── 📁 dashboard/                  # Dashboard React
-│   ├── src/                       # Código fonte React
-│   ├── public/                    # Assets públicos
-│   ├── package.json               # Dependências Node.js
-│   └── README.md                  # Documentação do dashboard
-│
-├── 📁 infra/                      # Infraestrutura AWS CDK
-│   ├── lib/                       # Stacks CDK
-│   │   └── infra-stack.ts        # Stack principal
-│   ├── bin/                       # Entry point CDK
-│   │   └── infra.ts              # App CDK
-│   ├── package.json               # Dependências CDK
-│   └── cdk.json                   # Configuração CDK
-│
-├── 📁 ml/                         # Código Machine Learning
-│   └── src/
-│       ├── lambdas/               # Funções Lambda
-│       │   ├── ingest_quotes.py
-│       │   ├── feature_engineering.py
-│       │   ├── optimize_hyperparameters.py
-│       │   ├── train_models.py
-│       │   ├── ensemble_predict.py
-│       │   ├── rank_start.py
-│       │   ├── rank_finalize.py
-│       │   └── monitoring.py
-│       ├── models/                # Modelos ML
-│       │   ├── deepar_trainer.py
-│       │   ├── ensemble.py
-│       │   └── walk_forward_validator.py
-│       └── utils/                 # Utilitários
-│           ├── s3_utils.py
-│           ├── brapi_client.py
-│           └── metrics.py
-│
-├── 📁 scripts/                    # Scripts operacionais
-│   ├── setup.sh                   # Setup completo
-│   ├── test-system.sh             # Testes do sistema
-│   ├── check-quicksight-resources.sh
-│   └── cleanup-quicksight.sh
-│
-├── 📁 config/                     # Configurações
-│   ├── universe.txt               # Lista de tickers
-│   └── b3_holidays_2026.json      # Feriados B3
-│
-└── 📁 .github/                    # GitHub configs
-    ├── workflows/                 # GitHub Actions
-    │   ├── deploy-dashboard.yml   # Deploy automático dashboard
-    │   └── cdk-deploy.yml         # Deploy automático infra
-    └── ISSUE_TEMPLATE/            # Templates de issues
-```
-
-## ⚙️ Configuração
-
-### Variáveis de Ambiente Principais
-
-Edite o arquivo `.env` na raiz do projeto:
-
-```bash
-# AWS
-AWS_REGION=us-east-1
-AWS_ACCOUNT_ID=123456789012
-
-# BRAPI
-BRAPI_SECRET_ID=brapi/pro/token
-
-# Alertas
-ALERT_EMAIL=seu-email@example.com
-
-# Modelo ML
-B3TR_CONTEXT_LENGTH=60          # Janela histórica (dias)
-B3TR_PREDICTION_LENGTH=20       # Horizonte de previsão (dias)
-B3TR_TOP_N=10                   # Top N ações no ranking
-
-# Horários (UTC - pregão B3)
-B3_OPEN_HOUR_UTC=13             # 10:00 BRT
-B3_CLOSE_HOUR_UTC=20            # 17:00 BRT
-B3TR_SCHEDULE_MINUTES=5         # Intervalo de ingestão
-
-# Bootstrap
-B3TR_HISTORY_RANGE=10y          # Histórico inicial
-BOOTSTRAP_TICKERS_PER_RUN=10    # Tickers por execução
-```
-
-### Customização do Universe
-
-Edite `config/universe.txt` com os tickers desejados:
-
-```
-PETR4.SA
-VALE3.SA
-ITUB4.SA
-BBDC4.SA
-ABEV3.SA
-MGLU3.SA
-WEGE3.SA
-RENT3.SA
-LREN3.SA
-GGBR4.SA
-```
-
-## 📈 Como Funciona
-
-### 1. Ingestão de Dados
-- **Bootstrap**: Download inicial de 10 anos de dados históricos
-- **Incremental**: Coleta de cotações a cada 5 minutos durante o pregão
-- **Fonte**: BRAPI Pro API (dados da B3)
-- **Armazenamento**: S3 em formato Parquet otimizado
-
-### 2. Feature Engineering
-- Criação de features técnicas (médias móveis, RSI, MACD, etc)
-- Features de volume e volatilidade
-- Features de momentum e tendência
-- Normalização e tratamento de missing values
-
-### 3. Treinamento de Modelos
-- **Algoritmo**: DeepAR (Amazon SageMaker)
-- **Validação**: Walk-forward validation
-- **Otimização**: Hyperparameter tuning automático
-- **Ensemble**: Múltiplos modelos com pesos otimizados
-
-### 4. Geração de Rankings
-- Predições para horizonte de 20 dias
-- Cálculo de retorno esperado
-- Análise de risco (volatilidade, drawdown)
-- Ranking final baseado em score composto
-
-### 5. Monitoramento
-- **Qualidade do Modelo**: MAPE, RMSE, cobertura de intervalos
-- **Drift Detection**: Monitoramento de mudanças na distribuição
-- **Alertas**: Notificações automáticas via SNS
-- **Dashboard**: Visualização em tempo real
-
-## 📊 Métricas e KPIs
-
-### Qualidade do Modelo
-- **MAPE (Mean Absolute Percentage Error)**: < 5% (target)
-- **Cobertura de Intervalos**: 80-95%
-- **Sharpe Ratio**: Monitorado continuamente
-- **Maximum Drawdown**: Alertas configuráveis
-
-### Performance Operacional
-- **Latência de Ingestão**: < 1 minuto
-- **Tempo de Treinamento**: ~15-30 minutos
-- **Disponibilidade**: 99.9% (SLA AWS)
-- **Custo Mensal**: $27-43
-
-## 💰 Custos Estimados
-
-### Infraestrutura AWS (Mensal)
-
-| Serviço | Custo Estimado | Descrição |
-|---------|----------------|-----------|
-| **Lambda** | $5-10 | Execuções das funções |
-| **S3** | $0.50 | Armazenamento de dados |
-| **SageMaker** | $20-30 | Treinamento e inferência |
-| **CloudWatch** | $1-2 | Logs e métricas |
-| **SNS** | $0.10 | Notificações |
-| **EventBridge** | $0.10 | Agendamento |
-| **Total** | **$27-43** | **Por mês** |
-
-### Dashboard
-- **GitHub Pages**: **Gratuito** ✅
-- **S3 GET Requests**: ~$0.01/mês
-
-### Economia vs QuickSight
-- **QuickSight**: $18-24/mês
-- **GitHub Pages**: $0/mês
-- **Economia**: **$18-24/mês** (~$216-288/ano) 💰
-
-## 🔐 Segurança
-
-- **IAM Roles**: Princípio do menor privilégio
-- **Secrets Manager**: Tokens criptografados
-- **S3 Encryption**: Server-side encryption (SSE-S3)
-- **VPC**: Não necessário (serviços gerenciados)
-- **SSL/TLS**: Todas as comunicações criptografadas
-- **CORS**: Configurado para GitHub Pages apenas
-
-## 📚 Documentação
-
-- **[Arquitetura Detalhada](docs/architecture.md)** - Visão técnica completa
-- **[Guia de Deployment](docs/deployment.md)** - Deploy passo a passo
-- **[Troubleshooting](docs/troubleshooting.md)** - Solução de problemas
-- **[Deploy Guide](DEPLOY_GUIDE.md)** - Guia rápido de deploy
-- **[QuickSight Removal](QUICKSIGHT_REMOVAL.md)** - Documentação da remoção
-
-## 🧪 Testes
-
-```bash
-# Testar sistema completo
-./scripts/test-system.sh
-
-# Testar ingestão
-aws lambda invoke \
-  --function-name $(aws lambda list-functions \
-    --query "Functions[?contains(FunctionName, 'Ingest')].FunctionName" \
-    --output text) \
-  --payload '{}' /tmp/test.json
-
-# Verificar dados no S3
-aws s3 ls s3://SEU-BUCKET/recommendations/ --recursive | tail -5
-
-# Monitorar logs
-aws logs tail "/aws/lambda/B3TacticalRankingStackV2-Quotes5mIngest*" --follow
-```
-
-## 🔄 Atualizações
-
-### Atualizar Infraestrutura
 ```bash
 cd infra
+npm install
 cdk deploy
 ```
 
-### Atualizar Dashboard
-```bash
-# Automático via GitHub Actions
-git push origin main
+### 3. Aguardar Bootstrap de Dados
 
-# Ou manual
-cd dashboard
-npm run deploy
+O sistema automaticamente faz bootstrap dos dados históricos (roda a cada 30 min).
+
+```bash
+# Verificar progresso
+aws logs tail /aws/lambda/*BootstrapHistory* --follow
+
+# Verificar dados disponíveis
+aws s3 ls s3://BUCKET/curated/daily_monthly/ --recursive | wc -l
+# Deve ter 120+ dias por ticker
 ```
 
-## 🤝 Contribuição
+### 4. Treinar Modelo Inicial
 
-Contribuições são bem-vindas! Por favor:
+```bash
+aws lambda invoke \
+  --function-name <TrainSageMaker> \
+  --payload '{
+    "lookback_days": 365,
+    "hyperparameters": {
+      "max_depth": "6",
+      "learning_rate": "0.1",
+      "n_estimators": "100",
+      "n_features": "30",
+      "cv_splits": "5"
+    }
+  }' \
+  output.json
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
+# Aguardar conclusão (5-15 min)
+cat output.json | jq
+```
 
-## 📝 Roadmap
+### 5. Verificar Primeira Recomendação
 
-- [ ] Suporte para mais exchanges (NASDAQ, NYSE)
-- [ ] Modelos adicionais (LSTM, Transformer)
-- [ ] Backtesting automatizado
-- [ ] API REST para acesso externo
-- [ ] Mobile app (React Native)
-- [ ] Integração com brokers
-- [ ] Análise de sentimento (NLP)
-- [ ] Portfolio optimization
+O ranking roda automaticamente às 18:10 BRT. Para forçar manualmente:
 
-## ⚠️ Disclaimer
+```bash
+aws lambda invoke \
+  --function-name <RankSageMaker> \
+  --payload '{}' \
+  output.json
 
-**Este projeto é apenas para fins educacionais e de pesquisa.**
+# Ver recomendações
+aws s3 cp s3://BUCKET/recommendations/dt=$(date +%Y-%m-%d)/top50.json - | jq
+```
 
-- ❌ **NÃO constitui recomendação de investimento**
-- ❌ **NÃO deve ser usado como única fonte de decisão**
-- ❌ **Investimentos em ações envolvem riscos**
-- ✅ **Sempre consulte um profissional certificado**
-- ✅ **Faça sua própria análise (DYOR)**
+## Operação Diária
 
-O autor não se responsabiliza por perdas financeiras decorrentes do uso deste sistema.
+O sistema roda automaticamente:
 
-## 📄 Licença
+- **A cada 5 min**: Monitora instâncias SageMaker (detecta endpoints ativos)
+- **18:10 BRT**: Gera ranking top 50
+- **19:30 BRT**: Valida predições de 20 dias atrás
+- **20:00 BRT**: Monitora custos
 
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+### ⚠️ Alerta Importante: Endpoints SageMaker
 
-## 👨‍💻 Autor
+O sistema foi projetado para **inferência in-memory** (sem endpoints).
 
-**Ueslei Sutil**
+Se o dashboard mostrar endpoints ativos:
+```bash
+# Deletar endpoint imediatamente
+aws sagemaker delete-endpoint --endpoint-name <ENDPOINT_NAME>
 
-- GitHub: [@uesleisutil](https://github.com/uesleisutil)
-- LinkedIn: [uesleisutil](https://linkedin.com/in/uesleisutil)
+# Economia: ~$47/mês por endpoint
+```
 
-## 🙏 Agradecimentos
+## Monitoramento
 
-- [BRAPI](https://brapi.dev) - API de dados da B3
-- [AWS](https://aws.amazon.com) - Infraestrutura cloud
-- [Amazon SageMaker](https://aws.amazon.com/sagemaker/) - Plataforma de ML
-- Comunidade open source
+### Métricas CloudWatch
 
-## 📞 Suporte
+- `B3TR/ModelMAPE` - Erro percentual do modelo
+- `B3TR/DirectionalAccuracy` - Acurácia direcional
+- `B3TR/ModelMAE` - Erro absoluto médio
 
-- 📖 **Documentação**: [docs/](docs/)
-- 🐛 **Issues**: [GitHub Issues](https://github.com/uesleisutil/b3-tactical-ranking/issues)
-- 💬 **Discussões**: [GitHub Discussions](https://github.com/uesleisutil/b3-tactical-ranking/discussions)
+### Dashboard Web
 
----
+Acesse: `https://uesleisutil.github.io/b3-tactical-ranking`
 
-<div align="center">
+**Abas disponíveis**:
+- **Visão Geral**: Recomendações, qualidade, ingestão
+- **Performance do Modelo**: MAPE, acurácia, drift
+- **Monitoramento**: Drift, features, alertas
+- **Avançado**: Hiperparâmetros, explicabilidade
+- **Custos & Performance**: 
+  - Monitoramento de instâncias SageMaker (training jobs, endpoints, transform jobs)
+  - Performance do modelo (MAPE, acurácia direcional)
+  - Custos operacionais (diário, mensal, por serviço)
+  - Alertas automáticos
 
-**Desenvolvido com ❤️ para a comunidade de investidores brasileiros**
+### Comandos Úteis
 
-⭐ Se este projeto foi útil, considere dar uma estrela!
+```bash
+# Ver performance do modelo
+aws s3 cp s3://BUCKET/monitoring/performance/dt=$(date +%Y-%m-%d)/metrics.json - | jq
 
-</div>
+# Ver feature importance
+aws s3 cp s3://BUCKET/models/ensemble/latest/feature_importance.csv -
+
+# Ver logs
+aws logs tail /aws/lambda/<RankSageMaker> --follow
+
+# Forçar modo momentum (sem modelo)
+aws lambda invoke \
+  --function-name <RankSageMaker> \
+  --payload '{"force_momentum": true}' \
+  output.json
+```
+
+## Re-treino
+
+O sistema alerta automaticamente quando re-treino é necessário:
+
+### Critérios
+- MAPE > 20%
+- Drift detectado (performance degradou 50%)
+- Performance 2x pior que treino
+
+### Como Re-treinar
+
+```bash
+# Verificar se necessário
+aws s3 cp s3://BUCKET/monitoring/performance/dt=$(date +%Y-%m-%d)/metrics.json - | jq '.needs_retrain'
+
+# Re-treinar
+aws lambda invoke \
+  --function-name <TrainSageMaker> \
+  --payload '{"lookback_days": 365}' \
+  output.json
+```
+
+## Custos
+
+### Operação Mensal
+- Lambda Rank: $0.15
+- Lambda Ingest: $0.50
+- Lambda Monitor: $0.10
+- S3 Storage: $0.10
+- CloudWatch: $0.10
+
+**Total: ~$0.95/mês**
+
+### Re-treino (Ocasional)
+- SageMaker Training: $0.06/treino
+
+## Estrutura do Projeto
+
+```
+.
+├── config/                    # Configurações (universe, holidays)
+├── dashboard/                 # Dashboard React (GitHub Pages)
+├── infra/                     # CDK Infrastructure
+├── ml/
+│   └── src/
+│       ├── features/          # Feature engineering
+│       ├── lambdas/           # Lambda functions
+│       ├── sagemaker/         # SageMaker scripts
+│       └── runtime_config.py  # Runtime configuration
+├── scripts/                   # Utility scripts
+├── MODEL_MONITORING_RETRAIN.md  # Monitoramento detalhado
+├── PRODUCTION_DEPLOYMENT.md     # Guia de deployment
+└── SAGEMAKER_ENSEMBLE.md        # Arquitetura SageMaker
+```
+
+## Documentação Adicional
+
+- [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) - Guia completo de deployment
+- [SAGEMAKER_ENSEMBLE.md](SAGEMAKER_ENSEMBLE.md) - Arquitetura e custos
+- [MODEL_MONITORING_RETRAIN.md](MODEL_MONITORING_RETRAIN.md) - Monitoramento e re-treino
+
+## Validação
+
+```bash
+# Executar script de validação
+./scripts/validate-production-ready.sh
+```
+
+## Troubleshooting
+
+### Sem dados históricos
+```bash
+# Verificar bootstrap
+aws logs tail /aws/lambda/*BootstrapHistory* --follow
+```
+
+### Modelo não encontrado
+```bash
+# Verificar modelos disponíveis
+aws s3 ls s3://BUCKET/models/ensemble/
+
+# Treinar novo modelo
+aws lambda invoke --function-name <TrainSageMaker> --payload '{}' output.json
+```
+
+### MAPE alto
+```bash
+# Verificar performance
+aws s3 cp s3://BUCKET/monitoring/performance/dt=$(date +%Y-%m-%d)/metrics.json - | jq
+
+# Re-treinar se necessário
+aws lambda invoke --function-name <TrainSageMaker> --payload '{}' output.json
+```
+
+## Licença
+
+MIT License - Ver [LICENSE](LICENSE)
+
+## Contato
+
+Para dúvidas ou sugestões, abra uma issue no GitHub.

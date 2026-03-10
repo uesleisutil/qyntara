@@ -39,6 +39,9 @@ import DriftMonitoringPanel from './components/panels/DriftMonitoringPanel';
 import FeatureAnalysisPanel from './components/panels/FeatureAnalysisPanel';
 import HyperparameterPanel from './components/panels/HyperparameterPanel';
 import ExplainabilityPanel from './components/panels/ExplainabilityPanel';
+import { ModelPerformancePanel as ModelPerformancePanelNew } from './components/panels/ModelPerformancePanel';
+import { CostMonitoringPanel } from './components/panels/CostMonitoringPanel';
+import { SageMakerMonitoringPanel } from './components/panels/SageMakerMonitoringPanel';
 
 function App() {
   // Estados básicos
@@ -59,7 +62,27 @@ function App() {
   const [predictionIntervals, setPredictionIntervals] = useState([]);
   
   // Estado para controlar visualização
-  const [activeTab, setActiveTab] = useState('overview'); // overview, performance, monitoring, advanced
+  const [activeTab, setActiveTab] = useState('overview'); // overview, performance, monitoring, advanced, costs
+  
+  // Estado para S3 client (para novos painéis)
+  const [s3Client, setS3Client] = useState(null);
+  const [bucket, setBucket] = useState(null);
+  
+  useEffect(() => {
+    // Inicializar S3 client
+    const AWS = window.AWS;
+    if (AWS) {
+      const s3 = new AWS.S3({
+        region: process.env.REACT_APP_AWS_REGION,
+        credentials: new AWS.Credentials({
+          accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY
+        })
+      });
+      setS3Client(s3);
+      setBucket(process.env.REACT_APP_S3_BUCKET);
+    }
+  }, []);
 
   // Validate credentials on component mount
   useEffect(() => {
@@ -464,6 +487,25 @@ function App() {
           <Settings size={20} />
           Avançado
         </button>
+        
+        <button
+          onClick={() => setActiveTab('costs')}
+          style={{
+            padding: '1rem 1.5rem',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'costs' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'costs' ? '#3b82f6' : '#64748b',
+            fontWeight: activeTab === 'costs' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}
+        >
+          <Activity size={20} />
+          Custos & Performance
+        </button>
       </div>
 
       {/* Conteúdo baseado na tab ativa */}
@@ -624,6 +666,22 @@ function App() {
               featureImportance={featureImportance}
               recommendations={recommendations}
             />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'costs' && (
+        <div className="dashboard-grid">
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <SageMakerMonitoringPanel s3Client={s3Client} bucket={bucket} />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <ModelPerformancePanelNew s3Client={s3Client} bucket={bucket} />
+          </div>
+
+          <div className="card" style={{ gridColumn: '1 / -1' }}>
+            <CostMonitoringPanel s3Client={s3Client} bucket={bucket} />
           </div>
         </div>
       )}
