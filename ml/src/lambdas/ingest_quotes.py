@@ -57,42 +57,40 @@ def handler(event, context):
         
         logger.info(f"Universe: {len(universe)} tickers")
         
-        # Buscar cotações da BRAPI
-        # Endpoint: https://brapi.dev/api/quote/{tickers}?range=1d&interval=5m
-        tickers_str = ",".join(universe[:50])  # Limitar a 50 por request
+        # Buscar cotações da BRAPI em batches (máximo 20 por request)
+        batch_size = 20
+        all_results = []
         
-        url = f"https://brapi.dev/api/quote/{tickers_str}"
-        params = {
-            "range": "1d",
-            "interval": "5m"
-        }
+        for i in range(0, len(universe), batch_size):
+            batch = universe[i:i+batch_size]
+            tickers_str = ",".join(batch)
+            
+            url = f"https://brapi.dev/api/quote/{tickers_str}"
+            params = {
+                "range": "1d",
+                "interval": "5m"
+            }
+            
+            if brapi_token:
+                params["token"] = brapi_token
+            
+            logger.info(f"Fetching batch {i//batch_size + 1}: {len(batch)} tickers")
+            response = requests.get(url, params=params, timeout=30)
+            
+            if response.status_code != 200:
+                logger.error(f"BRAPI error for batch: {response.status_code} - {response.text}")
+                continue
+            
+            data = response.json()
+            batch_results = data.get("results", [])
+            all_results.extend(batch_results)
+            
+            # Rate limiting
+            if i + batch_size < len(universe):
+                import time
+                time.sleep(0.5)  # 500ms entre requests
         
-        if brapi_token:
-            params["token"] = brapi_token
-        
-        logger.info(f"Fetching from BRAPI: {url}")
-        response = requests.get(url, params=params, timeout=30)
-        
-        if response.status_code != 200:
-            logger.error(f"BRAPI error: {response.status_code} - {response.text}")
-            # Salvar heartbeat em caso de erro
-            key = f"raw/quotes_5m/heartbeat_{now.strftime('%Y%m%dT%H%M%SZ')}.json"
-            s3.put_object(
-                Bucket=BUCKET,
-                Key=key,
-                Body=json.dumps({
-                    "ok": False,
-                    "ts": now.isoformat(),
-                    "error": f"BRAPI returned {response.status_code}"
-                }).encode("utf-8"),
-                ContentType="application/json",
-            )
-            return {"ok": False, "error": f"BRAPI returned {response.status_code}"}
-        
-        data = response.json()
-        results = data.get("results", [])
-        
-        if not results:
+        if not all_results:
             logger.warning("No results from BRAPI")
             # Salvar heartbeat
             key = f"raw/quotes_5m/heartbeat_{now.strftime('%Y%m%dT%H%M%SZ')}.json"
@@ -110,7 +108,7 @@ def handler(event, context):
         
         # Salvar dados
         records_saved = 0
-        for result in results:
+        for result in all_results:
             ticker = result.get("symbol", "UNKNOWN")
             historical_data = result.get("historicalDataPrice", [])
             
@@ -157,7 +155,7 @@ def handler(event, context):
             "timestamp": now.isoformat(),
             "status": "success",
             "records_ingested": records_saved,
-            "tickers_processed": len(results),
+            "tickers_processed": len(all_results),
             "source": "brapi"
         }
         
@@ -171,7 +169,7 @@ def handler(event, context):
         return {
             "ok": True,
             "records_saved": records_saved,
-            "tickers_processed": len(results)
+            "tickers_processed": len(all_results)
         }
         
     except Exception as e:
