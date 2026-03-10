@@ -87,6 +87,7 @@ export class InfraStack extends cdk.Stack {
     // Config (via env)
     // -----------------------
     const deepArImageUri = envOr("DEEPAR_IMAGE_URI", "382416733822.dkr.ecr.us-east-1.amazonaws.com/forecasting-deepar:1");
+    const ensembleImageUri = envOr("ENSEMBLE_IMAGE_URI", "");  // Vazio = usar XGBoost da AWS
     const brapiSecretId = envOr("BRAPI_SECRET_ID", "brapi/pro/token");
 
     const universeS3Key = envOr("B3TR_UNIVERSE_S3_KEY", "config/universe.txt");
@@ -103,7 +104,7 @@ export class InfraStack extends cdk.Stack {
     const predictionLength = envOr("B3TR_PREDICTION_LENGTH", "20");
     const testDays = envOr("B3TR_TEST_DAYS", "60");
     const minPoints = envOr("B3TR_MIN_POINTS", "252");
-    const topN = envOr("B3TR_TOP_N", "10");
+    const topN = envOr("B3TR_TOP_N", "50");
 
     // Monitoring
     const ingestLookbackMinutes = envOr("INGEST_LOOKBACK_MINUTES", "15");
@@ -274,6 +275,7 @@ export class InfraStack extends cdk.Stack {
       B3TR_SCHEDULE_MINUTES: scheduleMinutes,
 
       DEEPAR_IMAGE_URI: deepArImageUri,
+      ENSEMBLE_IMAGE_URI: ensembleImageUri,
       INGEST_LOOKBACK_MINUTES: ingestLookbackMinutes,
 
       SAGEMAKER_ROLE_ARN: sagemakerRole.roleArn,
@@ -333,16 +335,40 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     // Lambdas
     // -----------------------
+    // Lambdas
+    // -----------------------
     const ingestFn = mkPyLambda("Quotes5mIngest", "ml.src.lambdas.ingest_quotes.handler");
     ingestFn.addToRolePolicy(secretsPolicy);
+
+    // SageMaker APIs (declarar antes de usar)
+    const sagemakerApiPolicy = new iam.PolicyStatement({
+      actions: [
+        "sagemaker:CreateModel",
+        "sagemaker:DeleteModel",
+        "sagemaker:CreateTransformJob",
+        "sagemaker:DescribeTransformJob",
+        "sagemaker:StopTransformJob",
+        "sagemaker:CreateTrainingJob",
+        "sagemaker:DescribeTrainingJob",
+        "sagemaker:ListTrainingJobs",
+        "sagemaker:AddTags",
+      ],
+      resources: ["*"],
+    });
+    
+    // PassRole para SageMaker
+    const passRolePolicy = new iam.PolicyStatement({
+      actions: ["iam:PassRole"],
+      resources: [sagemakerRole.roleArn],
+    });
 
     // SageMaker: Treinar modelos
     const trainSageMakerFn = mkPyLambda("TrainSageMaker", "ml.src.lambdas.train_sagemaker.handler");
     trainSageMakerFn.addToRolePolicy(sagemakerApiPolicy);
     trainSageMakerFn.addToRolePolicy(passRolePolicy);
     
-    // SageMaker: Ranking com inferência
-    const rankSageMakerFn = mkPyLambda("RankSageMaker", "ml.src.lambdas.rank_sagemaker.handler");
+    // SageMaker: Ranking com inferência (precisa de XGBoost)
+    const rankSageMakerFn = mkMLLambda("RankSageMaker", "ml.src.lambdas.rank_sagemaker.handler");
     rankSageMakerFn.addToRolePolicy(sagemakerApiPolicy);
 
     // Monitoramento
@@ -370,28 +396,6 @@ export class InfraStack extends cdk.Stack {
       },
     );
     bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
-
-    // SageMaker APIs (declarar antes de usar)
-    const sagemakerApiPolicy = new iam.PolicyStatement({
-      actions: [
-        "sagemaker:CreateModel",
-        "sagemaker:DeleteModel",
-        "sagemaker:CreateTransformJob",
-        "sagemaker:DescribeTransformJob",
-        "sagemaker:StopTransformJob",
-        "sagemaker:CreateTrainingJob",
-        "sagemaker:DescribeTrainingJob",
-        "sagemaker:ListTrainingJobs",
-        "sagemaker:AddTags",
-      ],
-      resources: ["*"],
-    });
-    
-    // PassRole para SageMaker
-    const passRolePolicy = new iam.PolicyStatement({
-      actions: ["iam:PassRole"],
-      resources: [sagemakerRole.roleArn],
-    });
 
     // Model Optimization Pipeline Lambdas
     const featureEngineeringFn = mkPyLambda(

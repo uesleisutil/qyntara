@@ -10,6 +10,8 @@ from __future__ import annotations
 import csv
 import json
 import logging
+import os
+import tarfile
 import tempfile
 from datetime import UTC, datetime, timedelta
 
@@ -103,43 +105,97 @@ def upload_training_data(df: pd.DataFrame, bucket: str, prefix: str) -> str:
     return f"s3://{bucket}/{prefix}"
 
 
+def upload_training_script(bucket: str) -> str:
+    """
+    Empacota e faz upload do script de treino para S3.
+    Cria um sourcedir.tar.gz com o script train_ensemble.py
+    """
+    import os
+    import tarfile
+    
+    logger.info("Empacotando script de treino...")
+    
+    # Criar tar.gz temporário
+    with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as tmp:
+        tar_path = tmp.name
+    
+    # Caminho do script
+    script_dir = os.path.join(os.path.dirname(__file__), '..', 'sagemaker')
+    script_file = os.path.join(script_dir, 'train_ensemble.py')
+    
+    # Criar tar.gz
+    with tarfile.open(tar_path, 'w:gz') as tar:
+        tar.add(script_file, arcname='train_ensemble.py')
+    
+    # Upload para S3
+    s3_key = 'scripts/sourcedir.tar.gz'
+    s3.upload_file(tar_path, bucket, s3_key)
+    
+    logger.info(f"Script empacotado e enviado para s3://{bucket}/{s3_key}")
+    
+    # Limpar
+    os.unlink(tar_path)
+    
+    return f"s3://{bucket}/{s3_key}"
+
+
 def start_training_job(
     job_name: str,
     train_data_s3: str,
     output_s3: str,
     role_arn: str,
+    bucket: str,
     instance_type: str = "ml.m5.xlarge",
     hyperparameters: dict = None
 ) -> str:
-    """Inicia training job no SageMaker."""
+    """Inicia training job no SageMaker usando script mode."""
     
     if hyperparameters is None:
         hyperparameters = {
-            'max_depth': '6',
-            'learning_rate': '0.1',
-            'n_estimators': '100',
+            'max-depth': '6',
+            'learning-rate': '0.1',
+            'n-estimators': '100',
             'subsample': '0.8',
-            'colsample_bytree': '0.8'
+            'colsample-bytree': '0.8',
+            'n-features': '30',
+            'cv-splits': '5'
         }
     
-    # Imagem do container (XGBoost managed by AWS)
+    # Converter underscores para hyphens (padrão SageMaker)
+    hyperparameters = {k.replace('_', '-'): str(v) for k, v in hyperparameters.items()}
+    
+    # Upload do script
+    script_s3 = upload_training_script(bucket)
+    
+    # Imagem: usar customizada se disponível, senão XGBoost da AWS
     region = boto3.Session().region_name
     account_id = boto3.client('sts').get_caller_identity()['Account']
     
-    # Usar imagem XGBoost da AWS
-    image_uri = f"683313688378.dkr.ecr.{region}.amazonaws.com/sagemaker-xgboost:1.7-1"
+    # Tentar usar imagem customizada do ensemble
+    custom_image = os.environ.get('ENSEMBLE_IMAGE_URI')
+    if custom_image:
+        image_uri = custom_image
+        logger.info(f"Usando imagem customizada: {image_uri}")
+    else:
+        # Fallback para XGBoost da AWS
+        image_uri = f"683313688378.dkr.ecr.{region}.amazonaws.com/sagemaker-xgboost:1.7-1"
+        logger.info(f"Usando imagem XGBoost da AWS: {image_uri}")
     
     logger.info(f"Iniciando training job: {job_name}")
     logger.info(f"Instance type: {instance_type}")
     logger.info(f"Hyperparameters: {hyperparameters}")
+    logger.info(f"Script: {script_s3}")
+    
+    # Adicionar parâmetros do script mode
+    hyperparameters['sagemaker_program'] = 'train_ensemble.py'
+    hyperparameters['sagemaker_submit_directory'] = script_s3
     
     response = sagemaker.create_training_job(
         TrainingJobName=job_name,
         RoleArn=role_arn,
         AlgorithmSpecification={
             'TrainingImage': image_uri,
-            'TrainingInputMode': 'File',
-            'EnableSageMakerMetricsTimeSeries': True
+            'TrainingInputMode': 'File'
         },
         InputDataConfig=[
             {
@@ -165,7 +221,7 @@ def start_training_job(
         },
         HyperParameters=hyperparameters,
         StoppingCondition={
-            'MaxRuntimeInSeconds': 3600  # 1 hora
+            'MaxRuntimeInSeconds': 7200  # 2 horas
         }
     )
     
@@ -229,6 +285,7 @@ def handler(event, context):
         train_data_s3=train_data_s3,
         output_s3=output_s3,
         role_arn=cfg.sagemaker_role_arn,
+        bucket=bucket,
         instance_type=instance_type,
         hyperparameters=hyperparameters
     )
