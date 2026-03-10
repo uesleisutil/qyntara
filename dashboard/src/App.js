@@ -132,7 +132,12 @@ function App() {
       const qualityResults = await Promise.all(qualityPromises);
       
       const validQuality = qualityResults
-        .filter(data => data && data.dt)
+        .filter(data => data && (data.dt || data.dt_eval))
+        .map(data => ({
+          ...data,
+          dt: data.dt || data.dt_eval,
+          status: data.ok ? 'good' : 'warning'
+        }))
         .sort((a, b) => new Date(a.dt) - new Date(b.dt));
       
       setQualityData(validQuality);
@@ -157,7 +162,13 @@ function App() {
       const ingestionResults = await Promise.all(ingestionPromises);
       
       const validIngestion = ingestionResults
-        .filter(data => data && data.timestamp)
+        .filter(data => data && (data.timestamp || data.ts_utc))
+        .map(data => ({
+          ...data,
+          timestamp: data.timestamp || data.ts_utc,
+          status: data.status || (data.ok ? 'success' : 'error'),
+          records_ingested: data.records_ingested || 0
+        }))
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       
       setIngestionData(validIngestion);
