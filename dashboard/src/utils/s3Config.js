@@ -1,15 +1,16 @@
-import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+/**
+ * S3 Configuration and Data Access Layer
+ * Uses API Gateway for all S3 operations (no direct S3 access)
+ */
 
 /**
- * Validates that all required AWS environment variables are present
+ * Validates that all required environment variables are present
  * @returns {Object} Object with isValid boolean and missingVars array
  */
 export const validateCredentials = () => {
   const requiredEnvVars = [
-    'REACT_APP_AWS_REGION',
-    'REACT_APP_AWS_ACCESS_KEY_ID',
-    'REACT_APP_AWS_SECRET_ACCESS_KEY',
-    'REACT_APP_S3_BUCKET'
+    'REACT_APP_API_BASE_URL',
+    'REACT_APP_API_KEY'
   ];
 
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -18,6 +19,33 @@ export const validateCredentials = () => {
     isValid: missingVars.length === 0,
     missingVars
   };
+};
+
+/**
+ * Makes an API request with proper headers
+ * @param {string} endpoint - API endpoint path
+ * @returns {Promise<Object>} API response data
+ */
+const apiRequest = async (endpoint) => {
+  const baseUrl = process.env.REACT_APP_API_BASE_URL;
+  const apiKey = process.env.REACT_APP_API_KEY;
+
+  if (!baseUrl || !apiKey) {
+    throw new Error('API configuration missing');
+  }
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
+    headers: {
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
 };
 
 /**
@@ -34,13 +62,10 @@ export const createS3Client = () => {
     );
   }
 
-  return new S3Client({
-    region: process.env.REACT_APP_AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
-    },
-  });
+  // Return a mock client since we're using API Gateway
+  return {
+    _isApiClient: true
+  };
 };
 
 /**
@@ -49,13 +74,8 @@ export const createS3Client = () => {
  * @throws {Error} If REACT_APP_S3_BUCKET is not set
  */
 export const getBucketName = () => {
-  const bucketName = process.env.REACT_APP_S3_BUCKET;
-  
-  if (!bucketName) {
-    throw new Error('Configuration error: REACT_APP_S3_BUCKET environment variable is not set');
-  }
-  
-  return bucketName;
+  // Not needed for API Gateway approach, but kept for compatibility
+  return process.env.REACT_APP_S3_BUCKET || 'b3tr-200093399689-us-east-1';
 };
 
 // Export a singleton S3Client instance
@@ -110,6 +130,7 @@ const isCacheValid = (cacheEntry) => {
 
 /**
  * Fetches and parses a JSON object from S3 with caching
+ * Uses API Gateway instead of direct S3 access
  * @param {string} key - The S3 object key (path within the bucket)
  * @returns {Promise<Object|null>} Parsed JSON object or null on error
  * @throws {Error} Throws error with type information for proper error handling
@@ -123,34 +144,8 @@ export const readS3Object = async (key) => {
   }
 
   try {
-    const client = getS3Client();
-    const bucketName = getBucketName();
-
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    });
-
-    const response = await client.send(command);
-    const text = await response.Body.transformToString();
-    
-    // Validate data structure before parsing
-    if (!text || text.trim() === '') {
-      const error = new Error(`Empty data received from S3 object ${key}`);
-      error.type = 'parsing';
-      throw error;
-    }
-    
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (parseError) {
-      console.error(`JSON parsing error for ${key}:`, parseError);
-      const error = new Error(`Data parsing failed for ${key}. The data format may be invalid.`);
-      error.type = 'parsing';
-      error.originalError = parseError;
-      throw error;
-    }
+    // Use API Gateway to fetch data
+    const data = await apiRequest(`/s3-proxy?key=${encodeURIComponent(key)}`);
 
     // Cache the successful result
     dataCache.objects.set(key, {
@@ -160,32 +155,29 @@ export const readS3Object = async (key) => {
 
     return data;
   } catch (error) {
-    // Categorize error types
-    if (error.type) {
-      // Already categorized error
-      console.error(`Error reading S3 object ${key}:`, error);
-      throw error;
-    } else if (error.name === 'NetworkingError' || error.name === 'TimeoutError') {
-      console.error(`Network error reading ${key}:`, error);
+    console.error(`Error reading S3 object ${key}:`, error);
+    
+    if (error.message.includes('404')) {
+      const notFoundError = new Error(`Object not found: ${key}`);
+      notFoundError.type = 'notfound';
+      throw notFoundError;
+    } else if (error.message.includes('Network') || error.message.includes('fetch')) {
       const networkError = new Error('Unable to connect to data source. Please check your internet connection.');
       networkError.type = 'network';
-      networkError.originalError = error;
       throw networkError;
-    } else if (error.name === 'CredentialsError' || error.name === 'AccessDenied' || error.code === 'InvalidAccessKeyId' || error.code === 'SignatureDoesNotMatch') {
-      console.error(`Authentication error reading ${key}:`, error);
-      const authError = new Error('Authentication failed. Please check AWS credentials configuration.');
+    } else if (error.message.includes('403') || error.message.includes('401')) {
+      const authError = new Error('Authentication failed. Please check API key configuration.');
       authError.type = 'auth';
-      authError.originalError = error;
       throw authError;
-    } else {
-      console.error(`Error reading S3 object ${key}:`, error);
-      throw error;
     }
+    
+    throw error;
   }
 };
 
 /**
  * Lists S3 objects with a given prefix with caching
+ * Uses API Gateway instead of direct S3 access
  * @param {string} prefix - The S3 prefix to filter objects (e.g., 'recommendations/')
  * @returns {Promise<Array>} Array of S3 objects with Key and LastModified properties
  * @throws {Error} Throws error with type information for proper error handling
@@ -199,33 +191,10 @@ export const listS3Objects = async (prefix) => {
   }
 
   try {
-    const client = getS3Client();
-    const bucketName = getBucketName();
-
-    const command = new ListObjectsV2Command({
-      Bucket: bucketName,
-      Prefix: prefix,
-    });
-
-    const response = await client.send(command);
+    // Use API Gateway to list objects
+    const response = await apiRequest(`/s3-proxy/list?prefix=${encodeURIComponent(prefix)}`);
     
-    // Return empty array if no contents
-    if (!response.Contents || response.Contents.length === 0) {
-      const emptyResult = [];
-      // Cache empty result too
-      dataCache.lists.set(prefix, {
-        data: emptyResult,
-        timestamp: Date.now()
-      });
-      return emptyResult;
-    }
-
-    // Return array of objects with Key and LastModified
-    const result = response.Contents.map(obj => ({
-      Key: obj.Key,
-      LastModified: obj.LastModified,
-      Size: obj.Size,
-    }));
+    const result = response.objects || [];
 
     // Cache the successful result
     dataCache.lists.set(prefix, {
@@ -235,23 +204,19 @@ export const listS3Objects = async (prefix) => {
 
     return result;
   } catch (error) {
-    // Categorize error types
-    if (error.name === 'NetworkingError' || error.name === 'TimeoutError') {
-      console.error(`Network error listing objects with prefix ${prefix}:`, error);
+    console.error(`Error listing S3 objects with prefix ${prefix}:`, error);
+    
+    if (error.message.includes('Network') || error.message.includes('fetch')) {
       const networkError = new Error('Unable to connect to data source. Please check your internet connection.');
       networkError.type = 'network';
-      networkError.originalError = error;
       throw networkError;
-    } else if (error.name === 'CredentialsError' || error.name === 'AccessDenied' || error.code === 'InvalidAccessKeyId' || error.code === 'SignatureDoesNotMatch') {
-      console.error(`Authentication error listing objects with prefix ${prefix}:`, error);
-      const authError = new Error('Authentication failed. Please check AWS credentials configuration.');
+    } else if (error.message.includes('403') || error.message.includes('401')) {
+      const authError = new Error('Authentication failed. Please check API key configuration.');
       authError.type = 'auth';
-      authError.originalError = error;
       throw authError;
-    } else {
-      console.error(`Error listing S3 objects with prefix ${prefix}:`, error);
-      throw error;
     }
+    
+    throw error;
   }
 };
 
