@@ -205,7 +205,7 @@ function App() {
   // Carregar dados de ensemble
   const loadEnsembleData = async () => {
     try {
-      const objects = await listS3Objects('models/ensemble/');
+      const objects = await listS3Objects('models/ensemble/insights/');
       if (objects.length === 0) return;
 
       const latestObject = objects

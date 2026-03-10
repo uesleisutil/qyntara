@@ -109,9 +109,9 @@ def handler(event, context):
         report = {
             "timestamp": now.isoformat(),
             "dt": dt_today,
-            "drift_detected": drift_detected,
-            "drift_score": drift_score,
-            "features_drift": features_drift,
+            "drift_detected": bool(drift_detected),
+            "drift_score": float(drift_score),
+            "features_drift": {k: float(v) for k, v in features_drift.items()},
             "samples_analyzed": len(all_scores)
         }
         
@@ -126,7 +126,7 @@ def handler(event, context):
         )
         
         logger.info(f"Drift report saved to {key}")
-        return {"ok": True, "drift_detected": drift_detected, "drift_score": drift_score}
+        return {"ok": True, "drift_detected": bool(drift_detected), "drift_score": float(drift_score)}
         
     except Exception as e:
         logger.error(f"Error in drift monitoring: {e}")
