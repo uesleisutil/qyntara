@@ -381,6 +381,11 @@ export class InfraStack extends cdk.Stack {
     const monitorSageMakerFn = mkPyLambda("MonitorSageMaker", "ml.src.lambdas.monitor_sagemaker.handler", {
       ALERTS_TOPIC_ARN: alertsTopic.topicArn,
     });
+    const monitorDriftFn = mkPyLambda("MonitorDrift", "ml.src.lambdas.monitor_drift.handler");
+    const generateEnsembleInsightsFn = mkPyLambda("GenerateEnsembleInsights", "ml.src.lambdas.generate_ensemble_insights.handler");
+    const generateFeatureImportanceFn = mkPyLambda("GenerateFeatureImportance", "ml.src.lambdas.generate_feature_importance.handler");
+    const generatePredictionIntervalsFn = mkPyLambda("GeneratePredictionIntervals", "ml.src.lambdas.generate_prediction_intervals.handler");
+    const generateModelMetricsFn = mkPyLambda("GenerateModelMetrics", "ml.src.lambdas.generate_model_metrics.handler");
 
     // Bootstrap histórico diário (incremental + idempotente)
     const bootstrapHistoryFn = mkPyLambda(
@@ -631,6 +636,36 @@ export class InfraStack extends cdk.Stack {
       schedule: events.Schedule.expression("cron(0/5 * * * ? *)"), // A cada 5 minutos
     });
     monitorSageMakerRule.addTarget(new targets.LambdaFunction(monitorSageMakerFn));
+
+    // Monitor de drift: roda diariamente após o ranking
+    const monitorDriftRule = new events.Rule(this, "MonitorDriftDaily", {
+      schedule: events.Schedule.expression("cron(15 21 ? * MON-FRI *)"), // 18:15 BRT
+    });
+    monitorDriftRule.addTarget(new targets.LambdaFunction(monitorDriftFn));
+
+    // Gerar ensemble insights: roda diariamente
+    const generateEnsembleInsightsRule = new events.Rule(this, "GenerateEnsembleInsightsDaily", {
+      schedule: events.Schedule.expression("cron(20 21 ? * MON-FRI *)"), // 18:20 BRT
+    });
+    generateEnsembleInsightsRule.addTarget(new targets.LambdaFunction(generateEnsembleInsightsFn));
+
+    // Gerar feature importance: roda diariamente
+    const generateFeatureImportanceRule = new events.Rule(this, "GenerateFeatureImportanceDaily", {
+      schedule: events.Schedule.expression("cron(25 21 ? * MON-FRI *)"), // 18:25 BRT
+    });
+    generateFeatureImportanceRule.addTarget(new targets.LambdaFunction(generateFeatureImportanceFn));
+
+    // Gerar prediction intervals: roda diariamente após o ranking
+    const generatePredictionIntervalsRule = new events.Rule(this, "GeneratePredictionIntervalsDaily", {
+      schedule: events.Schedule.expression("cron(30 21 ? * MON-FRI *)"), // 18:30 BRT
+    });
+    generatePredictionIntervalsRule.addTarget(new targets.LambdaFunction(generatePredictionIntervalsFn));
+
+    // Gerar model metrics: roda diariamente
+    const generateModelMetricsRule = new events.Rule(this, "GenerateModelMetricsDaily", {
+      schedule: events.Schedule.expression("cron(35 21 ? * MON-FRI *)"), // 18:35 BRT
+    });
+    generateModelMetricsRule.addTarget(new targets.LambdaFunction(generateModelMetricsFn));
 
     // Bootstrap histórico: roda 30/30 min até terminar (depois a lambda deve “skipp ar”)
     const bootstrapRule = new events.Rule(this, "BootstrapHistorySchedule", {
