@@ -16,9 +16,9 @@ import React from 'react';
  * - Uses React.memo to prevent unnecessary re-renders
  */
 const RecommendationsTable = React.memo(({ recommendations }) => {
-  // Sort recommendations by rank in ascending order and take top 50
+  // Sort recommendations by score in descending order and take top 50
   const sortedRecommendations = [...recommendations]
-    .sort((a, b) => a.rank - b.rank)
+    .sort((a, b) => b.score - a.score)
     .slice(0, 50);
 
   if (sortedRecommendations.length === 0) {
@@ -41,14 +41,14 @@ const RecommendationsTable = React.memo(({ recommendations }) => {
           {sortedRecommendations.map((rec, idx) => (
             <tr key={idx}>
               <td>
-                <span className="rank-badge">#{rec.rank}</span>
+                <span className="rank-badge">#{idx + 1}</span>
               </td>
               <td><strong>{rec.ticker}</strong></td>
-              <td>{(rec.score * 100).toFixed(1)}%</td>
-              <td className={rec.predicted_return >= 0 ? 'positive' : 'negative'}>
-                {(rec.predicted_return * 100).toFixed(2)}%
+              <td>{rec.score ? rec.score.toFixed(1) : 'N/A'}</td>
+              <td className={(rec.exp_return_20 || 0) >= 0 ? 'positive' : 'negative'}>
+                {rec.exp_return_20 ? (rec.exp_return_20 * 100).toFixed(2) + '%' : 'N/A'}
               </td>
-              <td>{rec.sector}</td>
+              <td>{rec.sector || '-'}</td>
             </tr>
           ))}
         </tbody>
