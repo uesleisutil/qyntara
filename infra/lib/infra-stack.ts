@@ -581,22 +581,7 @@ export class InfraStack extends cdk.Stack {
 
     bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
     
-    // Permissões para Cost Explorer
-    const costExplorerPolicy = new iam.PolicyStatement({
-      actions: ["ce:GetCostAndUsage", "ce:GetCostForecast"],
-      resources: ["*"],
-    });
-    monitorCostsFn.addToRolePolicy(costExplorerPolicy);
-    
-    // Permissões SNS para monitoramento de performance
-    const snsPublishPolicy = new iam.PolicyStatement({
-      actions: ["sns:Publish"],
-      resources: [alertsTopic.topicArn],
-    });
-    monitorPerformanceFn.addToRolePolicy(snsPublishPolicy);
-    monitorSageMakerFn.addToRolePolicy(snsPublishPolicy);
-    
-    // Permissões SageMaker para monitoramento
+    // Permissões SageMaker para monitoramento (declarar antes de usar)
     const sagemakerReadPolicy = new iam.PolicyStatement({
       actions: [
         "sagemaker:ListTrainingJobs",
@@ -609,6 +594,22 @@ export class InfraStack extends cdk.Stack {
       ],
       resources: ["*"],
     });
+    
+    // Permissões para Cost Explorer
+    const costExplorerPolicy = new iam.PolicyStatement({
+      actions: ["ce:GetCostAndUsage", "ce:GetCostForecast"],
+      resources: ["*"],
+    });
+    monitorCostsFn.addToRolePolicy(costExplorerPolicy);
+    monitorCostsFn.addToRolePolicy(sagemakerReadPolicy);
+    
+    // Permissões SNS para monitoramento de performance
+    const snsPublishPolicy = new iam.PolicyStatement({
+      actions: ["sns:Publish"],
+      resources: [alertsTopic.topicArn],
+    });
+    monitorPerformanceFn.addToRolePolicy(snsPublishPolicy);
+    monitorSageMakerFn.addToRolePolicy(snsPublishPolicy);
     monitorSageMakerFn.addToRolePolicy(sagemakerReadPolicy);
 
     // -----------------------
