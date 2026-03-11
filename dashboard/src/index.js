@@ -4,6 +4,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import App from './App';
 
+// Polyfill for process.env to prevent errors in browser
+if (typeof window !== 'undefined' && typeof window.process === 'undefined') {
+  window.process = { env: {} };
+}
+
 // Create a QueryClient instance
 const queryClient = new QueryClient({
   defaultOptions: {
