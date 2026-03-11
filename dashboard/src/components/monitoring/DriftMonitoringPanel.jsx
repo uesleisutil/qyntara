@@ -33,7 +33,7 @@ const DriftMonitoringPanel = ({ driftData, ensembleData, isLoading }) => {
     );
   }
 
-  const { latest, time_series, drift_events, retrain_recommendations, summary } = driftData;
+  const { latest, time_series, drift_events, summary } = driftData;
 
   // Determinar severidade do drift
   const getDriftSeverity = (driftScore) => {

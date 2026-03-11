@@ -52,7 +52,6 @@ const Tooltip = ({
     if (!tooltipRef.current || !triggerRef.current) return;
 
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    const triggerRect = triggerRef.current.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 

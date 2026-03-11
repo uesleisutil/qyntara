@@ -84,12 +84,12 @@ function App() {
       setLastUpdated(new Date(latestUpdate));
     }
   }, [
-    recommendationsQuery.dataUpdatedAt,
-    dataQualityQuery.dataUpdatedAt,
-    modelPerformanceQuery.dataUpdatedAt,
-    driftQuery.dataUpdatedAt,
-    costsQuery.dataUpdatedAt,
-    ensembleWeightsQuery.dataUpdatedAt,
+    recommendationsQuery,
+    dataQualityQuery,
+    modelPerformanceQuery,
+    driftQuery,
+    costsQuery,
+    ensembleWeightsQuery,
     setLastUpdated
   ]);
 
@@ -107,12 +107,12 @@ function App() {
     const anyFetching = queries.some(q => q.isFetching);
     setIsRefreshing(anyFetching);
   }, [
-    recommendationsQuery.isFetching,
-    dataQualityQuery.isFetching,
-    modelPerformanceQuery.isFetching,
-    driftQuery.isFetching,
-    costsQuery.isFetching,
-    ensembleWeightsQuery.isFetching,
+    recommendationsQuery,
+    dataQualityQuery,
+    modelPerformanceQuery,
+    driftQuery,
+    costsQuery,
+    ensembleWeightsQuery,
     setIsRefreshing
   ]);
 
@@ -136,12 +136,12 @@ function App() {
       clearError();
     }
   }, [
-    recommendationsQuery.isError,
-    dataQualityQuery.isError,
-    modelPerformanceQuery.isError,
-    driftQuery.isError,
-    costsQuery.isError,
-    ensembleWeightsQuery.isError,
+    recommendationsQuery,
+    dataQualityQuery,
+    modelPerformanceQuery,
+    driftQuery,
+    costsQuery,
+    ensembleWeightsQuery,
     setError,
     clearError
   ]);
