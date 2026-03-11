@@ -59,13 +59,13 @@ function App() {
     clearError
   } = useGlobalStore();
 
-  // Fetch data with auto-refresh (5 minutes)
-  const recommendationsQuery = useRecommendations({ enabled: activeTab === 'recommendations' });
-  const dataQualityQuery = useDataQuality({ days: 30, enabled: activeTab === 'monitoring' });
-  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: activeTab === 'monitoring' });
-  const driftQuery = useDrift({ days: 30, enabled: activeTab === 'monitoring' });
-  const costsQuery = useCosts({ days: 30, enabled: activeTab === 'costs' });
-  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: activeTab === 'monitoring' });
+  // Fetch data with auto-refresh (5 minutes) - always fetch, control with enabled
+  const recommendationsQuery = useRecommendations({ enabled: true });
+  const dataQualityQuery = useDataQuality({ days: 30, enabled: true });
+  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: true });
+  const driftQuery = useDrift({ days: 30, enabled: true });
+  const costsQuery = useCosts({ days: 30, enabled: true });
+  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: true });
 
   // Update last updated timestamp when any query succeeds
   useEffect(() => {
