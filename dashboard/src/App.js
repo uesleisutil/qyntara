@@ -1,424 +1,246 @@
-// Dashboard v3.0.0 - MLOps Pipeline com Dashboard API REST - 2026-03-10
-import React, { useEffect } from 'react';
-import { 
-  TrendingUp, 
-  Activity, 
-  BarChart3,
-  DollarSign,
-  RefreshCw
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-
-// Global store
-import useGlobalStore from './store/globalStore';
-
-// Hooks
-import { 
-  useRecommendations, 
-  useDataQuality, 
-  useModelPerformance, 
-  useDrift,
-  useCosts,
-  useEnsembleWeights 
-} from './hooks';
-
-// Shared components
-import { LoadingSpinner, ErrorBoundary } from './components/shared';
-
-// Recommendations components
-import RecommendationsTable from './components/RecommendationsTable';
-import { RecommendationsKPIs, ReturnDistributionChart } from './components/recommendations';
-
-// Monitoring components (disabled - no data yet)
-// import { 
-//   DataQualityPanel, 
-//   ModelPerformancePanel, 
-//   DriftMonitoringPanel 
-// } from './components/monitoring';
-
-// Costs components
-import { 
-  CostsSummary, 
-  CostsByServiceChart, 
-  CostsEvolutionChart, 
-  CostsTable 
-} from './components/costs';
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, DollarSign, RefreshCw } from 'lucide-react';
+import { API_BASE_URL, API_KEY } from './config';
 
 function App() {
-  // Global state
-  const { 
-    activeTab, 
-    setActiveTab, 
-    lastUpdated, 
-    setLastUpdated,
-    isRefreshing,
-    setIsRefreshing,
-    error,
-    setError,
-    clearError
-  } = useGlobalStore();
+  const [activeTab, setActiveTab] = useState('recommendations');
+  const [recommendations, setRecommendations] = useState([]);
+  const [costs, setCosts] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fetch data with auto-refresh (5 minutes) - ALWAYS call ALL hooks unconditionally
-  const recommendationsQuery = useRecommendations({ enabled: true });
-  const dataQualityQuery = useDataQuality({ days: 30, enabled: true });
-  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: true });
-  const driftQuery = useDrift({ days: 30, enabled: true });
-  const costsQuery = useCosts({ days: 30, enabled: true });
-  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: true });
-
-  // Update last updated timestamp when any query succeeds
-  useEffect(() => {
-    const queries = [
-      recommendationsQuery,
-      dataQualityQuery,
-      modelPerformanceQuery,
-      driftQuery,
-      costsQuery,
-      ensembleWeightsQuery
-    ];
-
-    const anySuccess = queries.some(q => q.isSuccess && q.dataUpdatedAt);
-    if (anySuccess) {
-      const latestUpdate = Math.max(...queries.map(q => q.dataUpdatedAt || 0));
-      setLastUpdated(new Date(latestUpdate));
-    }
-  }, [
-    recommendationsQuery,
-    dataQualityQuery,
-    modelPerformanceQuery,
-    driftQuery,
-    costsQuery,
-    ensembleWeightsQuery,
-    setLastUpdated
-  ]);
-
-  // Track refreshing state
-  useEffect(() => {
-    const queries = [
-      recommendationsQuery,
-      dataQualityQuery,
-      modelPerformanceQuery,
-      driftQuery,
-      costsQuery,
-      ensembleWeightsQuery
-    ];
-
-    const anyFetching = queries.some(q => q.isFetching);
-    setIsRefreshing(anyFetching);
-  }, [
-    recommendationsQuery,
-    dataQualityQuery,
-    modelPerformanceQuery,
-    driftQuery,
-    costsQuery,
-    ensembleWeightsQuery,
-    setIsRefreshing
-  ]);
-
-  // Handle errors (Req 13.4 - preserve previous data)
-  useEffect(() => {
-    const queries = [
-      { query: recommendationsQuery, name: 'Recomendações' },
-      { query: dataQualityQuery, name: 'Qualidade de Dados' },
-      { query: modelPerformanceQuery, name: 'Performance do Modelo' },
-      { query: driftQuery, name: 'Drift' },
-      { query: costsQuery, name: 'Custos' },
-      { query: ensembleWeightsQuery, name: 'Pesos do Ensemble' }
-    ];
-
-    const failedQueries = queries.filter(q => q.query.isError);
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
     
-    if (failedQueries.length > 0) {
-      const errorMessages = failedQueries.map(q => q.name).join(', ');
-      setError(`Erro ao carregar: ${errorMessages}. Dados anteriores foram preservados.`);
-    } else {
-      clearError();
+    try {
+      if (activeTab === 'recommendations') {
+        const response = await fetch(`${API_BASE_URL}/api/recommendations/latest`, {
+          headers: { 'x-api-key': API_KEY }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRecommendations(data.recommendations || []);
+        }
+      } else if (activeTab === 'costs') {
+        const response = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=30`, {
+          headers: { 'x-api-key': API_KEY }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCosts(data);
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }, [
-    recommendationsQuery,
-    dataQualityQuery,
-    modelPerformanceQuery,
-    driftQuery,
-    costsQuery,
-    ensembleWeightsQuery,
-    setError,
-    clearError
-  ]);
-
-  // Manual refresh function
-  const handleManualRefresh = () => {
-    recommendationsQuery.refetch();
-    dataQualityQuery.refetch();
-    modelPerformanceQuery.refetch();
-    driftQuery.refetch();
-    costsQuery.refetch();
-    ensembleWeightsQuery.refetch();
   };
 
-  // Initial loading state - simplified
-  const isInitialLoading = (
-    (activeTab === 'recommendations' && recommendationsQuery.isLoading) ||
-    (activeTab === 'monitoring' && (dataQualityQuery.isLoading || modelPerformanceQuery.isLoading || driftQuery.isLoading)) ||
-    (activeTab === 'costs' && costsQuery.isLoading)
-  );
-
-  // Log for debugging
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    console.log('Dashboard State:', {
-      isInitialLoading,
-      lastUpdated,
-      activeTab,
-      queries: {
-        recommendations: { isLoading: recommendationsQuery.isLoading, isError: recommendationsQuery.isError, data: !!recommendationsQuery.data },
-        dataQuality: { isLoading: dataQualityQuery.isLoading, isError: dataQualityQuery.isError, data: !!dataQualityQuery.data },
-        modelPerformance: { isLoading: modelPerformanceQuery.isLoading, isError: modelPerformanceQuery.isError, data: !!modelPerformanceQuery.data },
-        drift: { isLoading: driftQuery.isLoading, isError: driftQuery.isError, data: !!driftQuery.data },
-        costs: { isLoading: costsQuery.isLoading, isError: costsQuery.isError, data: !!costsQuery.data },
-        ensembleWeights: { isLoading: ensembleWeightsQuery.isLoading, isError: ensembleWeightsQuery.isError, data: !!ensembleWeightsQuery.data }
-      }
-    });
-  }
-
-  if (isInitialLoading) {
-    return (
-      <div className="container">
-        <div className="header">
-          <h1>B3 Tactical Ranking - MLOps Dashboard</h1>
-          <p>Monitoramento Completo de Performance e Métricas</p>
-        </div>
-        <LoadingSpinner 
-          size="lg" 
-          text="Carregando dashboard..." 
-          centered 
-        />
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchData();
+  }, [activeTab]);
 
   return (
-    <ErrorBoundary>
-      <div className="container">
-        <header className="header">
-          <h1>B3 Tactical Ranking - MLOps Dashboard</h1>
-          <p>Monitoramento Completo de Performance e Métricas</p>
-          {isRefreshing && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', marginLeft: '1rem', color: '#3b82f6' }}>
-              <RefreshCw className="animate-spin" size={20} style={{ marginRight: '0.5rem' }} />
-              <span>Atualizando...</span>
+    <div style={{ padding: '2rem', fontFamily: 'system-ui, sans-serif' }}>
+      <header style={{ marginBottom: '2rem' }}>
+        <h1 style={{ margin: 0, fontSize: '2rem', color: '#1e293b' }}>
+          B3 Tactical Ranking - MLOps Dashboard
+        </h1>
+        <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
+          Monitoramento Completo de Performance e Métricas
+        </p>
+      </header>
+
+      {error && (
+        <div style={{
+          padding: '1rem',
+          marginBottom: '1rem',
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: '8px',
+          color: '#991b1b'
+        }}>
+          Erro: {error}
+        </div>
+      )}
+
+      <div style={{ 
+        display: 'flex', 
+        gap: '1rem', 
+        marginBottom: '2rem',
+        borderBottom: '2px solid #e2e8f0'
+      }}>
+        <button
+          onClick={() => setActiveTab('recommendations')}
+          style={{
+            padding: '1rem 1.5rem',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'recommendations' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'recommendations' ? '#3b82f6' : '#64748b',
+            fontWeight: activeTab === 'recommendations' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '1rem'
+          }}
+        >
+          <TrendingUp size={20} />
+          Recomendações
+        </button>
+        
+        <button
+          onClick={() => setActiveTab('costs')}
+          style={{
+            padding: '1rem 1.5rem',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'costs' ? '3px solid #3b82f6' : '3px solid transparent',
+            color: activeTab === 'costs' ? '#3b82f6' : '#64748b',
+            fontWeight: activeTab === 'costs' ? 'bold' : 'normal',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '1rem'
+          }}
+        >
+          <DollarSign size={20} />
+          Custos
+        </button>
+      </div>
+
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+          <RefreshCw className="animate-spin" size={32} style={{ margin: '0 auto' }} />
+          <p>Carregando...</p>
+        </div>
+      )}
+
+      {!loading && activeTab === 'recommendations' && (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ marginTop: 0 }}>Recomendações</h2>
+          {recommendations.length === 0 ? (
+            <p style={{ color: '#64748b' }}>Nenhuma recomendação disponível no momento.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+                    <th style={{ padding: '0.75rem', textAlign: 'left' }}>Ticker</th>
+                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Retorno Esperado</th>
+                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recommendations.slice(0, 20).map((rec, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '0.75rem' }}>{rec.ticker}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {(rec.expected_return * 100).toFixed(2)}%
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {rec.score?.toFixed(4) || 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </header>
-
-        {/* Error banner */}
-        {error && (
-          <div style={{
-            padding: '1rem',
-            marginBottom: '1rem',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <p style={{ margin: 0, color: '#991b1b', fontSize: '0.875rem' }}>
-              {error}
-            </p>
-            <button
-              onClick={clearError}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#991b1b',
-                cursor: 'pointer',
-                fontSize: '1.25rem',
-                padding: '0.25rem'
-              }}
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {/* Tabs de Navegação */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '1rem', 
-          marginBottom: '2rem', 
-          borderBottom: '2px solid #e2e8f0',
-          padding: '0 1rem'
-        }}>
-          <button
-            onClick={() => setActiveTab('recommendations')}
-            style={{
-              padding: '1rem 1.5rem',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'recommendations' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'recommendations' ? '#3b82f6' : '#64748b',
-              fontWeight: activeTab === 'recommendations' ? 'bold' : 'normal',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <TrendingUp size={20} />
-            Recomendações
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('monitoring')}
-            style={{
-              padding: '1rem 1.5rem',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'monitoring' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'monitoring' ? '#3b82f6' : '#64748b',
-              fontWeight: activeTab === 'monitoring' ? 'bold' : 'normal',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <Activity size={20} />
-            Monitoramento
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('costs')}
-            style={{
-              padding: '1rem 1.5rem',
-              background: 'none',
-              border: 'none',
-              borderBottom: activeTab === 'costs' ? '3px solid #3b82f6' : '3px solid transparent',
-              color: activeTab === 'costs' ? '#3b82f6' : '#64748b',
-              fontWeight: activeTab === 'costs' ? 'bold' : 'normal',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <DollarSign size={20} />
-            Custos
-          </button>
         </div>
+      )}
 
-        {/* Conteúdo baseado na tab ativa - Lazy loading (Req 20.1, 20.2) */}
-        {activeTab === 'recommendations' && (
-          <div className="dashboard-grid">
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <RecommendationsKPIs 
-                recommendations={recommendationsQuery.data?.recommendations || []} 
-              />
+      {!loading && activeTab === 'costs' && (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '1.5rem',
+          borderRadius: '8px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ marginTop: 0 }}>Custos AWS</h2>
+          {!costs ? (
+            <p style={{ color: '#64748b' }}>Nenhum dado de custo disponível.</p>
+          ) : (
+            <div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h3>Resumo (últimos 7 dias)</h3>
+                <p style={{ fontSize: '2rem', margin: '0.5rem 0', color: '#3b82f6' }}>
+                  R$ {costs.latest?.total_7_days?.brl?.toFixed(2) || '0.00'}
+                </p>
+                <p style={{ color: '#64748b', margin: 0 }}>
+                  Projeção mensal: R$ {costs.latest?.monthly_projection?.brl?.toFixed(2) || '0.00'}
+                </p>
+              </div>
+              
+              {costs.latest?.costs_by_service && (
+                <div>
+                  <h3>Custos por Serviço</h3>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+                        <th style={{ padding: '0.75rem', textAlign: 'left' }}>Serviço</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>Custo (USD)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(costs.latest.costs_by_service).map(([service, cost]) => (
+                        <tr key={service} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '0.75rem' }}>{service}</td>
+                          <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                            ${cost.toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
+          )}
+        </div>
+      )}
 
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <TrendingUp size={20} />
-                Top 50 Recomendações
-              </h3>
-              <RecommendationsTable 
-                recommendations={recommendationsQuery.data?.recommendations || []} 
-              />
-            </div>
-
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <BarChart3 size={20} />
-                Distribuição de Retornos Esperados
-              </h3>
-              <ReturnDistributionChart 
-                recommendations={recommendationsQuery.data?.recommendations || []} 
-              />
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'monitoring' && (
-          <div className="dashboard-grid">
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <h3>Monitoramento</h3>
-              <p style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>
-                Dados de monitoramento ainda não disponíveis. Execute as Lambdas de monitoramento para gerar dados.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'costs' && (
-          <div className="dashboard-grid">
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <CostsSummary 
-                data={costsQuery.data || null}
-                isLoading={costsQuery.isLoading}
-              />
-            </div>
-
-            <div className="card">
-              <CostsByServiceChart 
-                data={costsQuery.data || null}
-                isLoading={costsQuery.isLoading}
-              />
-            </div>
-
-            <div className="card">
-              <CostsEvolutionChart 
-                data={costsQuery.data || null}
-                isLoading={costsQuery.isLoading}
-              />
-            </div>
-
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <CostsTable 
-                data={costsQuery.data || null}
-                isLoading={costsQuery.isLoading}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Footer com timestamp e botão de refresh */}
-        {lastUpdated && (
-          <div className="last-updated" style={{
+      <div style={{
+        marginTop: '2rem',
+        padding: '1rem',
+        borderTop: '1px solid #e2e8f0',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+          Dashboard v3.0 - {new Date().toLocaleString('pt-BR')}
+        </span>
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          style={{
+            padding: '0.5rem 1rem',
+            background: loading ? '#94a3b8' : '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '1rem',
-            marginTop: '2rem',
-            borderTop: '1px solid #e2e8f0'
-          }}>
-            <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
-              Última atualização: {format(lastUpdated, 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
-            </span>
-            <button 
-              onClick={handleManualRefresh} 
-              disabled={isRefreshing}
-              style={{ 
-                padding: '0.5rem 1rem', 
-                background: isRefreshing ? '#94a3b8' : '#3b82f6', 
-                color: 'white', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: isRefreshing ? 'not-allowed' : 'pointer',
-                opacity: isRefreshing ? 0.6 : 1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: '500'
-              }}
-            >
-              <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-              {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-            </button>
-          </div>
-        )}
+            gap: '0.5rem',
+            fontSize: '0.875rem'
+          }}
+        >
+          <RefreshCw size={16} />
+          Atualizar
+        </button>
       </div>
-    </ErrorBoundary>
+    </div>
   );
 }
 
