@@ -71,24 +71,24 @@ const Tooltip = ({
     setActualPosition(newPosition);
   };
 
-  const positionClasses = {
-    top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
-    bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
-    left: 'right-full top-1/2 -translate-y-1/2 mr-2',
-    right: 'left-full top-1/2 -translate-y-1/2 ml-2'
+  const positionStyles = {
+    top: { bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: '0.5rem' },
+    bottom: { top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '0.5rem' },
+    left: { right: '100%', top: '50%', transform: 'translateY(-50%)', marginRight: '0.5rem' },
+    right: { left: '100%', top: '50%', transform: 'translateY(-50%)', marginLeft: '0.5rem' }
   };
 
-  const arrowClasses = {
-    top: 'top-full left-1/2 -translate-x-1/2 border-t-gray-900 border-l-transparent border-r-transparent border-b-transparent',
-    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-gray-900 border-l-transparent border-r-transparent border-t-transparent',
-    left: 'left-full top-1/2 -translate-y-1/2 border-l-gray-900 border-t-transparent border-b-transparent border-r-transparent',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-gray-900 border-t-transparent border-b-transparent border-l-transparent'
+  const arrowStyles = {
+    top: { top: '100%', left: '50%', transform: 'translateX(-50%)', borderTop: '4px solid #1f2937', borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderBottom: '4px solid transparent' },
+    bottom: { bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderBottom: '4px solid #1f2937', borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '4px solid transparent' },
+    left: { left: '100%', top: '50%', transform: 'translateY(-50%)', borderLeft: '4px solid #1f2937', borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderRight: '4px solid transparent' },
+    right: { right: '100%', top: '50%', transform: 'translateY(-50%)', borderRight: '4px solid #1f2937', borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: '4px solid transparent' }
   };
 
   if (!content) return children;
 
   return (
-    <div className="relative inline-block">
+    <div style={{ position: 'relative', display: 'inline-block' }}>
       <div
         ref={triggerRef}
         onMouseEnter={showTooltip}
@@ -105,11 +105,29 @@ const Tooltip = ({
           ref={tooltipRef}
           id="tooltip"
           role="tooltip"
-          className={`absolute z-50 px-3 py-2 text-sm text-white bg-gray-900 rounded-lg shadow-lg whitespace-nowrap pointer-events-none transition-opacity duration-200 ${positionClasses[actualPosition]}`}
+          style={{
+            position: 'absolute',
+            zIndex: 50,
+            padding: '0.5rem 0.75rem',
+            fontSize: '0.875rem',
+            color: 'white',
+            backgroundColor: '#1f2937',
+            borderRadius: '0.5rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            whiteSpace: 'nowrap',
+            pointerEvents: 'none',
+            transition: 'opacity 0.2s',
+            ...positionStyles[actualPosition]
+          }}
         >
           {content}
           <div
-            className={`absolute w-0 h-0 border-4 ${arrowClasses[actualPosition]}`}
+            style={{
+              position: 'absolute',
+              width: 0,
+              height: 0,
+              ...arrowStyles[actualPosition]
+            }}
           />
         </div>
       )}

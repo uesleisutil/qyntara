@@ -15,27 +15,51 @@ const LoadingSpinner = ({
   centered = false,
   fullScreen = false 
 }) => {
-  const sizeClasses = {
-    sm: 'w-4 h-4 border-2',
-    md: 'w-8 h-8 border-3',
-    lg: 'w-12 h-12 border-4'
+  const sizes = {
+    sm: { width: '16px', height: '16px', borderWidth: '2px' },
+    md: { width: '32px', height: '32px', borderWidth: '3px' },
+    lg: { width: '48px', height: '48px', borderWidth: '4px' }
   };
 
-  const textSizeClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg'
+  const textSizes = {
+    sm: '0.875rem',
+    md: '1rem',
+    lg: '1.125rem'
+  };
+
+  const spinnerStyle = {
+    ...sizes[size],
+    border: `${sizes[size].borderWidth} solid #3b82f6`,
+    borderTopColor: 'transparent',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+    display: 'inline-block'
+  };
+
+  const containerStyle = {
+    display: 'inline-flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.75rem',
+    ...(centered && { justifyContent: 'center' })
+  };
+
+  const textStyle = {
+    fontSize: textSizes[size],
+    color: '#64748b',
+    fontWeight: '500',
+    margin: 0
   };
 
   const spinner = (
-    <div className={`inline-flex flex-col items-center gap-3 ${centered ? 'justify-center' : ''}`}>
+    <div style={containerStyle}>
       <div
-        className={`${sizeClasses[size]} border-blue-600 border-t-transparent rounded-full animate-spin`}
+        style={spinnerStyle}
         role="status"
         aria-label="Loading"
       />
       {text && (
-        <p className={`${textSizeClasses[size]} text-gray-600 font-medium`}>
+        <p style={textStyle}>
           {text}
         </p>
       )}
@@ -44,7 +68,15 @@ const LoadingSpinner = ({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50
+      }}>
         {spinner}
       </div>
     );
@@ -52,7 +84,14 @@ const LoadingSpinner = ({
 
   if (centered) {
     return (
-      <div className="flex items-center justify-center w-full h-full min-h-[200px]">
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+        minHeight: '200px'
+      }}>
         {spinner}
       </div>
     );

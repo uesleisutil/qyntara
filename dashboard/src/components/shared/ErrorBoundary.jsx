@@ -65,12 +65,29 @@ class ErrorBoundary extends Component {
 
       // Default fallback UI
       return (
-        <div className="min-h-[400px] flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
+        <div style={{
+          minHeight: '400px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            maxWidth: '28rem',
+            width: '100%',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '0.5rem',
+            padding: '1.5rem'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.75rem'
+            }}>
+              <div style={{ flexShrink: 0 }}>
                 <svg
-                  className="w-6 h-6 text-red-600"
+                  style={{ width: '1.5rem', height: '1.5rem', color: '#dc2626' }}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -83,20 +100,43 @@ class ErrorBoundary extends Component {
                   />
                 </svg>
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-red-900 mb-2">
-                  {this.props.title || 'Something went wrong'}
+              <div style={{ flex: 1 }}>
+                <h3 style={{
+                  fontSize: '1.125rem',
+                  fontWeight: '600',
+                  color: '#7f1d1d',
+                  marginBottom: '0.5rem'
+                }}>
+                  {this.props.title || 'Algo deu errado'}
                 </h3>
-                <p className="text-sm text-red-700 mb-4">
-                  {this.props.message || 'An unexpected error occurred. Please try again.'}
+                <p style={{
+                  fontSize: '0.875rem',
+                  color: '#991b1b',
+                  marginBottom: '1rem'
+                }}>
+                  {this.props.message || 'Ocorreu um erro inesperado. Por favor, tente novamente.'}
                 </p>
                 
                 {this.props.showDetails && this.state.error && (
-                  <details className="mb-4">
-                    <summary className="text-sm text-red-800 cursor-pointer hover:text-red-900 font-medium">
-                      Error details
+                  <details style={{ marginBottom: '1rem' }}>
+                    <summary style={{
+                      fontSize: '0.875rem',
+                      color: '#991b1b',
+                      cursor: 'pointer',
+                      fontWeight: '500'
+                    }}>
+                      Detalhes do erro
                     </summary>
-                    <pre className="mt-2 text-xs text-red-800 bg-red-100 p-3 rounded overflow-auto max-h-40">
+                    <pre style={{
+                      marginTop: '0.5rem',
+                      fontSize: '0.75rem',
+                      color: '#991b1b',
+                      backgroundColor: '#fee2e2',
+                      padding: '0.75rem',
+                      borderRadius: '0.25rem',
+                      overflow: 'auto',
+                      maxHeight: '10rem'
+                    }}>
                       {this.state.error.toString()}
                       {this.state.errorInfo && this.state.errorInfo.componentStack}
                     </pre>
@@ -106,9 +146,20 @@ class ErrorBoundary extends Component {
                 {this.props.showReset && (
                   <button
                     onClick={this.handleReset}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#dc2626',
+                      color: 'white',
+                      borderRadius: '0.5rem',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      fontSize: '0.875rem'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#b91c1c'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = '#dc2626'}
                   >
-                    Try Again
+                    Tentar Novamente
                   </button>
                 )}
               </div>
