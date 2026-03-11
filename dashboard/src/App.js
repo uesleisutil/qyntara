@@ -164,7 +164,7 @@ function App() {
   );
 
   // Log for debugging
-  if (process.env.NODE_ENV === 'development') {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     console.log('Dashboard State:', {
       isInitialLoading,
       lastUpdated,

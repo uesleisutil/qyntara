@@ -3,17 +3,17 @@
  * Uses API Gateway for all S3 operations (no direct S3 access)
  */
 
+import { API_BASE_URL, API_KEY } from '../config';
+
 /**
  * Validates that all required environment variables are present
  * @returns {Object} Object with isValid boolean and missingVars array
  */
 export const validateCredentials = () => {
-  const requiredEnvVars = [
-    'REACT_APP_API_BASE_URL',
-    'REACT_APP_API_KEY'
-  ];
-
-  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  const missingVars = [];
+  
+  if (!API_BASE_URL) missingVars.push('REACT_APP_API_BASE_URL');
+  if (!API_KEY) missingVars.push('REACT_APP_API_KEY');
 
   return {
     isValid: missingVars.length === 0,
@@ -27,16 +27,13 @@ export const validateCredentials = () => {
  * @returns {Promise<Object>} API response data
  */
 const apiRequest = async (endpoint) => {
-  const baseUrl = process.env.REACT_APP_API_BASE_URL;
-  const apiKey = process.env.REACT_APP_API_KEY;
-
-  if (!baseUrl || !apiKey) {
+  if (!API_BASE_URL || !API_KEY) {
     throw new Error('API configuration missing');
   }
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     headers: {
-      'x-api-key': apiKey,
+      'x-api-key': API_KEY,
       'Content-Type': 'application/json'
     }
   });
@@ -75,7 +72,7 @@ export const createS3Client = () => {
  */
 export const getBucketName = () => {
   // Not needed for API Gateway approach, but kept for compatibility
-  return process.env.REACT_APP_S3_BUCKET || 'b3tr-200093399689-us-east-1';
+  return 'b3tr-200093399689-us-east-1';
 };
 
 // Export a singleton S3Client instance
