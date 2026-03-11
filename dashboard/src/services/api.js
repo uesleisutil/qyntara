@@ -6,6 +6,7 @@
  */
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
+const API_KEY = process.env.REACT_APP_API_KEY;
 
 /**
  * Custom error class for API errors
@@ -72,6 +73,7 @@ async function apiRequest(endpoint, options = {}) {
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
+      ...(API_KEY && { 'x-api-key': API_KEY }),
       ...options.headers
     }
   };
@@ -130,15 +132,15 @@ const api = {
   
   // Dashboard API endpoints
   recommendations: {
-    getLatest: () => api.get('/recommendations/latest')
+    getLatest: () => api.get('/api/recommendations/latest')
   },
   
   monitoring: {
-    getDataQuality: (days = 30) => api.get('/monitoring/data-quality', { days }),
-    getModelPerformance: (days = 30) => api.get('/monitoring/model-performance', { days }),
-    getDrift: (days = 30) => api.get('/monitoring/drift', { days }),
-    getCosts: (days = 30) => api.get('/monitoring/costs', { days }),
-    getEnsembleWeights: (days = 30) => api.get('/monitoring/ensemble-weights', { days })
+    getDataQuality: (days = 30) => api.get('/api/monitoring/data-quality', { days }),
+    getModelPerformance: (days = 30) => api.get('/api/monitoring/model-performance', { days }),
+    getDrift: (days = 30) => api.get('/api/monitoring/drift', { days }),
+    getCosts: (days = 30) => api.get('/api/monitoring/costs', { days }),
+    getEnsembleWeights: (days = 30) => api.get('/api/monitoring/ensemble-weights', { days })
   }
 };
 
