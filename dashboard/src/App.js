@@ -59,13 +59,13 @@ function App() {
     clearError
   } = useGlobalStore();
 
-  // Fetch data with auto-refresh (5 minutes) - always call hooks unconditionally
-  const recommendationsQuery = useRecommendations({ enabled: activeTab === 'recommendations' });
-  const dataQualityQuery = useDataQuality({ days: 30, enabled: activeTab === 'monitoring' });
-  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: activeTab === 'monitoring' });
-  const driftQuery = useDrift({ days: 30, enabled: activeTab === 'monitoring' });
-  const costsQuery = useCosts({ days: 30, enabled: activeTab === 'costs' });
-  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: activeTab === 'monitoring' });
+  // Fetch data with auto-refresh (5 minutes) - ALWAYS call ALL hooks unconditionally
+  const recommendationsQuery = useRecommendations({ enabled: true });
+  const dataQualityQuery = useDataQuality({ days: 30, enabled: true });
+  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: true });
+  const driftQuery = useDrift({ days: 30, enabled: true });
+  const costsQuery = useCosts({ days: 30, enabled: true });
+  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: true });
 
   // Update last updated timestamp when any query succeeds
   useEffect(() => {
@@ -353,28 +353,28 @@ function App() {
           <div className="dashboard-grid">
             <div className="card" style={{ gridColumn: '1 / -1' }}>
               <CostsSummary 
-                data={costsQuery.data}
+                data={costsQuery.data || null}
                 isLoading={costsQuery.isLoading}
               />
             </div>
 
             <div className="card">
               <CostsByServiceChart 
-                data={costsQuery.data}
+                data={costsQuery.data || null}
                 isLoading={costsQuery.isLoading}
               />
             </div>
 
             <div className="card">
               <CostsEvolutionChart 
-                data={costsQuery.data}
+                data={costsQuery.data || null}
                 isLoading={costsQuery.isLoading}
               />
             </div>
 
             <div className="card" style={{ gridColumn: '1 / -1' }}>
               <CostsTable 
-                data={costsQuery.data}
+                data={costsQuery.data || null}
                 isLoading={costsQuery.isLoading}
               />
             </div>
