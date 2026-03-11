@@ -118,7 +118,7 @@ export class InfraStack extends cdk.Stack {
     const bootstrapSleepS = envOr("BOOTSTRAP_SLEEP_S", "0.2");
 
     // -----------------------
-    // Bucket (nome <= 63)
+    // S3 Bucket com estrutura de particionamento por data
     // -----------------------
     const bucketPrefixRaw = envOr("B3TR_BUCKET_PREFIX", "b3tr");
     const bucketPrefix = sanitizeBucketPrefix(bucketPrefixRaw);
@@ -132,7 +132,45 @@ export class InfraStack extends cdk.Stack {
       enforceSSL: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
       autoDeleteObjects: false,
+      lifecycleRules: [
+        {
+          // Mover dados antigos de quotes_5m para Glacier após 90 dias
+          id: "ArchiveOldQuotes",
+          enabled: true,
+          prefix: "quotes_5m/",
+          transitions: [
+            {
+              storageClass: s3.StorageClass.GLACIER,
+              transitionAfter: cdk.Duration.days(90),
+            },
+          ],
+        },
+        {
+          // Deletar dados de monitoring após 1 ano
+          id: "DeleteOldMonitoring",
+          enabled: true,
+          prefix: "monitoring/",
+          expiration: cdk.Duration.days(365),
+        },
+      ],
     });
+    
+    // Estrutura de pastas esperada no S3:
+    // - config/                          # Configurações (universe.txt, holidays.json)
+    // - quotes_5m/dt=YYYY-MM-DD/        # Dados brutos de cotações
+    // - recommendations/dt=YYYY-MM-DD/   # Recomendações diárias
+    // - monitoring/
+    //   ├── ingestion/dt=YYYY-MM-DD/    # Metadados de ingestão
+    //   ├── data_quality/dt=YYYY-MM-DD/ # Métricas de qualidade
+    //   ├── lineage/dt=YYYY-MM-DD/      # Rastreamento de linhagem
+    //   ├── performance/dt=YYYY-MM-DD/  # Métricas de performance do modelo
+    //   ├── drift/dt=YYYY-MM-DD/        # Detecção de drift
+    //   ├── costs/dt=YYYY-MM-DD/        # Monitoramento de custos
+    //   ├── ensemble_weights/dt=YYYY-MM-DD/ # Pesos do ensemble
+    //   ├── api_latency/dt=YYYY-MM-DD/  # Latência da API BRAPI
+    //   ├── completeness/dt=YYYY-MM-DD/ # Completude dos dados
+    //   ├── errors/dt=YYYY-MM-DD/       # Erros e retries
+    //   └── validation/                  # Relatórios de validação histórica
 
     // -----------------------
     // Upload automático de config/ -> s3://bucket/config/
@@ -145,10 +183,13 @@ export class InfraStack extends cdk.Stack {
     });
 
     // -----------------------
-    // Secret (BRAPI) - referenced by Lambda functions via environment
+    // Secrets Manager - BRAPI token (já existe)
     // -----------------------
     const brapiSecret = secrets.Secret.fromSecretNameV2(this, "BrapiSecret", brapiSecretId);
     // Note: brapiSecret is used implicitly by Lambda functions that access the secret via brapiSecretId
+    
+    // Validação: garantir que o secret existe (será criado manualmente ou via script)
+    // O secret deve conter: { "token": "seu-token-brapi" }
 
     // -----------------------
     // SNS Alerts
@@ -403,7 +444,7 @@ export class InfraStack extends cdk.Stack {
 
     const dashboardApiFn = mkPyLambda(
       "DashboardAPI",
-      "ml.src.lambdas.public_recommendations_api.handler"
+      "ml.src.lambdas.dashboard_api.handler"
     );
     
     // S3 Proxy Lambda para dashboard acessar dados do S3 via API
@@ -466,12 +507,50 @@ export class InfraStack extends cdk.Stack {
       allowTestInvoke: false,
     });
 
-    // Add endpoints
-    const recommendationsResource = api.root.addResource("recommendations");
-    recommendationsResource.addMethod("GET", dashboardIntegration, {
+    // Add API endpoints - Req 13.1, 13.6
+    const apiResource = api.root.addResource("api");
+    
+    // /api/recommendations/latest
+    const recommendationsResource = apiResource.addResource("recommendations");
+    const recommendationsLatestResource = recommendationsResource.addResource("latest");
+    recommendationsLatestResource.addMethod("GET", dashboardIntegration, {
       apiKeyRequired: true,
     });
 
+    // /api/monitoring/*
+    const monitoringResource = apiResource.addResource("monitoring");
+    
+    // /api/monitoring/data-quality
+    const dataQualityResource = monitoringResource.addResource("data-quality");
+    dataQualityResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/monitoring/model-performance
+    const modelPerformanceResource = monitoringResource.addResource("model-performance");
+    modelPerformanceResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/monitoring/drift
+    const driftResource = monitoringResource.addResource("drift");
+    driftResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/monitoring/costs
+    const costsResource = monitoringResource.addResource("costs");
+    costsResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/monitoring/ensemble-weights
+    const ensembleWeightsResource = monitoringResource.addResource("ensemble-weights");
+    ensembleWeightsResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // Legacy endpoints (backward compatibility)
     const metricsResource = api.root.addResource("metrics");
     metricsResource.addMethod("GET", dashboardIntegration, {
       apiKeyRequired: true,
@@ -604,15 +683,15 @@ export class InfraStack extends cdk.Stack {
     });
     monitorIngestRule.addTarget(new targets.LambdaFunction(monitorIngestionFn));
 
-    // Ranking SageMaker diário (18:10 BRT = 21:10 UTC)
+    // Ranking SageMaker diário (18:30 BRT = 21:30 UTC) - Req 6.1
     const rankSageMakerRule = new events.Rule(this, "RankSageMakerDaily", {
-      schedule: events.Schedule.expression("cron(10 21 ? * MON-FRI *)"),
+      schedule: events.Schedule.expression("cron(30 21 ? * MON-FRI *)"),
     });
     rankSageMakerRule.addTarget(new targets.LambdaFunction(rankSageMakerFn));
 
-    // Monitor de custos diário (08:00 UTC = 05:00 BRT)
+    // Monitor de custos diário (21:00 BRT = 00:00 UTC do dia seguinte) - Req 9.1
     const monitorCostsRule = new events.Rule(this, "MonitorCostsDaily", {
-      schedule: events.Schedule.expression("cron(0 8 * * ? *)"),
+      schedule: events.Schedule.expression("cron(0 0 * * ? *)"),
     });
     monitorCostsRule.addTarget(new targets.LambdaFunction(monitorCostsFn));
 
@@ -627,9 +706,9 @@ export class InfraStack extends cdk.Stack {
     });
     monitorQualityRule.addTarget(new targets.LambdaFunction(monitorQualityFn));
 
-    // Monitor de performance do modelo: roda diariamente para validar predições de 20 dias atrás
+    // Monitor de performance do modelo: roda diariamente para validar predições de 20 dias atrás (Req 7.6)
     const monitorPerformanceRule = new events.Rule(this, "MonitorPerformanceDaily", {
-      schedule: events.Schedule.expression("cron(30 22 ? * MON-FRI *)"), // 19:30 BRT
+      schedule: events.Schedule.expression("cron(0 23 ? * MON-FRI *)"), // 20:00 BRT
     });
     monitorPerformanceRule.addTarget(new targets.LambdaFunction(monitorPerformanceFn));
     
@@ -639,9 +718,9 @@ export class InfraStack extends cdk.Stack {
     });
     monitorSageMakerRule.addTarget(new targets.LambdaFunction(monitorSageMakerFn));
 
-    // Monitor de drift: roda diariamente após o ranking
+    // Monitor de drift: roda diariamente após o performance monitor (Req 8.1)
     const monitorDriftRule = new events.Rule(this, "MonitorDriftDaily", {
-      schedule: events.Schedule.expression("cron(15 21 ? * MON-FRI *)"), // 18:15 BRT
+      schedule: events.Schedule.expression("cron(30 23 ? * MON-FRI *)"), // 20:30 BRT
     });
     monitorDriftRule.addTarget(new targets.LambdaFunction(monitorDriftFn));
 

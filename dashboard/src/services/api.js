@@ -126,6 +126,19 @@ const api = {
    */
   delete: (endpoint) => {
     return apiRequest(endpoint, { method: 'DELETE' });
+  },
+  
+  // Dashboard API endpoints
+  recommendations: {
+    getLatest: () => api.get('/recommendations/latest')
+  },
+  
+  monitoring: {
+    getDataQuality: (days = 30) => api.get('/monitoring/data-quality', { days }),
+    getModelPerformance: (days = 30) => api.get('/monitoring/model-performance', { days }),
+    getDrift: (days = 30) => api.get('/monitoring/drift', { days }),
+    getCosts: (days = 30) => api.get('/monitoring/costs', { days }),
+    getEnsembleWeights: (days = 30) => api.get('/monitoring/ensemble-weights', { days })
   }
 };
 

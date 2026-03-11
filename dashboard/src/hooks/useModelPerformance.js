@@ -1,17 +1,17 @@
 /**
- * useDrift Hook
+ * useModelPerformance Hook
  * 
- * Fetches drift metrics from Dashboard API.
+ * Fetches model performance metrics from Dashboard API.
  * Auto-refreshes every 5 minutes.
  * 
- * Requirements: 11.8, 13.1
+ * Requirements: 11.5, 13.1
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
 /**
- * Custom hook for fetching drift detection metrics
+ * Custom hook for fetching model performance metrics
  * 
  * @param {Object} options - Hook options
  * @param {number} options.days - Number of days of history (default: 30)
@@ -19,7 +19,7 @@ import api from '../services/api';
  * @param {number} options.refetchInterval - Refetch interval in ms (default: 300000 = 5 minutes)
  * @returns {Object} React Query result with data, loading, error states, and refresh function
  */
-export const useDrift = ({
+export const useModelPerformance = ({
   days = 30,
   enabled = true,
   refetchInterval = 5 * 60 * 1000 // 5 minutes
@@ -27,8 +27,8 @@ export const useDrift = ({
   const queryClient = useQueryClient();
   
   const query = useQuery({
-    queryKey: ['drift', days],
-    queryFn: () => api.monitoring.getDrift(days),
+    queryKey: ['modelPerformance', days],
+    queryFn: () => api.monitoring.getModelPerformance(days),
     enabled,
     refetchInterval, // Auto-refresh every 5 minutes (Req 13.1)
     staleTime: 4 * 60 * 1000, // Consider data stale after 4 minutes
@@ -37,11 +37,11 @@ export const useDrift = ({
   });
   
   /**
-   * Manually refresh drift data
+   * Manually refresh model performance metrics
    * Invalidates the query cache and triggers a refetch
    */
   const refresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['drift'] });
+    queryClient.invalidateQueries({ queryKey: ['modelPerformance'] });
   };
   
   return {
@@ -50,4 +50,4 @@ export const useDrift = ({
   };
 };
 
-export default useDrift;
+export default useModelPerformance;
