@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, RefreshCw, AlertCircle, CheckCircle, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { TrendingUp, DollarSign, RefreshCw, AlertCircle, CheckCircle, TrendingDown, ArrowUpRight, ArrowDownRight, Moon, Sun } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from './config';
 
 function App() {
@@ -9,6 +9,24 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
+
+  const theme = {
+    bg: darkMode ? '#0f172a' : '#f8fafc',
+    cardBg: darkMode ? '#1e293b' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f172a',
+    textSecondary: darkMode ? '#94a3b8' : '#64748b',
+    border: darkMode ? '#334155' : '#e2e8f0',
+    hover: darkMode ? '#334155' : '#f8fafc',
+    tableBg: darkMode ? '#0f172a' : '#f8fafc',
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -75,33 +93,58 @@ function App() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f8fafc',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+      backgroundColor: theme.bg,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      transition: 'background-color 0.3s ease'
     }}>
       {/* Header */}
       <header style={{
-        backgroundColor: 'white',
-        borderBottom: '1px solid #e2e8f0',
+        backgroundColor: theme.cardBg,
+        borderBottom: `1px solid ${theme.border}`,
         padding: '1.5rem 2rem',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+        boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
+        transition: 'all 0.3s ease'
       }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <h1 style={{
-            margin: 0,
-            fontSize: '1.75rem',
-            fontWeight: '700',
-            color: '#0f172a',
-            letterSpacing: '-0.025em'
-          }}>
-            B3 Tactical Ranking
-          </h1>
-          <p style={{
-            margin: '0.25rem 0 0 0',
-            color: '#64748b',
-            fontSize: '0.875rem'
-          }}>
-            Dashboard de Monitoramento MLOps
-          </p>
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{
+              margin: 0,
+              fontSize: '1.75rem',
+              fontWeight: '700',
+              color: theme.text,
+              letterSpacing: '-0.025em'
+            }}>
+              B3 Tactical Ranking
+            </h1>
+            <p style={{
+              margin: '0.25rem 0 0 0',
+              color: theme.textSecondary,
+              fontSize: '0.875rem'
+            }}>
+              Dashboard de Monitoramento MLOps
+            </p>
+          </div>
+          
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            style={{
+              padding: '0.75rem',
+              backgroundColor: darkMode ? '#334155' : '#f1f5f9',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.2s',
+              boxShadow: darkMode ? '0 2px 4px rgba(0,0,0,0.3)' : '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            title={darkMode ? 'Modo Claro' : 'Modo Escuro'}
+          >
+            {darkMode ? <Sun size={20} color="#fbbf24" /> : <Moon size={20} color="#64748b" />}
+          </button>
         </div>
       </header>
 
@@ -130,10 +173,10 @@ function App() {
           display: 'flex',
           gap: '0.5rem',
           marginBottom: '2rem',
-          backgroundColor: 'white',
+          backgroundColor: theme.cardBg,
           padding: '0.5rem',
           borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+          boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
         }}>
           <button
             onClick={() => setActiveTab('recommendations')}
@@ -187,11 +230,11 @@ function App() {
         {/* Loading State */}
         {loading && (
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: theme.cardBg,
             padding: '4rem 2rem',
             borderRadius: '12px',
             textAlign: 'center',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+            boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <RefreshCw
               size={40}
@@ -201,7 +244,7 @@ function App() {
                 margin: '0 auto 1rem'
               }}
             />
-            <p style={{ color: '#64748b', margin: 0, fontSize: '0.9375rem' }}>
+            <p style={{ color: theme.textSecondary, margin: 0, fontSize: '0.9375rem' }}>
               Carregando dados...
             </p>
           </div>
@@ -218,18 +261,18 @@ function App() {
               marginBottom: '2rem'
             }}>
               <div style={{
-                backgroundColor: 'white',
+                backgroundColor: theme.cardBg,
                 padding: '1.5rem',
                 borderRadius: '12px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '500' }}>
+                  <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
                     Total de Ativos
                   </span>
                   <CheckCircle size={20} color="#10b981" />
                 </div>
-                <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#0f172a' }}>
+                <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: theme.text }}>
                   {recommendations.length}
                 </p>
               </div>
@@ -237,13 +280,13 @@ function App() {
               {recommendations.length > 0 && (
                 <>
                   <div style={{
-                    backgroundColor: 'white',
+                    backgroundColor: theme.cardBg,
                     padding: '1.5rem',
                     borderRadius: '12px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                      <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
                         Melhor Retorno
                       </span>
                       <ArrowUpRight size={20} color="#10b981" />
@@ -254,13 +297,13 @@ function App() {
                   </div>
 
                   <div style={{
-                    backgroundColor: 'white',
+                    backgroundColor: theme.cardBg,
                     padding: '1.5rem',
                     borderRadius: '12px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                      <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
                         Retorno Médio
                       </span>
                       <TrendingUp size={20} color="#3b82f6" />
@@ -275,16 +318,17 @@ function App() {
 
             {/* Recommendations Table */}
             <div style={{
-              backgroundColor: 'white',
+              backgroundColor: theme.cardBg,
               borderRadius: '12px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              transition: 'all 0.3s ease',
+              boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
               overflow: 'hidden'
             }}>
-              <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
-                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: '#0f172a' }}>
+              <div style={{ padding: '1.5rem', borderBottom: `1px solid ${theme.border}` }}>
+                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: theme.text }}>
                   Top 20 Recomendações
                 </h2>
-                <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.875rem' }}>
+                <p style={{ margin: '0.25rem 0 0 0', color: theme.textSecondary, fontSize: '0.875rem' }}>
                   Ativos ranqueados por retorno esperado
                 </p>
               </div>
@@ -292,7 +336,7 @@ function App() {
               {recommendations.length === 0 ? (
                 <div style={{ padding: '3rem 2rem', textAlign: 'center' }}>
                   <TrendingDown size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
-                  <p style={{ color: '#64748b', margin: 0, fontSize: '0.9375rem' }}>
+                  <p style={{ color: theme.textSecondary, margin: 0, fontSize: '0.9375rem' }}>
                     Nenhuma recomendação disponível no momento
                   </p>
                 </div>
@@ -300,17 +344,17 @@ function App() {
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                        <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <tr style={{ backgroundColor: theme.tableBg, borderBottom: `1px solid ${theme.border}` }}>
+                        <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Rank
                         </th>
-                        <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Ticker
                         </th>
-                        <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Retorno Esperado
                         </th>
-                        <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                           Score
                         </th>
                       </tr>
@@ -327,10 +371,10 @@ function App() {
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: theme.textSecondary, fontWeight: '500' }}>
                             #{idx + 1}
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.9375rem', fontWeight: '600', color: '#0f172a' }}>
+                          <td style={{ padding: '1rem 1.5rem', fontSize: '0.9375rem', fontWeight: '600', color: theme.text }}>
                             {rec.ticker}
                           </td>
                           <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
@@ -349,7 +393,7 @@ function App() {
                               {formatPercent(rec.expected_return)}
                             </span>
                           </td>
-                          <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>
+                          <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.875rem', color: theme.textSecondary, fontWeight: '500' }}>
                             {rec.score?.toFixed(4) || 'N/A'}
                           </td>
                         </tr>
@@ -375,33 +419,33 @@ function App() {
                   marginBottom: '2rem'
                 }}>
                   <div style={{
-                    backgroundColor: 'white',
+                    backgroundColor: theme.cardBg,
                     padding: '1.5rem',
                     borderRadius: '12px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                      <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
                         Custo Total (7 dias)
                       </span>
                       <DollarSign size={20} color="#3b82f6" />
                     </div>
-                    <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#0f172a' }}>
+                    <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: theme.text }}>
                       {formatCurrency(costs.latest.total_7_days?.brl || 0)}
                     </p>
-                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                    <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
                       ${costs.latest.total_7_days?.usd?.toFixed(2) || '0.00'} USD
                     </p>
                   </div>
 
                   <div style={{
-                    backgroundColor: 'white',
+                    backgroundColor: theme.cardBg,
                     padding: '1.5rem',
                     borderRadius: '12px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                      <span style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
                         Projeção Mensal
                       </span>
                       <TrendingUp size={20} color={costs.latest.threshold?.exceeded ? '#dc2626' : '#10b981'} />
@@ -424,16 +468,16 @@ function App() {
 
                 {/* Costs by Service */}
                 <div style={{
-                  backgroundColor: 'white',
+                  backgroundColor: theme.cardBg,
                   borderRadius: '12px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
                   overflow: 'hidden'
                 }}>
-                  <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
-                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: '#0f172a' }}>
+                  <div style={{ padding: '1.5rem', borderBottom: `1px solid ${theme.border}` }}>
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: theme.text }}>
                       Custos por Serviço AWS
                     </h2>
-                    <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.875rem' }}>
+                    <p style={{ margin: '0.25rem 0 0 0', color: theme.textSecondary, fontSize: '0.875rem' }}>
                       Últimos 7 dias
                     </p>
                   </div>
@@ -441,14 +485,14 @@ function App() {
                   <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                          <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <tr style={{ backgroundColor: theme.tableBg, borderBottom: `1px solid ${theme.border}` }}>
+                          <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             Serviço
                           </th>
-                          <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             Custo (USD)
                           </th>
-                          <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          <th style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             % do Total
                           </th>
                         </tr>
@@ -469,10 +513,10 @@ function App() {
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                               >
-                                <td style={{ padding: '1rem 1.5rem', fontSize: '0.9375rem', fontWeight: '500', color: '#0f172a' }}>
+                                <td style={{ padding: '1rem 1.5rem', fontSize: '0.9375rem', fontWeight: '500', color: theme.text }}>
                                   {service}
                                 </td>
-                                <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.9375rem', fontWeight: '600', color: '#0f172a' }}>
+                                <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.9375rem', fontWeight: '600', color: theme.text }}>
                                   ${cost.toFixed(2)}
                                 </td>
                                 <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
@@ -491,7 +535,7 @@ function App() {
                                         borderRadius: '3px'
                                       }} />
                                     </div>
-                                    <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#64748b', minWidth: '45px', textAlign: 'right' }}>
+                                    <span style={{ fontSize: '0.875rem', fontWeight: '500', color: theme.textSecondary, minWidth: '45px', textAlign: 'right' }}>
                                       {percentage.toFixed(1)}%
                                     </span>
                                   </div>
@@ -508,14 +552,14 @@ function App() {
 
             {!costs && (
               <div style={{
-                backgroundColor: 'white',
+                backgroundColor: theme.cardBg,
                 padding: '3rem 2rem',
                 borderRadius: '12px',
                 textAlign: 'center',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
               }}>
                 <DollarSign size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
-                <p style={{ color: '#64748b', margin: 0, fontSize: '0.9375rem' }}>
+                <p style={{ color: theme.textSecondary, margin: 0, fontSize: '0.9375rem' }}>
                   Nenhum dado de custo disponível
                 </p>
               </div>
@@ -527,9 +571,9 @@ function App() {
         <div style={{
           marginTop: '2rem',
           padding: '1.5rem',
-          backgroundColor: 'white',
+          backgroundColor: theme.cardBg,
           borderRadius: '12px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+          boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -538,7 +582,7 @@ function App() {
         }}>
           <div>
             {lastUpdate && (
-              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary }}>
                 Última atualização: {lastUpdate.toLocaleString('pt-BR')}
               </p>
             )}
