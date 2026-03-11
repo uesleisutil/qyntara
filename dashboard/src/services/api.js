@@ -5,8 +5,7 @@
  * Handles all HTTP requests with error handling, retries, and logging.
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '/api';
-const API_KEY = process.env.REACT_APP_API_KEY;
+import { API_BASE_URL, API_KEY } from '../config';
 
 /**
  * Custom error class for API errors
