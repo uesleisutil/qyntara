@@ -59,13 +59,13 @@ function App() {
     clearError
   } = useGlobalStore();
 
-  // Fetch data with auto-refresh (5 minutes) - always fetch, control with enabled
-  const recommendationsQuery = useRecommendations({ enabled: true });
-  const dataQualityQuery = useDataQuality({ days: 30, enabled: true });
-  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: true });
-  const driftQuery = useDrift({ days: 30, enabled: true });
-  const costsQuery = useCosts({ days: 30, enabled: true });
-  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: true });
+  // Fetch data with auto-refresh (5 minutes) - only fetch for active tab
+  const recommendationsQuery = useRecommendations({ enabled: activeTab === 'recommendations' });
+  const dataQualityQuery = useDataQuality({ days: 30, enabled: false }); // Disabled - no data yet
+  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: false }); // Disabled - no data yet
+  const driftQuery = useDrift({ days: 30, enabled: false }); // Disabled - no data yet
+  const costsQuery = useCosts({ days: 30, enabled: activeTab === 'costs' });
+  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: false }); // Disabled - no data yet
 
   // Update last updated timestamp when any query succeeds
   useEffect(() => {
@@ -341,37 +341,10 @@ function App() {
         {activeTab === 'monitoring' && (
           <div className="dashboard-grid">
             <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Activity size={20} />
-                Qualidade de Dados
-              </h3>
-              <DataQualityPanel 
-                data={dataQualityQuery.data}
-                isLoading={dataQualityQuery.isLoading}
-              />
-            </div>
-
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <BarChart3 size={20} />
-                Performance do Modelo
-              </h3>
-              <ModelPerformancePanel 
-                data={modelPerformanceQuery.data}
-                isLoading={modelPerformanceQuery.isLoading}
-              />
-            </div>
-
-            <div className="card" style={{ gridColumn: '1 / -1' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Activity size={20} />
-                Detecção de Drift
-              </h3>
-              <DriftMonitoringPanel 
-                driftData={driftQuery.data}
-                ensembleData={ensembleWeightsQuery.data}
-                isLoading={driftQuery.isLoading || ensembleWeightsQuery.isLoading}
-              />
+              <h3>Monitoramento</h3>
+              <p style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>
+                Dados de monitoramento ainda não disponíveis. Execute as Lambdas de monitoramento para gerar dados.
+              </p>
             </div>
           </div>
         )}
