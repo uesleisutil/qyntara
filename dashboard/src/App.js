@@ -30,12 +30,12 @@ import { LoadingSpinner, ErrorBoundary } from './components/shared';
 import RecommendationsTable from './components/RecommendationsTable';
 import { RecommendationsKPIs, ReturnDistributionChart } from './components/recommendations';
 
-// Monitoring components
-import { 
-  DataQualityPanel, 
-  ModelPerformancePanel, 
-  DriftMonitoringPanel 
-} from './components/monitoring';
+// Monitoring components (disabled - no data yet)
+// import { 
+//   DataQualityPanel, 
+//   ModelPerformancePanel, 
+//   DriftMonitoringPanel 
+// } from './components/monitoring';
 
 // Costs components
 import { 
