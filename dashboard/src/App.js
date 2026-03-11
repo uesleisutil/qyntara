@@ -59,13 +59,13 @@ function App() {
     clearError
   } = useGlobalStore();
 
-  // Fetch data with auto-refresh (5 minutes) - only fetch for active tab
+  // Fetch data with auto-refresh (5 minutes) - always call hooks unconditionally
   const recommendationsQuery = useRecommendations({ enabled: activeTab === 'recommendations' });
-  const dataQualityQuery = useDataQuality({ days: 30, enabled: false }); // Disabled - no data yet
-  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: false }); // Disabled - no data yet
-  const driftQuery = useDrift({ days: 30, enabled: false }); // Disabled - no data yet
+  const dataQualityQuery = useDataQuality({ days: 30, enabled: activeTab === 'monitoring' });
+  const modelPerformanceQuery = useModelPerformance({ days: 30, enabled: activeTab === 'monitoring' });
+  const driftQuery = useDrift({ days: 30, enabled: activeTab === 'monitoring' });
   const costsQuery = useCosts({ days: 30, enabled: activeTab === 'costs' });
-  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: false }); // Disabled - no data yet
+  const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: activeTab === 'monitoring' });
 
   // Update last updated timestamp when any query succeeds
   useEffect(() => {
