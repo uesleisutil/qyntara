@@ -454,12 +454,14 @@ def get_ensemble_weights(days: int = 30) -> Dict:
     }
 
 
-def compress_response(body: str) -> bytes:
+def compress_response(body: str) -> str:
     """
-    Comprime response com gzip.
+    Comprime response com gzip e retorna como base64.
     Implementa Req 20.6.
     """
-    return gzip.compress(body.encode("utf-8"))
+    import base64
+    compressed = gzip.compress(body.encode("utf-8"))
+    return base64.b64encode(compressed).decode("utf-8")
 
 
 def handler(event, context):
