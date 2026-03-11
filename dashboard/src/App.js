@@ -59,9 +59,6 @@ function App() {
     clearError
   } = useGlobalStore();
 
-  // Track if we've waited too long for initial load
-  const [loadingTimeout, setLoadingTimeout] = React.useState(false);
-
   // Fetch data with auto-refresh (5 minutes)
   const recommendationsQuery = useRecommendations({ enabled: activeTab === 'recommendations' });
   const dataQualityQuery = useDataQuality({ days: 30, enabled: activeTab === 'monitoring' });
@@ -69,15 +66,6 @@ function App() {
   const driftQuery = useDrift({ days: 30, enabled: activeTab === 'monitoring' });
   const costsQuery = useCosts({ days: 30, enabled: activeTab === 'costs' });
   const ensembleWeightsQuery = useEnsembleWeights({ days: 30, enabled: activeTab === 'monitoring' });
-
-  // Set timeout for initial loading (10 seconds)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoadingTimeout(true);
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   // Update last updated timestamp when any query succeeds
   useEffect(() => {
@@ -168,79 +156,42 @@ function App() {
     ensembleWeightsQuery.refetch();
   };
 
-  // Initial loading state
-  const isInitialLoading = !lastUpdated && (
-    recommendationsQuery.isLoading ||
-    dataQualityQuery.isLoading ||
-    modelPerformanceQuery.isLoading ||
-    driftQuery.isLoading ||
-    costsQuery.isLoading ||
-    ensembleWeightsQuery.isLoading
+  // Initial loading state - simplified
+  const isInitialLoading = (
+    (activeTab === 'recommendations' && recommendationsQuery.isLoading) ||
+    (activeTab === 'monitoring' && (dataQualityQuery.isLoading || modelPerformanceQuery.isLoading || driftQuery.isLoading)) ||
+    (activeTab === 'costs' && costsQuery.isLoading)
   );
 
   // Log for debugging
-  console.log('Dashboard State:', {
-    isInitialLoading,
-    lastUpdated,
-    activeTab,
-    queries: {
-      recommendations: { isLoading: recommendationsQuery.isLoading, isError: recommendationsQuery.isError, data: !!recommendationsQuery.data },
-      dataQuality: { isLoading: dataQualityQuery.isLoading, isError: dataQualityQuery.isError, data: !!dataQualityQuery.data },
-      modelPerformance: { isLoading: modelPerformanceQuery.isLoading, isError: modelPerformanceQuery.isError, data: !!modelPerformanceQuery.data },
-      drift: { isLoading: driftQuery.isLoading, isError: driftQuery.isError, data: !!driftQuery.data },
-      costs: { isLoading: costsQuery.isLoading, isError: costsQuery.isError, data: !!costsQuery.data },
-      ensembleWeights: { isLoading: ensembleWeightsQuery.isLoading, isError: ensembleWeightsQuery.isError, data: !!ensembleWeightsQuery.data }
-    }
-  });
-
-  if (isInitialLoading && !loadingTimeout) {
-    return (
-      <div className="container">
-        <LoadingSpinner 
-          size="lg" 
-          text="Carregando dashboard..." 
-          centered 
-          fullScreen 
-        />
-      </div>
-    );
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Dashboard State:', {
+      isInitialLoading,
+      lastUpdated,
+      activeTab,
+      queries: {
+        recommendations: { isLoading: recommendationsQuery.isLoading, isError: recommendationsQuery.isError, data: !!recommendationsQuery.data },
+        dataQuality: { isLoading: dataQualityQuery.isLoading, isError: dataQualityQuery.isError, data: !!dataQualityQuery.data },
+        modelPerformance: { isLoading: modelPerformanceQuery.isLoading, isError: modelPerformanceQuery.isError, data: !!modelPerformanceQuery.data },
+        drift: { isLoading: driftQuery.isLoading, isError: driftQuery.isError, data: !!driftQuery.data },
+        costs: { isLoading: costsQuery.isLoading, isError: costsQuery.isError, data: !!costsQuery.data },
+        ensembleWeights: { isLoading: ensembleWeightsQuery.isLoading, isError: ensembleWeightsQuery.isError, data: !!ensembleWeightsQuery.data }
+      }
+    });
   }
 
-  // If loading timed out, show error message
-  if (isInitialLoading && loadingTimeout) {
+  if (isInitialLoading) {
     return (
       <div className="container">
         <div className="header">
           <h1>B3 Tactical Ranking - MLOps Dashboard</h1>
           <p>Monitoramento Completo de Performance e Métricas</p>
         </div>
-        <div style={{
-          padding: '2rem',
-          backgroundColor: '#fef2f2',
-          border: '2px solid #fecaca',
-          borderRadius: '8px',
-          textAlign: 'center'
-        }}>
-          <h2 style={{ color: '#991b1b', marginBottom: '1rem' }}>Erro ao Carregar Dashboard</h2>
-          <p style={{ color: '#991b1b', marginBottom: '1rem' }}>
-            O dashboard está demorando muito para carregar. Isso pode indicar um problema com a API.
-          </p>
-          <button 
-            onClick={() => window.location.reload()} 
-            style={{ 
-              padding: '0.75rem 1.5rem', 
-              background: '#3b82f6', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '4px', 
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: '500'
-            }}
-          >
-            Recarregar Página
-          </button>
-        </div>
+        <LoadingSpinner 
+          size="lg" 
+          text="Carregando dashboard..." 
+          centered 
+        />
       </div>
     );
   }
