@@ -292,7 +292,7 @@ function App() {
                       <ArrowUpRight size={20} color="#10b981" />
                     </div>
                     <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#10b981' }}>
-                      {formatPercent(Math.max(...recommendations.map(r => r.expected_return || 0)))}
+                      {formatPercent(Math.max(...recommendations.map(r => r.exp_return_20 || 0)))}
                     </p>
                   </div>
 
@@ -309,7 +309,7 @@ function App() {
                       <TrendingUp size={20} color="#3b82f6" />
                     </div>
                     <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#3b82f6' }}>
-                      {formatPercent(recommendations.reduce((acc, r) => acc + (r.expected_return || 0), 0) / recommendations.length)}
+                      {formatPercent(recommendations.reduce((acc, r) => acc + (r.exp_return_20 || 0), 0) / recommendations.length)}
                     </p>
                   </div>
                 </>
@@ -386,11 +386,11 @@ function App() {
                               borderRadius: '6px',
                               fontSize: '0.875rem',
                               fontWeight: '600',
-                              backgroundColor: rec.expected_return > 0 ? '#dcfce7' : '#fee2e2',
-                              color: rec.expected_return > 0 ? '#166534' : '#991b1b'
+                              backgroundColor: rec.exp_return_20 > 0 ? '#dcfce7' : '#fee2e2',
+                              color: rec.exp_return_20 > 0 ? '#166534' : '#991b1b'
                             }}>
-                              {rec.expected_return > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                              {formatPercent(rec.expected_return)}
+                              {rec.exp_return_20 > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                              {formatPercent(rec.exp_return_20)}
                             </span>
                           </td>
                           <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.875rem', color: theme.textSecondary, fontWeight: '500' }}>

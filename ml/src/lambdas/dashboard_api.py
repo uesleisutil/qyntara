@@ -125,14 +125,19 @@ def get_recommendations_latest() -> Dict:
         }
     
     # Transformar em DTO
+    # O formato do arquivo pode ter 'items' ou 'recommendations'
+    items = data.get("items", data.get("recommendations", []))
+    
     recommendations_dto = {
         "timestamp": data.get("timestamp"),
-        "date": data.get("date"),
-        "recommendations": data.get("recommendations", []),
-        "total_count": len(data.get("recommendations", [])),
+        "date": data.get("dt", data.get("date")),
+        "recommendations": items,
+        "total_count": len(items),
         "metadata": {
             "ensemble_models": data.get("ensemble_models", []),
-            "prediction_horizon_days": data.get("prediction_horizon_days", 20)
+            "prediction_horizon_days": data.get("prediction_horizon_days", 20),
+            "method": data.get("method"),
+            "run_id": data.get("run_id")
         }
     }
     
