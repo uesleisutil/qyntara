@@ -15,6 +15,7 @@ function App() {
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [tooltipData, setTooltipData] = useState(null);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -628,8 +629,98 @@ function App() {
                       </div>
 
                       {/* Gráfico Unificado */}
-                      <div style={{ position: 'relative', height: isMobile ? '250px' : '350px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                        <svg width={isMobile ? '100%' : '100%'} height="100%" viewBox="0 0 1000 350" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
+                      <div 
+                        style={{ position: 'relative', height: isMobile ? '250px' : '350px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}
+                        onMouseLeave={() => setTooltipData(null)}
+                      >
+                        {/* Tooltip HTML */}
+                        {tooltipData && (
+                          <div style={{
+                            position: 'absolute',
+                            left: tooltipData.x > 500 ? `${(tooltipData.x / 1000) * 100 - 20}%` : `${(tooltipData.x / 1000) * 100 + 5}%`,
+                            top: '10%',
+                            backgroundColor: theme.cardBg,
+                            border: `2px solid ${theme.border}`,
+                            borderRadius: '8px',
+                            padding: '0.75rem',
+                            boxShadow: darkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 4px 12px rgba(0,0,0,0.15)',
+                            zIndex: 1000,
+                            minWidth: '180px',
+                            pointerEvents: 'none'
+                          }}>
+                            <div style={{ 
+                              fontSize: isMobile ? '0.75rem' : '0.8125rem', 
+                              fontWeight: '600', 
+                              color: theme.text,
+                              marginBottom: '0.5rem',
+                              paddingBottom: '0.5rem',
+                              borderBottom: `1px solid ${theme.border}`
+                            }}>
+                              {new Date(tooltipData.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                            </div>
+                            {tooltipData.tickers.map((t, idx) => (
+                              <div key={idx} style={{ marginBottom: idx < tooltipData.tickers.length - 1 ? '0.5rem' : 0 }}>
+                                <div style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '0.5rem',
+                                  marginBottom: '0.25rem'
+                                }}>
+                                  <div style={{ 
+                                    width: '12px', 
+                                    height: '12px', 
+                                    backgroundColor: t.color,
+                                    borderRadius: '2px'
+                                  }} />
+                                  <span style={{ 
+                                    fontSize: isMobile ? '0.75rem' : '0.8125rem', 
+                                    fontWeight: '600', 
+                                    color: theme.text 
+                                  }}>
+                                    {t.ticker}
+                                  </span>
+                                </div>
+                                <div style={{ paddingLeft: '1.25rem' }}>
+                                  <div style={{ 
+                                    fontSize: isMobile ? '0.6875rem' : '0.75rem', 
+                                    color: theme.textSecondary,
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    gap: '1rem'
+                                  }}>
+                                    <span>Retorno:</span>
+                                    <span style={{ 
+                                      fontWeight: '600',
+                                      color: t.return > 0 ? '#10b981' : '#dc2626'
+                                    }}>
+                                      {formatPercent(t.return)}
+                                    </span>
+                                  </div>
+                                  <div style={{ 
+                                    fontSize: isMobile ? '0.6875rem' : '0.75rem', 
+                                    color: theme.textSecondary,
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    gap: '1rem'
+                                  }}>
+                                    <span>Score:</span>
+                                    <span style={{ fontWeight: '600', color: theme.text }}>
+                                      {t.score.toFixed(4)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        <svg 
+                          width={isMobile ? '100%' : '100%'} 
+                          height="100%" 
+                          viewBox="0 0 1000 350" 
+                          preserveAspectRatio="xMidYMid meet" 
+                          style={{ overflow: 'visible' }}
+                        >
                           {(() => {
                             const width = 1000;
                             const height = 350;
@@ -804,6 +895,84 @@ function App() {
                                     />
                                   );
                                 })}
+                                
+                                {/* Áreas invisíveis para hover - uma por data */}
+                                {dates.map((date, dateIdx) => {
+                                  const x = scaleX(dateIdx);
+                                  const prevX = dateIdx > 0 ? scaleX(dateIdx - 1) : padding.left;
+                                  const nextX = dateIdx < dates.length - 1 ? scaleX(dateIdx + 1) : padding.left + chartWidth;
+                                  const areaWidth = (nextX - prevX) / 2 + (x - prevX) / 2;
+                                  const areaX = x - areaWidth / 2;
+                                  
+                                  return (
+                                    <rect
+                                      key={`hover-${dateIdx}`}
+                                      x={areaX}
+                                      y={padding.top}
+                                      width={areaWidth}
+                                      height={chartHeight}
+                                      fill="transparent"
+                                      style={{ cursor: 'crosshair' }}
+                                      onMouseEnter={() => {
+                                        const tickersData = selectedTickers.map((ticker, idx) => {
+                                          const tickerData = recommendationsHistory.data[ticker] || [];
+                                          const dataPoint = tickerData.find(d => d.date === date);
+                                          return {
+                                            ticker,
+                                            color: colors[idx % colors.length],
+                                            return: dataPoint?.exp_return_20,
+                                            score: dataPoint?.score
+                                          };
+                                        }).filter(d => d.return !== undefined);
+                                        
+                                        if (tickersData.length > 0) {
+                                          setTooltipData({
+                                            date,
+                                            x,
+                                            tickers: tickersData
+                                          });
+                                        }
+                                      }}
+                                    />
+                                  );
+                                })}
+                                
+                                {/* Linha vertical do tooltip */}
+                                {tooltipData && (
+                                  <>
+                                    <line
+                                      x1={tooltipData.x}
+                                      y1={padding.top}
+                                      x2={tooltipData.x}
+                                      y2={padding.top + chartHeight}
+                                      stroke={darkMode ? '#94a3b8' : '#64748b'}
+                                      strokeWidth="1.5"
+                                      strokeDasharray="4 2"
+                                    />
+                                    {/* Pontos nos valores */}
+                                    {tooltipData.tickers.map((t, idx) => (
+                                      <g key={idx}>
+                                        <circle
+                                          cx={tooltipData.x}
+                                          cy={scaleYReturn(t.return)}
+                                          r="5"
+                                          fill={t.color}
+                                          stroke="white"
+                                          strokeWidth="2"
+                                        />
+                                        <circle
+                                          cx={tooltipData.x}
+                                          cy={scaleYScore(t.score)}
+                                          r="4"
+                                          fill={t.color}
+                                          stroke="white"
+                                          strokeWidth="1.5"
+                                          opacity="0.8"
+                                        />
+                                      </g>
+                                    ))}
+                                  </>
+                                )}
                                 
                                 {/* Eixo X - datas */}
                                 {dates.filter((_, i) => i % Math.ceil(dates.length / 5) === 0).map((date, i) => {
