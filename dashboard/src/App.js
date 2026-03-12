@@ -78,36 +78,54 @@ function App() {
         }
       } else if (activeTab === 'performance') {
         // Buscar performance dos modelos
-        const perfResponse = await fetch(`${API_BASE_URL}/api/monitoring/model-performance?days=30`, {
-          headers: { 'x-api-key': API_KEY }
-        });
-        if (perfResponse.ok) {
-          const perfData = await perfResponse.json();
-          setPerformance(perfData);
-        } else {
-          throw new Error('Falha ao carregar performance');
+        try {
+          const perfResponse = await fetch(`${API_BASE_URL}/api/monitoring/model-performance?days=30`, {
+            headers: { 'x-api-key': API_KEY }
+          });
+          if (perfResponse.ok) {
+            const perfData = await perfResponse.json();
+            setPerformance(perfData);
+          } else {
+            // Não há dados de performance ainda
+            setPerformance(null);
+          }
+        } catch (perfError) {
+          console.warn('Performance data not available:', perfError);
+          setPerformance(null);
         }
         
         // Buscar pesos do ensemble
-        const weightsResponse = await fetch(`${API_BASE_URL}/api/monitoring/ensemble-weights?days=30`, {
-          headers: { 'x-api-key': API_KEY }
-        });
-        if (weightsResponse.ok) {
-          const weightsData = await weightsResponse.json();
-          setEnsembleWeights(weightsData);
+        try {
+          const weightsResponse = await fetch(`${API_BASE_URL}/api/monitoring/ensemble-weights?days=30`, {
+            headers: { 'x-api-key': API_KEY }
+          });
+          if (weightsResponse.ok) {
+            const weightsData = await weightsResponse.json();
+            setEnsembleWeights(weightsData);
+          } else {
+            setEnsembleWeights(null);
+          }
+        } catch (weightsError) {
+          console.warn('Ensemble weights not available:', weightsError);
+          setEnsembleWeights(null);
         }
         
         setLastUpdate(new Date());
       } else if (activeTab === 'validation') {
         // Buscar validação das recomendações
-        const validationResponse = await fetch(`${API_BASE_URL}/api/recommendations/validation?days=30`, {
-          headers: { 'x-api-key': API_KEY }
-        });
-        if (validationResponse.ok) {
-          const validationData = await validationResponse.json();
-          setValidation(validationData);
-        } else {
-          throw new Error('Falha ao carregar validação');
+        try {
+          const validationResponse = await fetch(`${API_BASE_URL}/api/recommendations/validation?days=30`, {
+            headers: { 'x-api-key': API_KEY }
+          });
+          if (validationResponse.ok) {
+            const validationData = await validationResponse.json();
+            setValidation(validationData);
+          } else {
+            setValidation(null);
+          }
+        } catch (validationError) {
+          console.warn('Validation data not available:', validationError);
+          setValidation(null);
         }
         
         setLastUpdate(new Date());
@@ -533,366 +551,294 @@ function App() {
                   Evolução por Ticker (30 dias)
                 </h2>
                 
-                {/* Seletor de Tickers */}
+                {/* Seletor de Tickers - Simplificado */}
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: isMobile ? '0.8125rem' : '0.875rem', fontWeight: '500', color: theme.textSecondary }}>
-                    Selecione os tickers (máximo {isMobile ? '5' : '10'}):
-                  </label>
                   <div style={{ 
                     display: 'flex', 
                     flexWrap: 'wrap', 
                     gap: '0.5rem',
-                    maxHeight: isMobile ? '150px' : '200px',
+                    maxHeight: isMobile ? '120px' : '150px',
                     overflowY: 'auto',
-                    padding: '0.5rem',
+                    padding: '0.75rem',
                     backgroundColor: theme.tableBg,
                     borderRadius: '8px',
                     border: `1px solid ${theme.border}`,
                     WebkitOverflowScrolling: 'touch'
                   }}>
-                    {recommendationsHistory.tickers.map(ticker => (
-                      <button
-                        key={ticker}
-                        onClick={() => {
-                          const maxTickers = isMobile ? 5 : 10;
-                          if (selectedTickers.includes(ticker)) {
-                            setSelectedTickers(selectedTickers.filter(t => t !== ticker));
-                          } else if (selectedTickers.length < maxTickers) {
-                            setSelectedTickers([...selectedTickers, ticker]);
-                          }
-                        }}
-                        style={{
-                          padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
-                          backgroundColor: selectedTickers.includes(ticker) ? '#3b82f6' : theme.cardBg,
-                          color: selectedTickers.includes(ticker) ? 'white' : theme.text,
-                          border: `1px solid ${selectedTickers.includes(ticker) ? '#3b82f6' : theme.border}`,
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: isMobile ? '0.8125rem' : '0.875rem',
-                          fontWeight: '500',
-                          transition: 'all 0.2s',
-                          WebkitTapHighlightColor: 'transparent'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!selectedTickers.includes(ticker)) {
-                            e.currentTarget.style.backgroundColor = theme.hover;
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!selectedTickers.includes(ticker)) {
-                            e.currentTarget.style.backgroundColor = theme.cardBg;
-                          }
-                        }}
-                      >
-                        {ticker}
-                      </button>
-                    ))}
+                    {recommendationsHistory.tickers.slice(0, 20).map(ticker => {
+                      const isSelected = selectedTickers.includes(ticker);
+                      return (
+                        <button
+                          key={ticker}
+                          onClick={() => {
+                            const maxTickers = isMobile ? 3 : 5;
+                            if (isSelected) {
+                              setSelectedTickers(selectedTickers.filter(t => t !== ticker));
+                            } else if (selectedTickers.length < maxTickers) {
+                              setSelectedTickers([...selectedTickers, ticker]);
+                            }
+                          }}
+                          style={{
+                            padding: isMobile ? '0.5rem 0.75rem' : '0.5rem 1rem',
+                            backgroundColor: isSelected ? '#3b82f6' : 'transparent',
+                            color: isSelected ? 'white' : theme.text,
+                            border: `1px solid ${isSelected ? '#3b82f6' : theme.border}`,
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: isMobile ? '0.8125rem' : '0.875rem',
+                            fontWeight: isSelected ? '600' : '500',
+                            transition: 'all 0.2s',
+                            WebkitTapHighlightColor: 'transparent'
+                          }}
+                        >
+                          {ticker}
+                        </button>
+                      );
+                    })}
                   </div>
-                  <p style={{ margin: '0.5rem 0 0 0', fontSize: isMobile ? '0.6875rem' : '0.75rem', color: theme.textSecondary }}>
-                    {selectedTickers.length} de {isMobile ? '5' : '10'} tickers selecionados
+                  <p style={{ margin: '0.5rem 0 0 0', fontSize: isMobile ? '0.75rem' : '0.8125rem', color: theme.textSecondary, textAlign: 'center' }}>
+                    {selectedTickers.length} de {isMobile ? '3' : '5'} selecionados
                   </p>
                 </div>
 
                 {selectedTickers.length > 0 && (() => {
-                  // Cores para cada ticker
-                  const colors = [
-                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
-                    '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'
-                  ];
+                  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
                   return (
-                    <>
-                      {/* Gráfico de Retorno Esperado */}
-                      <div style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: isMobile ? '0.9375rem' : '1rem', fontWeight: '600', color: theme.text }}>
-                          Retorno Esperado (%)
-                        </h3>
-                        <div style={{ position: 'relative', height: isMobile ? '200px' : '300px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                          <svg width={isMobile ? '600px' : '100%'} height="100%" style={{ overflow: 'visible', minWidth: isMobile ? '600px' : 'auto' }}>
-                            {(() => {
-                              const width = 1000;
-                              const height = 300;
-                              const padding = { top: 20, right: 20, bottom: 40, left: 60 };
-                              const chartWidth = width - padding.left - padding.right;
-                              const chartHeight = height - padding.top - padding.bottom;
-                              
-                              // Coletar todos os valores para escala
-                              let allReturns = [];
-                              let allDates = new Set();
-                              
-                              selectedTickers.forEach(ticker => {
-                                const data = recommendationsHistory.data[ticker] || [];
-                                data.forEach(d => {
-                                  allReturns.push(d.exp_return_20);
-                                  allDates.add(d.date);
-                                });
-                              });
-                              
-                              const dates = Array.from(allDates).sort();
-                              const maxReturn = Math.max(...allReturns, 0);
-                              const minReturn = Math.min(...allReturns, 0);
-                              const range = maxReturn - minReturn || 1;
-                              
-                              // Escalas
-                              const scaleY = (value) => padding.top + chartHeight - ((value - minReturn) / range) * chartHeight;
-                              const scaleX = (dateIndex) => padding.left + (dateIndex / (dates.length - 1 || 1)) * chartWidth;
-                              
-                              // Grid horizontal
-                              const gridLines = [0, 0.25, 0.5, 0.75, 1].map(ratio => {
-                                const y = padding.top + chartHeight * ratio;
-                                const value = maxReturn - (range * ratio);
-                                return { y, value };
-                              });
-                              
-                              return (
-                                <g>
-                                  {/* Grid */}
-                                  {gridLines.map((line, i) => (
-                                    <g key={i}>
-                                      <line
-                                        x1={padding.left}
-                                        y1={line.y}
-                                        x2={padding.left + chartWidth}
-                                        y2={line.y}
-                                        stroke={darkMode ? '#334155' : '#e2e8f0'}
-                                        strokeWidth="1"
-                                      />
-                                      <text
-                                        x={padding.left - 10}
-                                        y={line.y + 4}
-                                        textAnchor="end"
-                                        fill={theme.textSecondary}
-                                        fontSize="11"
-                                      >
-                                        {formatPercent(line.value)}
-                                      </text>
-                                    </g>
-                                  ))}
-                                  
-                                  {/* Linha zero */}
-                                  {minReturn < 0 && maxReturn > 0 && (
-                                    <line
-                                      x1={padding.left}
-                                      y1={scaleY(0)}
-                                      x2={padding.left + chartWidth}
-                                      y2={scaleY(0)}
-                                      stroke={darkMode ? '#64748b' : '#94a3b8'}
-                                      strokeWidth="2"
-                                      strokeDasharray="4 4"
-                                    />
-                                  )}
-                                  
-                                  {/* Linhas dos tickers */}
-                                  {selectedTickers.map((ticker, tickerIdx) => {
-                                    const tickerData = recommendationsHistory.data[ticker] || [];
-                                    const color = colors[tickerIdx % colors.length];
-                                    
-                                    const path = tickerData.map((d, i) => {
-                                      const dateIndex = dates.indexOf(d.date);
-                                      if (dateIndex === -1) return '';
-                                      const x = scaleX(dateIndex);
-                                      const y = scaleY(d.exp_return_20);
-                                      return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
-                                    }).join(' ');
-                                    
-                                    return (
-                                      <g key={ticker}>
-                                        <path
-                                          d={path}
-                                          fill="none"
-                                          stroke={color}
-                                          strokeWidth="2"
-                                        />
-                                        {tickerData.map((d, i) => {
-                                          const dateIndex = dates.indexOf(d.date);
-                                          if (dateIndex === -1) return null;
-                                          return (
-                                            <circle
-                                              key={i}
-                                              cx={scaleX(dateIndex)}
-                                              cy={scaleY(d.exp_return_20)}
-                                              r="3"
-                                              fill={color}
-                                            />
-                                          );
-                                        })}
-                                      </g>
-                                    );
-                                  })}
-                                  
-                                  {/* Eixo X - datas */}
-                                  {dates.filter((_, i) => i % Math.ceil(dates.length / 6) === 0).map((date, i) => {
-                                    const index = dates.indexOf(date);
-                                    const x = scaleX(index);
-                                    const d = new Date(date);
-                                    const label = `${d.getDate()}/${d.getMonth() + 1}`;
-                                    return (
-                                      <text
-                                        key={i}
-                                        x={x}
-                                        y={padding.top + chartHeight + 20}
-                                        textAnchor="middle"
-                                        fill={theme.textSecondary}
-                                        fontSize="11"
-                                      >
-                                        {label}
-                                      </text>
-                                    );
-                                  })}
-                                </g>
-                              );
-                            })()}
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* Gráfico de Score */}
-                      <div>
-                        <h3 style={{ margin: '0 0 1rem 0', fontSize: isMobile ? '0.9375rem' : '1rem', fontWeight: '600', color: theme.text }}>
-                          Score
-                        </h3>
-                        <div style={{ position: 'relative', height: isMobile ? '200px' : '300px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                          <svg width={isMobile ? '600px' : '100%'} height="100%" style={{ overflow: 'visible', minWidth: isMobile ? '600px' : 'auto' }}>
-                            {(() => {
-                              const width = 1000;
-                              const height = 300;
-                              const padding = { top: 20, right: 20, bottom: 40, left: 60 };
-                              const chartWidth = width - padding.left - padding.right;
-                              const chartHeight = height - padding.top - padding.bottom;
-                              
-                              // Coletar todos os valores para escala
-                              let allScores = [];
-                              let allDates = new Set();
-                              
-                              selectedTickers.forEach(ticker => {
-                                const data = recommendationsHistory.data[ticker] || [];
-                                data.forEach(d => {
-                                  allScores.push(d.score);
-                                  allDates.add(d.date);
-                                });
-                              });
-                              
-                              const dates = Array.from(allDates).sort();
-                              const maxScore = Math.max(...allScores, 1);
-                              const minScore = Math.min(...allScores, 0);
-                              const range = maxScore - minScore || 1;
-                              
-                              // Escalas
-                              const scaleY = (value) => padding.top + chartHeight - ((value - minScore) / range) * chartHeight;
-                              const scaleX = (dateIndex) => padding.left + (dateIndex / (dates.length - 1 || 1)) * chartWidth;
-                              
-                              // Grid horizontal
-                              const gridLines = [0, 0.25, 0.5, 0.75, 1].map(ratio => {
-                                const y = padding.top + chartHeight * ratio;
-                                const value = maxScore - (range * ratio);
-                                return { y, value };
-                              });
-                              
-                              return (
-                                <g>
-                                  {/* Grid */}
-                                  {gridLines.map((line, i) => (
-                                    <g key={i}>
-                                      <line
-                                        x1={padding.left}
-                                        y1={line.y}
-                                        x2={padding.left + chartWidth}
-                                        y2={line.y}
-                                        stroke={darkMode ? '#334155' : '#e2e8f0'}
-                                        strokeWidth="1"
-                                      />
-                                      <text
-                                        x={padding.left - 10}
-                                        y={line.y + 4}
-                                        textAnchor="end"
-                                        fill={theme.textSecondary}
-                                        fontSize="11"
-                                      >
-                                        {line.value.toFixed(4)}
-                                      </text>
-                                    </g>
-                                  ))}
-                                  
-                                  {/* Linhas dos tickers */}
-                                  {selectedTickers.map((ticker, tickerIdx) => {
-                                    const tickerData = recommendationsHistory.data[ticker] || [];
-                                    const color = colors[tickerIdx % colors.length];
-                                    
-                                    const path = tickerData.map((d, i) => {
-                                      const dateIndex = dates.indexOf(d.date);
-                                      if (dateIndex === -1) return '';
-                                      const x = scaleX(dateIndex);
-                                      const y = scaleY(d.score);
-                                      return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
-                                    }).join(' ');
-                                    
-                                    return (
-                                      <g key={ticker}>
-                                        <path
-                                          d={path}
-                                          fill="none"
-                                          stroke={color}
-                                          strokeWidth="2"
-                                        />
-                                        {tickerData.map((d, i) => {
-                                          const dateIndex = dates.indexOf(d.date);
-                                          if (dateIndex === -1) return null;
-                                          return (
-                                            <circle
-                                              key={i}
-                                              cx={scaleX(dateIndex)}
-                                              cy={scaleY(d.score)}
-                                              r="3"
-                                              fill={color}
-                                            />
-                                          );
-                                        })}
-                                      </g>
-                                    );
-                                  })}
-                                  
-                                  {/* Eixo X - datas */}
-                                  {dates.filter((_, i) => i % Math.ceil(dates.length / 6) === 0).map((date, i) => {
-                                    const index = dates.indexOf(date);
-                                    const x = scaleX(index);
-                                    const d = new Date(date);
-                                    const label = `${d.getDate()}/${d.getMonth() + 1}`;
-                                    return (
-                                      <text
-                                        key={i}
-                                        x={x}
-                                        y={padding.top + chartHeight + 20}
-                                        textAnchor="middle"
-                                        fill={theme.textSecondary}
-                                        fontSize="11"
-                                      >
-                                        {label}
-                                      </text>
-                                    );
-                                  })}
-                                </g>
-                              );
-                            })()}
-                          </svg>
-                        </div>
-                      </div>
-
+                    <div>
+                      <h3 style={{ margin: '0 0 1rem 0', fontSize: isMobile ? '0.9375rem' : '1rem', fontWeight: '600', color: theme.text }}>
+                        Retorno Esperado e Score
+                      </h3>
+                      
                       {/* Legenda */}
-                      <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'center', gap: isMobile ? '1rem' : '1.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                         {selectedTickers.map((ticker, idx) => (
                           <div key={ticker} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <div style={{ 
-                              width: '20px', 
+                              width: '16px', 
                               height: '3px', 
-                              backgroundColor: colors[idx % colors.length] 
+                              backgroundColor: colors[idx % colors.length],
+                              borderRadius: '2px'
                             }} />
-                            <span style={{ fontSize: '0.875rem', fontWeight: '500', color: theme.text }}>
+                            <span style={{ fontSize: isMobile ? '0.8125rem' : '0.875rem', fontWeight: '500', color: theme.text }}>
                               {ticker}
                             </span>
                           </div>
                         ))}
                       </div>
-                    </>
+
+                      {/* Gráfico Unificado */}
+                      <div style={{ position: 'relative', height: isMobile ? '250px' : '350px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                        <svg width={isMobile ? '100%' : '100%'} height="100%" viewBox="0 0 1000 350" preserveAspectRatio="xMidYMid meet" style={{ overflow: 'visible' }}>
+                          {(() => {
+                            const width = 1000;
+                            const height = 350;
+                            const padding = { top: 30, right: 70, bottom: 50, left: 70 };
+                            const chartWidth = width - padding.left - padding.right;
+                            const chartHeight = height - padding.top - padding.bottom;
+                            
+                            // Coletar dados
+                            let allReturns = [];
+                            let allScores = [];
+                            let allDates = new Set();
+                            
+                            selectedTickers.forEach(ticker => {
+                              const data = recommendationsHistory.data[ticker] || [];
+                              data.forEach(d => {
+                                allReturns.push(d.exp_return_20);
+                                allScores.push(d.score);
+                                allDates.add(d.date);
+                              });
+                            });
+                            
+                            const dates = Array.from(allDates).sort();
+                            
+                            // Escalas para retorno (eixo Y esquerdo)
+                            const maxReturn = Math.max(...allReturns, 0);
+                            const minReturn = Math.min(...allReturns, 0);
+                            const rangeReturn = maxReturn - minReturn || 1;
+                            
+                            // Escalas para score (eixo Y direito)
+                            const maxScore = Math.max(...allScores, 1);
+                            const minScore = Math.min(...allScores, 0);
+                            const rangeScore = maxScore - minScore || 1;
+                            
+                            const scaleYReturn = (value) => padding.top + chartHeight - ((value - minReturn) / rangeReturn) * chartHeight;
+                            const scaleYScore = (value) => padding.top + chartHeight - ((value - minScore) / rangeScore) * chartHeight;
+                            const scaleX = (dateIndex) => padding.left + (dateIndex / (dates.length - 1 || 1)) * chartWidth;
+                            
+                            return (
+                              <g>
+                                {/* Grid horizontal */}
+                                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                                  const y = padding.top + chartHeight * ratio;
+                                  return (
+                                    <line
+                                      key={i}
+                                      x1={padding.left}
+                                      y1={y}
+                                      x2={padding.left + chartWidth}
+                                      y2={y}
+                                      stroke={darkMode ? '#334155' : '#e2e8f0'}
+                                      strokeWidth="1"
+                                      strokeDasharray="4 2"
+                                    />
+                                  );
+                                })}
+                                
+                                {/* Eixo Y esquerdo (Retorno) */}
+                                <text
+                                  x={padding.left - 50}
+                                  y={padding.top - 10}
+                                  fill={theme.textSecondary}
+                                  fontSize="12"
+                                  fontWeight="600"
+                                >
+                                  Retorno (%)
+                                </text>
+                                {[0, 0.5, 1].map((ratio, i) => {
+                                  const y = padding.top + chartHeight * ratio;
+                                  const value = maxReturn - (rangeReturn * ratio);
+                                  return (
+                                    <text
+                                      key={i}
+                                      x={padding.left - 10}
+                                      y={y + 4}
+                                      textAnchor="end"
+                                      fill={theme.textSecondary}
+                                      fontSize="11"
+                                    >
+                                      {(value * 100).toFixed(1)}
+                                    </text>
+                                  );
+                                })}
+                                
+                                {/* Eixo Y direito (Score) */}
+                                <text
+                                  x={padding.left + chartWidth + 50}
+                                  y={padding.top - 10}
+                                  fill={theme.textSecondary}
+                                  fontSize="12"
+                                  fontWeight="600"
+                                  textAnchor="middle"
+                                >
+                                  Score
+                                </text>
+                                {[0, 0.5, 1].map((ratio, i) => {
+                                  const y = padding.top + chartHeight * ratio;
+                                  const value = maxScore - (rangeScore * ratio);
+                                  return (
+                                    <text
+                                      key={i}
+                                      x={padding.left + chartWidth + 10}
+                                      y={y + 4}
+                                      textAnchor="start"
+                                      fill={theme.textSecondary}
+                                      fontSize="11"
+                                    >
+                                      {value.toFixed(3)}
+                                    </text>
+                                  );
+                                })}
+                                
+                                {/* Linha zero para retorno */}
+                                {minReturn < 0 && maxReturn > 0 && (
+                                  <line
+                                    x1={padding.left}
+                                    y1={scaleYReturn(0)}
+                                    x2={padding.left + chartWidth}
+                                    y2={scaleYReturn(0)}
+                                    stroke={darkMode ? '#64748b' : '#94a3b8'}
+                                    strokeWidth="2"
+                                    strokeDasharray="6 3"
+                                  />
+                                )}
+                                
+                                {/* Linhas dos tickers - Retorno (sólido) */}
+                                {selectedTickers.map((ticker, tickerIdx) => {
+                                  const tickerData = recommendationsHistory.data[ticker] || [];
+                                  const color = colors[tickerIdx % colors.length];
+                                  
+                                  const path = tickerData.map((d, i) => {
+                                    const dateIndex = dates.indexOf(d.date);
+                                    if (dateIndex === -1) return '';
+                                    const x = scaleX(dateIndex);
+                                    const y = scaleYReturn(d.exp_return_20);
+                                    return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                                  }).join(' ');
+                                  
+                                  return (
+                                    <g key={`return-${ticker}`}>
+                                      <path
+                                        d={path}
+                                        fill="none"
+                                        stroke={color}
+                                        strokeWidth="2.5"
+                                      />
+                                    </g>
+                                  );
+                                })}
+                                
+                                {/* Linhas dos tickers - Score (tracejado) */}
+                                {selectedTickers.map((ticker, tickerIdx) => {
+                                  const tickerData = recommendationsHistory.data[ticker] || [];
+                                  const color = colors[tickerIdx % colors.length];
+                                  
+                                  const path = tickerData.map((d, i) => {
+                                    const dateIndex = dates.indexOf(d.date);
+                                    if (dateIndex === -1) return '';
+                                    const x = scaleX(dateIndex);
+                                    const y = scaleYScore(d.score);
+                                    return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                                  }).join(' ');
+                                  
+                                  return (
+                                    <path
+                                      key={`score-${ticker}`}
+                                      d={path}
+                                      fill="none"
+                                      stroke={color}
+                                      strokeWidth="1.5"
+                                      strokeDasharray="4 2"
+                                      opacity="0.6"
+                                    />
+                                  );
+                                })}
+                                
+                                {/* Eixo X - datas */}
+                                {dates.filter((_, i) => i % Math.ceil(dates.length / 5) === 0).map((date, i) => {
+                                  const index = dates.indexOf(date);
+                                  const x = scaleX(index);
+                                  const d = new Date(date);
+                                  const label = `${d.getDate()}/${d.getMonth() + 1}`;
+                                  return (
+                                    <text
+                                      key={i}
+                                      x={x}
+                                      y={padding.top + chartHeight + 25}
+                                      textAnchor="middle"
+                                      fill={theme.textSecondary}
+                                      fontSize="11"
+                                    >
+                                      {label}
+                                    </text>
+                                  );
+                                })}
+                                
+                                {/* Legenda do gráfico */}
+                                <g transform={`translate(${padding.left + 10}, ${padding.top + 10})`}>
+                                  <rect width="140" height="50" fill={theme.cardBg} opacity="0.95" rx="4" />
+                                  <line x1="10" y1="15" x2="30" y2="15" stroke={theme.text} strokeWidth="2.5" />
+                                  <text x="35" y="19" fill={theme.text} fontSize="11">Retorno (sólido)</text>
+                                  <line x1="10" y1="35" x2="30" y2="35" stroke={theme.text} strokeWidth="1.5" strokeDasharray="4 2" opacity="0.6" />
+                                  <text x="35" y="39" fill={theme.text} fontSize="11">Score (tracejado)</text>
+                                </g>
+                              </g>
+                            );
+                          })()}
+                        </svg>
+                      </div>
+                    </div>
                   );
                 })()}
               </div>
@@ -1113,7 +1059,7 @@ function App() {
                 </div>
 
                 {/* Gráfico de Evolução de Performance */}
-                {performance.time_series && performance.time_series.mape && performance.time_series.mape.length > 0 && (
+                {performance.time_series && performance.time_series.mape && performance.time_series.mape.length > 0 && performance.time_series.directional_accuracy && performance.time_series.directional_accuracy.length > 0 && (
                   <div style={{
                     backgroundColor: theme.cardBg,
                     borderRadius: '12px',
@@ -1390,17 +1336,20 @@ function App() {
               </>
             )}
 
-            {!performance && (
+            {(!performance || !performance.latest) && (
               <div style={{
                 backgroundColor: theme.cardBg,
-                padding: '3rem 2rem',
+                padding: isMobile ? '2rem 1rem' : '3rem 2rem',
                 borderRadius: '12px',
                 textAlign: 'center',
                 boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
               }}>
-                <CheckCircle size={48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
-                <p style={{ color: theme.textSecondary, margin: 0, fontSize: '0.9375rem' }}>
-                  Nenhum dado de performance disponível
+                <CheckCircle size={isMobile ? 40 : 48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
+                <p style={{ color: theme.text, margin: '0 0 0.5rem 0', fontSize: isMobile ? '1rem' : '1.125rem', fontWeight: '600' }}>
+                  Dados de Performance em Preparação
+                </p>
+                <p style={{ color: theme.textSecondary, margin: 0, fontSize: isMobile ? '0.875rem' : '0.9375rem' }}>
+                  As métricas de performance serão calculadas após o primeiro ciclo de treinamento e validação dos modelos.
                 </p>
               </div>
             )}
@@ -1656,7 +1605,7 @@ function App() {
               </>
             )}
 
-            {!validation && (
+            {(!validation || !validation.summary) && (
               <div style={{
                 backgroundColor: theme.cardBg,
                 padding: isMobile ? '2rem 1rem' : '3rem 2rem',
@@ -1665,8 +1614,11 @@ function App() {
                 boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
               }}>
                 <CheckCircle size={isMobile ? 40 : 48} color="#cbd5e1" style={{ margin: '0 auto 1rem' }} />
+                <p style={{ color: theme.text, margin: '0 0 0.5rem 0', fontSize: isMobile ? '1rem' : '1.125rem', fontWeight: '600' }}>
+                  Validação em Andamento
+                </p>
                 <p style={{ color: theme.textSecondary, margin: 0, fontSize: isMobile ? '0.875rem' : '0.9375rem' }}>
-                  Nenhum dado de validação disponível
+                  Os dados de validação estarão disponíveis após 20 dias das primeiras recomendações.
                 </p>
               </div>
             )}
