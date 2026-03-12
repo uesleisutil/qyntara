@@ -1033,80 +1033,80 @@ function App() {
 
                   <div style={{
                     backgroundColor: theme.cardBg,
-                    padding: '1.25rem',
+                    padding: isMobile ? '1rem' : '1.25rem',
                     borderRadius: '12px',
                     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
                         Acurácia Direcional
                       </span>
-                      <CheckCircle size={18} color={performance.latest.directional_accuracy > 0.5 ? '#10b981' : '#dc2626'} />
+                      <CheckCircle size={isMobile ? 16 : 18} color={performance.latest.directional_accuracy > 0.5 ? '#10b981' : '#dc2626'} />
                     </div>
-                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                    <p style={{ margin: 0, fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
                       {formatPercent(performance.latest.directional_accuracy || 0)}
                     </p>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: isMobile ? '0.6875rem' : '0.75rem', color: theme.textSecondary }}>
                       Previsão de Direção
                     </p>
                   </div>
 
                   <div style={{
                     backgroundColor: theme.cardBg,
-                    padding: '1.25rem',
+                    padding: isMobile ? '1rem' : '1.25rem',
                     borderRadius: '12px',
                     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
                         Sharpe Ratio
                       </span>
-                      <TrendingUp size={18} color={performance.latest.sharpe_ratio > 1 ? '#10b981' : '#f59e0b'} />
+                      <TrendingUp size={isMobile ? 16 : 18} color={performance.latest.sharpe_ratio > 1 ? '#10b981' : '#f59e0b'} />
                     </div>
-                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                    <p style={{ margin: 0, fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
                       {(performance.latest.sharpe_ratio || 0).toFixed(2)}
                     </p>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: isMobile ? '0.6875rem' : '0.75rem', color: theme.textSecondary }}>
                       Retorno Ajustado ao Risco
                     </p>
                   </div>
 
                   <div style={{
                     backgroundColor: theme.cardBg,
-                    padding: '1.25rem',
+                    padding: isMobile ? '1rem' : '1.25rem',
                     borderRadius: '12px',
                     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
                         Hit Rate
                       </span>
-                      <CheckCircle size={18} color={performance.latest.hit_rate > 0.5 ? '#10b981' : '#dc2626'} />
+                      <CheckCircle size={isMobile ? 16 : 18} color={performance.latest.hit_rate > 0.5 ? '#10b981' : '#dc2626'} />
                     </div>
-                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                    <p style={{ margin: 0, fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
                       {formatPercent(performance.latest.hit_rate || 0)}
                     </p>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: isMobile ? '0.6875rem' : '0.75rem', color: theme.textSecondary }}>
                       Taxa de Acerto
                     </p>
                   </div>
 
                   <div style={{
                     backgroundColor: theme.cardBg,
-                    padding: '1.25rem',
+                    padding: isMobile ? '1rem' : '1.25rem',
                     borderRadius: '12px',
                     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
                         MAE
                       </span>
-                      <TrendingDown size={18} color='#3b82f6' />
+                      <TrendingDown size={isMobile ? 16 : 18} color='#3b82f6' />
                     </div>
-                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                    <p style={{ margin: 0, fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
                       {(performance.latest.mae || 0).toFixed(4)}
                     </p>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: isMobile ? '0.6875rem' : '0.75rem', color: theme.textSecondary }}>
                       Erro Absoluto Médio
                     </p>
                   </div>
@@ -1117,21 +1117,21 @@ function App() {
                   <div style={{
                     backgroundColor: theme.cardBg,
                     borderRadius: '12px',
-                    padding: '1.5rem',
-                    marginBottom: '2rem',
+                    padding: isMobile ? '1rem' : '1.5rem',
+                    marginBottom: isMobile ? '1.5rem' : '2rem',
                     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
-                    <h2 style={{ margin: '0 0 1.5rem 0', fontSize: '1.25rem', fontWeight: '700', color: theme.text }}>
+                    <h2 style={{ margin: '0 0 1.5rem 0', fontSize: isMobile ? '1.125rem' : '1.25rem', fontWeight: '700', color: theme.text }}>
                       Evolução de Performance (30 dias)
                     </h2>
                     
                     {/* Gráfico MAPE */}
-                    <div style={{ marginBottom: '2rem' }}>
-                      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600', color: theme.text }}>
+                    <div style={{ marginBottom: isMobile ? '1.5rem' : '2rem' }}>
+                      <h3 style={{ margin: '0 0 1rem 0', fontSize: isMobile ? '0.9375rem' : '1rem', fontWeight: '600', color: theme.text }}>
                         MAPE ao Longo do Tempo
                       </h3>
-                      <div style={{ position: 'relative', height: '250px' }}>
-                        <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+                      <div style={{ position: 'relative', height: isMobile ? '200px' : '250px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                        <svg width={isMobile ? '600px' : '100%'} height="100%" style={{ overflow: 'visible', minWidth: isMobile ? '600px' : 'auto' }}>
                           {(() => {
                             const width = 1000;
                             const height = 250;
@@ -1228,11 +1228,11 @@ function App() {
 
                     {/* Gráfico Acurácia Direcional */}
                     <div>
-                      <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600', color: theme.text }}>
+                      <h3 style={{ margin: '0 0 1rem 0', fontSize: isMobile ? '0.9375rem' : '1rem', fontWeight: '600', color: theme.text }}>
                         Acurácia Direcional ao Longo do Tempo
                       </h3>
-                      <div style={{ position: 'relative', height: '250px' }}>
-                        <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+                      <div style={{ position: 'relative', height: isMobile ? '200px' : '250px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                        <svg width={isMobile ? '600px' : '100%'} height="100%" style={{ overflow: 'visible', minWidth: isMobile ? '600px' : 'auto' }}>
                           {(() => {
                             const width = 1000;
                             const height = 250;
@@ -1344,32 +1344,32 @@ function App() {
                   <div style={{
                     backgroundColor: theme.cardBg,
                     borderRadius: '12px',
-                    padding: '1.5rem',
-                    marginBottom: '2rem',
+                    padding: isMobile ? '1rem' : '1.5rem',
+                    marginBottom: isMobile ? '1.5rem' : '2rem',
                     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                   }}>
-                    <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: '700', color: theme.text }}>
+                    <h2 style={{ margin: '0 0 1rem 0', fontSize: isMobile ? '1.125rem' : '1.25rem', fontWeight: '700', color: theme.text }}>
                       Pesos do Ensemble
                     </h2>
-                    <p style={{ margin: '0 0 1.5rem 0', color: theme.textSecondary, fontSize: '0.875rem' }}>
+                    <p style={{ margin: '0 0 1.5rem 0', color: theme.textSecondary, fontSize: isMobile ? '0.8125rem' : '0.875rem' }}>
                       Contribuição de cada modelo no ensemble
                     </p>
                     
-                    <div style={{ display: 'grid', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gap: isMobile ? '0.75rem' : '1rem' }}>
                       {Object.entries(ensembleWeights.latest.weights)
                         .sort(([, a], [, b]) => b - a)
                         .map(([model, weight]) => (
                           <div key={model}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                              <span style={{ fontSize: '0.875rem', fontWeight: '500', color: theme.text }}>
+                              <span style={{ fontSize: isMobile ? '0.8125rem' : '0.875rem', fontWeight: '500', color: theme.text }}>
                                 {model}
                               </span>
-                              <span style={{ fontSize: '0.875rem', fontWeight: '600', color: theme.text }}>
+                              <span style={{ fontSize: isMobile ? '0.8125rem' : '0.875rem', fontWeight: '600', color: theme.text }}>
                                 {formatPercent(weight)}
                               </span>
                             </div>
                             <div style={{
-                              height: '8px',
+                              height: isMobile ? '6px' : '8px',
                               backgroundColor: darkMode ? '#334155' : '#e2e8f0',
                               borderRadius: '4px',
                               overflow: 'hidden'
