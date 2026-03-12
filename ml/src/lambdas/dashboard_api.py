@@ -147,6 +147,69 @@ def get_recommendations_latest() -> Dict:
     }
 
 
+def get_recommendations_history(days: int = 30) -> Dict:
+    """
+    GET /api/recommendations/history?days=30
+    
+    Retorna histórico de recomendações para análise temporal.
+    """
+    logger.info(f"Getting recommendations history for {days} days")
+    
+    # Carregar série temporal
+    history_data = load_time_series("recommendations/dt=", days=days)
+    
+    if not history_data:
+        return {
+            "statusCode": 404,
+            "body": json.dumps({"error": "No recommendations history found"})
+        }
+    
+    # Calcular estatísticas por dia
+    time_series = []
+    for data in history_data:
+        items = data.get("items", data.get("recommendations", []))
+        
+        if not items:
+            continue
+        
+        # Filtrar valores válidos
+        valid_returns = [
+            item.get("exp_return_20")
+            for item in items
+            if item.get("exp_return_20") is not None
+        ]
+        
+        if not valid_returns:
+            continue
+        
+        positive_returns = [r for r in valid_returns if r > 0]
+        negative_returns = [r for r in valid_returns if r < 0]
+        
+        time_series.append({
+            "date": data.get("dt", data.get("date")),
+            "total_assets": len(items),
+            "avg_return": sum(valid_returns) / len(valid_returns) if valid_returns else 0,
+            "max_return": max(valid_returns) if valid_returns else 0,
+            "min_return": min(valid_returns) if valid_returns else 0,
+            "positive_count": len(positive_returns),
+            "negative_count": len(negative_returns),
+            "avg_positive": sum(positive_returns) / len(positive_returns) if positive_returns else 0,
+            "avg_negative": sum(negative_returns) / len(negative_returns) if negative_returns else 0
+        })
+    
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "period": {
+                "days": days,
+                "start_date": time_series[0]["date"] if time_series else None,
+                "end_date": time_series[-1]["date"] if time_series else None
+            },
+            "time_series": time_series
+        })
+    }
+
+
 def get_data_quality(days: int = 30) -> Dict:
     """
     GET /api/monitoring/data-quality?days=30
@@ -494,6 +557,8 @@ def handler(event, context):
         
         if path == "/api/recommendations/latest" or path.endswith("/recommendations"):
             response = get_recommendations_latest()
+        elif path == "/api/recommendations/history" or path.endswith("/recommendations/history"):
+            response = get_recommendations_history(days)
         elif path == "/api/monitoring/data-quality" or path.endswith("/quality"):
             response = get_data_quality(days)
         elif path == "/api/monitoring/model-performance" or path.endswith("/metrics"):

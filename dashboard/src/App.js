@@ -5,6 +5,7 @@ import { API_BASE_URL, API_KEY } from './config';
 function App() {
   const [activeTab, setActiveTab] = useState('recommendations');
   const [recommendations, setRecommendations] = useState([]);
+  const [recommendationsHistory, setRecommendationsHistory] = useState([]);
   const [costs, setCosts] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -34,6 +35,7 @@ function App() {
     
     try {
       if (activeTab === 'recommendations') {
+        // Buscar recomendações atuais
         const response = await fetch(`${API_BASE_URL}/api/recommendations/latest`, {
           headers: { 'x-api-key': API_KEY }
         });
@@ -43,6 +45,15 @@ function App() {
           setLastUpdate(new Date());
         } else {
           throw new Error('Falha ao carregar recomendações');
+        }
+        
+        // Buscar histórico
+        const historyResponse = await fetch(`${API_BASE_URL}/api/recommendations/history?days=30`, {
+          headers: { 'x-api-key': API_KEY }
+        });
+        if (historyResponse.ok) {
+          const historyData = await historyResponse.json();
+          setRecommendationsHistory(historyData.time_series || []);
         }
       } else if (activeTab === 'costs') {
         const response = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=30`, {
@@ -256,76 +267,334 @@ function App() {
             {/* KPIs */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '1.5rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1.25rem',
               marginBottom: '2rem'
             }}>
-              <div style={{
-                backgroundColor: theme.cardBg,
-                padding: '1.5rem',
-                borderRadius: '12px',
-                boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                  <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
-                    Total de Ativos
-                  </span>
-                  <CheckCircle size={20} color="#10b981" />
-                </div>
-                <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: theme.text }}>
-                  {recommendations.length}
-                </p>
-              </div>
-
               {recommendations.length > 0 && (() => {
                 const validReturns = recommendations
-                  .map(r => r.exp_return_20)
-                  .filter(val => val !== null && val !== undefined && !isNaN(val));
+                  .map(r => ({ ticker: r.ticker, return: r.exp_return_20 }))
+                  .filter(item => item.return !== null && item.return !== undefined && !isNaN(item.return));
                 
-                const maxReturn = validReturns.length > 0 ? Math.max(...validReturns) : 0;
-                const avgReturn = validReturns.length > 0 
-                  ? validReturns.reduce((acc, val) => acc + val, 0) / validReturns.length 
+                const returns = validReturns.map(item => item.return);
+                const positiveReturns = returns.filter(val => val > 0);
+                const negativeReturns = returns.filter(val => val < 0);
+                
+                const maxReturn = returns.length > 0 ? Math.max(...returns) : 0;
+                const minReturn = returns.length > 0 ? Math.min(...returns) : 0;
+                const avgReturn = returns.length > 0 
+                  ? returns.reduce((acc, val) => acc + val, 0) / returns.length 
                   : 0;
+                const avgPositive = positiveReturns.length > 0
+                  ? positiveReturns.reduce((acc, val) => acc + val, 0) / positiveReturns.length
+                  : 0;
+                const avgNegative = negativeReturns.length > 0
+                  ? negativeReturns.reduce((acc, val) => acc + val, 0) / negativeReturns.length
+                  : 0;
+                
+                const bestTicker = validReturns.find(item => item.return === maxReturn)?.ticker || 'N/A';
+                const worstTicker = validReturns.find(item => item.return === minReturn)?.ticker || 'N/A';
 
                 return (
                   <>
                     <div style={{
                       backgroundColor: theme.cardBg,
-                      padding: '1.5rem',
+                      padding: '1.25rem',
                       borderRadius: '12px',
                       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
-                          Melhor Retorno
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                          Total de Ativos
                         </span>
-                        <ArrowUpRight size={20} color="#10b981" />
+                        <CheckCircle size={18} color="#10b981" />
                       </div>
-                      <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#10b981' }}>
+                      <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                        {recommendations.length}
+                      </p>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: theme.cardBg,
+                      padding: '1.25rem',
+                      borderRadius: '12px',
+                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                          Melhor Ativo
+                        </span>
+                        <ArrowUpRight size={18} color="#10b981" />
+                      </div>
+                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '1.5rem', fontWeight: '700', color: '#10b981' }}>
+                        {bestTicker}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#10b981' }}>
                         {formatPercent(maxReturn)}
                       </p>
                     </div>
 
                     <div style={{
                       backgroundColor: theme.cardBg,
-                      padding: '1.5rem',
+                      padding: '1.25rem',
                       borderRadius: '12px',
                       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                          Pior Ativo
+                        </span>
+                        <ArrowDownRight size={18} color="#dc2626" />
+                      </div>
+                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+                        {worstTicker}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#dc2626' }}>
+                        {formatPercent(minReturn)}
+                      </p>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: theme.cardBg,
+                      padding: '1.25rem',
+                      borderRadius: '12px',
+                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
                           Retorno Médio
                         </span>
-                        <TrendingUp size={20} color="#3b82f6" />
+                        <TrendingUp size={18} color="#3b82f6" />
                       </div>
-                      <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#3b82f6' }}>
+                      <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: '#3b82f6' }}>
                         {formatPercent(avgReturn)}
+                      </p>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: theme.cardBg,
+                      padding: '1.25rem',
+                      borderRadius: '12px',
+                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                          Ativos Positivos
+                        </span>
+                        <ArrowUpRight size={18} color="#10b981" />
+                      </div>
+                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '1.75rem', fontWeight: '700', color: '#10b981' }}>
+                        {positiveReturns.length}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: theme.textSecondary }}>
+                        Média: {formatPercent(avgPositive)}
+                      </p>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: theme.cardBg,
+                      padding: '1.25rem',
+                      borderRadius: '12px',
+                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                          Ativos Negativos
+                        </span>
+                        <ArrowDownRight size={18} color="#dc2626" />
+                      </div>
+                      <p style={{ margin: '0 0 0.25rem 0', fontSize: '1.75rem', fontWeight: '700', color: '#dc2626' }}>
+                        {negativeReturns.length}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', color: theme.textSecondary }}>
+                        Média: {formatPercent(avgNegative)}
                       </p>
                     </div>
                   </>
                 );
               })()}
             </div>
+
+            {/* Performance ao Longo do Tempo */}
+            {recommendationsHistory.length > 0 && (
+              <div style={{
+                backgroundColor: theme.cardBg,
+                borderRadius: '12px',
+                padding: '1.5rem',
+                marginBottom: '2rem',
+                boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+              }}>
+                <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem', fontWeight: '700', color: theme.text }}>
+                  Evolução de Performance (30 dias)
+                </h2>
+                
+                {/* Gráfico de linha simples */}
+                <div style={{ position: 'relative', height: '300px', marginBottom: '1rem' }}>
+                  <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+                    {(() => {
+                      const width = 1000;
+                      const height = 300;
+                      const padding = { top: 20, right: 20, bottom: 40, left: 60 };
+                      const chartWidth = width - padding.left - padding.right;
+                      const chartHeight = height - padding.top - padding.bottom;
+                      
+                      // Preparar dados
+                      const data = recommendationsHistory.slice(-30);
+                      const maxReturn = Math.max(...data.map(d => d.max_return));
+                      const minReturn = Math.min(...data.map(d => d.min_return));
+                      const range = maxReturn - minReturn;
+                      
+                      // Escala Y
+                      const scaleY = (value) => {
+                        return padding.top + chartHeight - ((value - minReturn) / range) * chartHeight;
+                      };
+                      
+                      // Escala X
+                      const scaleX = (index) => {
+                        return padding.left + (index / (data.length - 1)) * chartWidth;
+                      };
+                      
+                      // Criar path para linha de retorno médio
+                      const avgPath = data.map((d, i) => {
+                        const x = scaleX(i);
+                        const y = scaleY(d.avg_return);
+                        return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                      }).join(' ');
+                      
+                      // Criar path para melhor retorno
+                      const maxPath = data.map((d, i) => {
+                        const x = scaleX(i);
+                        const y = scaleY(d.max_return);
+                        return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                      }).join(' ');
+                      
+                      // Criar path para pior retorno
+                      const minPath = data.map((d, i) => {
+                        const x = scaleX(i);
+                        const y = scaleY(d.min_return);
+                        return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+                      }).join(' ');
+                      
+                      // Grid horizontal
+                      const gridLines = [0, 0.25, 0.5, 0.75, 1].map(ratio => {
+                        const y = padding.top + chartHeight * ratio;
+                        const value = maxReturn - (range * ratio);
+                        return { y, value };
+                      });
+                      
+                      return (
+                        <g>
+                          {/* Grid */}
+                          {gridLines.map((line, i) => (
+                            <g key={i}>
+                              <line
+                                x1={padding.left}
+                                y1={line.y}
+                                x2={padding.left + chartWidth}
+                                y2={line.y}
+                                stroke={darkMode ? '#334155' : '#e2e8f0'}
+                                strokeWidth="1"
+                              />
+                              <text
+                                x={padding.left - 10}
+                                y={line.y + 4}
+                                textAnchor="end"
+                                fill={theme.textSecondary}
+                                fontSize="11"
+                              >
+                                {formatPercent(line.value)}
+                              </text>
+                            </g>
+                          ))}
+                          
+                          {/* Linha zero */}
+                          {minReturn < 0 && maxReturn > 0 && (
+                            <line
+                              x1={padding.left}
+                              y1={scaleY(0)}
+                              x2={padding.left + chartWidth}
+                              y2={scaleY(0)}
+                              stroke={darkMode ? '#64748b' : '#94a3b8'}
+                              strokeWidth="2"
+                              strokeDasharray="4 4"
+                            />
+                          )}
+                          
+                          {/* Linhas */}
+                          <path
+                            d={maxPath}
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth="2"
+                            opacity="0.6"
+                          />
+                          <path
+                            d={avgPath}
+                            fill="none"
+                            stroke="#3b82f6"
+                            strokeWidth="3"
+                          />
+                          <path
+                            d={minPath}
+                            fill="none"
+                            stroke="#dc2626"
+                            strokeWidth="2"
+                            opacity="0.6"
+                          />
+                          
+                          {/* Pontos na linha média */}
+                          {data.map((d, i) => (
+                            <circle
+                              key={i}
+                              cx={scaleX(i)}
+                              cy={scaleY(d.avg_return)}
+                              r="4"
+                              fill="#3b82f6"
+                            />
+                          ))}
+                          
+                          {/* Eixo X - datas */}
+                          {data.filter((_, i) => i % Math.ceil(data.length / 6) === 0).map((d, i, arr) => {
+                            const index = data.indexOf(d);
+                            const x = scaleX(index);
+                            const date = new Date(d.date);
+                            const label = `${date.getDate()}/${date.getMonth() + 1}`;
+                            return (
+                              <text
+                                key={i}
+                                x={x}
+                                y={padding.top + chartHeight + 20}
+                                textAnchor="middle"
+                                fill={theme.textSecondary}
+                                fontSize="11"
+                              >
+                                {label}
+                              </text>
+                            );
+                          })}
+                        </g>
+                      );
+                    })()}
+                  </svg>
+                </div>
+                
+                {/* Legenda */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '20px', height: '3px', backgroundColor: '#3b82f6' }} />
+                    <span style={{ fontSize: '0.875rem', color: theme.textSecondary }}>Retorno Médio</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '20px', height: '2px', backgroundColor: '#10b981', opacity: 0.6 }} />
+                    <span style={{ fontSize: '0.875rem', color: theme.textSecondary }}>Melhor Retorno</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '20px', height: '2px', backgroundColor: '#dc2626', opacity: 0.6 }} />
+                    <span style={{ fontSize: '0.875rem', color: theme.textSecondary }}>Pior Retorno</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Recommendations Table */}
             <div style={{
