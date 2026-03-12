@@ -277,43 +277,54 @@ function App() {
                 </p>
               </div>
 
-              {recommendations.length > 0 && (
-                <>
-                  <div style={{
-                    backgroundColor: theme.cardBg,
-                    padding: '1.5rem',
-                    borderRadius: '12px',
-                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                      <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
-                        Melhor Retorno
-                      </span>
-                      <ArrowUpRight size={20} color="#10b981" />
-                    </div>
-                    <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#10b981' }}>
-                      {formatPercent(Math.max(...recommendations.map(r => r.exp_return_20 || 0)))}
-                    </p>
-                  </div>
+              {recommendations.length > 0 && (() => {
+                const validReturns = recommendations
+                  .map(r => r.exp_return_20)
+                  .filter(val => val !== null && val !== undefined && !isNaN(val));
+                
+                const maxReturn = validReturns.length > 0 ? Math.max(...validReturns) : 0;
+                const avgReturn = validReturns.length > 0 
+                  ? validReturns.reduce((acc, val) => acc + val, 0) / validReturns.length 
+                  : 0;
 
-                  <div style={{
-                    backgroundColor: theme.cardBg,
-                    padding: '1.5rem',
-                    borderRadius: '12px',
-                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                      <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
-                        Retorno Médio
-                      </span>
-                      <TrendingUp size={20} color="#3b82f6" />
+                return (
+                  <>
+                    <div style={{
+                      backgroundColor: theme.cardBg,
+                      padding: '1.5rem',
+                      borderRadius: '12px',
+                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
+                          Melhor Retorno
+                        </span>
+                        <ArrowUpRight size={20} color="#10b981" />
+                      </div>
+                      <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#10b981' }}>
+                        {formatPercent(maxReturn)}
+                      </p>
                     </div>
-                    <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#3b82f6' }}>
-                      {formatPercent(recommendations.reduce((acc, r) => acc + (r.exp_return_20 || 0), 0) / recommendations.length)}
-                    </p>
-                  </div>
-                </>
-              )}
+
+                    <div style={{
+                      backgroundColor: theme.cardBg,
+                      padding: '1.5rem',
+                      borderRadius: '12px',
+                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                        <span style={{ color: theme.textSecondary, fontSize: '0.875rem', fontWeight: '500' }}>
+                          Retorno Médio
+                        </span>
+                        <TrendingUp size={20} color="#3b82f6" />
+                      </div>
+                      <p style={{ margin: 0, fontSize: '2rem', fontWeight: '700', color: '#3b82f6' }}>
+                        {formatPercent(avgReturn)}
+                      </p>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Recommendations Table */}
@@ -364,11 +375,11 @@ function App() {
                         <tr
                           key={idx}
                           style={{
-                            borderBottom: '1px solid #f1f5f9',
+                            borderBottom: `1px solid ${theme.border}`,
                             transition: 'background-color 0.15s',
                             cursor: 'pointer'
                           }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.hover}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                           <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: theme.textSecondary, fontWeight: '500' }}>
@@ -378,20 +389,24 @@ function App() {
                             {rec.ticker}
                           </td>
                           <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
-                            <span style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              padding: '0.25rem 0.75rem',
-                              borderRadius: '6px',
-                              fontSize: '0.875rem',
-                              fontWeight: '600',
-                              backgroundColor: rec.exp_return_20 > 0 ? '#dcfce7' : '#fee2e2',
-                              color: rec.exp_return_20 > 0 ? '#166534' : '#991b1b'
-                            }}>
-                              {rec.exp_return_20 > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                              {formatPercent(rec.exp_return_20)}
-                            </span>
+                            {rec.exp_return_20 !== null && rec.exp_return_20 !== undefined && !isNaN(rec.exp_return_20) ? (
+                              <span style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '6px',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                backgroundColor: rec.exp_return_20 > 0 ? '#dcfce7' : '#fee2e2',
+                                color: rec.exp_return_20 > 0 ? '#166534' : '#991b1b'
+                              }}>
+                                {rec.exp_return_20 > 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
+                                {formatPercent(rec.exp_return_20)}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.875rem', color: theme.textSecondary }}>N/A</span>
+                            )}
                           </td>
                           <td style={{ padding: '1rem 1.5rem', textAlign: 'right', fontSize: '0.875rem', color: theme.textSecondary, fontWeight: '500' }}>
                             {rec.score?.toFixed(4) || 'N/A'}
@@ -507,10 +522,10 @@ function App() {
                               <tr
                                 key={service}
                                 style={{
-                                  borderBottom: '1px solid #f1f5f9',
+                                  borderBottom: `1px solid ${theme.border}`,
                                   transition: 'background-color 0.15s'
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.hover}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                               >
                                 <td style={{ padding: '1rem 1.5rem', fontSize: '0.9375rem', fontWeight: '500', color: theme.text }}>
