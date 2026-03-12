@@ -47,13 +47,18 @@ function App() {
           throw new Error('Falha ao carregar recomendações');
         }
         
-        // Buscar histórico
-        const historyResponse = await fetch(`${API_BASE_URL}/api/recommendations/history?days=30`, {
-          headers: { 'x-api-key': API_KEY }
-        });
-        if (historyResponse.ok) {
-          const historyData = await historyResponse.json();
-          setRecommendationsHistory(historyData.time_series || []);
+        // Buscar histórico (não crítico - não quebra se falhar)
+        try {
+          const historyResponse = await fetch(`${API_BASE_URL}/api/recommendations/history?days=30`, {
+            headers: { 'x-api-key': API_KEY }
+          });
+          if (historyResponse.ok) {
+            const historyData = await historyResponse.json();
+            setRecommendationsHistory(historyData.time_series || []);
+          }
+        } catch (historyError) {
+          console.warn('Failed to load recommendations history:', historyError);
+          // Não mostra erro ao usuário, apenas não exibe o gráfico
         }
       } else if (activeTab === 'costs') {
         const response = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=30`, {
@@ -282,9 +287,6 @@ function App() {
                 
                 const maxReturn = returns.length > 0 ? Math.max(...returns) : 0;
                 const minReturn = returns.length > 0 ? Math.min(...returns) : 0;
-                const avgReturn = returns.length > 0 
-                  ? returns.reduce((acc, val) => acc + val, 0) / returns.length 
-                  : 0;
                 const avgPositive = positiveReturns.length > 0
                   ? positiveReturns.reduce((acc, val) => acc + val, 0) / positiveReturns.length
                   : 0;
@@ -351,23 +353,6 @@ function App() {
                       </p>
                       <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#dc2626' }}>
                         {formatPercent(minReturn)}
-                      </p>
-                    </div>
-
-                    <div style={{
-                      backgroundColor: theme.cardBg,
-                      padding: '1.25rem',
-                      borderRadius: '12px',
-                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
-                          Retorno Médio
-                        </span>
-                        <TrendingUp size={18} color="#3b82f6" />
-                      </div>
-                      <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: '#3b82f6' }}>
-                        {formatPercent(avgReturn)}
                       </p>
                     </div>
 
@@ -640,7 +625,14 @@ function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {recommendations.slice(0, 20).map((rec, idx) => (
+                      {recommendations
+                        .sort((a, b) => {
+                          const returnA = a.exp_return_20 || 0;
+                          const returnB = b.exp_return_20 || 0;
+                          return returnB - returnA; // Ordem decrescente
+                        })
+                        .slice(0, 20)
+                        .map((rec, idx) => (
                         <tr
                           key={idx}
                           style={{

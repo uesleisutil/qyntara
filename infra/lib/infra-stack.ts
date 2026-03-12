@@ -516,6 +516,12 @@ export class InfraStack extends cdk.Stack {
     recommendationsLatestResource.addMethod("GET", dashboardIntegration, {
       apiKeyRequired: true,
     });
+    
+    // /api/recommendations/history
+    const recommendationsHistoryResource = recommendationsResource.addResource("history");
+    recommendationsHistoryResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
 
     // /api/monitoring/*
     const monitoringResource = apiResource.addResource("monitoring");
