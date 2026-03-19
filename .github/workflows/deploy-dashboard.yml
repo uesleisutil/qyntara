@@ -46,7 +46,7 @@ jobs:
 
       - name: Install dashboard dependencies
         working-directory: ./dashboard
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build dashboard
         working-directory: ./dashboard
@@ -55,6 +55,7 @@ jobs:
           REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
           REACT_APP_ENVIRONMENT: production
           REACT_APP_VERSION: ${{ github.sha }}
+          CI: false
         run: npm run build
 
       - name: Deploy to GitHub Pages
@@ -105,7 +106,7 @@ jobs:
       # ── Deploy infrastructure (CDK) ──
       - name: Install CDK dependencies
         working-directory: ./infra
-        run: npm ci
+        run: npm install
 
       - name: Deploy production infrastructure
         working-directory: ./infra
@@ -124,7 +125,7 @@ jobs:
       # ── Build & deploy frontend to S3 + GitHub Pages ──
       - name: Install dashboard dependencies
         working-directory: ./dashboard
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build dashboard for production
         working-directory: ./dashboard
@@ -133,6 +134,7 @@ jobs:
           REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
           REACT_APP_ENVIRONMENT: production
           REACT_APP_VERSION: ${{ github.sha }}
+          CI: false
         run: npm run build
 
       - name: Deploy frontend to S3
