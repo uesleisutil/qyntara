@@ -1,0 +1,163 @@
+{
+  "version": "1.0",
+  "description": "B3 Tactical Ranking - On-Call Rotation Configuration",
+  "requirements": "83.9",
+
+  "rotationSchedule": {
+    "type": "weekly",
+    "timezone": "America/Sao_Paulo",
+    "handoffDay": "Monday",
+    "handoffTime": "09:00",
+    "rotationOrder": ["primary-1", "primary-2", "primary-3"],
+    "coverageHours": {
+      "weekday": { "start": "08:00", "end": "22:00" },
+      "weekend": { "start": "09:00", "end": "18:00" },
+      "afterHours": {
+        "enabled": true,
+        "criticalOnly": true,
+        "note": "After-hours pages only for CRITICAL severity alarms"
+      }
+    }
+  },
+
+  "escalationPolicy": {
+    "levels": [
+      {
+        "level": 1,
+        "name": "Primary On-Call",
+        "role": "primary",
+        "responseTimeMinutes": 15,
+        "notificationChannels": ["sms", "email", "slack"],
+        "description": "First responder for all alerts"
+      },
+      {
+        "level": 2,
+        "name": "Secondary On-Call",
+        "role": "secondary",
+        "responseTimeMinutes": 30,
+        "notificationChannels": ["sms", "email"],
+        "escalateAfterMinutes": 15,
+        "description": "Escalation if primary does not acknowledge within 15 minutes"
+      },
+      {
+        "level": 3,
+        "name": "Engineering Manager",
+        "role": "manager",
+        "responseTimeMinutes": 60,
+        "notificationChannels": ["sms", "email"],
+        "escalateAfterMinutes": 30,
+        "description": "Final escalation for unacknowledged critical incidents"
+      }
+    ],
+    "autoEscalate": true,
+    "maxEscalationLevel": 3
+  },
+
+  "contacts": [
+    {
+      "id": "primary-1",
+      "name": "[Team Member 1]",
+      "role": "Senior DevOps Engineer",
+      "email": "[email-1]@example.com",
+      "phone": "[phone-1]",
+      "slackHandle": "@[member-1]"
+    },
+    {
+      "id": "primary-2",
+      "name": "[Team Member 2]",
+      "role": "Backend Engineer",
+      "email": "[email-2]@example.com",
+      "phone": "[phone-2]",
+      "slackHandle": "@[member-2]"
+    },
+    {
+      "id": "primary-3",
+      "name": "[Team Member 3]",
+      "role": "ML Engineer",
+      "email": "[email-3]@example.com",
+      "phone": "[phone-3]",
+      "slackHandle": "@[member-3]"
+    },
+    {
+      "id": "manager",
+      "name": "[Engineering Manager]",
+      "role": "Engineering Manager",
+      "email": "[manager-email]@example.com",
+      "phone": "[manager-phone]",
+      "slackHandle": "@[manager]"
+    }
+  ],
+
+  "severityMapping": {
+    "CRITICAL": {
+      "description": "Service down, data loss, or security breach",
+      "responseTarget": "15 minutes",
+      "escalationEnabled": true,
+      "afterHoursPage": true,
+      "examples": [
+        "All Lambda functions failing",
+        "API Gateway returning 5xx for all requests",
+        "Data pipeline completely stopped",
+        "Security incident detected"
+      ],
+      "snsTopics": ["b3-dashboard-critical-alarms"]
+    },
+    "HIGH": {
+      "description": "Significant degradation affecting users",
+      "responseTarget": "30 minutes",
+      "escalationEnabled": true,
+      "afterHoursPage": false,
+      "examples": [
+        "Error rate above 5%",
+        "API response time above 3 seconds",
+        "Model accuracy below threshold",
+        "Data freshness exceeding 24 hours"
+      ],
+      "snsTopics": ["b3-dashboard-alarms"]
+    },
+    "MEDIUM": {
+      "description": "Partial degradation, workaround available",
+      "responseTarget": "2 hours",
+      "escalationEnabled": false,
+      "afterHoursPage": false,
+      "examples": [
+        "Single Lambda function errors",
+        "Non-critical alarm triggered",
+        "Cost spike detected"
+      ],
+      "snsTopics": ["b3-dashboard-alarms"]
+    },
+    "LOW": {
+      "description": "Minor issue, no user impact",
+      "responseTarget": "Next business day",
+      "escalationEnabled": false,
+      "afterHoursPage": false,
+      "examples": [
+        "Warning-level CloudWatch alarms",
+        "Non-critical data quality issues",
+        "Performance optimization opportunities"
+      ],
+      "snsTopics": []
+    }
+  },
+
+  "incidentProcess": {
+    "steps": [
+      "1. Acknowledge alert within response target time",
+      "2. Assess severity and impact",
+      "3. Begin investigation using CloudWatch dashboards and logs",
+      "4. Communicate status in #b3-incidents Slack channel",
+      "5. Implement fix or workaround",
+      "6. Verify resolution via verify-monitoring.sh",
+      "7. Write post-incident summary within 24 hours"
+    ],
+    "communicationChannel": "#b3-incidents",
+    "statusPageUrl": "https://status.example.com/b3-dashboard",
+    "runbookLocation": "https://wiki.example.com/b3-runbooks"
+  },
+
+  "overrides": {
+    "description": "Temporary schedule overrides for holidays or swaps",
+    "entries": []
+  }
+}

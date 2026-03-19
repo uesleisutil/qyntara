@@ -1,0 +1,10 @@
+export { BacktestingTab } from './BacktestingTab';
+export { BacktestConfig } from './BacktestConfig';
+export { PortfolioValueChart } from './PortfolioValueChart';
+export { PerformanceMetricsTable } from './PerformanceMetricsTable';
+export { BenchmarkComparisonChart } from './BenchmarkComparisonChart';
+export { RiskAnalysis } from './RiskAnalysis';
+export { WaterfallChart } from './WaterfallChart';
+export { SankeyDiagram } from './SankeyDiagram';
+export { ScenarioAnalysis } from './ScenarioAnalysis';
+export { StressTesting } from './StressTesting';

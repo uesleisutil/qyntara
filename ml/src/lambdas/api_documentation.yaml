@@ -1,0 +1,604 @@
+openapi: 3.0.3
+info:
+  title: B3 Tactical Ranking Dashboard API
+  description: |
+    REST API for programmatic access to B3 Tactical Ranking Dashboard data.
+    
+    ## Authentication
+    All API requests require an API key. Include your API key in the `X-Api-Key` header:
+    ```
+    X-Api-Key: btr_your_api_key_here
+    ```
+    
+    ## Rate Limiting
+    - Limit: 1000 requests per hour per API key
+    - Rate limit information is included in response headers:
+      - `X-RateLimit-Limit`: Maximum requests per hour
+      - `X-RateLimit-Remaining`: Remaining requests in current window
+      - `X-RateLimit-Reset`: Unix timestamp when the rate limit resets
+    
+    ## Error Codes
+    - `400` - Bad Request: Invalid parameters
+    - `401` - Unauthorized: Missing or invalid API key
+    - `404` - Not Found: Resource not found
+    - `429` - Too Many Requests: Rate limit exceeded
+    - `500` - Internal Server Error: Server error
+    
+    ## Response Format
+    All successful responses follow this structure:
+    ```json
+    {
+      "data": { ... },
+      "metadata": {
+        "timestamp": "2026-03-12T10:30:00Z",
+        "version": "1.0",
+        "cached": false
+      }
+    }
+    ```
+    
+    Error responses follow this structure:
+    ```json
+    {
+      "error": {
+        "code": "ERROR_CODE",
+        "message": "Human-readable error message"
+      },
+      "metadata": {
+        "timestamp": "2026-03-12T10:30:00Z"
+      }
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://api-staging.example.com/v1
+    description: Staging server
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Recommendations
+    description: Stock recommendation data
+  - name: Performance
+    description: Model performance metrics
+  - name: Validation
+    description: Prediction validation results
+  - name: Costs
+    description: AWS cost data
+  - name: Data Quality
+    description: Data quality metrics
+  - name: Drift
+    description: Drift detection results
+
+paths:
+  /api/recommendations:
+    get:
+      tags:
+        - Recommendations
+      summary: Get stock recommendations
+      description: Returns the latest stock recommendations with optional filtering
+      operationId: getRecommendations
+      parameters:
+        - name: date
+          in: query
+          description: Filter by specific date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+          example: "2026-03-12"
+        - name: sector
+          in: query
+          description: Filter by sector
+          schema:
+            type: string
+          example: "Financials"
+        - name: min_score
+          in: query
+          description: Minimum score threshold
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+          example: 0.7
+        - name: limit
+          in: query
+          description: Maximum number of results
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 100
+          example: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                      date:
+                        type: string
+                        format: date
+                      recommendations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Recommendation'
+                      total_count:
+                        type: integer
+                      filters_applied:
+                        type: object
+                        properties:
+                          date:
+                            type: string
+                            nullable: true
+                          sector:
+                            type: string
+                            nullable: true
+                          min_score:
+                            type: number
+                            nullable: true
+                  metadata:
+                    $ref: '#/components/schemas/Metadata'
+              example:
+                data:
+                  timestamp: "2026-03-12T10:30:00Z"
+                  date: "2026-03-12"
+                  recommendations:
+                    - ticker: "PETR4"
+                      sector: "Energy"
+                      score: 0.85
+                      exp_return_20: 0.12
+                      rank: 1
+                    - ticker: "VALE3"
+                      sector: "Materials"
+                      score: 0.82
+                      exp_return_20: 0.10
+                      rank: 2
+                  total_count: 2
+                  filters_applied:
+                    date: null
+                    sector: null
+                    min_score: 0.7
+                metadata:
+                  timestamp: "2026-03-12T10:30:00Z"
+                  version: "1.0"
+                  cached: false
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/performance:
+    get:
+      tags:
+        - Performance
+      summary: Get model performance metrics
+      description: Returns performance metrics for ML models
+      operationId: getPerformance
+      parameters:
+        - name: days
+          in: query
+          description: Number of days of history
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+          example: 30
+        - name: model
+          in: query
+          description: Filter by specific model ID
+          schema:
+            type: string
+          example: "xgboost_v1"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                      models:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ModelPerformance'
+                      ensemble:
+                        $ref: '#/components/schemas/EnsemblePerformance'
+                  metadata:
+                    $ref: '#/components/schemas/Metadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/validation:
+    get:
+      tags:
+        - Validation
+      summary: Get validation results
+      description: Returns predicted vs actual validation results
+      operationId: getValidation
+      parameters:
+        - name: days
+          in: query
+          description: Number of days of history
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      summary:
+                        $ref: '#/components/schemas/ValidationSummary'
+                      validations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ValidationResult'
+                  metadata:
+                    $ref: '#/components/schemas/Metadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/costs:
+    get:
+      tags:
+        - Costs
+      summary: Get AWS cost data
+      description: Returns AWS cost metrics and trends
+      operationId: getCosts
+      parameters:
+        - name: days
+          in: query
+          description: Number of days of history
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CostData'
+                  metadata:
+                    $ref: '#/components/schemas/Metadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/data-quality:
+    get:
+      tags:
+        - Data Quality
+      summary: Get data quality metrics
+      description: Returns data completeness, anomalies, freshness, and coverage metrics
+      operationId: getDataQuality
+      parameters:
+        - name: days
+          in: query
+          description: Number of days of history
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DataQualityMetrics'
+                  metadata:
+                    $ref: '#/components/schemas/Metadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/drift:
+    get:
+      tags:
+        - Drift
+      summary: Get drift detection results
+      description: Returns data drift, concept drift, and performance degradation metrics
+      operationId: getDrift
+      parameters:
+        - name: days
+          in: query
+          description: Number of days of history
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 30
+        - name: type
+          in: query
+          description: Filter by drift type
+          schema:
+            type: string
+            enum: [data, concept, performance]
+          example: "data"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DriftData'
+                  metadata:
+                    $ref: '#/components/schemas/Metadata'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+      description: API key for authentication
+
+  schemas:
+    Recommendation:
+      type: object
+      properties:
+        ticker:
+          type: string
+          description: Stock ticker symbol
+        sector:
+          type: string
+          description: Sector classification
+        score:
+          type: number
+          format: float
+          description: Recommendation score (0-1)
+        exp_return_20:
+          type: number
+          format: float
+          description: Expected 20-day return
+        rank:
+          type: integer
+          description: Ranking position
+
+    ModelPerformance:
+      type: object
+      properties:
+        model_id:
+          type: string
+        model_name:
+          type: string
+        mape:
+          type: number
+          format: float
+        accuracy:
+          type: number
+          format: float
+        sharpe_ratio:
+          type: number
+          format: float
+        correlation:
+          type: number
+          format: float
+
+    EnsemblePerformance:
+      type: object
+      properties:
+        mape:
+          type: number
+        accuracy:
+          type: number
+        sharpe_ratio:
+          type: number
+
+    ValidationSummary:
+      type: object
+      properties:
+        total_validations:
+          type: integer
+        mean_absolute_error:
+          type: number
+        rmse:
+          type: number
+
+    ValidationResult:
+      type: object
+      properties:
+        ticker:
+          type: string
+        date:
+          type: string
+          format: date
+        predicted:
+          type: number
+        actual:
+          type: number
+        error:
+          type: number
+
+    CostData:
+      type: object
+      properties:
+        total_cost:
+          type: number
+        daily_costs:
+          type: array
+          items:
+            type: object
+        by_service:
+          type: object
+
+    DataQualityMetrics:
+      type: object
+      properties:
+        completeness:
+          type: object
+        anomalies:
+          type: object
+        freshness:
+          type: object
+        coverage:
+          type: object
+
+    DriftData:
+      type: object
+      properties:
+        data_drift:
+          type: object
+        concept_drift:
+          type: object
+        performance_degradation:
+          type: object
+
+    Metadata:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+        cached:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+        metadata:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "AUTHENTICATION_ERROR"
+              message: "Invalid or expired API key"
+            metadata:
+              timestamp: "2026-03-12T10:30:00Z"
+
+    NotFound:
+      description: Not Found - Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "No recommendations found"
+            metadata:
+              timestamp: "2026-03-12T10:30:00Z"
+
+    RateLimitExceeded:
+      description: Too Many Requests - Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "RATE_LIMIT_EXCEEDED"
+              message: "Rate limit exceeded. Limit: 1000 requests per hour"
+            metadata:
+              timestamp: "2026-03-12T10:30:00Z"
+
+    InternalError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error:
+              code: "INTERNAL_ERROR"
+              message: "An unexpected error occurred"
+            metadata:
+              timestamp: "2026-03-12T10:30:00Z"

@@ -37,16 +37,15 @@ describe('useDrift', () => {
     const { useDrift } = require('./useDrift');
 
     renderHook(() => useDrift({
-      lookbackDays: 60,
-      bucket: 'test-bucket',
+      days: 30,
     }));
 
     expect(useQuery).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ['drift', 60, 'test-bucket'],
+        queryKey: ['drift', 30],
         enabled: true,
-        refetchInterval: 60000,
-        staleTime: 45000,
+        refetchInterval: 300000,
+        staleTime: 240000,
       })
     );
   });

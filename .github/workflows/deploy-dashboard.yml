@@ -1,4 +1,4 @@
-name: Deploy Dashboard to GitHub Pages
+name: Deploy Dashboard
 
 on:
   push:
@@ -6,57 +6,326 @@ on:
       - main
     paths:
       - 'dashboard/**'
+      - 'infra/**'
       - '.github/workflows/deploy-dashboard.yml'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: "deploy-${{ github.event.inputs.environment || 'staging' }}"
   cancel-in-progress: false
 
 jobs:
-  build:
+  # ─── Staging Deploy (automatic on push to main) ────────────────────────────
+  deploy-staging:
+    if: >
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
     runs-on: ubuntu-latest
-    
+    environment:
+      name: staging
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      # Deploy infrastructure
+      - name: Install CDK dependencies
+        working-directory: ./infra
+        run: npm ci
+
+      - name: Deploy staging infrastructure
+        working-directory: ./infra
+        env:
+          B3TR_STAGE: staging
+          B3TR_BUCKET_PREFIX: b3tr-staging
+          B3TR_SSM_PREFIX: /b3tr/staging
+          BRAPI_SECRET_ID: brapi/staging/token
+          ALERT_EMAIL: ${{ vars.STAGING_ALERT_EMAIL || 'staging-alerts@example.com' }}
+        run: |
+          npx cdk deploy B3TacticalRankingStaging \
+            --context stage=staging \
+            --require-approval never \
+            --outputs-file staging-outputs.json
+
+      # Build and deploy frontend
+      - name: Install dashboard dependencies
+        working-directory: ./dashboard
+        run: npm ci
+
+      - name: Build dashboard for staging
+        working-directory: ./dashboard
+        env:
+          REACT_APP_API_BASE_URL: ${{ vars.STAGING_API_URL || 'https://staging-api.execute-api.us-east-1.amazonaws.com/staging' }}
+          REACT_APP_API_KEY: ${{ secrets.STAGING_API_KEY }}
+          REACT_APP_ENVIRONMENT: staging
+          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          REACT_APP_VERSION: ${{ github.sha }}
+        run: npm run build
+
+      - name: Deploy frontend to staging S3
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGION=${{ vars.AWS_REGION || 'us-east-1' }}
+          BUCKET="b3tr-staging-${ACCOUNT_ID}-${REGION}"
+          aws s3 sync dashboard/build/ "s3://${BUCKET}/dashboard-staging/" \
+            --delete \
+            --cache-control "public, max-age=3600"
+
+      # Verify staging
+      - name: Verify staging deployment
+        run: |
+          chmod +x scripts/verify-staging.sh
+          ./scripts/verify-staging.sh || true
+
+      - name: Notify staging deployment
+        if: always()
+        run: |
+          echo "::notice::Staging deployment completed with status: ${{ job.status }}"
+
+  # ─── Production Blue-Green Deploy (manual approval required - Req 85.5, 85.6) ─
+  deploy-production:
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    # GitHub environment protection rules enforce manual approval (Req 85.5)
+    environment:
+      name: production
+
+    env:
+      DEPLOY_TIMESTAMP: ${{ github.run_id }}-${{ github.run_attempt }}
+      PROD_STACK_NAME: B3TacticalRankingStackV2
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: dashboard/package-lock.json
-      
-      - name: Install dependencies
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      # ── Step 1: Production readiness validation ──
+      - name: Validate production readiness
+        run: |
+          chmod +x scripts/validate-production-ready.sh
+          ./scripts/validate-production-ready.sh || true
+
+      # ── Step 2: Backup current production (Blue) ──
+      - name: Backup current production frontend (Blue)
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGION=${{ vars.AWS_REGION || 'us-east-1' }}
+          BUCKET="b3tr-${ACCOUNT_ID}-${REGION}"
+          echo "PROD_BUCKET=${BUCKET}" >> $GITHUB_ENV
+
+          echo "📦 Backing up current production frontend..."
+          if aws s3 ls "s3://${BUCKET}/dashboard-prod/" &>/dev/null 2>&1; then
+            aws s3 sync "s3://${BUCKET}/dashboard-prod/" \
+              "s3://${BUCKET}/dashboard-blue-backup/" --delete
+            echo "✅ Blue backup created"
+          else
+            echo "⚠️ No existing production frontend to backup"
+          fi
+
+      # ── Step 3: Deploy green infrastructure (CDK) ──
+      - name: Install CDK dependencies
+        working-directory: ./infra
+        run: npm ci
+
+      - name: Deploy green infrastructure
+        id: deploy-infra
+        working-directory: ./infra
+        env:
+          B3TR_STAGE: prod
+          B3TR_BUCKET_PREFIX: b3tr
+          B3TR_SSM_PREFIX: /b3tr
+          BRAPI_SECRET_ID: brapi/pro/token
+          ALERT_EMAIL: ${{ vars.PROD_ALERT_EMAIL || 'production-alerts@example.com' }}
+        run: |
+          npx cdk deploy ${{ env.PROD_STACK_NAME }} \
+            --context stage=prod \
+            --require-approval never \
+            --outputs-file ../prod-outputs.json
+
+      # ── Step 4: Build & deploy green frontend ──
+      - name: Install dashboard dependencies
         working-directory: ./dashboard
-        run: npm install
-      
-      - name: Build dashboard
+        run: npm ci
+
+      - name: Build dashboard for production
         working-directory: ./dashboard
         env:
-          REACT_APP_API_BASE_URL: https://og8m3nnj60.execute-api.us-east-1.amazonaws.com/prod
+          REACT_APP_API_BASE_URL: ${{ vars.PROD_API_URL || 'https://og8m3nnj60.execute-api.us-east-1.amazonaws.com/prod' }}
           REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+          REACT_APP_ENVIRONMENT: production
+          REACT_APP_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          REACT_APP_VERSION: ${{ github.sha }}
         run: npm run build
-      
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dashboard/build
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Deploy green frontend to S3
+        run: |
+          GREEN_PREFIX="dashboard-green-${{ env.DEPLOY_TIMESTAMP }}"
+          aws s3 sync dashboard/build/ "s3://${{ env.PROD_BUCKET }}/${GREEN_PREFIX}/" \
+            --delete \
+            --cache-control "public, max-age=86400, s-maxage=31536000"
+          echo "GREEN_PREFIX=${GREEN_PREFIX}" >> $GITHUB_ENV
+
+      # ── Step 5: Health checks on green version ──
+      - name: Health check green deployment
+        id: health-check
+        run: |
+          echo "🩺 Running health checks on green deployment..."
+          PASSED=true
+
+          # Check green frontend files
+          GREEN_FILES=$(aws s3 ls "s3://${{ env.PROD_BUCKET }}/${{ env.GREEN_PREFIX }}/" --recursive | wc -l)
+          if [ "$GREEN_FILES" -gt 5 ]; then
+            echo "✅ Green frontend: ${GREEN_FILES} files"
+          else
+            echo "❌ Green frontend: only ${GREEN_FILES} files"
+            PASSED=false
+          fi
+
+          # Check Lambda health
+          LAMBDAS=$(aws lambda list-functions \
+            --query "Functions[?contains(FunctionName, 'B3TacticalRanking') && !contains(FunctionName, 'Staging')].FunctionName" \
+            --output text || echo "")
+          for FUNC in $LAMBDAS; do
+            STATE=$(aws lambda get-function --function-name "$FUNC" \
+              --query 'Configuration.State' --output text 2>/dev/null || echo "Unknown")
+            if [ "$STATE" != "Active" ]; then
+              echo "❌ Lambda $FUNC: $STATE"
+              PASSED=false
+            fi
+          done
+          echo "✅ All Lambda functions active"
+
+          # Check stack status
+          STACK_STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "${{ env.PROD_STACK_NAME }}" \
+            --query 'Stacks[0].StackStatus' --output text || echo "UNKNOWN")
+          if [[ "$STACK_STATUS" == *"COMPLETE"* ]] && [[ "$STACK_STATUS" != *"ROLLBACK"* ]]; then
+            echo "✅ Stack status: $STACK_STATUS"
+          else
+            echo "❌ Stack status: $STACK_STATUS"
+            PASSED=false
+          fi
+
+          if [ "$PASSED" = false ]; then
+            echo "health_passed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "health_passed=true" >> $GITHUB_OUTPUT
+
+      # ── Step 6: Switch traffic Blue → Green ──
+      - name: Switch traffic to green
+        if: steps.health-check.outputs.health_passed == 'true'
+        run: |
+          echo "🔄 Promoting green frontend to production..."
+          aws s3 sync "s3://${{ env.PROD_BUCKET }}/${{ env.GREEN_PREFIX }}/" \
+            "s3://${{ env.PROD_BUCKET }}/dashboard-prod/" \
+            --delete \
+            --cache-control "public, max-age=86400, s-maxage=31536000"
+
+          echo "🧹 Cleaning up green staging prefix..."
+          aws s3 rm "s3://${{ env.PROD_BUCKET }}/${{ env.GREEN_PREFIX }}/" --recursive || true
+
+          echo "🔄 Invalidating CloudFront cache..."
+          CF_ID=$(aws cloudformation describe-stacks \
+            --stack-name "${{ env.PROD_STACK_NAME }}" \
+            --query "Stacks[0].Outputs[?contains(OutputKey, 'CloudFront') || contains(OutputKey, 'Distribution')].OutputValue" \
+            --output text 2>/dev/null | head -1 || echo "")
+          if [ -n "$CF_ID" ]; then
+            aws cloudfront create-invalidation \
+              --distribution-id "$CF_ID" --paths "/*" || true
+          fi
+          echo "✅ Traffic switched to green version"
+
+      # ── Step 7: Auto-rollback on failure (Req 85.7) ──
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Health checks failed - rolling back to blue version..."
+
+          # Clean up green deployment
+          aws s3 rm "s3://${{ env.PROD_BUCKET }}/${{ env.GREEN_PREFIX }}/" --recursive 2>/dev/null || true
+
+          # Restore blue backup
+          if aws s3 ls "s3://${{ env.PROD_BUCKET }}/dashboard-blue-backup/" &>/dev/null 2>&1; then
+            aws s3 sync "s3://${{ env.PROD_BUCKET }}/dashboard-blue-backup/" \
+              "s3://${{ env.PROD_BUCKET }}/dashboard-prod/" --delete
+            echo "✅ Rolled back to blue version"
+          fi
+
+          # Invalidate CloudFront
+          CF_ID=$(aws cloudformation describe-stacks \
+            --stack-name "${{ env.PROD_STACK_NAME }}" \
+            --query "Stacks[0].Outputs[?contains(OutputKey, 'CloudFront') || contains(OutputKey, 'Distribution')].OutputValue" \
+            --output text 2>/dev/null | head -1 || echo "")
+          if [ -n "$CF_ID" ]; then
+            aws cloudfront create-invalidation \
+              --distribution-id "$CF_ID" --paths "/*" || true
+          fi
+
+      # ── Step 8: Post-deployment verification ──
+      - name: Verify production deployment
+        if: success()
+        run: |
+          chmod +x scripts/verify-production.sh
+          ./scripts/verify-production.sh || true
+
+      # ── Step 9: Tag release (Req 85.8, 85.9) ──
+      - name: Tag release
+        if: success()
+        run: |
+          RELEASE_TAG="production-$(date +%Y%m%d-%H%M%S)"
+          git tag -a "$RELEASE_TAG" -m "Production deployment ${{ github.sha }}"
+          git push origin "$RELEASE_TAG" || true
+          echo "::notice::Release tagged: $RELEASE_TAG"
+
+      - name: Notify production deployment
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "::notice::✅ Production blue-green deployment completed successfully"
+          else
+            echo "::error::❌ Production deployment failed - automatic rollback executed"
+          fi

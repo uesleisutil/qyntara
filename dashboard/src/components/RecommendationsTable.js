@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import TickerDetailModal from './recommendations/TickerDetailModal';
+import { useComparison } from './recommendations/ComparisonControls';
 
 /**
  * RecommendationsTable Component
@@ -11,10 +12,11 @@ import TickerDetailModal from './recommendations/TickerDetailModal';
  * - Click to view details modal
  * - Rank badges
  * - Color-coded returns
+ * - Comparison mode with checkboxes
  * 
- * Requirements: 10.3, 10.4, 10.7, 20.5
+ * Requirements: 10.3, 10.4, 10.7, 20.5, 4.2
  */
-const RecommendationsTable = React.memo(({ recommendations }) => {
+const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTickerSelect, isSelected }) => {
   const [sortColumn, setSortColumn] = useState('score');
   const [sortDirection, setSortDirection] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,7 +82,11 @@ const RecommendationsTable = React.memo(({ recommendations }) => {
     }
   };
 
-  const handleTickerClick = (rec) => {
+  const handleTickerClick = (rec, e) => {
+    // Don't open modal if clicking checkbox in comparison mode
+    if (comparisonMode && e.target.type === 'checkbox') {
+      return;
+    }
     setSelectedTicker(rec);
   };
 
@@ -94,6 +100,11 @@ const RecommendationsTable = React.memo(({ recommendations }) => {
         <table className="recommendations-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+              {comparisonMode && (
+                <th style={{ padding: '0.75rem', textAlign: 'center', width: '50px' }}>
+                  <input type="checkbox" disabled style={{ opacity: 0 }} />
+                </th>
+              )}
               <th style={{ padding: '0.75rem', textAlign: 'left' }}>Rank</th>
               <th 
                 style={{ padding: '0.75rem', textAlign: 'left', cursor: 'pointer' }}
@@ -138,19 +149,32 @@ const RecommendationsTable = React.memo(({ recommendations }) => {
               const globalRank = startIndex + idx + 1;
               const returnValue = rec.expected_return || rec.exp_return_20 || 0;
               const scoreValue = rec.confidence_score || rec.score || 0;
+              const selected = isSelected && isSelected(rec);
               
               return (
                 <tr 
                   key={idx}
-                  onClick={() => handleTickerClick(rec)}
+                  onClick={(e) => handleTickerClick(rec, e)}
                   style={{ 
                     borderBottom: '1px solid #e2e8f0',
                     cursor: 'pointer',
-                    transition: 'background-color 0.2s'
+                    transition: 'background-color 0.2s',
+                    backgroundColor: selected ? '#eff6ff' : 'transparent'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = selected ? '#eff6ff' : '#f8fafc'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selected ? '#eff6ff' : 'transparent'}
                 >
+                  {comparisonMode && (
+                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => onTickerSelect(rec)}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </td>
+                  )}
                   <td style={{ padding: '0.75rem' }}>
                     <span style={{
                       display: 'inline-block',

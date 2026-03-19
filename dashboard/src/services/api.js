@@ -134,12 +134,51 @@ const api = {
     getLatest: () => api.get('/api/recommendations/latest')
   },
   
+  ticker: {
+    getHistory: (ticker, days = 90) => api.get(`/api/ticker/${ticker}/history`, { days }),
+    getFundamentals: (ticker) => api.get(`/api/ticker/${ticker}/fundamentals`),
+    getNews: (ticker, limit = 5) => api.get(`/api/ticker/${ticker}/news`, { limit })
+  },
+  
   monitoring: {
     getDataQuality: (days = 30) => api.get('/api/monitoring/data-quality', { days }),
     getModelPerformance: (days = 30) => api.get('/api/monitoring/model-performance', { days }),
     getDrift: (days = 30) => api.get('/api/monitoring/drift', { days }),
     getCosts: (days = 30) => api.get('/api/monitoring/costs', { days }),
     getEnsembleWeights: (days = 30) => api.get('/api/monitoring/ensemble-weights', { days })
+  },
+  
+  // Alert management endpoints (Req 5.1-5.8)
+  alerts: {
+    // Get all alerts for the current user
+    getAll: () => api.get('/api/alerts'),
+    
+    // Create a new alert
+    create: (alertData) => api.post('/api/alerts', alertData),
+    
+    // Update an existing alert
+    update: (alertId, alertData) => api.put(`/api/alerts/${alertId}`, alertData),
+    
+    // Delete an alert
+    delete: (alertId) => api.delete(`/api/alerts/${alertId}`),
+    
+    // Check for triggered alerts
+    checkTriggered: (recommendations) => api.post('/api/alerts/check', { recommendations })
+  },
+  
+  // Notification management endpoints (Req 5.4)
+  notifications: {
+    // Get all notifications for the current user
+    getAll: () => api.get('/api/notifications'),
+    
+    // Mark notification as read
+    markAsRead: (notificationId) => api.put(`/api/notifications/${notificationId}/read`),
+    
+    // Mark all notifications as read
+    markAllAsRead: () => api.put('/api/notifications/read-all'),
+    
+    // Delete a notification
+    delete: (notificationId) => api.delete(`/api/notifications/${notificationId}`)
   }
 };
 

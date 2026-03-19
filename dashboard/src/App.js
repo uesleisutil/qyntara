@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, DollarSign, RefreshCw, AlertCircle, CheckCircle, TrendingDown, ArrowUpRight, ArrowDownRight, Moon, Sun } from 'lucide-react';
+import { TrendingUp, DollarSign, RefreshCw, AlertCircle, CheckCircle, TrendingDown, ArrowUpRight, ArrowDownRight, Moon, Sun, AlertTriangle, Info, BarChart3 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from './config';
+import { ExplainabilityTab } from './components/explainability';
+import { BacktestingTab } from './components/backtesting';
+import { initializeSentry, trackPageView } from './services/monitoring';
+
+// Importar novos componentes
+import { 
+  TemporalComparisonProvider,
+  TemporalComparisonToggle,
+  TemporalKPICard,
+  NotificationCenter,
+  Breadcrumb,
+  OfflineIndicator,
+} from './components/shared';
 
 function App() {
   const [activeTab, setActiveTab] = useState('recommendations');
@@ -9,6 +22,8 @@ function App() {
   const [selectedTickers, setSelectedTickers] = useState([]);
   const [validation, setValidation] = useState(null);
   const [costs, setCosts] = useState(null);
+  const [dataQuality, setDataQuality] = useState(null);
+  const [driftDetection, setDriftDetection] = useState(null);
   const [performance, setPerformance] = useState(null);
   const [ensembleWeights, setEnsembleWeights] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,6 +35,23 @@ function App() {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+
+  // Novos estados para comparação temporal
+  // eslint-disable-next-line no-unused-vars
+  const [previousRecommendations, setPreviousRecommendations] = useState([]);
+  
+  // Initialize monitoring on app load
+  useEffect(() => {
+    initializeSentry();
+    trackPageView('app_load');
+  }, []);
+
+  // Track page views when tab changes
+  useEffect(() => {
+    if (activeTab) {
+      trackPageView(activeTab);
+    }
+  }, [activeTab]);
 
   // Detectar mudanças no tamanho da tela
   useEffect(() => {
@@ -141,6 +173,28 @@ function App() {
         } else {
           throw new Error('Falha ao carregar custos');
         }
+      } else if (activeTab === 'dataQuality') {
+        const response = await fetch(`${API_BASE_URL}/api/monitoring/data-quality?days=30`, {
+          headers: { 'x-api-key': API_KEY }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDataQuality(data);
+          setLastUpdate(new Date());
+        } else {
+          throw new Error('Falha ao carregar métricas de qualidade de dados');
+        }
+      } else if (activeTab === 'driftDetection') {
+        const response = await fetch(`${API_BASE_URL}/api/monitoring/drift?days=90`, {
+          headers: { 'x-api-key': API_KEY }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setDriftDetection(data);
+          setLastUpdate(new Date());
+        } else {
+          throw new Error('Falha ao carregar métricas de drift detection');
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -177,6 +231,7 @@ function App() {
   };
 
   return (
+    <TemporalComparisonProvider>
     <div style={{
       minHeight: '100vh',
       backgroundColor: theme.bg,
@@ -217,31 +272,60 @@ function App() {
             </p>
           </div>
           
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            style={{
-              padding: isMobile ? '0.625rem' : '0.75rem',
-              backgroundColor: darkMode ? '#334155' : '#f1f5f9',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.2s',
-              boxShadow: darkMode ? '0 2px 4px rgba(0,0,0,0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-            title={darkMode ? 'Modo Claro' : 'Modo Escuro'}
-          >
-            {darkMode ? <Sun size={isMobile ? 18 : 20} color="#fbbf24" /> : <Moon size={isMobile ? 18 : 20} color="#64748b" />}
-          </button>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <NotificationCenter />
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              style={{
+                padding: isMobile ? '0.625rem' : '0.75rem',
+                backgroundColor: darkMode ? '#334155' : '#f1f5f9',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s',
+                boxShadow: darkMode ? '0 2px 4px rgba(0,0,0,0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
+                WebkitTapHighlightColor: 'transparent'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              title={darkMode ? 'Modo Claro' : 'Modo Escuro'}
+            >
+              {darkMode ? <Sun size={isMobile ? 18 : 20} color="#fbbf24" /> : <Moon size={isMobile ? 18 : 20} color="#64748b" />}
+            </button>
+          </div>
         </div>
       </header>
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: isMobile ? '1rem' : '2rem' }}>
+        {/* Offline Indicator */}
+        <OfflineIndicator />
+        
+        {/* Breadcrumb */}
+        <Breadcrumb 
+          items={[
+            { label: 'Dashboard', path: '/' },
+            { 
+              label: activeTab === 'recommendations' ? 'Recomendações' : 
+                     activeTab === 'performance' ? 'Performance' :
+                     activeTab === 'validation' ? 'Validação' :
+                     activeTab === 'costs' ? 'Custos' :
+                     activeTab === 'dataQuality' ? 'Data Quality' :
+                     activeTab === 'driftDetection' ? 'Drift Detection' :
+                     activeTab === 'explainability' ? 'Explainability' :
+                     'Backtesting', 
+              path: `/${activeTab}` 
+            }
+          ]}
+        />
+        
+        {/* Temporal Comparison Toggle */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <TemporalComparisonToggle />
+        </div>
+        
         {/* Status Banner */}
         {error && (
           <div style={{
@@ -380,6 +464,114 @@ function App() {
             <DollarSign size={isMobile ? 16 : 18} />
             Custos
           </button>
+          
+          <button
+            onClick={() => setActiveTab('dataQuality')}
+            style={{
+              flex: 1,
+              minWidth: isMobile ? '100px' : 'auto',
+              padding: isMobile ? '0.75rem 1rem' : '0.875rem 1.5rem',
+              background: activeTab === 'dataQuality' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'dataQuality' ? 'white' : '#64748b',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === 'dataQuality' ? '0 4px 6px rgba(59, 130, 246, 0.2)' : 'none',
+              WebkitTapHighlightColor: 'transparent',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <CheckCircle size={isMobile ? 16 : 18} />
+            {isMobile ? 'Quality' : 'Data Quality'}
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('driftDetection')}
+            style={{
+              flex: 1,
+              minWidth: isMobile ? '100px' : 'auto',
+              padding: isMobile ? '0.75rem 1rem' : '0.875rem 1.5rem',
+              background: activeTab === 'driftDetection' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'driftDetection' ? 'white' : '#64748b',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === 'driftDetection' ? '0 4px 6px rgba(59, 130, 246, 0.2)' : 'none',
+              WebkitTapHighlightColor: 'transparent',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <TrendingDown size={isMobile ? 16 : 18} />
+            {isMobile ? 'Drift' : 'Drift Detection'}
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('explainability')}
+            style={{
+              flex: 1,
+              minWidth: isMobile ? '100px' : 'auto',
+              padding: isMobile ? '0.75rem 1rem' : '0.875rem 1.5rem',
+              background: activeTab === 'explainability' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'explainability' ? 'white' : '#64748b',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === 'explainability' ? '0 4px 6px rgba(59, 130, 246, 0.2)' : 'none',
+              WebkitTapHighlightColor: 'transparent',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <Info size={isMobile ? 16 : 18} />
+            {isMobile ? 'Explain' : 'Explainability'}
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('backtesting')}
+            style={{
+              flex: 1,
+              minWidth: isMobile ? '100px' : 'auto',
+              padding: isMobile ? '0.75rem 1rem' : '0.875rem 1.5rem',
+              background: activeTab === 'backtesting' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'backtesting' ? 'white' : '#64748b',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              fontSize: isMobile ? '0.8125rem' : '0.9375rem',
+              transition: 'all 0.2s',
+              boxShadow: activeTab === 'backtesting' ? '0 4px 6px rgba(59, 130, 246, 0.2)' : 'none',
+              WebkitTapHighlightColor: 'transparent',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <BarChart3 size={isMobile ? 16 : 18} />
+            {isMobile ? 'Backtest' : 'Backtesting'}
+          </button>
         </div>
 
         {/* Loading State */}
@@ -438,102 +630,46 @@ function App() {
 
                 return (
                   <>
-                    <div style={{
-                      backgroundColor: theme.cardBg,
-                      padding: isMobile ? '1rem' : '1.25rem',
-                      borderRadius: '12px',
-                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
-                          Total de Ativos
-                        </span>
-                        <CheckCircle size={isMobile ? 16 : 18} color="#10b981" />
-                      </div>
-                      <p style={{ margin: 0, fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
-                        {recommendations.length}
-                      </p>
-                    </div>
+                    <TemporalKPICard
+                      title="Total de Ativos"
+                      current={recommendations.length}
+                      previous={previousRecommendations?.length || recommendations.length}
+                      icon={<CheckCircle size={18} />}
+                    />
 
-                    <div style={{
-                      backgroundColor: theme.cardBg,
-                      padding: isMobile ? '1rem' : '1.25rem',
-                      borderRadius: '12px',
-                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
-                          Melhor Ativo
-                        </span>
-                        <ArrowUpRight size={isMobile ? 16 : 18} color="#10b981" />
-                      </div>
-                      <p style={{ margin: '0 0 0.25rem 0', fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: '700', color: '#10b981' }}>
-                        {bestTicker}
-                      </p>
-                      <p style={{ margin: 0, fontSize: isMobile ? '0.8125rem' : '0.875rem', fontWeight: '600', color: '#10b981' }}>
-                        {formatPercent(maxReturn)}
-                      </p>
-                    </div>
+                    <TemporalKPICard
+                      title="Melhor Ativo"
+                      current={maxReturn}
+                      previous={maxReturn}
+                      unit="%"
+                      format={(v) => `${bestTicker} (${(v * 100).toFixed(2)}%)`}
+                      icon={<ArrowUpRight size={18} />}
+                    />
 
-                    <div style={{
-                      backgroundColor: theme.cardBg,
-                      padding: isMobile ? '1rem' : '1.25rem',
-                      borderRadius: '12px',
-                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
-                          Pior Ativo
-                        </span>
-                        <ArrowDownRight size={isMobile ? 16 : 18} color="#dc2626" />
-                      </div>
-                      <p style={{ margin: '0 0 0.25rem 0', fontSize: isMobile ? '1.25rem' : '1.5rem', fontWeight: '700', color: '#dc2626' }}>
-                        {worstTicker}
-                      </p>
-                      <p style={{ margin: 0, fontSize: isMobile ? '0.8125rem' : '0.875rem', fontWeight: '600', color: '#dc2626' }}>
-                        {formatPercent(minReturn)}
-                      </p>
-                    </div>
+                    <TemporalKPICard
+                      title="Pior Ativo"
+                      current={minReturn}
+                      previous={minReturn}
+                      unit="%"
+                      format={(v) => `${worstTicker} (${(v * 100).toFixed(2)}%)`}
+                      icon={<ArrowDownRight size={18} />}
+                    />
 
-                    <div style={{
-                      backgroundColor: theme.cardBg,
-                      padding: isMobile ? '1rem' : '1.25rem',
-                      borderRadius: '12px',
-                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
-                          Ativos Positivos
-                        </span>
-                        <ArrowUpRight size={isMobile ? 16 : 18} color="#10b981" />
-                      </div>
-                      <p style={{ margin: '0 0 0.25rem 0', fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: '#10b981' }}>
-                        {positiveReturns.length}
-                      </p>
-                      <p style={{ margin: 0, fontSize: isMobile ? '0.6875rem' : '0.75rem', color: theme.textSecondary }}>
-                        Média: {formatPercent(avgPositive)}
-                      </p>
-                    </div>
+                    <TemporalKPICard
+                      title="Ativos Positivos"
+                      current={positiveReturns.length}
+                      previous={positiveReturns.length}
+                      subtitle={`Média: ${formatPercent(avgPositive)}`}
+                      icon={<ArrowUpRight size={18} />}
+                    />
 
-                    <div style={{
-                      backgroundColor: theme.cardBg,
-                      padding: isMobile ? '1rem' : '1.25rem',
-                      borderRadius: '12px',
-                      boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                        <span style={{ color: theme.textSecondary, fontSize: isMobile ? '0.75rem' : '0.8125rem', fontWeight: '500' }}>
-                          Ativos Negativos
-                        </span>
-                        <ArrowDownRight size={isMobile ? 16 : 18} color="#dc2626" />
-                      </div>
-                      <p style={{ margin: '0 0 0.25rem 0', fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: '#dc2626' }}>
-                        {negativeReturns.length}
-                      </p>
-                      <p style={{ margin: 0, fontSize: isMobile ? '0.6875rem' : '0.75rem', color: theme.textSecondary }}>
-                        Média: {formatPercent(avgNegative)}
-                      </p>
-                    </div>
+                    <TemporalKPICard
+                      title="Ativos Negativos"
+                      current={negativeReturns.length}
+                      previous={negativeReturns.length}
+                      subtitle={`Média: ${formatPercent(avgNegative)}`}
+                      icon={<ArrowDownRight size={18} />}
+                    />
                   </>
                 );
               })()}
@@ -1955,6 +2091,400 @@ function App() {
           </div>
         )}
 
+        {/* Data Quality Tab */}
+        {!loading && activeTab === 'dataQuality' && (
+          <div>
+            {dataQuality ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.5rem' }}>
+                {/* KPI Cards */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: isMobile ? '1rem' : '1.25rem'
+                }}>
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        Overall Completeness
+                      </span>
+                      <CheckCircle size={18} color="#10b981" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: '#10b981' }}>
+                      {dataQuality.completeness ? (dataQuality.completeness.overallCompleteness * 100).toFixed(1) : 0}%
+                    </p>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        Anomalies Detected
+                      </span>
+                      <AlertTriangle size={18} color="#f59e0b" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                      {dataQuality.anomalies ? dataQuality.anomalies.totalAnomalies : 0}
+                    </p>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        Data Freshness
+                      </span>
+                      <CheckCircle size={18} color="#10b981" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: '#10b981' }}>
+                      {dataQuality.freshness ? (dataQuality.freshness.currentSourcesPercentage * 100).toFixed(0) : 0}%
+                    </p>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        Universe Coverage
+                      </span>
+                      <TrendingUp size={18} color="#10b981" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: '#10b981' }}>
+                      {dataQuality.coverage ? (dataQuality.coverage.coverageRate * 100).toFixed(1) : 0}%
+                    </p>
+                  </div>
+                </div>
+
+                {/* Completeness Summary */}
+                {dataQuality.completeness && (
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.5rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                      Data Completeness by Ticker
+                    </h3>
+                    <p style={{ margin: '0 0 1rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                      Date Range: {dataQuality.completeness.dateRange?.start} to {dataQuality.completeness.dateRange?.end}
+                    </p>
+                    <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary }}>
+                      Tickers below 95%: {dataQuality.completeness.tickers?.filter(t => t.completenessRate < 0.95).length || 0}
+                    </p>
+                  </div>
+                )}
+
+                {/* Anomalies Summary */}
+                {dataQuality.anomalies && (
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.5rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                      Detected Anomalies
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem' }}>
+                      <div>
+                        <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                          High Severity
+                        </p>
+                        <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+                          {dataQuality.anomalies.bySeverity?.high || 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                          Data Gaps
+                        </p>
+                        <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: theme.text }}>
+                          {dataQuality.anomalies.byType?.gap || 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                          Outliers
+                        </p>
+                        <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: theme.text }}>
+                          {dataQuality.anomalies.byType?.outlier || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Coverage Summary */}
+                {dataQuality.coverage && (
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.5rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                      Universe Coverage
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '1rem' }}>
+                      <div>
+                        <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                          Universe Size
+                        </p>
+                        <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: theme.text }}>
+                          {dataQuality.coverage.universeSize || 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                          Covered Tickers
+                        </p>
+                        <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#10b981' }}>
+                          {dataQuality.coverage.coveredTickers || 0}
+                        </p>
+                      </div>
+                      <div>
+                        <p style={{ margin: '0 0 0.25rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                          Excluded Tickers
+                        </p>
+                        <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+                          {dataQuality.coverage.excludedTickers?.length || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{
+                backgroundColor: theme.cardBg,
+                padding: '2rem',
+                borderRadius: '12px',
+                textAlign: 'center',
+                boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+              }}>
+                <p style={{ margin: 0, color: theme.textSecondary, fontSize: '0.9375rem' }}>
+                  Nenhum dado de qualidade disponível
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Drift Detection Tab */}
+        {!loading && activeTab === 'driftDetection' && (
+          <div>
+            {driftDetection ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.5rem' }}>
+                {/* KPI Cards */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: isMobile ? '1rem' : '1.25rem'
+                }}>
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        Drifted Features
+                      </span>
+                      <TrendingDown size={18} color="#f59e0b" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                      {driftDetection.drifted_features?.length || 0} / {driftDetection.all_features?.length || 0}
+                    </p>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
+                      {driftDetection.all_features?.length > 0 
+                        ? ((driftDetection.drifted_features?.length || 0) / driftDetection.all_features.length * 100).toFixed(1)
+                        : 0}% of features
+                    </p>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        Performance Status
+                      </span>
+                      <AlertTriangle size={18} color={driftDetection.performance_drift ? '#dc2626' : '#10b981'} />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: driftDetection.performance_drift ? '#dc2626' : '#10b981' }}>
+                      {driftDetection.performance_drift ? 'Degraded' : 'Stable'}
+                    </p>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        MAPE Change
+                      </span>
+                      <TrendingDown size={18} color={Math.abs(driftDetection.mape_change_percentage || 0) < 20 ? '#10b981' : '#dc2626'} />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                      {driftDetection.mape_change_percentage >= 0 ? '+' : ''}{(driftDetection.mape_change_percentage || 0).toFixed(1)}%
+                    </p>
+                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
+                      vs baseline
+                    </p>
+                  </div>
+
+                  <div style={{
+                    backgroundColor: theme.cardBg,
+                    padding: isMobile ? '1rem' : '1.25rem',
+                    borderRadius: '12px',
+                    boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span style={{ color: theme.textSecondary, fontSize: '0.8125rem', fontWeight: '500' }}>
+                        Retraining Status
+                      </span>
+                      <RefreshCw size={18} color={
+                        (driftDetection.drifted_features?.length || 0) / (driftDetection.all_features?.length || 1) > 0.3 || driftDetection.performance_drift
+                          ? '#f59e0b'
+                          : '#10b981'
+                      } />
+                    </div>
+                    <p style={{ margin: 0, fontSize: '1.75rem', fontWeight: '700', color: theme.text }}>
+                      {(driftDetection.drifted_features?.length || 0) / (driftDetection.all_features?.length || 1) > 0.3 || driftDetection.performance_drift
+                        ? 'Recommended'
+                        : 'Not Needed'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Drift Summary */}
+                <div style={{
+                  backgroundColor: theme.cardBg,
+                  padding: isMobile ? '1rem' : '1.5rem',
+                  borderRadius: '12px',
+                  boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                    Drift Detection Summary
+                  </h3>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                    Baseline MAPE: {formatPercent(driftDetection.baseline_mape || 0)}
+                  </p>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: theme.textSecondary }}>
+                    Current MAPE: {formatPercent(driftDetection.current_mape || 0)}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary }}>
+                    Features with drift detected: {driftDetection.drifted_features?.length || 0}
+                  </p>
+                </div>
+
+                {/* Placeholder sections for sub-tasks */}
+                <div style={{
+                  backgroundColor: theme.cardBg,
+                  padding: isMobile ? '1rem' : '1.5rem',
+                  borderRadius: '12px',
+                  boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                    Data Drift Detection
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary, textAlign: 'center', padding: '2rem' }}>
+                    Detailed drift charts will be implemented in sub-task 9.2
+                  </p>
+                </div>
+
+                <div style={{
+                  backgroundColor: theme.cardBg,
+                  padding: isMobile ? '1rem' : '1.5rem',
+                  borderRadius: '12px',
+                  boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                    Concept Drift Detection
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary, textAlign: 'center', padding: '2rem' }}>
+                    Concept drift heatmap will be implemented in sub-task 9.4
+                  </p>
+                </div>
+
+                <div style={{
+                  backgroundColor: theme.cardBg,
+                  padding: isMobile ? '1rem' : '1.5rem',
+                  borderRadius: '12px',
+                  boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                    Performance Degradation Alerts
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary, textAlign: 'center', padding: '2rem' }}>
+                    Degradation alerts will be implemented in sub-task 9.6
+                  </p>
+                </div>
+
+                <div style={{
+                  backgroundColor: theme.cardBg,
+                  padding: isMobile ? '1rem' : '1.5rem',
+                  borderRadius: '12px',
+                  boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
+                    Retraining Recommendations
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary, textAlign: 'center', padding: '2rem' }}>
+                    Retraining recommendations will be implemented in sub-task 9.8
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                backgroundColor: theme.cardBg,
+                padding: '2rem',
+                borderRadius: '12px',
+                textAlign: 'center',
+                boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
+              }}>
+                <p style={{ margin: 0, color: theme.textSecondary, fontSize: '0.9375rem' }}>
+                  Nenhum dado de drift detection disponível
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Explainability Tab */}
+        {!loading && activeTab === 'explainability' && (
+          <ExplainabilityTab darkMode={darkMode} />
+        )}
+
+        {/* Backtesting Tab */}
+        {!loading && activeTab === 'backtesting' && (
+          <BacktestingTab darkMode={darkMode} />
+        )}
+
         {/* Footer */}
         <div style={{
           marginTop: '2rem',
@@ -2022,6 +2552,7 @@ function App() {
         }
       `}</style>
     </div>
+    </TemporalComparisonProvider>
   );
 }
 

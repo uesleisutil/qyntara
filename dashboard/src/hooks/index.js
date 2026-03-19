@@ -16,3 +16,4 @@ export { useDataQuality } from './useDataQuality';
 export { useModelPerformance } from './useModelPerformance';
 export { useCosts } from './useCosts';
 export { useEnsembleWeights } from './useEnsembleWeights';
+export { useChartZoom } from './useChartZoom';

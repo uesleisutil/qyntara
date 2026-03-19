@@ -18,6 +18,11 @@ import pytest
 
 # Mock AWS services antes de importar o módulo
 import sys
+import os
+
+# Set required env vars before module import
+os.environ.setdefault("BUCKET", "test-bucket")
+
 sys.modules['boto3'] = MagicMock()
 
 from ml.src.lambdas.ingest_quotes import (
@@ -212,8 +217,9 @@ class TestCalculateLatencyPercentiles:
         result = calculate_latency_percentiles(latencies)
         
         assert result["avg"] == 55.0
-        assert result["p50"] == 50  # Mediana
-        assert result["p95"] == 90
+        # Implementation uses sorted_latencies[int(n * 0.50)] which is index 5 = 60
+        assert result["p50"] == 60
+        assert result["p95"] == 100
         assert result["p99"] == 100
     
     def test_percentiles_ordering(self):

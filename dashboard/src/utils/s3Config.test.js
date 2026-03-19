@@ -1,279 +1,147 @@
-import { validateCredentials, createS3Client, getBucketName, getS3Client, __resetS3Client, __clearCache, readS3Object, listS3Objects } from './s3Config';
-import { S3Client } from '@aws-sdk/client-s3';
+import { 
+  validateCredentials, 
+  createS3Client, 
+  getBucketName, 
+  getS3Client, 
+  __resetS3Client, 
+  __clearCache, 
+  readS3Object, 
+  listS3Objects 
+} from './s3Config';
 
-// Mock the AWS SDK
-jest.mock('@aws-sdk/client-s3');
+// Mock the config module
+jest.mock('../config', () => ({
+  API_BASE_URL: 'https://api.example.com',
+  API_KEY: 'test-api-key-123'
+}));
 
-describe('S3 Configuration', () => {
-  const originalEnv = process.env;
+// Mock fetch
+global.fetch = jest.fn();
 
+describe('S3 Configuration (API Gateway Approach)', () => {
   beforeEach(() => {
-    jest.resetModules();
-    process.env = { ...originalEnv };
-    __resetS3Client(); // Reset S3 client singleton
-    __clearCache(); // Clear data cache
-  });
-
-  afterAll(() => {
-    process.env = originalEnv;
+    jest.clearAllMocks();
+    __resetS3Client();
+    __clearCache();
   });
 
   describe('validateCredentials', () => {
-    it('should return valid when all required environment variables are set', () => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-
+    it('should return valid when API_BASE_URL and API_KEY are set', () => {
       const result = validateCredentials();
 
       expect(result.isValid).toBe(true);
       expect(result.missingVars).toEqual([]);
     });
-
-    it('should return invalid when AWS region is missing', () => {
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-      delete process.env.REACT_APP_AWS_REGION;
-
-      const result = validateCredentials();
-
-      expect(result.isValid).toBe(false);
-      expect(result.missingVars).toContain('REACT_APP_AWS_REGION');
-    });
-
-    it('should return invalid when access key ID is missing', () => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-      delete process.env.REACT_APP_AWS_ACCESS_KEY_ID;
-
-      const result = validateCredentials();
-
-      expect(result.isValid).toBe(false);
-      expect(result.missingVars).toContain('REACT_APP_AWS_ACCESS_KEY_ID');
-    });
-
-    it('should return invalid when secret access key is missing', () => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-      delete process.env.REACT_APP_AWS_SECRET_ACCESS_KEY;
-
-      const result = validateCredentials();
-
-      expect(result.isValid).toBe(false);
-      expect(result.missingVars).toContain('REACT_APP_AWS_SECRET_ACCESS_KEY');
-    });
-
-    it('should return invalid when S3 bucket is missing', () => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      delete process.env.REACT_APP_S3_BUCKET;
-
-      const result = validateCredentials();
-
-      expect(result.isValid).toBe(false);
-      expect(result.missingVars).toContain('REACT_APP_S3_BUCKET');
-    });
-
-    it('should return all missing variables when multiple are missing', () => {
-      delete process.env.REACT_APP_AWS_REGION;
-      delete process.env.REACT_APP_AWS_ACCESS_KEY_ID;
-      delete process.env.REACT_APP_AWS_SECRET_ACCESS_KEY;
-      delete process.env.REACT_APP_S3_BUCKET;
-
-      const result = validateCredentials();
-
-      expect(result.isValid).toBe(false);
-      expect(result.missingVars).toHaveLength(4);
-      expect(result.missingVars).toContain('REACT_APP_AWS_REGION');
-      expect(result.missingVars).toContain('REACT_APP_AWS_ACCESS_KEY_ID');
-      expect(result.missingVars).toContain('REACT_APP_AWS_SECRET_ACCESS_KEY');
-      expect(result.missingVars).toContain('REACT_APP_S3_BUCKET');
-    });
   });
 
   describe('createS3Client', () => {
-    it('should create S3Client with correct configuration when all env vars are set', () => {
-      process.env.REACT_APP_AWS_REGION = 'us-west-2';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'AKIAIOSFODNN7EXAMPLE';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY';
-      process.env.REACT_APP_S3_BUCKET = 'my-test-bucket';
-
+    it('should create a mock client when credentials are valid', () => {
       const client = createS3Client();
 
       expect(client).toBeDefined();
-      expect(client.send).toBeDefined();
-    });
-
-    it('should throw error when required environment variables are missing', () => {
-      delete process.env.REACT_APP_AWS_REGION;
-      delete process.env.REACT_APP_AWS_ACCESS_KEY_ID;
-      delete process.env.REACT_APP_AWS_SECRET_ACCESS_KEY;
-      delete process.env.REACT_APP_S3_BUCKET;
-
-      expect(() => createS3Client()).toThrow('Configuration error: Missing environment variables');
-    });
-
-    it('should throw error with specific missing variables in message', () => {
-      delete process.env.REACT_APP_AWS_REGION;
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-
-      expect(() => createS3Client()).toThrow('REACT_APP_AWS_REGION');
+      expect(client._isApiClient).toBe(true);
     });
   });
 
   describe('getBucketName', () => {
-    it('should return bucket name when REACT_APP_S3_BUCKET is set', () => {
-      process.env.REACT_APP_S3_BUCKET = 'my-test-bucket';
-
+    it('should return the hardcoded bucket name', () => {
       const bucketName = getBucketName();
 
-      expect(bucketName).toBe('my-test-bucket');
-    });
-
-    it('should throw error when REACT_APP_S3_BUCKET is not set', () => {
-      delete process.env.REACT_APP_S3_BUCKET;
-
-      expect(() => getBucketName()).toThrow('Configuration error: REACT_APP_S3_BUCKET environment variable is not set');
+      expect(bucketName).toBe('b3tr-200093399689-us-east-1');
     });
   });
 
   describe('getS3Client', () => {
-    it('should return the same S3Client instance on multiple calls (singleton)', () => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-
+    it('should return the same client instance on multiple calls (singleton)', () => {
       const client1 = getS3Client();
       const client2 = getS3Client();
 
       expect(client1).toBe(client2);
     });
-  });
 
-  describe('Requirements 7.1, 7.2, 7.3 - S3 Configuration and Validation', () => {
-    it('should read AWS region from REACT_APP_AWS_REGION environment variable', () => {
-      process.env.REACT_APP_AWS_REGION = 'eu-west-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
+    it('should create a new client after reset', () => {
+      const client1 = getS3Client();
+      __resetS3Client();
+      const client2 = getS3Client();
 
-      const client = createS3Client();
-
-      // Verify client was created successfully
-      expect(client).toBeDefined();
-      expect(client.send).toBeDefined();
-    });
-
-    it('should read S3 bucket name from REACT_APP_S3_BUCKET environment variable', () => {
-      process.env.REACT_APP_S3_BUCKET = 'production-bucket';
-
-      const bucketName = getBucketName();
-
-      expect(bucketName).toBe('production-bucket');
-    });
-
-    it('should validate credentials before allowing S3Client creation', () => {
-      delete process.env.REACT_APP_AWS_ACCESS_KEY_ID;
-
-      expect(() => createS3Client()).toThrow();
-    });
-
-    it('should display configuration error when credentials are missing', () => {
-      delete process.env.REACT_APP_AWS_REGION;
-      delete process.env.REACT_APP_AWS_ACCESS_KEY_ID;
-
-      const validation = validateCredentials();
-
-      expect(validation.isValid).toBe(false);
-      expect(validation.missingVars.length).toBeGreaterThan(0);
+      expect(client1).not.toBe(client2);
     });
   });
 
   describe('readS3Object', () => {
-    let mockSend;
-
-    beforeEach(() => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-
-      __resetS3Client();
-      
-      // Mock the S3Client's send method
-      mockSend = jest.fn();
-      S3Client.mockImplementation(() => ({
-        send: mockSend
-      }));
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-      __resetS3Client();
-    });
-
-    it('should fetch and parse JSON from S3 successfully', async () => {
+    it('should fetch and parse JSON from API Gateway successfully', async () => {
       const mockData = { test: 'data', value: 123 };
-      mockSend.mockResolvedValue({
-        Body: {
-          transformToString: jest.fn().mockResolvedValue(JSON.stringify(mockData))
-        }
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData
       });
 
       const result = await readS3Object('test/path.json');
 
       expect(result).toEqual(mockData);
-      expect(mockSend).toHaveBeenCalledTimes(1);
-    });
-
-    it('should throw error when S3 GetObject fails', async () => {
-      mockSend.mockRejectedValue(new Error('Network error'));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      await expect(readS3Object('test/path.json')).rejects.toThrow();
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error reading S3 object test/path.json:'),
-        expect.any(Error)
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.example.com/s3-proxy?key=test%2Fpath.json',
+        expect.objectContaining({
+          headers: {
+            'x-api-key': 'test-api-key-123',
+            'Content-Type': 'application/json'
+          }
+        })
       );
-
-      consoleErrorSpy.mockRestore();
     });
 
-    it('should throw error when JSON parsing fails', async () => {
-      mockSend.mockResolvedValue({
-        Body: {
-          transformToString: jest.fn().mockResolvedValue('invalid json {')
-        }
+    it('should cache successful responses', async () => {
+      const mockData = { test: 'cached' };
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData
       });
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await expect(readS3Object('test/invalid.json')).rejects.toThrow('Data parsing failed');
+      // First call - should fetch
+      const result1 = await readS3Object('test/cached.json');
+      expect(result1).toEqual(mockData);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
 
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
+      // Second call - should use cache
+      const result2 = await readS3Object('test/cached.json');
+      expect(result2).toEqual(mockData);
+      expect(global.fetch).toHaveBeenCalledTimes(1); // Still 1, not 2
     });
 
-    it('should handle empty JSON object', async () => {
-      const mockData = {};
-      mockSend.mockResolvedValue({
-        Body: {
-          transformToString: jest.fn().mockResolvedValue(JSON.stringify(mockData))
-        }
+    it('should throw error when API request fails with 404', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found'
       });
 
-      const result = await readS3Object('test/empty.json');
+      await expect(readS3Object('test/missing.json')).rejects.toThrow('Object not found');
+    });
 
-      expect(result).toEqual({});
+    it('should throw error when API request fails with 401', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized'
+      });
+
+      await expect(readS3Object('test/unauthorized.json')).rejects.toThrow('Authentication failed');
+    });
+
+    it('should throw error when API request fails with 403', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden'
+      });
+
+      await expect(readS3Object('test/forbidden.json')).rejects.toThrow('Authentication failed');
+    });
+
+    it('should throw network error when fetch fails', async () => {
+      global.fetch.mockRejectedValueOnce(new Error('Network error'));
+
+      await expect(readS3Object('test/network-fail.json')).rejects.toThrow('Unable to connect to data source');
     });
 
     it('should handle nested JSON structures', async () => {
@@ -287,10 +155,9 @@ describe('S3 Configuration', () => {
           generated_at: '2024-01-15T21:45:00Z'
         }
       };
-      mockSend.mockResolvedValue({
-        Body: {
-          transformToString: jest.fn().mockResolvedValue(JSON.stringify(mockData))
-        }
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData
       });
 
       const result = await readS3Object('recommendations/2024-01-15.json');
@@ -302,48 +169,53 @@ describe('S3 Configuration', () => {
   });
 
   describe('listS3Objects', () => {
-    let mockSend;
-
-    beforeEach(() => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-
-      __resetS3Client();
-      
-      mockSend = jest.fn();
-      S3Client.mockImplementation(() => ({
-        send: mockSend
-      }));
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-      __resetS3Client();
-    });
-
-    it('should list S3 objects with given prefix successfully', async () => {
-      const mockContents = [
-        { Key: 'recommendations/2024-01-15.json', LastModified: new Date('2024-01-15'), Size: 1024 },
-        { Key: 'recommendations/2024-01-14.json', LastModified: new Date('2024-01-14'), Size: 2048 }
+    it('should list S3 objects via API Gateway successfully', async () => {
+      const mockObjects = [
+        { Key: 'recommendations/2024-01-15.json', LastModified: '2024-01-15T00:00:00Z', Size: 1024 },
+        { Key: 'recommendations/2024-01-14.json', LastModified: '2024-01-14T00:00:00Z', Size: 2048 }
       ];
-      mockSend.mockResolvedValue({
-        Contents: mockContents
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ objects: mockObjects })
       });
 
       const result = await listS3Objects('recommendations/');
 
       expect(result).toHaveLength(2);
       expect(result[0].Key).toBe('recommendations/2024-01-15.json');
-      expect(result[0].LastModified).toEqual(new Date('2024-01-15'));
-      expect(result[0].Size).toBe(1024);
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'https://api.example.com/s3-proxy/list?prefix=recommendations%2F',
+        expect.objectContaining({
+          headers: {
+            'x-api-key': 'test-api-key-123',
+            'Content-Type': 'application/json'
+          }
+        })
+      );
+    });
+
+    it('should cache list responses', async () => {
+      const mockObjects = [{ Key: 'test/file.json', LastModified: '2024-01-15T00:00:00Z', Size: 512 }];
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ objects: mockObjects })
+      });
+
+      // First call - should fetch
+      const result1 = await listS3Objects('test/');
+      expect(result1).toEqual(mockObjects);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      // Second call - should use cache
+      const result2 = await listS3Objects('test/');
+      expect(result2).toEqual(mockObjects);
+      expect(global.fetch).toHaveBeenCalledTimes(1); // Still 1, not 2
     });
 
     it('should return empty array when no objects match prefix', async () => {
-      mockSend.mockResolvedValue({
-        Contents: []
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ objects: [] })
       });
 
       const result = await listS3Objects('nonexistent/');
@@ -351,36 +223,42 @@ describe('S3 Configuration', () => {
       expect(result).toEqual([]);
     });
 
-    it('should return empty array when Contents is undefined', async () => {
-      mockSend.mockResolvedValue({});
+    it('should return empty array when objects property is missing', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({})
+      });
 
       const result = await listS3Objects('test/');
 
       expect(result).toEqual([]);
     });
 
-    it('should throw error when ListObjectsV2 fails', async () => {
-      mockSend.mockRejectedValue(new Error('Network error'));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    it('should throw error when API request fails', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error'
+      });
 
-      await expect(listS3Objects('test/')).rejects.toThrow();
+      await expect(listS3Objects('test/')).rejects.toThrow('API request failed');
+    });
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error listing S3 objects with prefix test/:'),
-        expect.any(Error)
-      );
+    it('should throw network error when fetch fails', async () => {
+      global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
-      consoleErrorSpy.mockRestore();
+      await expect(listS3Objects('test/')).rejects.toThrow('Unable to connect to data source');
     });
 
     it('should handle multiple objects with different timestamps', async () => {
-      const mockContents = [
-        { Key: 'monitoring/ingestion/2024-01-15-14-30.json', LastModified: new Date('2024-01-15T14:30:00Z'), Size: 512 },
-        { Key: 'monitoring/ingestion/2024-01-15-14-00.json', LastModified: new Date('2024-01-15T14:00:00Z'), Size: 768 },
-        { Key: 'monitoring/ingestion/2024-01-15-13-30.json', LastModified: new Date('2024-01-15T13:30:00Z'), Size: 1024 }
+      const mockObjects = [
+        { Key: 'monitoring/ingestion/2024-01-15-14-30.json', LastModified: '2024-01-15T14:30:00Z', Size: 512 },
+        { Key: 'monitoring/ingestion/2024-01-15-14-00.json', LastModified: '2024-01-15T14:00:00Z', Size: 768 },
+        { Key: 'monitoring/ingestion/2024-01-15-13-30.json', LastModified: '2024-01-15T13:30:00Z', Size: 1024 }
       ];
-      mockSend.mockResolvedValue({
-        Contents: mockContents
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ objects: mockObjects })
       });
 
       const result = await listS3Objects('monitoring/ingestion/');
@@ -390,108 +268,65 @@ describe('S3 Configuration', () => {
       expect(result[1].Key).toBe('monitoring/ingestion/2024-01-15-14-00.json');
       expect(result[2].Key).toBe('monitoring/ingestion/2024-01-15-13-30.json');
     });
+  });
 
-    it('should map S3 objects to include Key, LastModified, and Size', async () => {
-      const mockContents = [
-        { 
-          Key: 'test/file.json', 
-          LastModified: new Date('2024-01-15'), 
-          Size: 2048,
-          ETag: '"abc123"',
-          StorageClass: 'STANDARD'
-        }
-      ];
-      mockSend.mockResolvedValue({
-        Contents: mockContents
+  describe('Cache Management', () => {
+    it('should clear cache when __clearCache is called', async () => {
+      const mockData = { test: 'data' };
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockData
       });
 
-      const result = await listS3Objects('test/');
+      // First call - should fetch
+      await readS3Object('test/cache.json');
+      expect(global.fetch).toHaveBeenCalledTimes(1);
 
-      expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
-        Key: 'test/file.json',
-        LastModified: new Date('2024-01-15'),
-        Size: 2048
-      });
-      // Should not include ETag or StorageClass
-      expect(result[0].ETag).toBeUndefined();
-      expect(result[0].StorageClass).toBeUndefined();
+      // Second call - should use cache
+      await readS3Object('test/cache.json');
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      // Clear cache
+      __clearCache();
+
+      // Third call - should fetch again
+      await readS3Object('test/cache.json');
+      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
   });
 
-
-  describe('Requirements 1.1, 2.1, 3.1, 10.1, 10.2 - Data Fetching and Error Handling', () => {
-    let mockSend;
-
-    beforeEach(() => {
-      process.env.REACT_APP_AWS_REGION = 'us-east-1';
-      process.env.REACT_APP_AWS_ACCESS_KEY_ID = 'test-key-id';
-      process.env.REACT_APP_AWS_SECRET_ACCESS_KEY = 'test-secret-key';
-      process.env.REACT_APP_S3_BUCKET = 'test-bucket';
-
-      __resetS3Client();
-      
-      mockSend = jest.fn();
-      S3Client.mockImplementation(() => ({
-        send: mockSend
-      }));
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-      __resetS3Client();
-    });
-
-    it('should fetch data from S3 using GetObjectCommand', async () => {
+  describe('Requirements Validation', () => {
+    it('should validate API configuration before making requests', async () => {
+      // This is implicitly tested by all successful API calls
       const mockData = { test: 'data' };
-      mockSend.mockResolvedValue({
-        Body: {
-          transformToString: jest.fn().mockResolvedValue(JSON.stringify(mockData))
-        }
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockData
       });
 
-      await readS3Object('test/path.json');
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
+      await expect(readS3Object('test/path.json')).resolves.toEqual(mockData);
     });
 
-    it('should handle S3 connectivity errors gracefully (Requirement 10.1)', async () => {
-      mockSend.mockRejectedValue(new Error('S3 unreachable'));
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    it('should handle API connectivity errors gracefully', async () => {
+      global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(readS3Object('test/path.json')).rejects.toThrow();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
+      await expect(readS3Object('test/path.json')).rejects.toThrow('Unable to connect to data source');
     });
 
-    it('should handle malformed JSON data gracefully (Requirement 10.2)', async () => {
-      mockSend.mockResolvedValue({
-        Body: {
-          transformToString: jest.fn().mockResolvedValue('not valid json')
-        }
+    it('should provide user-friendly error messages', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found'
       });
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await expect(readS3Object('test/malformed.json')).rejects.toThrow('Data parsing failed');
-      expect(consoleErrorSpy).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
-    });
-
-    it('should log errors to console for debugging (Requirement 10.4)', async () => {
-      const testError = new Error('Test error');
-      mockSend.mockRejectedValue(testError);
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      await expect(readS3Object('test/path.json')).rejects.toThrow();
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Error reading S3 object test/path.json:'),
-        testError
-      );
-
-      consoleErrorSpy.mockRestore();
+      try {
+        await readS3Object('test/missing.json');
+        fail('Should have thrown an error');
+      } catch (error) {
+        expect(error.message).toContain('Object not found');
+        expect(error.type).toBe('notfound');
+      }
     });
   });
 });

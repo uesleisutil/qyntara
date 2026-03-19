@@ -80,6 +80,9 @@ function putSsmParamOverwrite(scope: Construct, id: string, name: string, value:
 }
 
 export class InfraStack extends cdk.Stack {
+  public readonly bucket: s3.Bucket;
+  public readonly alertsTopic: sns.Topic;
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -124,7 +127,7 @@ export class InfraStack extends cdk.Stack {
     const bucketPrefix = sanitizeBucketPrefix(bucketPrefixRaw);
     const bucketName = `${bucketPrefix}-${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}`.slice(0, 63);
 
-    const bucket = new s3.Bucket(this, "B3TRBucket", {
+    this.bucket = new s3.Bucket(this, "B3TRBucket", {
       bucketName,
       versioned: false,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -172,6 +175,8 @@ export class InfraStack extends cdk.Stack {
     //   ├── errors/dt=YYYY-MM-DD/       # Erros e retries
     //   └── validation/                  # Relatórios de validação histórica
 
+    const bucket = this.bucket;
+
     // -----------------------
     // Upload automático de config/ -> s3://bucket/config/
     // -----------------------
@@ -194,11 +199,12 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     // SNS Alerts
     // -----------------------
-    const alertsTopic = new sns.Topic(this, "B3TRAlertsTopic", {
+    this.alertsTopic = new sns.Topic(this, "B3TRAlertsTopic", {
       topicName: "b3tr-alerts",
       displayName: "B3TR Alerts",
     });
 
+    const alertsTopic = this.alertsTopic;
     const alertEmail = process.env.ALERT_EMAIL;
     if (alertEmail) {
       alertsTopic.addSubscription(new subs.EmailSubscription(alertEmail));
@@ -535,6 +541,33 @@ export class InfraStack extends cdk.Stack {
     // /api/monitoring/data-quality
     const dataQualityResource = monitoringResource.addResource("data-quality");
     dataQualityResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/data-quality/* endpoints (Req 80.1, 80.10)
+    const dataQualityRootResource = apiResource.addResource("data-quality");
+    
+    // /api/data-quality/completeness
+    const completenessResource = dataQualityRootResource.addResource("completeness");
+    completenessResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/data-quality/anomalies
+    const anomaliesResource = dataQualityRootResource.addResource("anomalies");
+    anomaliesResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/data-quality/freshness
+    const freshnessResource = dataQualityRootResource.addResource("freshness");
+    freshnessResource.addMethod("GET", dashboardIntegration, {
+      apiKeyRequired: true,
+    });
+    
+    // /api/data-quality/coverage
+    const coverageResource = dataQualityRootResource.addResource("coverage");
+    coverageResource.addMethod("GET", dashboardIntegration, {
       apiKeyRequired: true,
     });
     
@@ -928,6 +961,34 @@ export class InfraStack extends cdk.Stack {
     // https://uesleisutil.github.io/b3-tactical-ranking
     
     // -----------------------
+    // Task 28.1: Storage Optimizer Lambda
+    // -----------------------
+    const storageOptimizerFn = mkPyLambda(
+      "StorageOptimizer",
+      "ml.src.lambdas.storage_optimizer.handler"
+    );
+    
+    // Grant additional S3 permissions for storage analysis
+    storageOptimizerFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: [
+          "s3:GetBucketLocation",
+          "s3:GetBucketVersioning",
+          "s3:GetLifecycleConfiguration",
+          "s3:ListBucketVersions",
+          "s3:GetBucketTagging",
+        ],
+        resources: [bucket.bucketArn],
+      })
+    );
+    
+    // Schedule storage optimizer to run daily
+    const storageOptimizerRule = new events.Rule(this, "StorageOptimizerDaily", {
+      schedule: events.Schedule.expression("cron(0 2 * * ? *)"), // 02:00 UTC daily
+    });
+    storageOptimizerRule.addTarget(new targets.LambdaFunction(storageOptimizerFn));
+
+    // -----------------------
     // Outputs
     // -----------------------
     new cdk.CfnOutput(this, "BucketName", { value: bucket.bucketName });
@@ -957,6 +1018,10 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, "StopLossCalculatorLambda", {
       value: stopLossCalculatorFn.functionName,
       description: "Stop Loss Calculator Lambda Function"
+    });
+    new cdk.CfnOutput(this, "StorageOptimizerLambda", {
+      value: storageOptimizerFn.functionName,
+      description: "Storage Optimizer Lambda Function"
     });
     new cdk.CfnOutput(this, "DashboardApiUrl", {
       value: api.url,

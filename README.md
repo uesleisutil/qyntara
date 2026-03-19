@@ -1,271 +1,233 @@
-# B3 Tactical Ranking
+# B3 Tactical Ranking — MLOps Dashboard
 
-Sistema de recomendação de ações da B3 usando Machine Learning com SageMaker.
+A machine learning-powered stock recommendation system for the Brazilian stock exchange (B3), featuring an 8-tab monitoring dashboard, automated model training, drift detection, and cost optimization.
 
-## Arquitetura
+## Architecture Overview
 
 ```
-TREINO (1x)                    INFERÊNCIA (Diária)
-───────────                    ────────────────────
-
-Lambda Train                   Lambda Rank
-    │                              │
-    ▼                              ▼
-SageMaker Training            Carregar Modelo S3
-    │                              │
-    ▼                              ▼
-model.tar.gz ──────────────▶  Predições In-Memory
-    │                              │
-    ▼                              ▼
-S3: models/                   S3: recommendations/
+┌─────────────────────────────────────────────────────────────────┐
+│                        Client (Browser)                         │
+│  React 18 + TypeScript │ Recharts + D3.js │ TanStack Table      │
+│  React Query │ Tailwind CSS │ Service Worker                    │
+└──────────┬──────────────────────┬───────────────────────────────┘
+           │ HTTPS                │ WebSocket
+┌──────────▼──────────┐  ┌───────▼──────────┐
+│   API Gateway       │  │  WebSocket GW    │
+│   (REST + Auth)     │  │  (Real-time)     │
+└──────────┬──────────┘  └───────┬──────────┘
+           │                     │
+┌──────────▼─────────────────────▼────────────────────────────────┐
+│                     AWS Lambda (Python 3.11)                     │
+│  dashboard_api │ rest_api │ backtesting_api │ data_quality       │
+│  monitor_drift │ monitor_costs │ rank_sagemaker │ train_sagemaker│
+│  webhook_management │ security_middleware │ auth_service         │
+└──────┬──────────┬──────────┬──────────┬─────────────────────────┘
+       │          │          │          │
+┌──────▼───┐ ┌───▼────┐ ┌──▼───┐ ┌───▼──────────┐
+│    S3    │ │DynamoDB│ │Redis │ │  SageMaker   │
+│  (Data)  │ │(Config)│ │(Cache)│ │  (Training)  │
+└──────────┘ └────────┘ └──────┘ └──────────────┘
 ```
 
-## Features
+## Dashboard Tabs
 
-- ✅ 50+ features técnicas avançadas (RSI, MACD, Bollinger Bands, ATR, etc)
-- ✅ Walk-forward validation temporal (5 splits)
-- ✅ Feature selection automática (top 30)
-- ✅ Inferência in-memory (sem endpoint 24/7)
-- ✅ Monitoramento contínuo de performance
-- ✅ Detecção automática de drift
-- ✅ Alertas SNS para re-treino
-- ✅ Monitoramento de custos em tempo real
-- ✅ Monitoramento de instâncias SageMaker
-- ✅ Dashboard completo com métricas
-- ✅ Custo < $1/mês
+| Tab | Description |
+|-----|-------------|
+| **Recommendations** | Top-ranked stock picks with filtering, export, comparison, and alerts |
+| **Performance** | Model metrics (MAPE, accuracy, Sharpe), confusion matrix, benchmarks |
+| **Validation** | Predicted vs actual scatter plots, temporal accuracy, outlier analysis |
+| **Costs** | AWS cost trends, cost-per-prediction, budget alerts, ROI calculator |
+| **Data Quality** | Completeness rates, anomaly detection, freshness indicators, coverage |
+| **Drift Detection** | Data drift (KS test), concept drift, performance degradation, retrain recommendations |
+| **Explainability** | SHAP values, sensitivity analysis, feature impact, decision paths |
+| **Backtesting** | Historical strategy simulation, walk-forward analysis, risk metrics |
 
-## Deployment
+## Quick Start
 
-### 1. Pré-requisitos
+### Prerequisites
+
+- Node.js 18+ and npm
+- Python 3.11+
+- AWS CLI configured (`aws configure`)
+- AWS CDK (`npm install -g aws-cdk`)
+
+### 1. Clone and Install
 
 ```bash
-# AWS CLI configurado
-aws configure
-
-# Node.js e CDK
-npm install -g aws-cdk
-
-# Python 3.11+
-python --version
+git clone https://github.com/uesleisutil/b3-tactical-ranking.git
+cd b3-tactical-ranking
 ```
 
-### 2. Deploy da Infraestrutura
+### 2. Deploy Infrastructure
 
 ```bash
 cd infra
 npm install
-cdk deploy
+cdk deploy --all
 ```
 
-### 3. Aguardar Bootstrap de Dados
+This deploys: Lambda functions, API Gateway, S3 buckets, DynamoDB tables, ElastiCache Redis, CloudFront CDN, monitoring alarms, and disaster recovery resources.
 
-O sistema automaticamente faz bootstrap dos dados históricos (roda a cada 30 min).
+### 3. Start the Dashboard (Development)
 
 ```bash
-# Verificar progresso
-aws logs tail /aws/lambda/*BootstrapHistory* --follow
-
-# Verificar dados disponíveis
-aws s3 ls s3://BUCKET/curated/daily_monthly/ --recursive | wc -l
-# Deve ter 120+ dias por ticker
+cd dashboard
+npm install
+npm start
 ```
 
-### 4. Treinar Modelo Inicial
+The dashboard opens at `http://localhost:3000`.
+
+### 4. Train the Initial Model
 
 ```bash
-aws lambda invoke \
-  --function-name <TrainSageMaker> \
-  --payload '{
-    "lookback_days": 365,
-    "hyperparameters": {
-      "max_depth": "6",
-      "learning_rate": "0.1",
-      "n_estimators": "100",
-      "n_features": "30",
-      "cv_splits": "5"
-    }
-  }' \
-  output.json
-
-# Aguardar conclusão (5-15 min)
-cat output.json | jq
-```
-
-### 5. Verificar Primeira Recomendação
-
-O ranking roda automaticamente às 18:10 BRT. Para forçar manualmente:
-
-```bash
-aws lambda invoke \
-  --function-name <RankSageMaker> \
-  --payload '{}' \
-  output.json
-
-# Ver recomendações
-aws s3 cp s3://BUCKET/recommendations/dt=$(date +%Y-%m-%d)/top50.json - | jq
-```
-
-## Operação Diária
-
-O sistema roda automaticamente:
-
-- **A cada 5 min**: Monitora instâncias SageMaker (detecta endpoints ativos)
-- **18:10 BRT**: Gera ranking top 50
-- **19:30 BRT**: Valida predições de 20 dias atrás
-- **20:00 BRT**: Monitora custos
-
-### ⚠️ Alerta Importante: Endpoints SageMaker
-
-O sistema foi projetado para **inferência in-memory** (sem endpoints).
-
-Se o dashboard mostrar endpoints ativos:
-```bash
-# Deletar endpoint imediatamente
-aws sagemaker delete-endpoint --endpoint-name <ENDPOINT_NAME>
-
-# Economia: ~$47/mês por endpoint
-```
-
-## Monitoramento
-
-### Métricas CloudWatch
-
-- `B3TR/ModelMAPE` - Erro percentual do modelo
-- `B3TR/DirectionalAccuracy` - Acurácia direcional
-- `B3TR/ModelMAE` - Erro absoluto médio
-
-### Dashboard Web
-
-Acesse: `https://uesleisutil.github.io/b3-tactical-ranking`
-
-**Abas disponíveis**:
-- **Visão Geral**: Recomendações, qualidade, ingestão
-- **Performance do Modelo**: MAPE, acurácia, drift
-- **Monitoramento**: Drift, features, alertas
-- **Avançado**: Hiperparâmetros, explicabilidade
-- **Custos & Performance**: 
-  - Monitoramento de instâncias SageMaker (training jobs, endpoints, transform jobs)
-  - Performance do modelo (MAPE, acurácia direcional)
-  - Custos operacionais (diário, mensal, por serviço)
-  - Alertas automáticos
-
-### Comandos Úteis
-
-```bash
-# Ver performance do modelo
-aws s3 cp s3://BUCKET/monitoring/performance/dt=$(date +%Y-%m-%d)/metrics.json - | jq
-
-# Ver feature importance
-aws s3 cp s3://BUCKET/models/ensemble/latest/feature_importance.csv -
-
-# Ver logs
-aws logs tail /aws/lambda/<RankSageMaker> --follow
-
-# Forçar modo momentum (sem modelo)
-aws lambda invoke \
-  --function-name <RankSageMaker> \
-  --payload '{"force_momentum": true}' \
-  output.json
-```
-
-## Re-treino
-
-O sistema alerta automaticamente quando re-treino é necessário:
-
-### Critérios
-- MAPE > 20%
-- Drift detectado (performance degradou 50%)
-- Performance 2x pior que treino
-
-### Como Re-treinar
-
-```bash
-# Verificar se necessário
-aws s3 cp s3://BUCKET/monitoring/performance/dt=$(date +%Y-%m-%d)/metrics.json - | jq '.needs_retrain'
-
-# Re-treinar
 aws lambda invoke \
   --function-name <TrainSageMaker> \
   --payload '{"lookback_days": 365}' \
   output.json
 ```
 
-## Custos
+Training takes 5–15 minutes. The system bootstraps historical data automatically.
 
-### Operação Mensal
-- Lambda Rank: $0.15
-- Lambda Ingest: $0.50
-- Lambda Monitor: $0.10
-- S3 Storage: $0.10
-- CloudWatch: $0.10
+### 5. Generate First Recommendations
 
-**Total: ~$0.95/mês**
+Recommendations run daily at 18:10 BRT. To trigger manually:
 
-### Re-treino (Ocasional)
-- SageMaker Training: $0.06/treino
+```bash
+aws lambda invoke \
+  --function-name <RankSageMaker> \
+  --payload '{}' \
+  output.json
+```
 
-## Estrutura do Projeto
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `AWS_REGION` | AWS region | `us-east-1` |
+| `BRAPI_SECRET_ID` | Secrets Manager key for BRAPI token | `brapi/pro/token` |
+| `B3TR_PREDICTION_LENGTH` | Prediction horizon in days | `20` |
+| `B3TR_TOP_N` | Number of top recommendations | `10` |
+| `ALERT_EMAIL` | Email for SNS alerts | — |
+| `MODEL_QUALITY_MAPE_THRESHOLD` | MAPE threshold for retrain alerts | `0.20` |
+
+See `.env.example` for the full list.
+
+## Project Structure
 
 ```
 .
-├── config/                    # Configurações (universe, holidays)
-├── dashboard/                 # Dashboard React (GitHub Pages)
-├── infra/                     # CDK Infrastructure
-├── ml/
+├── dashboard/               # React 18 + TypeScript frontend
+│   ├── src/
+│   │   ├── components/      # UI components by feature
+│   │   │   ├── recommendations/  # Recommendations tab
+│   │   │   ├── charts/           # Shared chart components
+│   │   │   ├── backtesting/      # Backtesting tab
+│   │   │   ├── costs/            # Costs tab
+│   │   │   ├── dataQuality/      # Data Quality tab
+│   │   │   ├── driftDetection/   # Drift Detection tab
+│   │   │   ├── explainability/   # Explainability tab
+│   │   │   ├── validation/       # Validation tab
+│   │   │   ├── monitoring/       # Monitoring components
+│   │   │   ├── filters/          # Filter components
+│   │   │   ├── export/           # Export (CSV, Excel, PDF)
+│   │   │   ├── auth/             # Authentication
+│   │   │   ├── help/             # FAQ, glossary, guided tour
+│   │   │   ├── settings/         # User preferences
+│   │   │   ├── shared/           # Reusable UI components
+│   │   │   └── panels/           # Dashboard panels
+│   │   ├── contexts/        # React Context providers
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── services/        # API client, cache, WebSocket
+│   │   └── utils/           # Utilities (accessibility, code splitting)
+│   └── package.json
+├── ml/                      # Python ML backend
 │   └── src/
-│       ├── features/          # Feature engineering
-│       ├── lambdas/           # Lambda functions
-│       ├── sagemaker/         # SageMaker scripts
-│       └── runtime_config.py  # Runtime configuration
-├── scripts/                   # Utility scripts
-├── MODEL_MONITORING_RETRAIN.md  # Monitoramento detalhado
-├── PRODUCTION_DEPLOYMENT.md     # Guia de deployment
-└── SAGEMAKER_ENSEMBLE.md        # Arquitetura SageMaker
+│       ├── lambdas/         # Lambda function handlers
+│       ├── features/        # Feature engineering
+│       └── sagemaker/       # SageMaker training scripts
+├── infra/                   # AWS CDK infrastructure
+│   └── lib/
+│       ├── infra-stack.ts          # Core infrastructure
+│       ├── monitoring-stack.ts     # CloudWatch monitoring
+│       ├── security-stack.ts       # Security (WAF, auth)
+│       ├── optimization-stack.ts   # Performance optimization
+│       └── disaster-recovery-stack.ts  # DR resources
+├── config/                  # Universe definition, holidays
+├── scripts/                 # Utility scripts
+├── docs/                    # Documentation
+│   ├── API.md               # API reference
+│   ├── COMPONENTS.md        # React component docs
+│   ├── ARCHITECTURE.md      # Architecture decisions
+│   └── runbooks/            # Operational runbooks
+├── CHANGELOG.md             # Release changelog
+├── DEPLOYMENT_GUIDE.md      # Deployment instructions
+├── OPERATIONS_GUIDE.md      # Operations guide
+└── TROUBLESHOOTING_RUNBOOK.md  # Troubleshooting
 ```
 
-## Documentação Adicional
+## Technology Stack
 
-- [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) - Guia completo de deployment
-- [SAGEMAKER_ENSEMBLE.md](SAGEMAKER_ENSEMBLE.md) - Arquitetura e custos
-- [MODEL_MONITORING_RETRAIN.md](MODEL_MONITORING_RETRAIN.md) - Monitoramento e re-treino
+| Layer | Technology |
+|-------|-----------|
+| Frontend Framework | React 18 + TypeScript |
+| Charts | Recharts, D3.js, Plotly.js |
+| Tables | TanStack Table v8 |
+| State Management | React Context + React Query + URL state |
+| Styling | Tailwind CSS, MUI |
+| Animations | Framer Motion |
+| Testing | Jest, React Testing Library, fast-check, Playwright |
+| Backend | AWS Lambda (Python 3.11) |
+| API | API Gateway (REST + WebSocket) |
+| Storage | S3, DynamoDB |
+| Caching | ElastiCache Redis |
+| CDN | CloudFront |
+| ML Training | SageMaker |
+| Monitoring | CloudWatch, Sentry |
+| Auth | AWS Cognito (SAML/OAuth) |
 
-## Validação
+## Daily Operations
 
-```bash
-# Executar script de validação
-./scripts/validate-production-ready.sh
-```
+The system runs automatically:
 
-## Troubleshooting
+| Schedule | Task |
+|----------|------|
+| Every 5 min | Monitor SageMaker instances |
+| 18:10 BRT | Generate top-50 ranking |
+| 19:30 BRT | Validate 20-day-old predictions |
+| 20:00 BRT | Monitor AWS costs |
 
-### Sem dados históricos
-```bash
-# Verificar bootstrap
-aws logs tail /aws/lambda/*BootstrapHistory* --follow
-```
+### Retraining Criteria
 
-### Modelo não encontrado
-```bash
-# Verificar modelos disponíveis
-aws s3 ls s3://BUCKET/models/ensemble/
+The system alerts when retraining is needed:
+- MAPE > 20%
+- Drift detected (performance degraded 50%)
+- Performance 2× worse than training baseline
 
-# Treinar novo modelo
-aws lambda invoke --function-name <TrainSageMaker> --payload '{}' output.json
-```
+## Estimated Monthly Cost
 
-### MAPE alto
-```bash
-# Verificar performance
-aws s3 cp s3://BUCKET/monitoring/performance/dt=$(date +%Y-%m-%d)/metrics.json - | jq
+| Service | Cost |
+|---------|------|
+| Lambda (all functions) | ~$0.75 |
+| S3 Storage | ~$0.10 |
+| CloudWatch | ~$0.10 |
+| **Total** | **~$0.95/month** |
 
-# Re-treinar se necessário
-aws lambda invoke --function-name <TrainSageMaker> --payload '{}' output.json
-```
+SageMaker training: ~$0.06 per run (on-demand).
 
-## Licença
+## Documentation
 
-MIT License - Ver [LICENSE](LICENSE)
+- [API Reference](docs/API.md) — All REST endpoints with examples
+- [Component Guide](docs/COMPONENTS.md) — React components, contexts, hooks
+- [Architecture Decisions](docs/ARCHITECTURE.md) — ADRs and design rationale
+- [Deployment Guide](DEPLOYMENT_GUIDE.md) — Full deployment instructions
+- [Operations Guide](OPERATIONS_GUIDE.md) — Day-to-day operations
+- [Troubleshooting](TROUBLESHOOTING_RUNBOOK.md) — Common issues and fixes
+- [Disaster Recovery](docs/DISASTER_RECOVERY.md) — DR procedures and runbooks
+- [Changelog](CHANGELOG.md) — Release history
 
-## Contato
+## License
 
-Para dúvidas ou sugestões, abra uma issue no GitHub.
+MIT License — see [LICENSE](LICENSE).

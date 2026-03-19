@@ -1,0 +1,224 @@
+{
+  "version": "1.0",
+  "description": "B3 Tactical Ranking - Sentry Error Tracking Configuration",
+  "requirements": "83.4, 83.6",
+
+  "project": {
+    "name": "b3-tactical-ranking-dashboard",
+    "platform": "javascript-react",
+    "environment": "production",
+    "dsnEnvVar": "REACT_APP_SENTRY_DSN",
+    "release": {
+      "prefix": "b3-dashboard",
+      "versionEnvVar": "REACT_APP_VERSION"
+    }
+  },
+
+  "sdkConfig": {
+    "sampleRate": 1.0,
+    "tracesSampleRate": 0.2,
+    "profilesSampleRate": 0.1,
+    "replaysSessionSampleRate": 0.1,
+    "replaysOnErrorSampleRate": 1.0,
+    "maxBreadcrumbs": 50,
+    "attachStacktrace": true,
+    "autoSessionTracking": true,
+    "enableTracing": true,
+    "environment": "production",
+    "integrations": [
+      "BrowserTracing",
+      "Replay",
+      "HttpClient"
+    ],
+    "tracePropagationTargets": [
+      "localhost",
+      "/api/",
+      "execute-api.us-east-1.amazonaws.com"
+    ],
+    "ignoreErrors": [
+      "ResizeObserver loop limit exceeded",
+      "ResizeObserver loop completed with undelivered notifications",
+      "Non-Error promise rejection captured",
+      "Network request failed",
+      "Load failed",
+      "ChunkLoadError"
+    ],
+    "denyUrls": [
+      "/extensions/",
+      "/^chrome:/",
+      "/^moz-extension:/"
+    ]
+  },
+
+  "alertRules": [
+    {
+      "name": "High Error Volume",
+      "description": "More than 50 errors in 1 hour",
+      "conditions": {
+        "type": "event_frequency",
+        "value": 50,
+        "interval": "1h"
+      },
+      "actions": ["email", "slack"],
+      "severity": "critical",
+      "enabled": true
+    },
+    {
+      "name": "New Issue Detected",
+      "description": "A new error type is seen for the first time",
+      "conditions": {
+        "type": "first_seen_event"
+      },
+      "actions": ["email", "slack"],
+      "severity": "warning",
+      "enabled": true
+    },
+    {
+      "name": "Issue Regression",
+      "description": "A previously resolved issue has reappeared",
+      "conditions": {
+        "type": "regression_event"
+      },
+      "actions": ["email", "slack"],
+      "severity": "high",
+      "enabled": true
+    },
+    {
+      "name": "Slow Page Load",
+      "description": "Page load p95 exceeds 5 seconds",
+      "conditions": {
+        "type": "transaction_duration",
+        "metric": "p95",
+        "threshold": 5000,
+        "interval": "15m"
+      },
+      "actions": ["email"],
+      "severity": "warning",
+      "enabled": true
+    },
+    {
+      "name": "High Error Rate",
+      "description": "Error rate exceeds 5% of sessions",
+      "conditions": {
+        "type": "error_rate",
+        "value": 5,
+        "interval": "1h"
+      },
+      "actions": ["email", "slack"],
+      "severity": "critical",
+      "enabled": true
+    },
+    {
+      "name": "API Failure Spike",
+      "description": "API call failures exceed 10 in 5 minutes",
+      "conditions": {
+        "type": "event_frequency",
+        "value": 10,
+        "interval": "5m",
+        "filter": {
+          "tags": { "category": "api_error" }
+        }
+      },
+      "actions": ["email", "slack"],
+      "severity": "critical",
+      "enabled": true
+    }
+  ],
+
+  "errorGrouping": {
+    "strategy": "fingerprint",
+    "rules": [
+      {
+        "name": "API Errors by Endpoint",
+        "description": "Group API errors by endpoint path",
+        "matchers": [
+          { "type": "tag", "key": "category", "value": "api_error" }
+        ],
+        "fingerprint": ["{{ default }}", "{{ tags.endpoint }}"]
+      },
+      {
+        "name": "Chart Rendering Errors",
+        "description": "Group chart rendering errors by component",
+        "matchers": [
+          { "type": "tag", "key": "component", "value": "*Chart*" }
+        ],
+        "fingerprint": ["chart-error", "{{ tags.component }}"]
+      },
+      {
+        "name": "Data Loading Errors",
+        "description": "Group data loading errors by data source",
+        "matchers": [
+          { "type": "message", "value": "*fetch*" }
+        ],
+        "fingerprint": ["data-loading", "{{ tags.source }}"]
+      },
+      {
+        "name": "Authentication Errors",
+        "description": "Group all auth-related errors together",
+        "matchers": [
+          { "type": "tag", "key": "category", "value": "auth" }
+        ],
+        "fingerprint": ["auth-error", "{{ tags.action }}"]
+      }
+    ]
+  },
+
+  "contextTags": {
+    "description": "Custom tags attached to all Sentry events",
+    "tags": [
+      { "key": "environment", "source": "env:REACT_APP_ENVIRONMENT" },
+      { "key": "version", "source": "env:REACT_APP_VERSION" },
+      { "key": "tab", "source": "context:activeTab" },
+      { "key": "userId", "source": "context:userId" },
+      { "key": "userRole", "source": "context:userRole" }
+    ]
+  },
+
+  "performanceMonitoring": {
+    "description": "Frontend performance tracking via Sentry (Req 83.6)",
+    "transactions": [
+      {
+        "name": "page-load",
+        "description": "Full page load performance",
+        "sampleRate": 0.5
+      },
+      {
+        "name": "api-call",
+        "description": "API request performance",
+        "sampleRate": 0.2
+      },
+      {
+        "name": "chart-render",
+        "description": "Chart component render time",
+        "sampleRate": 0.1
+      },
+      {
+        "name": "data-export",
+        "description": "Data export operation time",
+        "sampleRate": 1.0
+      }
+    ],
+    "webVitals": {
+      "enabled": true,
+      "metrics": ["LCP", "FID", "CLS", "FCP", "TTFB"]
+    }
+  },
+
+  "notifications": {
+    "email": {
+      "recipients": ["production-alerts@example.com"],
+      "digestFrequency": "daily"
+    },
+    "slack": {
+      "webhookEnvVar": "SENTRY_SLACK_WEBHOOK",
+      "channel": "#b3-errors",
+      "mentionOnCritical": "@oncall"
+    }
+  },
+
+  "dataRetention": {
+    "events": "90 days",
+    "attachments": "30 days",
+    "replays": "30 days"
+  }
+}

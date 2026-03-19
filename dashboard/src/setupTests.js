@@ -19,3 +19,28 @@ global.ResizeObserver = class ResizeObserver {
     // Mock implementation
   }
 };
+
+// Mock matchMedia for theme detection
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: query === '(prefers-color-scheme: dark)' ? false : false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
+// Mock clipboard API for share functionality
+Object.defineProperty(navigator, 'clipboard', {
+  value: {
+    writeText: jest.fn(() => Promise.resolve()),
+    readText: jest.fn(() => Promise.resolve('')),
+  },
+  writable: true,
+  configurable: true,
+});

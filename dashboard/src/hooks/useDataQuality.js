@@ -13,17 +13,19 @@ import api from '../services/api';
 /**
  * Custom hook for fetching data quality metrics
  * 
- * @param {Object} options - Hook options
- * @param {number} options.days - Number of days of history (default: 30)
+ * @param {number} days - Number of days of history (default: 30)
+ * @param {Object} options - Additional hook options
  * @param {boolean} options.enabled - Whether to enable the query (default: true)
  * @param {number} options.refetchInterval - Refetch interval in ms (default: 300000 = 5 minutes)
- * @returns {Object} React Query result with data, loading, error states, and refresh function
+ * @returns {Object} React Query result with data, loading, error states, and refetch function
  */
-export const useDataQuality = ({
+export const useDataQuality = (
   days = 30,
-  enabled = true,
-  refetchInterval = 5 * 60 * 1000 // 5 minutes
-} = {}) => {
+  {
+    enabled = true,
+    refetchInterval = 5 * 60 * 1000 // 5 minutes
+  } = {}
+) => {
   const queryClient = useQueryClient();
   
   const query = useQuery({
@@ -40,13 +42,15 @@ export const useDataQuality = ({
    * Manually refresh data quality metrics
    * Invalidates the query cache and triggers a refetch
    */
-  const refresh = () => {
+  const refetch = () => {
     queryClient.invalidateQueries({ queryKey: ['dataQuality'] });
   };
   
   return {
-    ...query,
-    refresh
+    data: query.data,
+    loading: query.isLoading,
+    error: query.error?.message,
+    refetch
   };
 };
 
