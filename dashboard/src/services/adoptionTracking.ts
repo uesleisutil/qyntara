@@ -174,7 +174,7 @@ export function trackPerformanceMetric(metric: string, valueMs: number): void {
  * Req 91.10: Identify power users and their usage patterns
  */
 export async function getAdoptionSummary(days: number = 30): Promise<AdoptionSummary> {
-  return api.get(ADOPTION_ENDPOINT, { days: String(days) });
+  return api.get(ADOPTION_ENDPOINT, { days: String(days) }) as Promise<AdoptionSummary>;
 }
 
 // ── Internal helpers ───────────────────────────────────────
