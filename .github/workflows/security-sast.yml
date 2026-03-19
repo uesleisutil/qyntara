@@ -98,8 +98,8 @@ jobs:
       - name: Install dependencies
         working-directory: ./dashboard
         run: |
-          npm install
-          npm install --save-dev eslint-plugin-security eslint-plugin-react-security
+          npm install --legacy-peer-deps
+          npm install --legacy-peer-deps --save-dev eslint-plugin-security eslint-plugin-react-security
 
       - name: Run ESLint Security
         working-directory: ./dashboard
