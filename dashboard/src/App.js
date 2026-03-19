@@ -305,7 +305,7 @@ function App() {
         
         {/* Breadcrumb */}
         <Breadcrumb 
-          items={[
+          segments={[
             { label: 'Dashboard', path: '/' },
             { 
               label: activeTab === 'recommendations' ? 'Recomendações' : 
