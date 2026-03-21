@@ -319,7 +319,8 @@ def handler(event, context):
     dt = now.date().isoformat()
 
     holidays = load_holidays(bucket, cfg.holidays_s3_key)
-    if should_skip_today(now, holidays):
+    force = event.get('force', False)
+    if not force and should_skip_today(now, holidays):
         return {
             "ok": True,
             "skipped": True,

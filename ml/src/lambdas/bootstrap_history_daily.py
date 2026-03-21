@@ -172,6 +172,98 @@ def _upsert_month_csv(bucket: str, year: int, month: int, df_new: pd.DataFrame) 
     logger.info("Upsert %s rows=%d", key, len(df))
 
 
+def _incremental_update(cfg: BootstrapCfg, base_prefix: str) -> dict[str, Any]:
+    """
+    Update incremental diário: busca últimos 30 dias de cada ticker
+    e faz upsert no curated/daily_monthly.
+    Roda em batches para não estourar timeout.
+    """
+    now = datetime.now(UTC)
+    state_key = f"{base_prefix}/incremental_state.json"
+
+    token = _get_brapi_token(cfg.secret_id)
+    universe = _load_universe(cfg.bucket, cfg.universe_key)
+
+    # Carregar estado incremental
+    state: dict[str, Any] = {"next_index": 0, "last_full_run": None}
+    if _s3_exists(cfg.bucket, state_key):
+        state = _read_s3_json(cfg.bucket, state_key)
+
+    # Se já rodou hoje, pular
+    last_run = state.get("last_full_run")
+    today_str = now.date().isoformat()
+    if last_run == today_str:
+        return {"ok": True, "skipped": True, "reason": "already_updated_today"}
+
+    start_i = int(state.get("next_index", 0))
+    end_i = min(start_i + cfg.tickers_per_run, len(universe))
+    batch = universe[start_i:end_i]
+
+    logger.info(
+        "Incremental update: idx=%d..%d total=%d",
+        start_i, end_i, len(universe),
+    )
+
+    month_rows: dict[tuple[int, int], list[tuple[str, str, float]]] = defaultdict(list)
+    tickers_updated = 0
+
+    for t in batch:
+        try:
+            # Buscar últimos 30 dias (1mo)
+            payload = _brapi_history(t, token, "1mo")
+            rows = _iter_rows(payload, t)
+
+            if not rows:
+                logger.warning("No recent data for %s", t)
+                time.sleep(cfg.sleep_s)
+                continue
+
+            tickers_updated += 1
+            for dt, ticker, close in rows:
+                y = int(dt[0:4])
+                m = int(dt[5:7])
+                month_rows[(y, m)].append((dt, ticker, close))
+
+            logger.info("Incremental %s: %d rows", t, len(rows))
+            time.sleep(cfg.sleep_s)
+        except Exception as e:
+            logger.warning("Incremental failed for %s: %s", t, str(e))
+            continue
+
+    # Upsert mensal
+    months_written = 0
+    for (y, m), rows in month_rows.items():
+        df_new = pd.DataFrame(rows, columns=["date", "ticker", "close"])
+        _upsert_month_csv(cfg.bucket, y, m, df_new)
+        months_written += 1
+
+    # Atualizar estado
+    if end_i >= len(universe):
+        # Completou todos os tickers, marcar como feito hoje
+        state["next_index"] = 0
+        state["last_full_run"] = today_str
+    else:
+        state["next_index"] = end_i
+
+    state["updated_at"] = now.isoformat()
+    _write_s3_json(cfg.bucket, state_key, state)
+
+    logger.info(
+        "Incremental update: %d tickers, %d months written",
+        tickers_updated, months_written,
+    )
+
+    return {
+        "ok": True,
+        "skipped": False,
+        "mode": "incremental",
+        "tickers_updated": tickers_updated,
+        "months_written": months_written,
+        "done": end_i >= len(universe),
+        "next_index": state["next_index"],
+    }
+
+
 def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     cfg = load_runtime_config()
 
@@ -189,9 +281,9 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     done_key = f"{base_prefix}/_BOOTSTRAP_DONE.json"
     state_key = f"{base_prefix}/state.json"
 
-    # Já terminou? então não faz nada.
+    # Bootstrap já terminou? Fazer update incremental diário.
     if _s3_exists(bcfg.bucket, done_key):
-        return {"ok": True, "skipped": True, "reason": "bootstrap_done"}
+        return _incremental_update(bcfg, base_prefix)
 
     token = _get_brapi_token(bcfg.secret_id)
     universe = _load_universe(bcfg.bucket, bcfg.universe_key)
