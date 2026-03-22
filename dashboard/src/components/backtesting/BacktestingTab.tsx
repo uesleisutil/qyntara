@@ -3,6 +3,7 @@ import { Play, Settings, TrendingUp, BarChart3, AlertTriangle, RefreshCw } from 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
+import { markChecklistItem } from '../shared/ActivationChecklist';
 
 interface BacktestingTabProps { darkMode?: boolean; }
 
@@ -392,6 +393,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       const simResult = runBacktest(config, tickers, allPrices);
       setResult(simResult);
       setActiveTab('portfolio');
+      markChecklistItem('ranBacktest');
     } catch (err: any) { setError(err.message); }
     finally { setLoading(false); }
   };
@@ -454,6 +456,29 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
             💡 O backtest usa <strong style={{ color: theme.text }}>preços reais</strong> do S3 para simular como sua carteira teria se comportado. Dados disponíveis: fevereiro e março de 2026.
           </p>
+
+          {/* Quick Presets */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.78rem', color: theme.textSecondary, alignSelf: 'center' }}>Presets:</span>
+            {[
+              { label: '🛡️ Conservador', cfg: { initialCapital: 50000, topN: 3, positionSize: 'equal' as const, rebalanceFrequency: 'monthly' as const, commissionRate: 0.0003 } },
+              { label: '⚖️ Moderado', cfg: { initialCapital: 100000, topN: 5, positionSize: 'equal' as const, rebalanceFrequency: 'weekly' as const, commissionRate: 0.0003 } },
+              { label: '🔥 Agressivo', cfg: { initialCapital: 100000, topN: 10, positionSize: 'weighted' as const, rebalanceFrequency: 'daily' as const, commissionRate: 0.0003 } },
+            ].map((preset, i) => (
+              <button key={i} onClick={() => setConfig(prev => ({ ...prev, ...preset.cfg }))} style={{
+                padding: '0.4rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
+                border: `1px solid ${theme.border}`, background: darkMode ? '#0f172a' : '#f8fafc',
+                color: theme.text, cursor: 'pointer', transition: 'all 0.15s',
+                WebkitAppearance: 'none' as any,
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = darkMode ? '#0f172a' : '#f8fafc'; }}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
             <div><label style={labelStyle}>Data Início <InfoTooltip text="Início do período. Dados disponíveis a partir de fev/2026." darkMode={darkMode} size={12} /></label><input type="date" value={config.startDate} onChange={e => handleChange('startDate', e.target.value)} max={today} style={inputStyle} /></div>
             <div><label style={labelStyle}>Data Fim <InfoTooltip text="Fim do período. Não pode ser no futuro." darkMode={darkMode} size={12} /></label><input type="date" value={config.endDate} onChange={e => handleChange('endDate', e.target.value)} max={today} style={inputStyle} /></div>

@@ -266,6 +266,78 @@ const LandingPage: React.FC = () => {
         ))}
       </section>
 
+      {/* Dashboard Preview */}
+      <section style={{
+        maxWidth: 900, margin: '0 auto', padding: '3rem clamp(1rem, 4vw, 2rem)', textAlign: 'center',
+      }}>
+        <h2 style={{ fontSize: 'clamp(1.3rem, 3.5vw, 1.75rem)', fontWeight: 700, marginBottom: '0.5rem' }}>Veja o que te espera</h2>
+        <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+          Dashboard completo com recomendações, explicabilidade e backtesting
+        </p>
+        <div style={{
+          background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16,
+          padding: 'clamp(1rem, 3vw, 1.5rem)', textAlign: 'left',
+        }}>
+          {/* Mock dashboard preview */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
+            <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '0.5rem' }}>B3 Tactical Ranking — Dashboard</span>
+          </div>
+          {/* KPI preview */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100px, 100%), 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            {[
+              { label: 'Compra', value: '12', color: '#10b981' },
+              { label: 'Venda', value: '8', color: '#ef4444' },
+              { label: 'Neutro', value: '26', color: '#f59e0b' },
+              { label: 'Top Score', value: '3.2', color: '#8b5cf6' },
+            ].map((k, i) => (
+              <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #334155', borderRadius: 8, padding: '0.5rem' }}>
+                <div style={{ fontSize: '0.6rem', color: '#64748b' }}>{k.label}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: k.color }}>{k.value}</div>
+              </div>
+            ))}
+          </div>
+          {/* Table preview */}
+          <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid #334155' }}>
+            {[
+              { ticker: 'PETR4', signal: 'Compra', score: '3.21', ret: '+8.5%', sc: '#10b981' },
+              { ticker: 'VALE3', signal: 'Compra', score: '2.87', ret: '+6.2%', sc: '#10b981' },
+              { ticker: 'ITUB4', signal: 'Neutro', score: '0.45', ret: '+1.1%', sc: '#f59e0b' },
+              { ticker: 'BBDC4', signal: 'Venda', score: '-2.10', ret: '-3.8%', sc: '#ef4444' },
+            ].map((r, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem',
+                borderBottom: i < 3 ? '1px solid #334155' : 'none', fontSize: '0.78rem',
+              }}>
+                <span style={{ fontWeight: 700, color: '#f1f5f9', width: 50 }}>{r.ticker}</span>
+                <span style={{
+                  padding: '0.12rem 0.4rem', borderRadius: 8, fontSize: '0.65rem', fontWeight: 600,
+                  background: `${r.sc}15`, color: r.sc,
+                }}>{r.signal}</span>
+                <span style={{ color: '#3b82f6', fontWeight: 600, marginLeft: 'auto' }}>{r.score}</span>
+                <span style={{ color: r.sc, fontWeight: 600, width: 50, textAlign: 'right' }}>{r.ret}</span>
+                <span style={{ filter: 'blur(4px)', color: '#64748b', fontSize: '0.7rem' }}>R$ 38.50</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+              + 42 ações analisadas · Colunas Pro com blur
+            </span>
+          </div>
+        </div>
+        <button onClick={() => navigate('/register')} style={{
+          marginTop: '1.25rem', padding: '0.7rem 1.5rem', borderRadius: 10, border: 'none',
+          background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white',
+          fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(37,99,235,0.4)',
+        }}>
+          Criar Conta Grátis <ArrowRight size={16} style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+        </button>
+      </section>
+
       {/* Strategy C: Track Record — Resultados Reais */}
       {trackRecord && trackRecord.days >= 3 && (
         <section style={{
@@ -303,8 +375,8 @@ const LandingPage: React.FC = () => {
         <p style={{ color: '#64748b', marginBottom: '2.5rem' }}>Comece grátis e escale conforme sua necessidade.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '1.5rem' }}>
           {[
-            { name: 'Free', price: 'R$ 0', period: '/mês', features: ['Recomendações diárias (top 5)', 'Explicabilidade básica', 'Backtesting', 'Acompanhamento por safra'], cta: 'Começar Grátis', highlight: false },
-            { name: 'Pro', price: 'R$ 49', period: '/mês', features: ['Todas as 46 recomendações', 'Carteira modelo otimizada', 'Stop-loss e take-profit', 'Performance acumulada vs Ibovespa', 'Ranking de confiança', 'Notificações e alertas'], cta: 'Assinar Pro', highlight: true },
+            { name: 'Free', price: 'R$ 0', period: '/mês', features: ['46 ações analisadas diariamente', 'Explicabilidade (SHAP)', 'Backtesting com dados reais', 'Performance acumulada', 'Colunas Pro com blur'], cta: 'Começar Grátis', highlight: false },
+            { name: 'Pro', price: 'R$ 49', period: '/mês', features: ['Tudo do Free, sem restrições', 'Confiança, Stop-Loss, Take-Profit', 'Carteira modelo otimizada', 'Tracking por safra', 'Ranking de confiança', 'Portfólio com perfis de risco'], cta: 'Assinar Pro', highlight: true },
           ].map((plan, i) => (
             <div key={i} style={{
               background: plan.highlight ? 'linear-gradient(135deg, rgba(37,99,235,0.15), rgba(59,130,246,0.05))' : 'rgba(255,255,255,0.02)',
@@ -350,13 +422,34 @@ const LandingPage: React.FC = () => {
         <p style={{ marginTop: '0.5rem' }}>
           Não é recomendação de investimento. Resultados passados não garantem resultados futuros.
         </p>
+        <a href="#/privacidade" style={{ color: '#64748b', fontSize: '0.78rem', textDecoration: 'underline', marginTop: '0.5rem', display: 'inline-block' }}>
+          Política de Privacidade
+        </a>
       </footer>
+
+      {/* Sticky CTA for mobile */}
+      <div className="landing-sticky-cta" style={{
+        display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
+        padding: '0.75rem 1rem', background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(8px)',
+        borderTop: '1px solid #1e293b',
+      }}>
+        <button onClick={() => navigate('/register')} style={{
+          width: '100%', padding: '0.75rem', borderRadius: 10, border: 'none',
+          background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white',
+          fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(37,99,235,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+        }}>
+          Começar Grátis <ArrowRight size={16} />
+        </button>
+      </div>
 
       <style>{`
         @media (max-width: 640px) {
           .landing-nav-desktop { display: none !important; }
           .landing-nav-mobile { display: flex !important; }
           .landing-mobile-menu { display: flex !important; }
+          .landing-sticky-cta { display: block !important; }
         }
       `}</style>
     </div>

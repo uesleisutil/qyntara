@@ -8,6 +8,8 @@ import { useIsPro } from '../../components/shared/ProGate';
 import FollowButton from '../../components/shared/FollowButton';
 import MyPositionsPanel from '../../components/shared/MyPositionsPanel';
 import PriceAlerts from '../../components/shared/PriceAlerts';
+import DailyHighlight from '../../components/shared/DailyHighlight';
+import ActivationChecklist, { markChecklistItem } from '../../components/shared/ActivationChecklist';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -41,6 +43,7 @@ const RecommendationsPage: React.FC = () => {
       setRecommendations(data.recommendations || []);
       setDate(data.date || '');
       setLastUpdated(new Date());
+      markChecklistItem('viewedRecommendations');
     } catch (err: any) {
       const msg = err.message === 'Load failed' || err.message === 'Failed to fetch'
         ? 'Falha de conexão com o servidor. Verifique sua internet e tente novamente.'
@@ -179,9 +182,22 @@ const RecommendationsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Activation checklist for new users */}
+      <ActivationChecklist darkMode={darkMode} theme={theme} />
+
+      {/* Daily Highlight — top ticker of the day */}
+      {recommendations.length > 0 && topTicker && (
+        <DailyHighlight
+          darkMode={darkMode} theme={theme}
+          topTicker={topTicker}
+          totalBuy={totalBuy} totalSell={totalSell} totalNeutral={totalNeutral}
+          date={date}
+        />
+      )}
+
       {/* Compact KPI strip — Resumo do Dia inline */}
       {recommendations.length > 0 && (
-        <div style={{
+        <div data-tour="kpi-strip" style={{
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(120px, 100%), 1fr))',
           gap: '0.5rem', marginBottom: '0.75rem',
         }}>
@@ -254,7 +270,7 @@ const RecommendationsPage: React.FC = () => {
       )}
 
       {/* Search + Filter + Sort bar */}
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div data-tour="search-bar" style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 0 }}>
           <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
           <input

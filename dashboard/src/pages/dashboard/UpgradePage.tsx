@@ -233,6 +233,47 @@ const UpgradePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Free vs Pro comparison */}
+      <div style={{ ...cardStyle, padding: '1.25rem', marginBottom: '1.25rem' }}>
+        <div style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text, marginBottom: '0.75rem' }}>Free vs Pro</div>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+          <thead>
+            <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
+              <th style={{ padding: '0.5rem', textAlign: 'left', color: theme.textSecondary, fontWeight: 600 }}>Recurso</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', color: theme.textSecondary, fontWeight: 600 }}>Free</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', color: '#f59e0b', fontWeight: 600 }}>Pro</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { feature: 'Recomendações diárias (46 ações)', free: true, pro: true },
+              { feature: 'Explicabilidade (SHAP)', free: true, pro: true },
+              { feature: 'Backtesting com dados reais', free: true, pro: true },
+              { feature: 'Performance acumulada', free: true, pro: true },
+              { feature: 'Confiança do modelo', free: false, pro: true },
+              { feature: 'Stop-Loss e Take-Profit', free: false, pro: true },
+              { feature: 'Tracking por Safra', free: false, pro: true },
+              { feature: 'Carteira Modelo otimizada', free: false, pro: true },
+              { feature: 'Portfólio com perfis de risco', free: false, pro: true },
+              { feature: 'Ranking de confiança', free: false, pro: true },
+            ].map((row, i) => (
+              <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                <td style={{ padding: '0.45rem 0.5rem', color: theme.text }}>{row.feature}</td>
+                <td style={{ padding: '0.45rem 0.5rem', textAlign: 'center' }}>
+                  {row.free
+                    ? <span style={{ color: '#10b981' }}>✓</span>
+                    : <span style={{ color: theme.textSecondary, opacity: 0.4 }}>✗</span>
+                  }
+                </td>
+                <td style={{ padding: '0.45rem 0.5rem', textAlign: 'center' }}>
+                  <span style={{ color: '#10b981' }}>✓</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       {/* FAQ */}
       <div style={{ ...cardStyle, padding: '1.25rem' }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text, marginBottom: '0.75rem' }}>Perguntas Frequentes</div>

@@ -42,6 +42,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
   const [error, setError] = useState<string | null>(null);
   const [recDate, setRecDate] = useState('');
   const [profile, setProfile] = useState<Profile>('moderado');
+  const [simCapital, setSimCapital] = useState(10000);
 
   const theme = {
     bg: darkMode ? '#0f172a' : '#f8fafc',
@@ -218,6 +219,59 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Investment Simulator */}
+          <div style={{ ...cardStyle, marginBottom: '0.75rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              💰 Simulador de Investimento
+              <InfoTooltip text="Veja quanto investir em cada ação com base na alocação da carteira modelo." darkMode={darkMode} size={12} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.78rem', color: theme.textSecondary }}>Investir:</span>
+              {[5000, 10000, 25000, 50000].map(v => (
+                <button key={v} onClick={() => setSimCapital(v)} style={{
+                  padding: '0.3rem 0.6rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: simCapital === v ? 600 : 400,
+                  border: `1px solid ${simCapital === v ? theme.blue : theme.border}`,
+                  background: simCapital === v ? `${theme.blue}15` : 'transparent',
+                  color: simCapital === v ? theme.blue : theme.textSecondary,
+                  cursor: 'pointer', WebkitAppearance: 'none' as any,
+                }}>
+                  R$ {v.toLocaleString('pt-BR')}
+                </button>
+              ))}
+              <input type="number" value={simCapital} onChange={e => setSimCapital(Math.max(100, +e.target.value))}
+                style={{
+                  width: 100, padding: '0.3rem 0.5rem', borderRadius: 6, fontSize: '0.78rem',
+                  border: `1px solid ${theme.border}`, background: darkMode ? '#0f172a' : '#f8fafc',
+                  color: theme.text, outline: 'none',
+                }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.4rem' }}>
+              {portfolio.map((q, i) => {
+                const amount = simCapital * q.weight;
+                const shares = Math.floor(amount / q.last_close);
+                return (
+                  <div key={q.ticker} style={{
+                    padding: '0.4rem 0.6rem', borderRadius: 8,
+                    border: `1px solid ${theme.border}`, borderLeft: `3px solid ${pieColors[i % pieColors.length]}`,
+                  }}>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: theme.text }}>{q.ticker}</div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: pieColors[i % pieColors.length] }}>
+                      R$ {Math.round(amount).toLocaleString('pt-BR')}
+                    </div>
+                    <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>
+                      ~{shares} ações · {fmt(q.weight * 100, 1)}%
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginTop: '0.4rem' }}>
+              Retorno previsto: <strong style={{ color: portfolioReturn >= 0 ? theme.green : theme.red }}>
+                R$ {Math.round(simCapital * (1 + portfolioReturn)).toLocaleString('pt-BR')}
+              </strong> ({portfolioReturn >= 0 ? '+' : ''}{fmt(portfolioReturn * 100, 2)}% em 20 pregões)
+            </div>
           </div>
 
           {/* Allocation bar */}

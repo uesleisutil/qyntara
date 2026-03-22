@@ -6,6 +6,7 @@ import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
 import ExplanationText from './ExplanationText';
 import StockComparator from './StockComparator';
+import { markChecklistItem } from '../shared/ActivationChecklist';
 
 interface ExplainabilityTabProps {
   darkMode?: boolean;
@@ -46,6 +47,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           recs.sort((a, b) => b.score - a.score);
           setTickers(recs);
           if (recs.length > 0) setSelectedTicker(prev => prev || recs[0].ticker);
+          markChecklistItem('viewedExplainability');
         }
       } catch (err) { console.error(err); }
       finally { setLoading(false); }

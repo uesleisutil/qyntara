@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
+import GuidedTour, { shouldShowTour } from '../components/shared/GuidedTour';
 import OnboardingModal, { shouldShowOnboarding } from '../components/shared/OnboardingModal';
 import { ProBadge } from '../components/shared/ProGate';
 
@@ -18,6 +19,7 @@ const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : true;
@@ -38,14 +40,18 @@ const DashboardLayout: React.FC = () => {
     if (shouldShowOnboarding()) {
       const timer = setTimeout(() => setShowOnboarding(true), 600);
       return () => clearTimeout(timer);
+    } else if (shouldShowTour()) {
+      // If onboarding was already done but tour wasn't, show tour
+      const timer = setTimeout(() => setShowTour(true), 1000);
+      return () => clearTimeout(timer);
     }
   }, []);
 
   const userMenuItems = [
-    { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} /> },
-    { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} /> },
-    { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} /> },
-    { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} /> },
+    { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} />, tourId: 'nav-recommendations' },
+    { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} />, tourId: 'nav-explainability' },
+    { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} />, tourId: 'nav-backtesting' },
+    { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} />, tourId: 'nav-performance' },
   ];
 
   const proMenuItems = [
@@ -89,8 +95,9 @@ const DashboardLayout: React.FC = () => {
     setSidebarOpen(false);
   };
 
-  const renderNavButton = (item: { path: string; label: string; icon: React.ReactNode }) => (
+  const renderNavButton = (item: { path: string; label: string; icon: React.ReactNode; tourId?: string }) => (
     <button key={item.path} onClick={() => handleNav(item.path)}
+      data-tour={item.tourId || undefined}
       style={{
         width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
         padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
@@ -128,13 +135,13 @@ const DashboardLayout: React.FC = () => {
         {userMenuItems.map(renderNavButton)}
 
         {/* Pro section */}
-        <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
+        <div data-tour="nav-pro" style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
           <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
             <Crown size={11} color="#f59e0b" /> Pro
           </span>
         </div>
         {proMenuItems.map(item => (
-          <button key={item.path} onClick={() => handleNav(item.path)}
+          <button key={item.path} onClick={() => handleNav(isPro ? item.path : '/dashboard/upgrade')}
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
               padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
@@ -387,6 +394,28 @@ const DashboardLayout: React.FC = () => {
           {user && user.emailVerified === false && (
             <EmailVerificationBanner darkMode={darkMode} theme={theme} />
           )}
+          {/* Free user upgrade banner */}
+          {user && user.plan !== 'pro' && !location.pathname.includes('upgrade') && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+              padding: '0.5rem 0.75rem', marginBottom: '0.75rem', borderRadius: 8,
+              background: darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
+              border: '1px solid rgba(245,158,11,0.15)', fontSize: '0.78rem',
+            }}>
+              <Crown size={14} color="#f59e0b" />
+              <span style={{ color: theme.textSecondary, flex: 1 }}>
+                Plano Free — colunas Pro bloqueadas.
+              </span>
+              <button onClick={() => navigate('/dashboard/upgrade')} style={{
+                padding: '0.25rem 0.6rem', borderRadius: 6, border: 'none',
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white',
+                cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
+                WebkitAppearance: 'none' as any,
+              }}>
+                Upgrade Pro →
+              </button>
+            </div>
+          )}
           <Outlet context={{ darkMode, theme }} />
           {/* Dashboard Footer Disclaimer */}
           <div style={{
@@ -414,8 +443,14 @@ const DashboardLayout: React.FC = () => {
 
       {/* Onboarding Modal */}
       {showOnboarding && (
-        <OnboardingModal darkMode={darkMode} onClose={() => setShowOnboarding(false)} />
+        <OnboardingModal darkMode={darkMode} onClose={() => {
+          setShowOnboarding(false);
+          if (shouldShowTour()) setTimeout(() => setShowTour(true), 500);
+        }} />
       )}
+
+      {/* Guided Tour */}
+      <GuidedTour darkMode={darkMode} run={showTour} onFinish={() => setShowTour(false)} />
     </div>
   );
 };

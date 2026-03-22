@@ -3,6 +3,7 @@ import { Crown, TrendingUp, BarChart3, Target, Award, Calendar } from 'lucide-re
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
 import ShareButton from '../shared/ShareButton';
+import { markChecklistItem } from '../shared/ActivationChecklist';
 
 interface PerformanceTabProps { darkMode?: boolean; }
 
@@ -15,6 +16,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
   const [history, setHistory] = useState<Record<string, HistoryEntry[]>>({});
   const [prices, setPrices] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
+  const [perfPeriod, setPerfPeriod] = useState<'all' | '7d' | '14d'>('all');
 
   const theme = {
     bg: darkMode ? '#0f172a' : '#f8fafc',
@@ -54,6 +56,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
           }
         }
         setPrices(priceMap);
+        markChecklistItem('viewedPerformance');
       } catch {} finally { setLoading(false); }
     })();
   }, []);
@@ -226,9 +229,27 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
           Performance Acumulada
         </h1>
       </div>
-      <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: '0 0 1rem' }}>
+      <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: '0 0 0.75rem' }}>
         Retorno real acumulado seguindo os sinais do modelo vs média do universo · {perfData.totalDays} pregões analisados
       </p>
+
+      {/* Period filter */}
+      <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+        {([
+          { key: '7d' as const, label: '7 dias' },
+          { key: '14d' as const, label: '14 dias' },
+          { key: 'all' as const, label: 'Todos' },
+        ]).map(d => (
+          <button key={d.key} onClick={() => setPerfPeriod(d.key)} style={{
+            padding: '0.35rem 0.7rem', borderRadius: 20, fontSize: '0.76rem',
+            fontWeight: perfPeriod === d.key ? 600 : 400,
+            border: `1px solid ${perfPeriod === d.key ? theme.blue : theme.border}`,
+            background: perfPeriod === d.key ? theme.blue : 'transparent',
+            color: perfPeriod === d.key ? 'white' : theme.textSecondary,
+            cursor: 'pointer', transition: 'all 0.15s', WebkitAppearance: 'none' as any,
+          }}>{d.label}</button>
+        ))}
+      </div>
 
       {/* How it works */}
       <div style={{
@@ -299,7 +320,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.75rem' }}>
           Retorno realizado — Sinais de Compra vs Média do Universo
         </div>
-        <CumulativeChart data={perfData.cumulative} />
+        <CumulativeChart data={(() => {
+          if (perfPeriod === 'all') return perfData.cumulative;
+          const days = perfPeriod === '7d' ? 7 : 14;
+          return perfData.cumulative.slice(-days);
+        })()} />
       </div>
     </div>
   );
