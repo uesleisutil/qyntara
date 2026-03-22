@@ -2244,6 +2244,126 @@ def _handle_admin_set_role(event: dict) -> dict:
         return _cors_response(500, {"message": "Erro ao alterar role"})
 
 
+def _handle_delete_account(event: dict) -> dict:
+    """DELETE /auth/me — LGPD Art. 18: delete all user data."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    # Verify JWT
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token não fornecido"})
+
+    payload = _verify_jwt(auth[7:].strip())
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido ou expirado"})
+
+    email = payload.get("email", "")
+    user_id = payload.get("sub", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    # Prevent admin self-deletion
+    if email == ADMIN_EMAIL.strip().lower():
+        return _cors_response(403, {"message": "Conta admin não pode ser excluída por esta via."})
+
+    try:
+        # 1. Cancel Stripe subscription if exists
+        users_table = dynamodb.Table(USERS_TABLE)
+        result = users_table.get_item(Key={"email": email})
+        item = result.get("Item", {})
+        stripe_sub_id = item.get("stripeSubscriptionId", "")
+        if stripe_sub_id and STRIPE_SECRET_KEY:
+            try:
+                _stripe_request("DELETE", f"subscriptions/{stripe_sub_id}")
+                logger.info(f"Cancelled Stripe subscription {stripe_sub_id} for {email}")
+            except Exception as e:
+                logger.warning(f"Failed to cancel Stripe sub for {email}: {e}")
+
+        # 2. Delete user from Users table
+        users_table.delete_item(Key={"email": email})
+        logger.info(f"Deleted user record for {email}")
+
+        # 3. Delete auth logs
+        try:
+            logs_table = dynamodb.Table(AUTH_LOGS_TABLE)
+            logs_result = logs_table.query(
+                KeyConditionExpression="userId = :uid",
+                ExpressionAttributeValues={":uid": email},
+                ProjectionExpression="userId, #ts",
+                ExpressionAttributeNames={"#ts": "timestamp"},
+            )
+            with logs_table.batch_writer() as batch:
+                for log_item in logs_result.get("Items", []):
+                    batch.delete_item(Key={"userId": log_item["userId"], "timestamp": log_item["timestamp"]})
+        except Exception as e:
+            logger.warning(f"Failed to delete auth logs for {email}: {e}")
+
+        # 4. Delete rate limit entries
+        try:
+            rl_table = dynamodb.Table(RATE_LIMITS_TABLE)
+            for prefix in ["auth_ip:", "email_verify:", "password_reset:"]:
+                try:
+                    rl_table.delete_item(Key={"identifier": f"{prefix}{email}"})
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.warning(f"Failed to delete rate limits for {email}: {e}")
+
+        # 5. Delete chat tickets
+        try:
+            chat_table = dynamodb.Table(CHAT_TABLE)
+            chat_result = chat_table.scan(
+                FilterExpression="userEmail = :e",
+                ExpressionAttributeValues={":e": email},
+                ProjectionExpression="ticketId",
+            )
+            for ticket in chat_result.get("Items", []):
+                chat_table.delete_item(Key={"ticketId": ticket["ticketId"]})
+        except Exception as e:
+            logger.warning(f"Failed to delete chat tickets for {email}: {e}")
+
+        # 6. Send confirmation email
+        try:
+            sender = SES_SENDER_EMAIL
+            if sender:
+                ses_client.send_email(
+                    Source=sender,
+                    Destination={"ToAddresses": [email]},
+                    Message={
+                        "Subject": {"Data": "B3 Tactical Ranking — Conta Excluída", "Charset": "UTF-8"},
+                        "Body": {
+                            "Html": {
+                                "Data": f"""
+                                <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+                                    <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
+                                    <p>Sua conta e todos os dados associados foram excluídos com sucesso, conforme solicitado.</p>
+                                    <p style="color:#64748b;font-size:14px;">Esta ação é irreversível. Se desejar utilizar o serviço novamente, será necessário criar uma nova conta.</p>
+                                    <p style="color:#64748b;font-size:14px;">Obrigado por ter utilizado o B3 Tactical Ranking.</p>
+                                </div>
+                                """,
+                                "Charset": "UTF-8",
+                            },
+                            "Text": {
+                                "Data": "Sua conta B3 Tactical Ranking foi excluída com sucesso. Todos os dados foram removidos.",
+                                "Charset": "UTF-8",
+                            },
+                        },
+                    },
+                )
+        except Exception as e:
+            logger.warning(f"Failed to send deletion confirmation to {email}: {e}")
+
+        _log_auth(email, "delete_account", True, ip, ua)
+        return _cors_response(200, {"message": "Conta e dados excluídos com sucesso."})
+
+    except Exception as e:
+        logger.error(f"Failed to delete account for {email}: {e}")
+        _log_auth(email, "delete_account", False, ip, ua, str(e))
+        return _cors_response(500, {"message": "Erro ao excluir conta. Tente novamente."})
+
+
 def handler(event: dict, context: Any = None) -> dict:
     """Lambda handler — routes to register/login/me/verify/reset/change-password/notifications."""
     method = event.get("httpMethod", "")
@@ -2258,6 +2378,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_login(event)
     elif path.endswith("/auth/me") and method == "GET":
         return _handle_me(event)
+    elif path.endswith("/auth/me") and method == "DELETE":
+        return _handle_delete_account(event)
     elif path.endswith("/auth/verify-email") and method == "POST":
         return _handle_verify_email(event)
     elif path.endswith("/auth/resend-code") and method == "POST":

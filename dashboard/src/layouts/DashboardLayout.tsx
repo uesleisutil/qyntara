@@ -4,6 +4,7 @@ import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
   Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
+  Settings, Mail, Shield,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
@@ -260,6 +261,7 @@ const DashboardLayout: React.FC = () => {
               if (p.includes('change-password')) return '🔒 Alterar Senha';
               if (p.includes('change-phone')) return '📱 Alertas WhatsApp';
               if (p.includes('support')) return '💬 Fale Conosco';
+              if (p.includes('settings')) return '⚙️ Configurações';
               if (p.includes('portfolio')) return '👑 Carteira Modelo';
               if (p.includes('performance')) return '👑 Performance';
               if (p.includes('upgrade')) return '👑 Upgrade Pro';
@@ -339,6 +341,17 @@ const DashboardLayout: React.FC = () => {
                     >
                       <MessageCircle size={14} /> Fale Conosco
                     </button>
+                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/settings'); }} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                      transition: 'background 0.1s',
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Settings size={14} /> Configurações
+                    </button>
                     {!isPro && (
                       <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -370,6 +383,10 @@ const DashboardLayout: React.FC = () => {
           </div>
         </header>
         <div style={{ padding: 'clamp(0.75rem, 3vw, 1.5rem)' }}>
+          {/* Email verification banner */}
+          {user && user.emailVerified === false && (
+            <EmailVerificationBanner darkMode={darkMode} theme={theme} />
+          )}
           <Outlet context={{ darkMode, theme }} />
           {/* Dashboard Footer Disclaimer */}
           <div style={{
@@ -378,6 +395,10 @@ const DashboardLayout: React.FC = () => {
           }}>
             ⚠️ Este sistema é uma ferramenta de apoio à decisão. Não constitui recomendação de investimento.
             Resultados passados não garantem resultados futuros. Consulte um profissional antes de investir.
+            <br />
+            <a href="#/privacidade" style={{ color: theme.textSecondary, textDecoration: 'underline', marginTop: 4, display: 'inline-block' }}>
+              <Shield size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />Política de Privacidade
+            </a>
           </div>
         </div>
       </main>
@@ -395,6 +416,72 @@ const DashboardLayout: React.FC = () => {
       {showOnboarding && (
         <OnboardingModal darkMode={darkMode} onClose={() => setShowOnboarding(false)} />
       )}
+    </div>
+  );
+};
+
+// Email verification banner with auto-resend after 1h
+const EmailVerificationBanner: React.FC<{ darkMode: boolean; theme: Record<string, string> }> = ({ darkMode }) => {
+  const { user, resendCode } = useAuth();
+  const navigate = useNavigate();
+  const [resending, setResending] = React.useState(false);
+  const [sent, setSent] = React.useState(false);
+
+  // Auto-resend after 1h of registration
+  React.useEffect(() => {
+    const key = 'b3tr_auto_resend_done';
+    const regTime = localStorage.getItem('b3tr_register_time');
+    if (!regTime) {
+      localStorage.setItem('b3tr_register_time', Date.now().toString());
+      return;
+    }
+    const elapsed = Date.now() - parseInt(regTime, 10);
+    if (elapsed >= 3600000 && !localStorage.getItem(key) && user?.email) {
+      localStorage.setItem(key, 'true');
+      resendCode(user.email).catch(() => {});
+    }
+  }, [user, resendCode]);
+
+  const handleResend = async () => {
+    if (!user?.email || resending) return;
+    setResending(true);
+    try {
+      await resendCode(user.email);
+      setSent(true);
+      setTimeout(() => setSent(false), 10000);
+    } catch {}
+    finally { setResending(false); }
+  };
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+      padding: '0.6rem 1rem', marginBottom: '0.75rem', borderRadius: 8,
+      background: darkMode ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.08)',
+      border: '1px solid rgba(245,158,11,0.3)', fontSize: '0.82rem', color: '#f59e0b',
+    }}>
+      <Mail size={16} />
+      <span style={{ flex: 1 }}>
+        Verifique seu email para ativar todos os recursos.
+      </span>
+      {sent ? (
+        <span style={{ fontSize: '0.75rem', color: '#10b981' }}>Código reenviado ✓</span>
+      ) : (
+        <button onClick={handleResend} disabled={resending} style={{
+          padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px solid rgba(245,158,11,0.4)',
+          background: 'rgba(245,158,11,0.15)', color: '#f59e0b', cursor: 'pointer',
+          fontSize: '0.75rem', fontWeight: 600, minHeight: 'auto',
+        }}>
+          {resending ? 'Enviando...' : 'Reenviar código'}
+        </button>
+      )}
+      <button onClick={() => navigate('/verify-email')} style={{
+        padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px solid rgba(245,158,11,0.4)',
+        background: '#f59e0b', color: '#0f172a', cursor: 'pointer',
+        fontSize: '0.75rem', fontWeight: 600, minHeight: 'auto',
+      }}>
+        Verificar agora
+      </button>
     </div>
   );
 };

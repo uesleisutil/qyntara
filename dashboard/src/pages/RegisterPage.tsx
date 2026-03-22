@@ -35,7 +35,7 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
     try {
       await register(name, email, password);
-      navigate('/verify-email');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
     } finally {
@@ -129,6 +129,10 @@ const RegisterPage: React.FC = () => {
               {loading && <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />}
               {loading ? 'Criando conta...' : 'Criar Conta'}
             </button>
+            <p style={{ fontSize: '0.72rem', color: '#64748b', textAlign: 'center', marginTop: '0.75rem', lineHeight: 1.5 }}>
+              Ao criar sua conta, você concorda com nossos{' '}
+              <Link to="/privacidade" style={{ color: '#3b82f6', textDecoration: 'underline' }}>Termos de Uso e Política de Privacidade</Link>.
+            </p>
           </form>
         </div>
 

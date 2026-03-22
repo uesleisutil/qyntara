@@ -34,6 +34,8 @@ import SupportChatPage from './pages/dashboard/SupportChatPage';
 
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import SettingsPage from './pages/dashboard/SettingsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,7 +45,7 @@ const queryClient = new QueryClient({
 
 // Protected route wrapper — also redirects unverified emails
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) {
     return (
       <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
@@ -52,7 +54,6 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user && user.emailVerified === false) return <Navigate to="/verify-email" replace />;
   return <>{children}</>;
 };
 
@@ -67,7 +68,6 @@ const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     );
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (user && user.emailVerified === false) return <Navigate to="/verify-email" replace />;
   if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
@@ -98,6 +98,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/verify-email" element={<RequireLoginOnly><VerifyEmailPage /></RequireLoginOnly>} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/privacidade" element={<PrivacyPolicyPage />} />
 
       {/* User dashboard */}
       <Route path="/dashboard" element={<RequireAuth><DashboardLayout /></RequireAuth>}>
@@ -111,6 +112,7 @@ const AppRoutes: React.FC = () => {
         <Route path="change-password" element={<ChangePasswordPage />} />
         <Route path="change-phone" element={<ChangePhonePage />} />
         <Route path="support" element={<SupportChatPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Route>
 
       {/* Admin panel */}

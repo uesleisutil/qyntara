@@ -1024,15 +1024,15 @@ export class InfraStack extends cdk.Stack {
     });
     usersTable.grantReadWriteData(userAuthFn);
 
-    // Grant auth logs write
+    // Grant auth logs write + delete (for LGPD account deletion)
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
-      actions: ["dynamodb:PutItem"],
+      actions: ["dynamodb:PutItem", "dynamodb:Query", "dynamodb:BatchWriteItem"],
       resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-AuthLogs`],
     }));
 
     // Grant rate limits table access
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
-      actions: ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem"],
+      actions: ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem", "dynamodb:DeleteItem"],
       resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-RateLimits`],
     }));
 
@@ -1061,6 +1061,7 @@ export class InfraStack extends cdk.Stack {
     authLogin.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const authMe = authResource.addResource("me");
     authMe.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+    authMe.addMethod("DELETE", userAuthIntegration, { apiKeyRequired: false });
 
     // Email verification & password reset routes
     const authVerifyEmail = authResource.addResource("verify-email");
@@ -1167,6 +1168,92 @@ export class InfraStack extends cdk.Stack {
       actions: ["ses:SendEmail", "ses:SendRawEmail"],
       resources: ["*"],
     }));
+
+    // -----------------------
+    // AWS WAF — API Gateway Protection
+    // -----------------------
+    const waf = new cdk.aws_wafv2.CfnWebACL(this, "ApiWaf", {
+      name: "B3TR-API-WAF",
+      scope: "REGIONAL",
+      defaultAction: { allow: {} },
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: "B3TR-WAF",
+        sampledRequestsEnabled: true,
+      },
+      rules: [
+        {
+          name: "AWSManagedRulesCommonRuleSet",
+          priority: 1,
+          overrideAction: { none: {} },
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: "AWS",
+              name: "AWSManagedRulesCommonRuleSet",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "CommonRuleSet",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: "AWSManagedRulesKnownBadInputsRuleSet",
+          priority: 2,
+          overrideAction: { none: {} },
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: "AWS",
+              name: "AWSManagedRulesKnownBadInputsRuleSet",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "KnownBadInputs",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: "AWSManagedRulesSQLiRuleSet",
+          priority: 3,
+          overrideAction: { none: {} },
+          statement: {
+            managedRuleGroupStatement: {
+              vendorName: "AWS",
+              name: "AWSManagedRulesSQLiRuleSet",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "SQLiRuleSet",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: "RateLimit",
+          priority: 4,
+          action: { block: {} },
+          statement: {
+            rateBasedStatement: {
+              limit: 2000,
+              aggregateKeyType: "IP",
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "RateLimit",
+            sampledRequestsEnabled: true,
+          },
+        },
+      ],
+    });
+
+    // Associate WAF with API Gateway
+    new cdk.aws_wafv2.CfnWebACLAssociation(this, "WafApiAssociation", {
+      resourceArn: `arn:aws:apigateway:${cdk.Aws.REGION}::/restapis/${api.restApiId}/stages/${api.deploymentStage.stageName}`,
+      webAclArn: waf.attrArn,
+    });
 
     // -----------------------
     // Outputs
