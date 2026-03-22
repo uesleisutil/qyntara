@@ -278,7 +278,6 @@ const DashboardLayout: React.FC = () => {
   /* #4: Only show upgrade banner on pages where Pro matters */
   const showUpgradeBanner = user && user.plan !== 'pro' && [
     '/dashboard', '/dashboard/tracking', '/dashboard/portfolio',
-    '/dashboard/explainability', '/dashboard/backtesting', '/dashboard/performance',
   ].includes(location.pathname);
 
   return (

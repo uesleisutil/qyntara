@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock, Lock, Crown, Eye } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock, Lock, Crown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
 import ShareButton from '../../components/shared/ShareButton';
@@ -290,21 +290,6 @@ const RecommendationsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Strategy E: Strong signals teaser for free */}
-      {!isPro && totalBuy >= 3 && (
-        <div style={{
-          marginBottom: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 8,
-          background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)',
-          border: '1px solid rgba(16,185,129,0.2)',
-          display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.78rem',
-        }}>
-          <Eye size={14} color="#10b981" />
-          <span style={{ color: theme.textSecondary }}>
-            <strong style={{ color: '#10b981' }}>{totalBuy} ações com sinal forte</strong> — colunas Pro bloqueadas.{' '}
-            <a href="#/dashboard/upgrade" style={{ color: '#f59e0b', fontWeight: 600 }}>Desbloquear →</a>
-          </span>
-        </div>
-      )}
 
 
 
@@ -373,7 +358,6 @@ const RecommendationsPage: React.FC = () => {
       {/* Results count */}
       <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginBottom: '0.5rem' }}>
         {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
-        {!isPro && <span> · <Lock size={10} style={{ verticalAlign: 'middle' }} /> Colunas Pro bloqueadas — <a href="#/dashboard/upgrade" style={{ color: '#f59e0b' }}>desbloquear</a></span>}
       </div>
 
       {/* Desktop Table */}
@@ -411,7 +395,7 @@ const RecommendationsPage: React.FC = () => {
                     {h.label}
                     {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={10} />}
                   </span>
-                  {i >= (isPro ? 9 : 8) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
+                  {i >= (isPro ? 7 : 6) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}
             </tr>
@@ -467,9 +451,15 @@ const RecommendationsPage: React.FC = () => {
                     </div>
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.text }}>R$ {fmt(r.last_close, 2)}</td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
-                    {r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
+                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</span>
+                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
+                  </td>
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
+                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
+                      {r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%
+                    </span>
+                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</td>
                   {/* #12: Merged Faixa column (Stop-Loss → Take-Profit) */}
@@ -518,8 +508,8 @@ const RecommendationsPage: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
                 <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: getSignalColor(getSignal(r.score)).text }}>{fmt(r.score, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.last_close, 2)}</strong></div>
-                <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</strong></div>
-                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <strong style={{ color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</strong></div>
+                <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
+                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
                 <div><span style={{ color: theme.textSecondary }}>Vol:</span> <strong style={{ color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</strong></div>
                 <div style={{ position: 'relative' }}>
                   <span style={{ color: theme.textSecondary }}>Confiança:</span>{' '}
