@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Crown, TrendingUp, BarChart3, Target, Award, Calendar } from 'lucide-react';
+import { LineChart, TrendingUp, BarChart3, Target, Award, Calendar } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
 import ShareButton from '../shared/ShareButton';
@@ -225,7 +225,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-        <Crown size={20} color="#f59e0b" />
+        <LineChart size={20} color="#3b82f6" />
         <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, margin: 0 }}>
           Performance Acumulada
         </h1>

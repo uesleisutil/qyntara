@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { CheckCircle, TrendingUp, TrendingDown, BarChart3, Target, ChevronDown, ChevronRight, Activity, Calendar, ArrowUpRight, ArrowDownRight, Minus, Search, Filter, Award, SlidersHorizontal } from 'lucide-react';
+import { CheckCircle, TrendingUp, TrendingDown, BarChart3, Target, ChevronDown, ChevronRight, Activity, Calendar, ArrowUpRight, ArrowDownRight, Minus, Search, Filter, Award, SlidersHorizontal, Crown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
 
@@ -321,9 +321,12 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
     <div>
       {/* Header */}
       <div style={{ marginBottom: '1rem' }}>
-        <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>
-          Acompanhamento por Safra
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+          <Crown size={20} color="#f59e0b" />
+          <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, margin: 0 }}>
+            Acompanhamento por Safra
+          </h1>
+        </div>
         <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0 }}>
           Acompanhe dia a dia como cada safra de previsões está evoluindo em relação à realidade do mercado
         </p>
