@@ -2,9 +2,8 @@
 # Use default gitleaks rules
 
 [allowlist]
-description = "Allow API Gateway key in dashboard config (rate-limited, non-secret)"
+description = "Allow example env files"
 paths = [
-  '''dashboard/src/config\.js''',
   '''\.env\.example''',
   '''\.env\.local\.example''',
 ]
