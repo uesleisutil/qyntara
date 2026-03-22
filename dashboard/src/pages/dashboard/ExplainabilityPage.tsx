@@ -13,7 +13,7 @@ const ExplainabilityPage: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Explicabilidade</h1>
+        <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Explicabilidade</h1>
         <p style={{ color: theme.textSecondary, fontSize: '0.875rem' }}>
           Entenda por que cada ação foi recomendada — SHAP values, análise de sensibilidade e impacto de features.
         </p>

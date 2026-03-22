@@ -45,15 +45,15 @@ const AdminValidationPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Validação</h1>
-          <p style={{ color: theme.textSecondary, fontSize: '0.875rem' }}>
-            Predicted vs Actual, acurácia temporal e análise de outliers.
-            {data?.period && <span> Período: {data.period.start_date} a {data.period.end_date}</span>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Validação</h1>
+          <p style={{ color: theme.textSecondary, fontSize: '0.8rem' }}>
+            Predicted vs Actual e análise de outliers.
+            {data?.period && <span> {data.period.start_date} a {data.period.end_date}</span>}
           </p>
         </div>
-        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, flexShrink: 0 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -64,7 +64,7 @@ const AdminValidationPage: React.FC = () => {
         <div style={{ ...cardStyle, textAlign: 'center', padding: '3rem', color: theme.textSecondary }}>Sem dados de validação disponíveis.</div>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
             {kpis.map((m, i) => (
               <div key={i} style={cardStyle}>
                 <div style={{ fontSize: '0.8rem', color: theme.textSecondary, marginBottom: '0.5rem' }}>{m.label}</div>

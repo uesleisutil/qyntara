@@ -78,17 +78,17 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
 
   return (
     <div style={{
-      backgroundColor: theme.cardBg, padding: '1.5rem', borderRadius: 12,
+      backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-        <Activity size={20} color="#3b82f6" />
-        <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: theme.text }}>
-          Análise de Sensibilidade — {ticker}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        <Activity size={18} color="#3b82f6" />
+        <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
+          Sensibilidade — {ticker}
         </h3>
       </div>
-      <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: theme.textSecondary }}>
-        Como a previsão muda quando cada feature varia. Selecione até 5 features.
+      <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: theme.textSecondary }}>
+        Como a previsão muda por feature. Selecione até 5.
       </p>
 
       <div style={{
@@ -112,8 +112,8 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
       </div>
 
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-        gap: '0.75rem', marginBottom: '1rem',
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))',
+        gap: '0.5rem', marginBottom: '0.75rem',
       }}>
         {selected.map((f, i) => (
           <div key={f} style={{
@@ -129,20 +129,24 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
         ))}
       </div>
 
-      <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
-          <XAxis dataKey="featureValue" stroke={theme.textSecondary} style={{ fontSize: 11 }}
-            label={{ value: 'Valor da Feature (%)', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
-          <YAxis stroke={theme.textSecondary} style={{ fontSize: 11 }}
-            label={{ value: 'Previsão (R$)', angle: -90, position: 'insideLeft', fill: theme.textSecondary }} />
-          <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }} />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
-          {selected.map((f, i) => (
-            <Line key={f} type="monotone" dataKey={f} stroke={COLORS[i]} strokeWidth={2} dot={false} activeDot={{ r: 5 }} />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
+        <div style={{ minWidth: 350 }}>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+              <XAxis dataKey="featureValue" stroke={theme.textSecondary} style={{ fontSize: 10 }}
+                label={{ value: 'Feature (%)', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
+              <YAxis stroke={theme.textSecondary} style={{ fontSize: 10 }}
+                label={{ value: 'Previsão (R$)', angle: -90, position: 'insideLeft', fill: theme.textSecondary }} />
+              <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {selected.map((f, i) => (
+                <Line key={f} type="monotone" dataKey={f} stroke={COLORS[i]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };

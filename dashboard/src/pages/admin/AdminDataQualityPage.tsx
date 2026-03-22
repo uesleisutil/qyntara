@@ -58,15 +58,15 @@ const AdminDataQualityPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Qualidade de Dados</h1>
-          <p style={{ color: theme.textSecondary, fontSize: '0.875rem' }}>
-            Completude, anomalias, freshness e cobertura do universo.
-            {completeness.dateRange && <span> Período: {completeness.dateRange.start} a {completeness.dateRange.end}</span>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Qualidade de Dados</h1>
+          <p style={{ color: theme.textSecondary, fontSize: '0.8rem' }}>
+            Completude, anomalias, freshness e cobertura.
+            {completeness.dateRange && <span> {completeness.dateRange.start} a {completeness.dateRange.end}</span>}
           </p>
         </div>
-        <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, flexShrink: 0 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -77,7 +77,7 @@ const AdminDataQualityPage: React.FC = () => {
         <div style={{ ...cardStyle, textAlign: 'center', padding: '3rem', color: theme.textSecondary }}>Sem dados de qualidade disponíveis.</div>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
             {kpis.map((m, i) => (
               <div key={i} style={cardStyle}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>

@@ -75,19 +75,19 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
 
   return (
     <div style={{
-      backgroundColor: theme.cardBg, padding: '1.5rem', borderRadius: 12,
+      backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-        <MessageSquare size={20} color="#3b82f6" />
-        <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: theme.text }}>
-          Explicação da Previsão — {ticker}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <MessageSquare size={18} color="#3b82f6" />
+        <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
+          Explicação — {ticker}
         </h3>
       </div>
 
       <div style={{
-        padding: '1.25rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
-        borderRadius: 8, marginBottom: '1rem', lineHeight: 1.7,
+        padding: 'clamp(0.75rem, 2vw, 1.25rem)', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
+        borderRadius: 8, marginBottom: '0.75rem', lineHeight: 1.7,
       }}>
         <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: theme.text }}>
           O modelo prevê que <strong>{ticker}</strong> atingirá{' '}

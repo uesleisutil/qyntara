@@ -13,7 +13,7 @@ const BacktestingPage: React.FC = () => {
   return (
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Backtesting</h1>
+        <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Backtesting</h1>
         <p style={{ color: theme.textSecondary, fontSize: '0.875rem' }}>
           Simule estratégias com dados históricos, walk-forward analysis e métricas de risco.
         </p>

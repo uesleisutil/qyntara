@@ -78,7 +78,8 @@ const VerifyEmailPage: React.FC = () => {
   };
 
   const inputStyle: React.CSSProperties = {
-    width: 48, height: 56, textAlign: 'center', fontSize: '1.5rem', fontWeight: 700,
+    width: 'clamp(38px, 10vw, 48px)', height: 'clamp(44px, 12vw, 56px)', textAlign: 'center',
+    fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', fontWeight: 700,
     background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#f1f5f9', outline: 'none',
   };
 

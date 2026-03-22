@@ -1,0 +1,45 @@
+/* ===== Global Mobile Styles ===== */
+
+/* Prevent horizontal overflow */
+html, body, #root {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Better touch targets */
+button, a, select, input {
+  min-height: 44px;
+}
+
+input[type="text"], input[type="email"], input[type="password"], select {
+  font-size: 16px !important; /* Prevents iOS zoom on focus */
+}
+
+/* Spin animation for loading */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Mobile breakpoint: 768px ===== */
+@media (max-width: 768px) {
+  /* Dashboard layout adjustments */
+  .sidebar-desktop { display: none !important; }
+  .sidebar-mobile { display: flex !important; }
+  .main-content { margin-left: 0 !important; }
+  .mobile-menu-btn { display: flex !important; }
+}
+
+/* ===== Small mobile: 480px ===== */
+@media (max-width: 480px) {
+  /* Tighter padding on very small screens */
+  .main-content > div:last-child {
+    padding: 0.75rem !important;
+  }
+}

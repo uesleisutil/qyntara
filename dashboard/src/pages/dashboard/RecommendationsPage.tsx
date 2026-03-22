@@ -3,18 +3,10 @@ import { useOutletContext } from 'react-router-dom';
 import { ArrowUpRight, ArrowDownRight, RefreshCw, Search } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 
-interface DashboardContext {
-  darkMode: boolean;
-  theme: Record<string, string>;
-}
-
+interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
-  ticker: string;
-  last_close: number;
-  pred_price_t_plus_20: number;
-  exp_return_20: number;
-  vol_20d: number;
-  score: number;
+  ticker: string; last_close: number; pred_price_t_plus_20: number;
+  exp_return_20: number; vol_20d: number; score: number;
 }
 
 const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
@@ -22,40 +14,28 @@ const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) 
 const RecommendationsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [date, setDate] = useState<string>('');
+  const [date, setDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<string>('score');
+  const [sortBy, setSortBy] = useState('score');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   useEffect(() => { fetchRecommendations(); }, []);
 
   const fetchRecommendations = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/recommendations/latest`, {
-        headers: { 'x-api-key': API_KEY },
-      });
-      if (!response.ok) throw new Error('Falha ao carregar recomendações');
-      const data = await response.json();
+      const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers: { 'x-api-key': API_KEY } });
+      if (!res.ok) throw new Error('Falha ao carregar recomendações');
+      const data = await res.json();
       setRecommendations(data.recommendations || []);
       setDate(data.date || '');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err: any) { setError(err.message); }
+    finally { setLoading(false); }
   };
 
-  // Derive signal from score
-  const getSignal = (score: number) => {
-    if (score >= 1.5) return 'COMPRA';
-    if (score <= -1.5) return 'VENDA';
-    return 'NEUTRO';
-  };
-
+  const getSignal = (score: number) => score >= 1.5 ? 'COMPRA' : score <= -1.5 ? 'VENDA' : 'NEUTRO';
   const getSignalColor = (signal: string) => {
     if (signal === 'COMPRA') return { bg: 'rgba(16,185,129,0.15)', text: '#10b981' };
     if (signal === 'VENDA') return { bg: 'rgba(239,68,68,0.15)', text: '#ef4444' };
@@ -70,21 +50,17 @@ const RecommendationsPage: React.FC = () => {
       if (sortBy === 'return') return (a.exp_return_20 - b.exp_return_20) * dir;
       if (sortBy === 'ticker') return a.ticker.localeCompare(b.ticker) * dir;
       if (sortBy === 'vol') return (a.vol_20d - b.vol_20d) * dir;
-      return (b.score - a.score); // default: score desc
+      return (b.score - a.score);
     });
 
-  // KPIs
   const totalBuy = recommendations.filter(r => r.score >= 1.5).length;
   const totalSell = recommendations.filter(r => r.score <= -1.5).length;
-  const avgReturn = recommendations.length
-    ? recommendations.reduce((s, r) => s + (r.exp_return_20 || 0), 0) / recommendations.length
-    : 0;
+  const avgReturn = recommendations.length ? recommendations.reduce((s, r) => s + (r.exp_return_20 || 0), 0) / recommendations.length : 0;
   const topScore = recommendations.length ? Math.max(...recommendations.map(r => r.score)) : 0;
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1e293b' : '#fff'),
-    border: `1px solid ${theme.border}`,
-    borderRadius: 12, padding: '1.25rem',
+    border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
 
   if (loading) {
@@ -98,18 +74,17 @@ const RecommendationsPage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Recomendações</h1>
-          <p style={{ color: theme.textSecondary, fontSize: '0.875rem' }}>
-            Top ações ranqueadas por Machine Learning
-            {date && <span> — {date}</span>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Recomendações</h1>
+          <p style={{ color: theme.textSecondary, fontSize: '0.8rem' }}>
+            Top ações ranqueadas por ML{date && <span> — {date}</span>}
           </p>
         </div>
         <button onClick={fetchRecommendations} style={{
           display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem',
           background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white',
-          borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
+          borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, flexShrink: 0,
         }}>
           <RefreshCw size={14} /> Atualizar
         </button>
@@ -122,60 +97,57 @@ const RecommendationsPage: React.FC = () => {
       )}
 
       {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         {[
-          { label: 'Total Ações', value: `${recommendations.length}`, color: '#3b82f6' },
-          { label: 'Sinal Compra', value: `${totalBuy}`, color: '#10b981' },
-          { label: 'Sinal Venda', value: `${totalSell}`, color: '#ef4444' },
-          { label: 'Retorno Médio', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444' },
+          { label: 'Total', value: `${recommendations.length}`, color: '#3b82f6' },
+          { label: 'Compra', value: `${totalBuy}`, color: '#10b981' },
+          { label: 'Venda', value: `${totalSell}`, color: '#ef4444' },
+          { label: 'Ret. Médio', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444' },
           { label: 'Top Score', value: fmt(topScore, 2), color: '#f59e0b' },
         ].map((kpi, i) => (
           <div key={i} style={cardStyle}>
-            <div style={{ fontSize: '0.8rem', color: theme.textSecondary, marginBottom: '0.4rem' }}>{kpi.label}</div>
-            <div style={{ fontSize: '1.35rem', fontWeight: 700, color: kpi.color }}>{kpi.value}</div>
+            <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.3rem' }}>{kpi.label}</div>
+            <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 700, color: kpi.color }}>{kpi.value}</div>
           </div>
         ))}
       </div>
 
       {/* Search + Sort */}
-      <div style={{ ...cardStyle, marginBottom: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+      <div style={{ ...cardStyle, marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 0 }}>
           <Search size={16} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
-          <input
-            type="text" placeholder="Buscar ticker..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+          <input type="text" placeholder="Buscar ticker..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
             style={{
               width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', background: darkMode ? '#0f172a' : '#f8fafc',
               border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.85rem', outline: 'none',
-            }}
-          />
+              boxSizing: 'border-box',
+            }} />
         </div>
         <select value={sortBy} onChange={e => setSortBy(e.target.value)} style={{
-          padding: '0.5rem 0.75rem', background: darkMode ? '#0f172a' : '#f8fafc',
+          padding: '0.5rem', background: darkMode ? '#0f172a' : '#f8fafc',
           border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.85rem', outline: 'none',
         }}>
-          <option value="score">Ordenar por Score</option>
-          <option value="return">Ordenar por Retorno</option>
-          <option value="ticker">Ordenar por Ticker</option>
-          <option value="vol">Ordenar por Volatilidade</option>
+          <option value="score">Score</option>
+          <option value="return">Retorno</option>
+          <option value="ticker">Ticker</option>
+          <option value="vol">Volatilidade</option>
         </select>
         <button onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')} style={{
-          padding: '0.5rem 0.75rem', background: darkMode ? '#0f172a' : '#f8fafc',
+          padding: '0.5rem 0.6rem', background: darkMode ? '#0f172a' : '#f8fafc',
           border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, cursor: 'pointer', fontSize: '0.85rem',
         }}>
-          {sortDir === 'asc' ? '↑ Asc' : '↓ Desc'}
+          {sortDir === 'asc' ? '↑' : '↓'}
         </button>
       </div>
 
-      {/* Table */}
-      <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      {/* Desktop Table */}
+      <div className="rec-table-desktop" style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                {['#', 'Ticker', 'Último Preço', 'Preço Previsto (20d)', 'Retorno Esperado', 'Volatilidade 20d', 'Score', 'Sinal'].map(h => (
-                  <th key={h} style={{ padding: '0.75rem 0.75rem', textAlign: 'left', fontSize: '0.78rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0f172a' : '#f8fafc', whiteSpace: 'nowrap' }}>
-                    {h}
-                  </th>
+                {['#', 'Ticker', 'Preço', 'Previsto', 'Retorno', 'Vol', 'Score', 'Sinal'].map(h => (
+                  <th key={h} style={{ padding: '0.65rem 0.6rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0f172a' : '#f8fafc', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -187,38 +159,28 @@ const RecommendationsPage: React.FC = () => {
                 const sc = getSignalColor(signal);
                 const ret = rec.exp_return_20;
                 return (
-                  <tr key={rec.ticker} style={{ borderBottom: `1px solid ${theme.border}`, transition: 'background 0.1s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = theme.hover}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  >
-                    <td style={{ padding: '0.6rem 0.75rem' }}>
+                  <tr key={rec.ticker} style={{ borderBottom: `1px solid ${theme.border}` }}>
+                    <td style={{ padding: '0.5rem 0.6rem' }}>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                        width: 28, height: 28, borderRadius: 6, fontSize: '0.8rem', fontWeight: 700,
+                        width: 26, height: 26, borderRadius: 6, fontSize: '0.75rem', fontWeight: 700,
                         background: i < 3 ? 'linear-gradient(135deg, #2563eb, #3b82f6)' : (darkMode ? '#334155' : '#e2e8f0'),
                         color: i < 3 ? 'white' : theme.text,
-                      }}>
-                        {i + 1}
-                      </span>
+                      }}>{i + 1}</span>
                     </td>
-                    <td style={{ padding: '0.6rem 0.75rem', fontWeight: 600, color: theme.text, fontSize: '0.9rem' }}>{rec.ticker}</td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: theme.textSecondary }}>R$ {fmt(rec.last_close)}</td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: ret >= 0 ? '#10b981' : '#ef4444', fontWeight: 500 }}>R$ {fmt(rec.pred_price_t_plus_20)}</td>
-                    <td style={{ padding: '0.6rem 0.75rem' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: ret >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>
+                    <td style={{ padding: '0.5rem 0.6rem', fontWeight: 600, color: theme.text, fontSize: '0.85rem' }}>{rec.ticker}</td>
+                    <td style={{ padding: '0.5rem 0.6rem', color: theme.textSecondary, fontSize: '0.85rem' }}>R$ {fmt(rec.last_close)}</td>
+                    <td style={{ padding: '0.5rem 0.6rem', color: ret >= 0 ? '#10b981' : '#ef4444', fontWeight: 500, fontSize: '0.85rem' }}>R$ {fmt(rec.pred_price_t_plus_20)}</td>
+                    <td style={{ padding: '0.5rem 0.6rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: ret >= 0 ? '#10b981' : '#ef4444', fontWeight: 600, fontSize: '0.85rem' }}>
                         {ret >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                         {fmt(ret * 100, 1)}%
                       </span>
                     </td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: theme.textSecondary }}>{fmt(rec.vol_20d * 100, 1)}%</td>
-                    <td style={{ padding: '0.6rem 0.75rem', color: '#3b82f6', fontWeight: 700 }}>{fmt(rec.score, 3)}</td>
-                    <td style={{ padding: '0.6rem 0.75rem' }}>
-                      <span style={{
-                        padding: '0.2rem 0.6rem', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600,
-                        background: sc.bg, color: sc.text,
-                      }}>
-                        {signal}
-                      </span>
+                    <td style={{ padding: '0.5rem 0.6rem', color: theme.textSecondary, fontSize: '0.85rem' }}>{fmt(rec.vol_20d * 100, 1)}%</td>
+                    <td style={{ padding: '0.5rem 0.6rem', color: '#3b82f6', fontWeight: 700, fontSize: '0.85rem' }}>{fmt(rec.score, 3)}</td>
+                    <td style={{ padding: '0.5rem 0.6rem' }}>
+                      <span style={{ padding: '0.2rem 0.5rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, background: sc.bg, color: sc.text }}>{signal}</span>
                     </td>
                   </tr>
                 );
@@ -227,6 +189,49 @@ const RecommendationsPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Mobile Cards (hidden on desktop) */}
+      <div className="rec-cards-mobile" style={{ display: 'none', flexDirection: 'column', gap: '0.5rem' }}>
+        {filtered.length === 0 ? (
+          <div style={{ ...cardStyle, textAlign: 'center', color: theme.textSecondary }}>Nenhuma recomendação encontrada</div>
+        ) : filtered.map((rec, i) => {
+          const signal = getSignal(rec.score);
+          const sc = getSignalColor(signal);
+          const ret = rec.exp_return_20;
+          return (
+            <div key={rec.ticker} style={{ ...cardStyle, padding: '0.85rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: 24, height: 24, borderRadius: 6, fontSize: '0.7rem', fontWeight: 700,
+                    background: i < 3 ? 'linear-gradient(135deg, #2563eb, #3b82f6)' : (darkMode ? '#334155' : '#e2e8f0'),
+                    color: i < 3 ? 'white' : theme.text,
+                  }}>{i + 1}</span>
+                  <span style={{ fontWeight: 700, color: theme.text, fontSize: '1rem' }}>{rec.ticker}</span>
+                </div>
+                <span style={{ padding: '0.2rem 0.5rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, background: sc.bg, color: sc.text }}>{signal}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem 1rem', fontSize: '0.8rem' }}>
+                <div><span style={{ color: theme.textSecondary }}>Preço: </span><span style={{ color: theme.text }}>R$ {fmt(rec.last_close)}</span></div>
+                <div><span style={{ color: theme.textSecondary }}>Previsto: </span><span style={{ color: ret >= 0 ? '#10b981' : '#ef4444' }}>R$ {fmt(rec.pred_price_t_plus_20)}</span></div>
+                <div>
+                  <span style={{ color: theme.textSecondary }}>Retorno: </span>
+                  <span style={{ color: ret >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{fmt(ret * 100, 1)}%</span>
+                </div>
+                <div><span style={{ color: theme.textSecondary }}>Score: </span><span style={{ color: '#3b82f6', fontWeight: 700 }}>{fmt(rec.score, 3)}</span></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .rec-table-desktop { display: none !important; }
+          .rec-cards-mobile { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 };

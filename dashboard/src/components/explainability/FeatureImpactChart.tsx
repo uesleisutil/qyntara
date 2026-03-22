@@ -104,7 +104,7 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
 
   return (
     <div style={{
-      backgroundColor: theme.cardBg, padding: '1.5rem', borderRadius: 12,
+      backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -133,12 +133,14 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
         Média do impacto absoluto (SHAP) por feature em {tickers.length} ações
       </p>
 
-      <ResponsiveContainer width="100%" height={Math.max(400, showTop * 32)}>
-        <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
-          <XAxis type="number" stroke={theme.textSecondary} style={{ fontSize: 11 }}
-            label={{ value: 'Média |SHAP|', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
-          <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 11 }} width={110} />
+      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
+        <div style={{ minWidth: 400 }}>
+          <ResponsiveContainer width="100%" height={Math.max(350, showTop * 30)}>
+            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 90, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+              <XAxis type="number" stroke={theme.textSecondary} style={{ fontSize: 10 }}
+                label={{ value: 'Média |SHAP|', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
+              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 10 }} width={85} />
           <Tooltip
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
@@ -167,7 +169,9 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
             })}
           </Bar>
         </BarChart>
-      </ResponsiveContainer>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
       <div style={{ marginTop: '1rem', display: 'flex', gap: '1.5rem', justifyContent: 'center', fontSize: '0.8rem' }}>
         {[

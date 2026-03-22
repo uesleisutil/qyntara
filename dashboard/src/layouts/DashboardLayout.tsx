@@ -189,30 +189,32 @@ const DashboardLayout: React.FC = () => {
       {/* Main content */}
       <main style={{ flex: 1, marginLeft: 240, minHeight: '100vh' }} className="main-content">
         <header style={{
-          padding: '0.75rem 1.5rem', borderBottom: `1px solid ${theme.border}`,
+          padding: '0.75rem clamp(0.75rem, 3vw, 1.5rem)', borderBottom: `1px solid ${theme.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: theme.sidebar, position: 'sticky', top: 0, zIndex: 30,
+          background: theme.sidebar, position: 'sticky', top: 0, zIndex: 30, gap: '0.5rem',
         }}>
           <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{
             display: 'none', background: 'none', border: 'none', color: theme.text,
-            cursor: 'pointer', padding: 4,
+            cursor: 'pointer', padding: 4, flexShrink: 0,
           }} className="mobile-menu-btn" aria-label="Menu">
             {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <div style={{ fontSize: '0.9rem', color: theme.textSecondary }}>
-            {location.pathname.startsWith('/admin') ? '🔒 Painel Admin' : 'Dashboard'}
+          <div style={{ fontSize: '0.9rem', color: theme.textSecondary, whiteSpace: 'nowrap' }}>
+            {location.pathname.startsWith('/admin') ? '🔒 Admin' : 'Dashboard'}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
             <div style={{ position: 'relative' }}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{
-                display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem',
+                display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.6rem',
                 borderRadius: 6, background: theme.hover, fontSize: '0.8rem', color: theme.textSecondary,
-                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s', maxWidth: '40vw',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
               }}
                 onMouseEnter={e => e.currentTarget.style.background = theme.activeItem || theme.hover}
                 onMouseLeave={e => { if (!userMenuOpen) e.currentTarget.style.background = theme.hover; }}
               >
-                <User size={14} /> {user?.email}
+                <User size={14} style={{ flexShrink: 0 }} />
+                <span className="header-email" style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.email}</span>
               </button>
               {userMenuOpen && (
                 <>
@@ -254,7 +256,7 @@ const DashboardLayout: React.FC = () => {
             </div>
           </div>
         </header>
-        <div style={{ padding: '1.5rem' }}>
+        <div style={{ padding: 'clamp(0.75rem, 3vw, 1.5rem)' }}>
           <Outlet context={{ darkMode, theme }} />
         </div>
       </main>

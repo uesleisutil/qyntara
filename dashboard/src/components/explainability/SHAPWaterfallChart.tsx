@@ -57,56 +57,60 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
 
   return (
     <div style={{
-      backgroundColor: theme.cardBg, padding: '1.5rem', borderRadius: 12,
+      backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-        <TrendingUp size={20} color="#3b82f6" />
-        <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: theme.text }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <TrendingUp size={18} color="#3b82f6" />
+        <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Contribuição SHAP — {ticker}
         </h3>
       </div>
 
       <div style={{
-        display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem', padding: '0.75rem',
-        backgroundColor: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8,
+        display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', padding: '0.6rem',
+        backgroundColor: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8, flexWrap: 'wrap', gap: '0.5rem',
       }}>
         <div>
-          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Valor Base (Último Preço)</div>
-          <div style={{ fontSize: '1.15rem', fontWeight: 700, color: theme.text }}>R$ {baseValue.toFixed(2)}</div>
+          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Base</div>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: theme.text }}>R$ {baseValue.toFixed(2)}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Previsão Final</div>
-          <div style={{ fontSize: '1.15rem', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
+          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Previsão</div>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
             R$ {prediction.toFixed(2)}
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>Diferença</div>
-          <div style={{ fontSize: '1.15rem', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
+          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Diferença</div>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
             {prediction >= baseValue ? '+' : ''}{(prediction - baseValue).toFixed(2)}
           </div>
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={420}>
-        <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 40, left: 120, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
-          <XAxis type="number" stroke={theme.textSecondary} style={{ fontSize: 11 }}
-            label={{ value: 'Impacto no Preço (R$)', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
-          <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 11 }} width={110} />
-          <Tooltip
-            contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
-            formatter={(val: number) => [`R$ ${val > 0 ? '+' : ''}${val.toFixed(3)}`, 'Impacto SHAP']}
-          />
-          <ReferenceLine x={0} stroke={theme.textSecondary} strokeDasharray="3 3" />
-          <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-            {chartData.map((entry, i) => (
-              <Cell key={i} fill={entry.value >= 0 ? '#10b981' : '#ef4444'} opacity={0.85} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
+        <div style={{ minWidth: 400 }}>
+          <ResponsiveContainer width="100%" height={380}>
+            <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 90, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+              <XAxis type="number" stroke={theme.textSecondary} style={{ fontSize: 10 }}
+                label={{ value: 'Impacto (R$)', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
+              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 10 }} width={85} />
+              <Tooltip
+                contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
+                formatter={(val: number) => [`R$ ${val > 0 ? '+' : ''}${val.toFixed(3)}`, 'Impacto SHAP']}
+              />
+              <ReferenceLine x={0} stroke={theme.textSecondary} strokeDasharray="3 3" />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                {chartData.map((entry, i) => (
+                  <Cell key={i} fill={entry.value >= 0 ? '#10b981' : '#ef4444'} opacity={0.85} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
       <div style={{
         marginTop: '0.75rem', padding: '0.6rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',

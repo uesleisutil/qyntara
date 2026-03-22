@@ -66,23 +66,24 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   return (
     <div>
       <div style={{
-        backgroundColor: theme.cardBg, padding: '1.25rem', borderRadius: 12, marginBottom: '1.5rem',
+        backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.25rem)', borderRadius: 12, marginBottom: '1.25rem',
         boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <Info size={24} color="#3b82f6" />
-          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: theme.text }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <Info size={20} color="#3b82f6" />
+          <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 700, color: theme.text }}>
             Explicabilidade do Modelo
           </h2>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: theme.text }}>Selecionar Ação:</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <label style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>Ação:</label>
           <select
             value={selectedTicker}
             onChange={(e) => setSelectedTicker(e.target.value)}
             style={{
               padding: '0.5rem 0.75rem', fontSize: '0.9rem', border: `1px solid ${theme.border}`,
-              borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer', minWidth: 200,
+              borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer',
+              minWidth: 0, flex: '1 1 180px', maxWidth: 280,
             }}
           >
             {tickers.map(t => (
@@ -92,9 +93,9 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             ))}
           </select>
           {currentTicker && (
-            <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>
-              Preço: R$ {currentTicker.last_close.toFixed(2)} → R$ {currentTicker.pred_price_t_plus_20.toFixed(2)} | 
-              Retorno: {(currentTicker.exp_return_20 * 100).toFixed(1)}% | Vol: {(currentTicker.vol_20d * 100).toFixed(1)}%
+            <span style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.4 }}>
+              R$ {currentTicker.last_close.toFixed(2)} → R$ {currentTicker.pred_price_t_plus_20.toFixed(2)} | 
+              Ret: {(currentTicker.exp_return_20 * 100).toFixed(1)}% | Vol: {(currentTicker.vol_20d * 100).toFixed(1)}%
             </span>
           )}
         </div>
