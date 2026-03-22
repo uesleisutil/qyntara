@@ -74,7 +74,15 @@ def handler(event, context):
             try:
                 response = s3.get_object(Bucket=BUCKET, Key=key)
                 content = response['Body'].read().decode('utf-8')
-                data = json.loads(content)
+                
+                # CSV files: convert to JSON array of objects
+                if key.endswith('.csv'):
+                    import csv
+                    import io
+                    reader = csv.DictReader(io.StringIO(content))
+                    data = list(reader)
+                else:
+                    data = json.loads(content)
                 
                 return {
                     'statusCode': 200,

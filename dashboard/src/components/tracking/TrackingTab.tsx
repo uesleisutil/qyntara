@@ -1,43 +1,52 @@
-import React, { useState, useEffect } from 'react';
-import { CheckCircle, Clock, XCircle, TrendingUp, TrendingDown, BarChart3, Target } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { CheckCircle, TrendingUp, TrendingDown, BarChart3, Target, ChevronDown, ChevronRight, Activity, Calendar, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
 
 interface TrackingTabProps { darkMode?: boolean; }
 
-interface Validation {
+interface PriceRow { date: string; ticker: string; close: string; }
+interface HistoryEntry { date: string; exp_return_20: number; score: number; }
+interface Validation { ticker: string; prediction_date: string; target_date: string; predicted_return: number; actual_return: number | null; error: number | null; direction_correct: boolean | null; days_elapsed: number; }
+
+interface TickerProgress {
   ticker: string;
-  prediction_date: string;
-  target_date: string;
-  predicted_return: number;
-  actual_return: number | null;
-  error: number | null;
-  direction_correct: boolean | null;
-  days_elapsed: number;
+  basePrice: number;
+  currentPrice: number;
+  predictedReturn: number;
+  partialReturn: number;
+  score: number;
+  signal: 'Compra' | 'Venda' | 'Neutro';
+  dailyPrices: { date: string; close: number; partialReturn: number }[];
+  daysElapsed: number;
+  totalDays: number;
+  trackingPrediction: boolean; // partial return going in same direction as prediction
 }
 
-interface Safra {
-  date: string;
+interface SafraProgress {
+  predictionDate: string;
   targetDate: string;
-  items: Validation[];
-  completed: number;
-  pending: number;
+  daysElapsed: number;
+  totalDays: number;
+  progress: number; // 0-1
+  tickers: TickerProgress[];
   avgPredicted: number;
-  avgActual: number | null;
-  directionAccuracy: number | null;
-  mae: number | null;
-  buySignals: Validation[];
-  sellSignals: Validation[];
+  avgPartialReturn: number;
+  buyTickers: TickerProgress[];
+  sellTickers: TickerProgress[];
+  trackingRate: number; // % of tickers tracking toward prediction
 }
 
 const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
+  const [prices, setPrices] = useState<Record<string, Record<string, number>>>({});
+  const [history, setHistory] = useState<Record<string, HistoryEntry[]>>({});
   const [validations, setValidations] = useState<Validation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSafra, setExpandedSafra] = useState<string | null>(null);
-  const [filterSignal, setFilterSignal] = useState<'all' | 'buy' | 'sell'>('all');
+  const [filterSignal, setFilterSignal] = useState<'all' | 'Compra' | 'Venda'>('all');
 
   const theme = {
     bg: darkMode ? '#0f172a' : '#f8fafc',
@@ -46,6 +55,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
     textSecondary: darkMode ? '#94a3b8' : '#64748b',
     border: darkMode ? '#334155' : '#e2e8f0',
     hover: darkMode ? '#334155' : '#f1f5f9',
+    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#3b82f6', purple: '#8b5cf6',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -53,64 +63,198 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
     borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
-  useEffect(() => { fetchValidations(); }, []);
+  useEffect(() => { fetchAllData(); }, []);
 
-  const fetchValidations = async () => {
+  const fetchAllData = async () => {
     setLoading(true); setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/recommendations/validation`, { headers: { 'x-api-key': API_KEY } });
-      if (!res.ok) throw new Error('Falha ao carregar dados de acompanhamento');
-      const data = await res.json();
-      setValidations(data.validations || []);
+      const headers = { 'x-api-key': API_KEY };
+      const [histRes, valRes, mar, feb] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
+        fetch(`${API_BASE_URL}/api/recommendations/validation`, { headers }),
+        fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }),
+        fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=02/daily.csv`, { headers }),
+      ]);
+
+      if (!histRes.ok || !valRes.ok) throw new Error('Falha ao carregar dados');
+
+      const histData = await histRes.json();
+      const valData = await valRes.json();
+      const marData: PriceRow[] = mar.ok ? await mar.json() : [];
+      const febData: PriceRow[] = feb.ok ? await feb.json() : [];
+
+      setHistory(histData.data || {});
+      setValidations(valData.validations || []);
+
+      // Build price lookup: { TICKER: { "2026-03-09": 43.16, ... } }
+      const priceMap: Record<string, Record<string, number>> = {};
+      [...febData, ...marData].forEach(row => {
+        if (!priceMap[row.ticker]) priceMap[row.ticker] = {};
+        priceMap[row.ticker][row.date] = parseFloat(row.close);
+      });
+      setPrices(priceMap);
     } catch (err: any) { setError(err.message); }
     finally { setLoading(false); }
   };
 
-  // Group by prediction_date (safra)
-  const safras: Safra[] = React.useMemo(() => {
-    const grouped: Record<string, Validation[]> = {};
-    validations.forEach(v => {
-      if (!grouped[v.prediction_date]) grouped[v.prediction_date] = [];
-      grouped[v.prediction_date].push(v);
+  // Build safra progress data
+  const safras: SafraProgress[] = useMemo(() => {
+    if (!Object.keys(prices).length || !Object.keys(history).length) return [];
+
+    // Get all unique prediction dates from history
+    const allDates = new Set<string>();
+    Object.values(history).forEach(entries => entries.forEach(e => allDates.add(e.date)));
+    const sortedDates = Array.from(allDates).sort();
+
+    // Get all available price dates (trading days)
+    const allPriceDates = new Set<string>();
+    Object.values(prices).forEach(tickerPrices => {
+      Object.keys(tickerPrices).forEach(d => allPriceDates.add(d));
     });
+    const tradingDays = Array.from(allPriceDates).sort();
 
-    return Object.entries(grouped)
-      .map(([date, items]) => {
-        const completed = items.filter(i => i.actual_return !== null);
-        const pending = items.filter(i => i.actual_return === null);
-        const avgPredicted = items.reduce((s, i) => s + i.predicted_return, 0) / items.length;
-        const avgActual = completed.length > 0
-          ? completed.reduce((s, i) => s + (i.actual_return || 0), 0) / completed.length
-          : null;
-        const dirCorrect = completed.filter(i => i.direction_correct === true);
-        const directionAccuracy = completed.length > 0 ? dirCorrect.length / completed.length : null;
-        const mae = completed.length > 0
-          ? completed.reduce((s, i) => s + Math.abs(i.error || 0), 0) / completed.length
-          : null;
-        const buySignals = items.filter(i => i.predicted_return >= 0.03); // ~1.5 score threshold approx
-        const sellSignals = items.filter(i => i.predicted_return <= -0.03);
+    // For each prediction date, build safra progress
+    return sortedDates.map(predDate => {
+      // Find target date from validations or calculate (20 trading days ahead)
+      const valForDate = validations.find(v => v.prediction_date === predDate);
+      const targetDate = valForDate?.target_date || '';
 
-        return {
-          date, targetDate: items[0]?.target_date || '',
-          items, completed: completed.length, pending: pending.length,
-          avgPredicted, avgActual, directionAccuracy, mae,
-          buySignals, sellSignals,
-        };
-      })
-      .sort((a, b) => b.date.localeCompare(a.date));
-  }, [validations]);
+      // Count trading days elapsed since prediction
+      const futureDays = tradingDays.filter(d => d > predDate);
+      const daysElapsed = futureDays.length;
+      const totalDays = 20;
+      const progress = Math.min(daysElapsed / totalDays, 1);
+
+      // Get the latest price date
+      const latestPriceDate = tradingDays[tradingDays.length - 1] || predDate;
+
+      // Build ticker progress
+      const tickers: TickerProgress[] = [];
+      Object.entries(history).forEach(([ticker, entries]) => {
+        const predEntry = entries.find(e => e.date === predDate);
+        if (!predEntry) return;
+
+        const tickerPrices = prices[ticker];
+        if (!tickerPrices) return;
+
+        // Base price = closing price on prediction date (or closest prior date)
+        let basePrice = tickerPrices[predDate];
+        if (!basePrice) {
+          // Find closest prior date
+          const priorDates = Object.keys(tickerPrices).filter(d => d <= predDate).sort();
+          if (priorDates.length) basePrice = tickerPrices[priorDates[priorDates.length - 1]];
+        }
+        if (!basePrice) return;
+
+        // Current price = latest available
+        const currentPrice = tickerPrices[latestPriceDate] || basePrice;
+        const partialReturn = (currentPrice - basePrice) / basePrice;
+
+        // Daily price evolution since prediction
+        const dailyPrices = futureDays
+          .filter(d => tickerPrices[d])
+          .map(d => ({
+            date: d,
+            close: tickerPrices[d],
+            partialReturn: (tickerPrices[d] - basePrice) / basePrice,
+          }));
+
+        const signal: 'Compra' | 'Venda' | 'Neutro' =
+          predEntry.score >= 1.5 ? 'Compra' : predEntry.score <= -1.5 ? 'Venda' : 'Neutro';
+
+        // Is the partial return tracking toward the prediction?
+        const trackingPrediction = predEntry.exp_return_20 >= 0
+          ? partialReturn >= 0
+          : partialReturn <= 0;
+
+        tickers.push({
+          ticker, basePrice, currentPrice,
+          predictedReturn: predEntry.exp_return_20,
+          partialReturn, score: predEntry.score, signal, dailyPrices,
+          daysElapsed, totalDays, trackingPrediction,
+        });
+      });
+
+      if (!tickers.length) return null;
+
+      tickers.sort((a, b) => Math.abs(b.predictedReturn) - Math.abs(a.predictedReturn));
+
+      const avgPredicted = tickers.reduce((s, t) => s + t.predictedReturn, 0) / tickers.length;
+      const avgPartialReturn = tickers.reduce((s, t) => s + t.partialReturn, 0) / tickers.length;
+      const buyTickers = tickers.filter(t => t.signal === 'Compra');
+      const sellTickers = tickers.filter(t => t.signal === 'Venda');
+      const trackingRate = tickers.filter(t => t.trackingPrediction).length / tickers.length;
+
+      return {
+        predictionDate: predDate, targetDate, daysElapsed, totalDays, progress,
+        tickers, avgPredicted, avgPartialReturn, buyTickers, sellTickers, trackingRate,
+      };
+    }).filter(Boolean).reverse() as SafraProgress[];
+  }, [prices, history, validations]);
 
   // Global stats
-  const totalPredictions = validations.length;
-  const totalCompleted = validations.filter(v => v.actual_return !== null).length;
-  const totalPending = totalPredictions - totalCompleted;
-  const completedItems = validations.filter(v => v.actual_return !== null);
-  const globalDirAccuracy = completedItems.length > 0
-    ? completedItems.filter(v => v.direction_correct === true).length / completedItems.length
-    : null;
-  const globalMAE = completedItems.length > 0
-    ? completedItems.reduce((s, v) => s + Math.abs(v.error || 0), 0) / completedItems.length
-    : null;
+  const globalStats = useMemo(() => {
+    if (!safras.length) return null;
+    const allTickers = safras.flatMap(s => s.tickers);
+    const totalPredictions = allTickers.length;
+    const avgTracking = safras.reduce((s, sf) => s + sf.trackingRate, 0) / safras.length;
+    const buyTickers = allTickers.filter(t => t.signal === 'Compra');
+    const sellTickers = allTickers.filter(t => t.signal === 'Venda');
+    const avgBuyReturn = buyTickers.length
+      ? buyTickers.reduce((s, t) => s + t.partialReturn, 0) / buyTickers.length : 0;
+    const avgSellReturn = sellTickers.length
+      ? sellTickers.reduce((s, t) => s + t.partialReturn, 0) / sellTickers.length : 0;
+    return { totalPredictions, avgTracking, avgBuyReturn, avgSellReturn, safraCount: safras.length, buyCount: buyTickers.length, sellCount: sellTickers.length };
+  }, [safras]);
+
+  // Mini sparkline component
+  const Sparkline: React.FC<{ data: { partialReturn: number }[]; predicted: number; width?: number; height?: number }> = ({ data, predicted, width = 120, height = 32 }) => {
+    if (!data.length) return <span style={{ color: theme.textSecondary, fontSize: '0.7rem' }}>Sem dados</span>;
+    const values = data.map(d => d.partialReturn);
+    const allVals = [...values, predicted, 0];
+    const min = Math.min(...allVals);
+    const max = Math.max(...allVals);
+    const range = max - min || 0.01;
+    const toY = (v: number) => height - ((v - min) / range) * height;
+    const toX = (i: number) => (i / Math.max(values.length - 1, 1)) * width;
+    const points = values.map((v, i) => `${toX(i)},${toY(v)}`).join(' ');
+    const zeroY = toY(0);
+    const predY = toY(predicted);
+
+    return (
+      <svg width={width} height={height} style={{ display: 'block' }}>
+        {/* Zero line */}
+        <line x1={0} y1={zeroY} x2={width} y2={zeroY} stroke={theme.textSecondary} strokeWidth={0.5} strokeDasharray="2,2" opacity={0.5} />
+        {/* Predicted return target line */}
+        <line x1={0} y1={predY} x2={width} y2={predY} stroke={theme.blue} strokeWidth={0.8} strokeDasharray="3,2" opacity={0.6} />
+        {/* Actual path */}
+        <polyline points={points} fill="none" stroke={values[values.length - 1] >= 0 ? theme.green : theme.red} strokeWidth={1.5} />
+        {/* Last point dot */}
+        <circle cx={toX(values.length - 1)} cy={toY(values[values.length - 1])} r={2.5}
+          fill={values[values.length - 1] >= 0 ? theme.green : theme.red} />
+      </svg>
+    );
+  };
+
+  // Progress bar component
+  const ProgressBar: React.FC<{ progress: number; daysElapsed: number; totalDays: number; trackingRate: number }> = ({ progress, daysElapsed, totalDays, trackingRate }) => {
+    const barColor = trackingRate >= 0.6 ? theme.green : trackingRate >= 0.4 ? theme.yellow : theme.red;
+    return (
+      <div style={{ width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: theme.textSecondary, marginBottom: 3 }}>
+          <span>Dia {Math.min(daysElapsed, totalDays)} de {totalDays}</span>
+          <span>{fmt(progress * 100, 0)}%</span>
+        </div>
+        <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#334155' : '#e2e8f0', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%', borderRadius: 3, width: `${Math.min(progress * 100, 100)}%`,
+            background: `linear-gradient(90deg, ${barColor}, ${barColor}dd)`,
+            transition: 'width 0.5s ease',
+          }} />
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     const skeletonPulse: React.CSSProperties = {
@@ -131,7 +275,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
             </div>
           ))}
         </div>
-        {[1,2,3].map(i => <div key={i} style={{ ...skeletonPulse, height: 80, marginBottom: 8 }} />)}
+        {[1,2,3].map(i => <div key={i} style={{ ...skeletonPulse, height: 100, marginBottom: 8 }} />)}
       </div>
     );
   }
@@ -144,7 +288,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
           Acompanhamento por Safra
         </h1>
         <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0 }}>
-          Previsão vs realidade — cada safra é um dia de recomendações com vencimento em 20 pregões
+          Acompanhe dia a dia como cada safra de previsões está evoluindo em relação à realidade
         </p>
       </div>
 
@@ -161,53 +305,74 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
         borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)',
       }}>
         <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
-          💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Cada dia o modelo gera previsões de retorno para 20 pregões à frente. Quando esse prazo vence, comparamos a previsão com o que realmente aconteceu. Isso permite avaliar se o modelo está acertando a direção (sobe/desce) e a magnitude dos retornos. Safras <span style={{ color: '#f59e0b' }}>⏳ pendentes</span> ainda não venceram.
+          💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Cada safra é um dia de previsões. O modelo prevê o retorno de cada ação para 20 pregões à frente. Aqui você acompanha <strong style={{ color: theme.text }}>dia a dia</strong> se o mercado está caminhando na direção prevista. A <span style={{ color: theme.blue }}>linha tracejada azul</span> no gráfico é a meta (retorno previsto). A <span style={{ color: theme.green }}>linha verde</span>/<span style={{ color: theme.red }}>vermelha</span> é o retorno real parcial.
         </div>
       </div>
 
       {/* Global KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
-        {[
-          { label: 'Total de Previsões', value: `${totalPredictions}`, color: '#3b82f6', icon: <BarChart3 size={16} />,
-            tip: 'Número total de previsões individuais (ticker × dia) nos últimos 30 dias.' },
-          { label: 'Concluídas', value: `${totalCompleted}`, color: '#10b981', icon: <CheckCircle size={16} />,
-            tip: 'Previsões cujo prazo de 20 pregões já venceu e temos o retorno real para comparar.' },
-          { label: 'Pendentes', value: `${totalPending}`, color: '#f59e0b', icon: <Clock size={16} />,
-            tip: 'Previsões que ainda não venceram — o prazo de 20 pregões ainda não passou.' },
-          { label: 'Acurácia Direcional', value: globalDirAccuracy !== null ? `${fmt(globalDirAccuracy * 100, 1)}%` : '—',
-            color: globalDirAccuracy !== null && globalDirAccuracy >= 0.55 ? '#10b981' : '#f59e0b', icon: <Target size={16} />,
-            tip: 'Percentual de vezes que o modelo acertou a direção (se a ação subiu ou desceu). Acima de 55% é bom para mercado financeiro.' },
-          { label: 'Erro Médio (MAE)', value: globalMAE !== null ? `${fmt(globalMAE * 100, 2)}%` : '—',
-            color: theme.textSecondary, icon: <TrendingDown size={16} />,
-            tip: 'Erro absoluto médio entre o retorno previsto e o real. Quanto menor, mais preciso o modelo.' },
-          { label: 'Safras', value: `${safras.length}`, color: '#8b5cf6', icon: <TrendingUp size={16} />,
-            tip: 'Número de dias distintos com previsões. Cada dia é uma "safra" de recomendações.' },
-        ].map((kpi, i) => (
-          <div key={i} style={cardStyle}>
-            <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              {kpi.label} <InfoTooltip text={kpi.tip} darkMode={darkMode} size={12} />
+      {globalStats && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          {[
+            { label: 'Safras ativas', value: `${globalStats.safraCount}`, color: theme.purple, icon: <Calendar size={16} />,
+              tip: 'Número de dias com previsões sendo acompanhadas. Cada dia gera uma safra de recomendações.' },
+            { label: 'Previsões', value: `${globalStats.totalPredictions}`, color: theme.blue, icon: <BarChart3 size={16} />,
+              tip: 'Total de previsões individuais (ticker × dia) em acompanhamento.' },
+            { label: 'Taxa de acerto parcial', value: `${fmt(globalStats.avgTracking * 100, 0)}%`, color: globalStats.avgTracking >= 0.55 ? theme.green : theme.yellow, icon: <Target size={16} />,
+              tip: 'Percentual de previsões onde o retorno parcial está caminhando na mesma direção prevista pelo modelo.' },
+            { label: 'Ret. parcial (Compra)', value: `${globalStats.avgBuyReturn >= 0 ? '+' : ''}${fmt(globalStats.avgBuyReturn * 100, 2)}%`, color: globalStats.avgBuyReturn >= 0 ? theme.green : theme.red, icon: <TrendingUp size={16} />,
+              tip: `Retorno médio parcial dos ${globalStats.buyCount} tickers com sinal de Compra. Se positivo, as recomendações de compra estão acertando.` },
+            { label: 'Ret. parcial (Venda)', value: `${globalStats.avgSellReturn >= 0 ? '+' : ''}${fmt(globalStats.avgSellReturn * 100, 2)}%`, color: globalStats.avgSellReturn <= 0 ? theme.green : theme.red, icon: <TrendingDown size={16} />,
+              tip: `Retorno médio parcial dos ${globalStats.sellCount} tickers com sinal de Venda. Se negativo, as recomendações de venda estão acertando.` },
+          ].map((kpi, i) => (
+            <div key={i} style={cardStyle}>
+              <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                {kpi.label} <InfoTooltip text={kpi.tip} darkMode={darkMode} size={12} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ color: kpi.color, opacity: 0.7 }}>{kpi.icon}</span>
+                <span style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 700, color: kpi.color }}>{kpi.value}</span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ color: kpi.color, opacity: 0.7 }}>{kpi.icon}</span>
-              <span style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 700, color: kpi.color }}>{kpi.value}</span>
-            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Verdict card */}
+      {globalStats && (
+        <div style={{
+          ...cardStyle, marginBottom: '1rem', padding: '0.85rem 1rem',
+          background: globalStats.avgTracking >= 0.55
+            ? (darkMode ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.04)')
+            : (darkMode ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.04)'),
+          borderColor: globalStats.avgTracking >= 0.55
+            ? (darkMode ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)')
+            : (darkMode ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.15)'),
+        }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text, marginBottom: 2 }}>
+            {globalStats.avgTracking >= 0.55 ? '✅ Modelo está no caminho certo' : '⚠️ Modelo com desempenho misto'}
           </div>
-        ))}
-      </div>
+          <div style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>
+            {globalStats.avgTracking >= 0.55
+              ? `${fmt(globalStats.avgTracking * 100, 0)}% das previsões estão caminhando na direção correta. Os sinais de compra acumulam ${globalStats.avgBuyReturn >= 0 ? '+' : ''}${fmt(globalStats.avgBuyReturn * 100, 2)}% de retorno parcial médio.`
+              : `Apenas ${fmt(globalStats.avgTracking * 100, 0)}% das previsões estão na direção correta até agora. Lembre-se: as safras ainda estão em andamento e o cenário pode mudar.`
+            }
+          </div>
+        </div>
+      )}
 
       {/* Filter */}
       <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         {([
-          { key: 'all', label: 'Todas as safras' },
-          { key: 'buy', label: 'Sinais de compra' },
-          { key: 'sell', label: 'Sinais de venda' },
-        ] as const).map(f => (
+          { key: 'all' as const, label: 'Todas' },
+          { key: 'Compra' as const, label: 'Sinais de compra' },
+          { key: 'Venda' as const, label: 'Sinais de venda' },
+        ]).map(f => (
           <button key={f.key} onClick={() => setFilterSignal(f.key)} style={{
-            padding: '0.4rem 0.75rem', borderRadius: 20, border: `1px solid ${filterSignal === f.key ? '#3b82f6' : theme.border}`,
-            background: filterSignal === f.key ? '#3b82f6' : 'transparent',
+            padding: '0.4rem 0.75rem', borderRadius: 20, border: `1px solid ${filterSignal === f.key ? theme.blue : theme.border}`,
+            background: filterSignal === f.key ? theme.blue : 'transparent',
             color: filterSignal === f.key ? 'white' : theme.textSecondary,
             fontSize: '0.78rem', fontWeight: filterSignal === f.key ? 600 : 400,
-            cursor: 'pointer', transition: 'all 0.15s',
+            cursor: 'pointer', transition: 'all 0.15s', WebkitAppearance: 'none', appearance: 'none',
           }}>{f.label}</button>
         ))}
       </div>
@@ -216,135 +381,159 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
         {safras.length === 0 ? (
           <div style={{ ...cardStyle, textAlign: 'center', padding: '2rem', color: theme.textSecondary }}>
-            Nenhuma safra encontrada.
+            Nenhuma safra encontrada. Os dados de preço e histórico podem não estar disponíveis ainda.
           </div>
         ) : safras.map(safra => {
-          const isExpanded = expandedSafra === safra.date;
-          const isCompleted = safra.completed > 0 && safra.pending === 0;
-          const isPartial = safra.completed > 0 && safra.pending > 0;
-          const statusColor = isCompleted ? '#10b981' : isPartial ? '#3b82f6' : '#f59e0b';
-          const statusLabel = isCompleted ? 'Concluída' : isPartial ? 'Parcial' : 'Pendente';
-          const statusIcon = isCompleted ? <CheckCircle size={14} /> : isPartial ? <BarChart3 size={14} /> : <Clock size={14} />;
+          const isExpanded = expandedSafra === safra.predictionDate;
+          const displayTickers = filterSignal === 'all' ? safra.tickers
+            : safra.tickers.filter(t => t.signal === filterSignal);
 
-          const displayItems = filterSignal === 'buy' ? safra.buySignals
-            : filterSignal === 'sell' ? safra.sellSignals
-            : safra.items;
+          if (!displayTickers.length) return null;
 
-          if (displayItems.length === 0) return null;
+          const safraAvgPartial = displayTickers.reduce((s, t) => s + t.partialReturn, 0) / displayTickers.length;
+          const safraAvgPredicted = displayTickers.reduce((s, t) => s + t.predictedReturn, 0) / displayTickers.length;
+          const safraTrackingRate = displayTickers.filter(t => t.trackingPrediction).length / displayTickers.length;
 
           return (
-            <div key={safra.date} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+            <div key={safra.predictionDate} style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
               {/* Safra Header */}
-              <button onClick={() => setExpandedSafra(isExpanded ? null : safra.date)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem',
+              <button onClick={() => setExpandedSafra(isExpanded ? null : safra.predictionDate)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
                 padding: 'clamp(0.65rem, 2vw, 0.85rem) clamp(0.75rem, 3vw, 1.25rem)',
                 background: 'transparent', border: 'none', cursor: 'pointer', color: theme.text,
-                textAlign: 'left', transition: 'background 0.15s',
+                textAlign: 'left', transition: 'background 0.15s', WebkitAppearance: 'none', appearance: 'none',
               }}
                 onMouseEnter={e => e.currentTarget.style.background = theme.hover}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                {/* Date */}
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text }}>
-                    Safra {new Date(safra.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                  </div>
-                  <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>
-                    Vencimento: {new Date(safra.targetDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                    {' · '}{displayItems.length} previsões
-                  </div>
-                </div>
-
-                {/* Status badge */}
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                  padding: '0.2rem 0.6rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600,
-                  background: `${statusColor}15`, color: statusColor, flexShrink: 0,
-                }}>
-                  {statusIcon} {statusLabel}
+                {/* Expand icon */}
+                <span style={{ color: theme.textSecondary, flexShrink: 0, transition: 'transform 0.2s' }}>
+                  {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </span>
 
-                {/* Quick metrics */}
-                <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0, alignItems: 'center' }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>Previsto</div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: safra.avgPredicted >= 0 ? '#10b981' : '#ef4444' }}>
-                      {safra.avgPredicted >= 0 ? '+' : ''}{fmt(safra.avgPredicted * 100, 1)}%
-                    </div>
+                {/* Date + progress */}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: 2 }}>
+                    Safra {new Date(safra.predictionDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </div>
-                  {safra.avgActual !== null && (
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>Real</div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: safra.avgActual >= 0 ? '#10b981' : '#ef4444' }}>
-                        {safra.avgActual >= 0 ? '+' : ''}{fmt(safra.avgActual * 100, 1)}%
-                      </div>
-                    </div>
-                  )}
-                  {safra.directionAccuracy !== null && (
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>Acurácia</div>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: safra.directionAccuracy >= 0.55 ? '#10b981' : '#f59e0b' }}>
-                        {fmt(safra.directionAccuracy * 100, 0)}%
-                      </div>
-                    </div>
-                  )}
+                  <ProgressBar progress={safra.progress} daysElapsed={safra.daysElapsed} totalDays={safra.totalDays} trackingRate={safraTrackingRate} />
                 </div>
 
-                {/* Expand arrow */}
-                <span style={{
-                  fontSize: '0.9rem', color: theme.textSecondary, transition: 'transform 0.2s',
-                  transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0,
-                }}>▾</span>
+                {/* Quick metrics */}
+                <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <div style={{ textAlign: 'right', minWidth: 55 }}>
+                    <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Previsto</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: safraAvgPredicted >= 0 ? theme.green : theme.red }}>
+                      {safraAvgPredicted >= 0 ? '+' : ''}{fmt(safraAvgPredicted * 100, 1)}%
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', minWidth: 55 }}>
+                    <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Parcial</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: safraAvgPartial >= 0 ? theme.green : theme.red }}>
+                      {safraAvgPartial >= 0 ? '+' : ''}{fmt(safraAvgPartial * 100, 1)}%
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', minWidth: 45 }}>
+                    <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Acerto</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: safraTrackingRate >= 0.55 ? theme.green : theme.yellow }}>
+                      {fmt(safraTrackingRate * 100, 0)}%
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'center', minWidth: 30 }}>
+                    <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Qtd</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>
+                      {displayTickers.length}
+                    </div>
+                  </div>
+                </div>
               </button>
 
               {/* Expanded detail */}
               {isExpanded && (
-                <div style={{ borderTop: `1px solid ${theme.border}`, padding: 0 }}>
+                <div style={{ borderTop: `1px solid ${theme.border}` }}>
                   <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 650 }}>
                       <thead>
                         <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                          {['Ticker', 'Ret. Previsto', 'Ret. Real', 'Erro', 'Direção', 'Status'].map(h => (
-                            <th key={h} style={{
-                              padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.7rem', fontWeight: 600,
-                              color: theme.textSecondary, background: darkMode ? '#0f172a' : '#f8fafc',
-                            }}>{h}</th>
+                          {[
+                            { label: 'Ticker', tip: 'Código da ação na B3' },
+                            { label: 'Sinal', tip: 'Sinal gerado pelo modelo: Compra (score ≥ 1.5), Venda (score ≤ -1.5) ou Neutro' },
+                            { label: 'Preço base', tip: 'Preço de fechamento no dia da previsão' },
+                            { label: 'Preço atual', tip: 'Último preço de fechamento disponível' },
+                            { label: 'Ret. previsto', tip: 'Retorno esperado pelo modelo para 20 pregões' },
+                            { label: 'Ret. parcial', tip: 'Retorno acumulado desde o dia da previsão até agora' },
+                            { label: 'Evolução', tip: 'Gráfico da evolução diária. Linha tracejada azul = meta (retorno previsto)' },
+                            { label: 'Status', tip: 'Se o retorno parcial está caminhando na mesma direção da previsão' },
+                          ].map(h => (
+                            <th key={h.label} style={{
+                              padding: '0.5rem 0.5rem', textAlign: 'left', fontSize: '0.7rem', fontWeight: 600,
+                              color: theme.textSecondary, background: darkMode ? '#0f172a' : '#f8fafc', whiteSpace: 'nowrap',
+                            }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                                {h.label} <InfoTooltip text={h.tip} darkMode={darkMode} size={11} />
+                              </span>
+                            </th>
                           ))}
                         </tr>
                       </thead>
                       <tbody>
-                        {displayItems.sort((a, b) => Math.abs(b.predicted_return) - Math.abs(a.predicted_return)).map((item, i) => (
-                          <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                            <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600, color: theme.text, fontSize: '0.82rem' }}>{item.ticker}</td>
-                            <td style={{ padding: '0.45rem 0.6rem', color: item.predicted_return >= 0 ? '#10b981' : '#ef4444', fontWeight: 600, fontSize: '0.82rem' }}>
-                              {item.predicted_return >= 0 ? '+' : ''}{fmt(item.predicted_return * 100, 2)}%
-                            </td>
-                            <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem' }}>
-                              {item.actual_return !== null ? (
-                                <span style={{ color: item.actual_return >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>
-                                  {item.actual_return >= 0 ? '+' : ''}{fmt(item.actual_return * 100, 2)}%
+                        {displayTickers.map((t, i) => {
+                          const signalColor = t.signal === 'Compra' ? theme.green : t.signal === 'Venda' ? theme.red : theme.textSecondary;
+                          const SignalIcon = t.signal === 'Compra' ? ArrowUpRight : t.signal === 'Venda' ? ArrowDownRight : Minus;
+                          return (
+                            <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}
+                              onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <td style={{ padding: '0.45rem 0.5rem', fontWeight: 600, color: theme.text, fontSize: '0.82rem' }}>{t.ticker}</td>
+                              <td style={{ padding: '0.45rem 0.5rem' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '0.15rem 0.45rem', borderRadius: 10, fontSize: '0.7rem', fontWeight: 600, background: `${signalColor}15`, color: signalColor }}>
+                                  <SignalIcon size={12} /> {t.signal}
                                 </span>
-                              ) : <span style={{ color: theme.textSecondary }}>—</span>}
-                            </td>
-                            <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: theme.textSecondary }}>
-                              {item.error !== null ? `${fmt(Math.abs(item.error) * 100, 2)}%` : '—'}
-                            </td>
-                            <td style={{ padding: '0.45rem 0.6rem' }}>
-                              {item.direction_correct === true && <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.78rem' }}><CheckCircle size={13} /> Acertou</span>}
-                              {item.direction_correct === false && <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.78rem' }}><XCircle size={13} /> Errou</span>}
-                              {item.direction_correct === null && <span style={{ color: theme.textSecondary, fontSize: '0.78rem' }}>—</span>}
-                            </td>
-                            <td style={{ padding: '0.45rem 0.6rem' }}>
-                              {item.actual_return !== null ? (
-                                <span style={{ padding: '0.15rem 0.4rem', borderRadius: 8, fontSize: '0.68rem', fontWeight: 600, background: 'rgba(16,185,129,0.12)', color: '#10b981' }}>Concluída</span>
-                              ) : (
-                                <span style={{ padding: '0.15rem 0.4rem', borderRadius: 8, fontSize: '0.68rem', fontWeight: 600, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>Pendente</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td style={{ padding: '0.45rem 0.5rem', fontSize: '0.82rem', color: theme.text }}>R$ {fmt(t.basePrice, 2)}</td>
+                              <td style={{ padding: '0.45rem 0.5rem', fontSize: '0.82rem', fontWeight: 600, color: t.currentPrice >= t.basePrice ? theme.green : theme.red }}>
+                                R$ {fmt(t.currentPrice, 2)}
+                              </td>
+                              <td style={{ padding: '0.45rem 0.5rem', fontSize: '0.82rem', fontWeight: 600, color: t.predictedReturn >= 0 ? theme.green : theme.red }}>
+                                {t.predictedReturn >= 0 ? '+' : ''}{fmt(t.predictedReturn * 100, 2)}%
+                              </td>
+                              <td style={{ padding: '0.45rem 0.5rem', fontSize: '0.82rem', fontWeight: 700, color: t.partialReturn >= 0 ? theme.green : theme.red }}>
+                                {t.partialReturn >= 0 ? '+' : ''}{fmt(t.partialReturn * 100, 2)}%
+                              </td>
+                              <td style={{ padding: '0.45rem 0.5rem' }}>
+                                <Sparkline data={t.dailyPrices} predicted={t.predictedReturn} />
+                              </td>
+                              <td style={{ padding: '0.45rem 0.5rem' }}>
+                                {t.trackingPrediction ? (
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '0.15rem 0.45rem', borderRadius: 10, fontSize: '0.68rem', fontWeight: 600, background: `${theme.green}15`, color: theme.green }}>
+                                    <CheckCircle size={12} /> No caminho
+                                  </span>
+                                ) : (
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '0.15rem 0.45rem', borderRadius: 10, fontSize: '0.68rem', fontWeight: 600, background: `${theme.red}15`, color: theme.red }}>
+                                    <Activity size={12} /> Divergindo
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Safra summary footer */}
+                  <div style={{
+                    padding: '0.6rem 1rem', borderTop: `1px solid ${theme.border}`,
+                    background: darkMode ? '#0f172a' : '#f8fafc',
+                    display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.72rem', color: theme.textSecondary,
+                  }}>
+                    <span>Compra: <strong style={{ color: theme.green }}>{safra.buyTickers.length}</strong></span>
+                    <span>Venda: <strong style={{ color: theme.red }}>{safra.sellTickers.length}</strong></span>
+                    <span>Neutro: <strong style={{ color: theme.textSecondary }}>{safra.tickers.length - safra.buyTickers.length - safra.sellTickers.length}</strong></span>
+                    <span style={{ marginLeft: 'auto' }}>
+                      Vencimento: {safra.targetDate ? new Date(safra.targetDate + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : `~${safra.totalDays} pregões`}
+                    </span>
                   </div>
                 </div>
               )}
