@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trophy, ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, Minus, ChevronRight } from 'lucide-react';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 
 interface DailyHighlightProps {
   darkMode: boolean;
@@ -16,7 +17,7 @@ const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) 
 const DailyHighlight: React.FC<DailyHighlightProps> = ({ darkMode, theme, topTicker, totalBuy, totalSell, totalNeutral }) => {
   if (!topTicker) return null;
 
-  const signal = topTicker.score >= 1.5 ? 'Compra' : topTicker.score <= -1.5 ? 'Venda' : 'Neutro';
+  const signal = topTicker.score >= SCORE_BUY_THRESHOLD ? 'Compra' : topTicker.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
   const signalColor = signal === 'Compra' ? '#10b981' : signal === 'Venda' ? '#ef4444' : '#f59e0b';
   const SignalIcon = signal === 'Compra' ? ArrowUpRight : signal === 'Venda' ? ArrowDownRight : Minus;
 

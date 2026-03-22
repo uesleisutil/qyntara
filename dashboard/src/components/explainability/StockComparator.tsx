@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Columns, X, Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import InfoTooltip from '../shared/InfoTooltip';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -32,8 +33,8 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
 
   const selectedData = selected.map(s => tickers.find(t => t.ticker === s)).filter(Boolean) as TickerData[];
 
-  const getSignal = (score: number) => score >= 1.5 ? 'Compra' : score <= -1.5 ? 'Venda' : 'Neutro';
-  const getColor = (score: number) => score >= 1.5 ? '#10b981' : score <= -1.5 ? '#ef4444' : '#f59e0b';
+  const getSignal = (score: number) => score >= SCORE_BUY_THRESHOLD ? 'Compra' : score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
+  const getColor = (score: number) => score >= SCORE_BUY_THRESHOLD ? '#10b981' : score <= SCORE_SELL_THRESHOLD ? '#ef4444' : '#f59e0b';
 
   const metrics = [
     { label: 'Score', key: 'score', format: (v: number) => fmt(v, 2), color: (v: number) => getColor(v), tip: 'Score do modelo — quanto maior, mais forte o sinal de compra.' },
@@ -150,7 +151,7 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
                   <th key={d.ticker} style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 700, color: theme.text, fontSize: '0.9rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
                       {d.ticker}
-                      {d.score >= 1.5 ? <ArrowUpRight size={14} color="#10b981" /> : d.score <= -1.5 ? <ArrowDownRight size={14} color="#ef4444" /> : null}
+                      {d.score >= SCORE_BUY_THRESHOLD ? <ArrowUpRight size={14} color="#10b981" /> : d.score <= SCORE_SELL_THRESHOLD ? <ArrowDownRight size={14} color="#ef4444" /> : null}
                     </div>
                   </th>
                 ))}

@@ -13,6 +13,7 @@ import ActivationChecklist, { markChecklistItem } from '../../components/shared/
 import { WatchlistButton, getWatchlist } from '../../components/shared/Watchlist';
 import ExportCSV from '../../components/shared/ExportCSV';
 import Sparkline from '../../components/shared/Sparkline';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getSignal, getSignalColor, getCurrentMonthPriceKey, PRO_PRICE_LABEL } from '../../constants';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -44,7 +45,7 @@ const RecommendationsPage: React.FC = () => {
     (async () => {
       try {
         const headers = { 'x-api-key': API_KEY };
-        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers });
+        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${getCurrentMonthPriceKey()}`, { headers });
         if (!res.ok) return;
         const rows: { date: string; ticker: string; close: string }[] = await res.json();
         const map: Record<string, { date: string; close: number }[]> = {};
@@ -87,13 +88,7 @@ const RecommendationsPage: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  const getSignal = (score: number) => score >= 1.5 ? 'Compra' : score <= -1.5 ? 'Venda' : 'Neutro';
-  const getSignalColor = (signal: string) => {
-    if (signal === 'Compra') return { bg: 'rgba(16,185,129,0.15)', text: '#10b981', border: 'rgba(16,185,129,0.3)' };
-    if (signal === 'Venda') return { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', border: 'rgba(239,68,68,0.3)' };
-    /* #6: Neutro uses gray instead of amber to avoid confusion with Pro gold */
-    return { bg: 'rgba(148,163,184,0.15)', text: '#94a3b8', border: 'rgba(148,163,184,0.3)' };
-  };
+  // getSignal and getSignalColor imported from constants
 
   const handleSort = useCallback((field: string) => {
     if (sortBy === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -118,9 +113,9 @@ const RecommendationsPage: React.FC = () => {
       return (b.score - a.score);
     });
 
-  const buyRecs = recommendations.filter(r => r.score >= 1.5);
+  const buyRecs = recommendations.filter(r => r.score >= SCORE_BUY_THRESHOLD);
   const totalBuy = buyRecs.length;
-  const totalSell = recommendations.filter(r => r.score <= -1.5).length;
+  const totalSell = recommendations.filter(r => r.score <= SCORE_SELL_THRESHOLD).length;
   const totalNeutral = recommendations.length - totalBuy - totalSell;
   const avgBuyReturn = buyRecs.length ? buyRecs.reduce((s, r) => s + (r.exp_return_20 || 0), 0) / buyRecs.length : 0;
   const topScore = recommendations.length ? Math.max(...recommendations.map(r => r.score)) : 0;
@@ -196,7 +191,7 @@ const RecommendationsPage: React.FC = () => {
                 <Clock size={10} /> {getRelativeTime(lastUpdated)}
               </span>
             )}
-            <InfoTooltip text="Nosso modelo de ML analisa indicadores técnicos e fundamentalistas de cada ação da B3 diariamente. Score ≥ 1.5 = Compra, ≤ -1.5 = Venda, restante = Neutro." darkMode={darkMode} size={13} />
+            <InfoTooltip text={`Nosso modelo de ML analisa indicadores técnicos e fundamentalistas de cada ação da B3 diariamente. Score ≥ ${SCORE_BUY_THRESHOLD} = Compra, ≤ ${SCORE_SELL_THRESHOLD} = Venda, restante = Neutro.`} darkMode={darkMode} size={13} />
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
@@ -259,9 +254,9 @@ const RecommendationsPage: React.FC = () => {
           gap: '0.5rem', marginBottom: '0.75rem',
         }}>
           {[
-            { label: 'Compra', value: `${totalBuy}`, color: '#10b981', icon: <ArrowUpRight size={14} />, tip: 'Ações com score ≥ 1.5 — sinal de compra.' },
-            { label: 'Venda', value: `${totalSell}`, color: '#ef4444', icon: <ArrowDownRight size={14} />, tip: 'Ações com score ≤ -1.5 — sinal de venda.' },
-            { label: 'Neutro', value: `${totalNeutral}`, color: '#94a3b8', icon: null, tip: 'Ações com score entre -1.5 e 1.5.' },
+            { label: 'Compra', value: `${totalBuy}`, color: '#10b981', icon: <ArrowUpRight size={14} />, tip: `Ações com score ≥ ${SCORE_BUY_THRESHOLD} — sinal de compra.` },
+            { label: 'Venda', value: `${totalSell}`, color: '#ef4444', icon: <ArrowDownRight size={14} />, tip: `Ações com score ≤ ${SCORE_SELL_THRESHOLD} — sinal de venda.` },
+            { label: 'Neutro', value: `${totalNeutral}`, color: '#94a3b8', icon: null, tip: `Ações com score entre ${SCORE_SELL_THRESHOLD} e ${SCORE_BUY_THRESHOLD}.` },
             { label: 'Ret. Compra', value: `${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 1)}%`, color: avgBuyReturn >= 0 ? '#10b981' : '#ef4444', icon: null, tip: `Retorno médio previsto (20 pregões) das ${buyRecs.length} ações com sinal de compra.` },
             { label: 'Top Score', value: `${topTicker?.ticker || '—'} ${fmt(topScore, 1)}`, color: '#8b5cf6', icon: null, tip: 'Ação com maior score do dia.' },
             ...(simReturn && simReturn.pct !== 0 ? [{
@@ -381,7 +376,7 @@ const RecommendationsPage: React.FC = () => {
                 ...(isPro ? [{ label: '⊕', tip: 'Clique para seguir/deixar de seguir a ação.' }] : []),
                 { label: 'Ticker', tip: 'Código da ação na B3. Clique na ★ para favoritar.' },
                 { label: '', tip: '' }, // sparkline column
-                { label: 'Sinal', tip: 'Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
+                { label: 'Sinal', tip: `Compra (score ≥ ${SCORE_BUY_THRESHOLD}), Venda (≤ ${SCORE_SELL_THRESHOLD}) ou Neutro.` },
                 { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra. A barra indica confiança.' },
                 { label: 'Preço Atual', tip: 'Último preço de fechamento disponível.' },
                 { label: 'Preço Previsto', tip: 'Preço previsto pelo modelo para daqui 20 pregões.' },
@@ -452,7 +447,7 @@ const RecommendationsPage: React.FC = () => {
                       {signal}
                     </span>
                   </td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: r.score >= 1.5 ? '#10b981' : r.score <= -1.5 ? '#ef4444' : '#94a3b8' }}>
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: getSignalColor(getSignal(r.score)).text }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
                       {fmt(r.score, 2)}
                       <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#334155' : '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
@@ -510,7 +505,7 @@ const RecommendationsPage: React.FC = () => {
                 </span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
-                <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: r.score >= 1.5 ? '#10b981' : r.score <= -1.5 ? '#ef4444' : '#94a3b8' }}>{fmt(r.score, 2)}</strong></div>
+                <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: getSignalColor(getSignal(r.score)).text }}>{fmt(r.score, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.last_close, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <strong style={{ color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</strong></div>
@@ -557,7 +552,7 @@ const RecommendationsPage: React.FC = () => {
             background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', fontWeight: 700,
             boxShadow: '0 2px 10px rgba(245,158,11,0.3)', display: 'inline-flex',
           }}>
-            <Crown size={14} /> Assinar Pro — R$ 49/mês
+            <Crown size={14} /> Assinar Pro — {PRO_PRICE_LABEL}
           </a>
         </div>
       )}

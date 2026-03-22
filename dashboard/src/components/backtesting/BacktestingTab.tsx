@@ -3,6 +3,7 @@ import { Play, Settings, TrendingUp, BarChart3, AlertTriangle, RefreshCw } from 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
+import { UNIVERSE_SIZE_FALLBACK } from '../../constants';
 import { markChecklistItem } from '../shared/ActivationChecklist';
 import { saveBacktestResult, loadBacktestResult } from '../shared/BacktestCache';
 
@@ -25,7 +26,7 @@ async function fetchAllPrices(): Promise<PriceRow[]> {
   const allPrices: PriceRow[] = [];
   // Fetch available months from S3
   try {
-    const listRes = await fetch(`${API_BASE_URL}/s3-proxy/list?prefix=curated/daily_monthly/year=2026`, { headers });
+    const listRes = await fetch(`${API_BASE_URL}/s3-proxy/list?prefix=curated/daily_monthly/year=${new Date().getFullYear()}`, { headers });
     if (listRes.ok) {
       const data = await listRes.json();
       // API returns { objects: [{ Key, ... }], count, prefix }
@@ -42,11 +43,15 @@ async function fetchAllPrices(): Promise<PriceRow[]> {
       }
     }
   } catch { /* list failed */ }
-  // Fallback: try known months directly
+  // Fallback: try current year months dynamically
   if (allPrices.length === 0) {
-    for (const m of ['01', '02', '03']) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    for (let m = 1; m <= currentMonth; m++) {
+      const monthStr = String(m).padStart(2, '0');
       try {
-        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${encodeURIComponent(`curated/daily_monthly/year=2026/month=${m}/daily.csv`)}`, { headers });
+        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${encodeURIComponent(`curated/daily_monthly/year=${year}/month=${monthStr}/daily.csv`)}`, { headers });
         if (res.ok) {
           const rows: PriceRow[] = await res.json();
           allPrices.push(...rows);
@@ -504,7 +509,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                 <option value="equal">Peso Igual</option><option value="weighted">Ponderado por Score</option>
               </select>
             </div>
-            <div><label style={labelStyle}>Top N Ações <InfoTooltip text="Quantas das melhores ações incluir na carteira." darkMode={darkMode} size={12} /></label><input type="number" value={config.topN} onChange={e => handleChange('topN', +e.target.value)} min={1} max={46} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Top N Ações <InfoTooltip text="Quantas das melhores ações incluir na carteira." darkMode={darkMode} size={12} /></label><input type="number" value={config.topN} onChange={e => handleChange('topN', +e.target.value)} min={1} max={UNIVERSE_SIZE_FALLBACK} style={inputStyle} /></div>
             <div><label style={labelStyle}>Rebalanceamento <InfoTooltip text="Frequência de ajuste da carteira." darkMode={darkMode} size={12} /></label>
               <select value={config.rebalanceFrequency} onChange={e => handleChange('rebalanceFrequency', e.target.value as any)} style={inputStyle}>
                 <option value="daily">Diário</option><option value="weekly">Semanal</option><option value="monthly">Mensal</option>

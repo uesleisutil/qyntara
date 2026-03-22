@@ -1,6 +1,7 @@
 import React from 'react';
 import { Crown, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { PRO_PRICE_LABEL } from '../../constants';
 
 interface ProGateProps {
   children: React.ReactNode;
@@ -81,7 +82,7 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
         Fazer Upgrade <ArrowRight size={16} />
       </button>
       <p style={{ fontSize: '0.72rem', color: darkMode ? '#64748b' : '#94a3b8', marginTop: '0.75rem' }}>
-        A partir de R$ 49/mês · Cancele quando quiser
+        A partir de {PRO_PRICE_LABEL} · Cancele quando quiser
       </p>
     </div>
   );

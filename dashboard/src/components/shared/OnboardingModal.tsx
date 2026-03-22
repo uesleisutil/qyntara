@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Brain, TestTubes, Crown, ArrowRight, X } from 'lucide-react';
+import { UNIVERSE_SIZE_FALLBACK } from '../../constants';
 
 interface OnboardingModalProps {
   darkMode: boolean;
@@ -12,7 +13,7 @@ const steps = [
   {
     icon: <TrendingUp size={32} color="#3b82f6" />,
     title: 'Bem-vindo ao B3 Tactical Ranking!',
-    desc: 'Nosso modelo de Machine Learning analisa 46 ações da B3 diariamente e gera sinais de Compra, Venda ou Neutro com base em dezenas de indicadores.',
+    desc: `Nosso modelo de Machine Learning analisa ${UNIVERSE_SIZE_FALLBACK} ações da B3 diariamente e gera sinais de Compra, Venda ou Neutro com base em dezenas de indicadores.`,
     tip: 'Comece pela aba Recomendações — ela é sua página principal.',
   },
   {
@@ -30,7 +31,7 @@ const steps = [
   {
     icon: <Crown size={32} color="#f59e0b" />,
     title: 'Desbloqueie o Pro',
-    desc: 'Com o plano Pro você acessa todas as 46 ações, carteira modelo otimizada, stop-loss, take-profit, tracking por safra e muito mais.',
+    desc: `Com o plano Pro você acessa todas as ${UNIVERSE_SIZE_FALLBACK} ações, carteira modelo otimizada, stop-loss, take-profit, tracking por safra e muito mais.`,
     tip: 'Colunas Pro aparecem com blur — faça upgrade para desbloquear.',
   },
 ];

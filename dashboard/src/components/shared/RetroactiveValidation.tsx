@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 
 interface RetroactiveValidationProps {
   darkMode: boolean;
@@ -50,7 +51,7 @@ const RetroactiveValidation: React.FC<RetroactiveValidationProps> = ({ darkMode,
     const priceAtPred = tp[targetDate];
     const priceNow = tp[latestPriceDate];
     const actualReturn = (priceNow - priceAtPred) / priceAtPred;
-    const signal = entry.score >= 1.5 ? 'Compra' : entry.score <= -1.5 ? 'Venda' : 'Neutro';
+    const signal = entry.score >= SCORE_BUY_THRESHOLD ? 'Compra' : entry.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
     const correct = signal === 'Compra' ? actualReturn > 0 : signal === 'Venda' ? actualReturn < 0 : true;
 
     validations.push({

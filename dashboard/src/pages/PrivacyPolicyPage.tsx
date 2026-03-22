@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Shield, ArrowLeft } from 'lucide-react';
+import { PRO_PRICE_LABEL } from '../constants';
 
 const PrivacyPolicyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -118,7 +119,7 @@ const PrivacyPolicyPage: React.FC = () => {
             <ul style={{ listStyle: 'disc', paddingLeft: '1rem' }}>
               <li style={liStyle}>O serviço é uma ferramenta de apoio à decisão e não constitui recomendação de investimento.</li>
               <li style={liStyle}>Resultados passados não garantem resultados futuros.</li>
-              <li style={liStyle}>O plano Pro (R$ 49/mês) é cobrado via Stripe com renovação automática mensal.</li>
+              <li style={liStyle}>O plano Pro ({PRO_PRICE_LABEL}) é cobrado via Stripe com renovação automática mensal.</li>
               <li style={liStyle}>O cancelamento pode ser feito a qualquer momento em Configurações → Gerenciar Assinatura. O acesso Pro permanece até o fim do período pago.</li>
               <li style={liStyle}>Você é responsável por manter a segurança da sua conta e senha.</li>
               <li style={liStyle}>Reservamo-nos o direito de suspender contas que violem estes termos ou utilizem o serviço de forma abusiva.</li>

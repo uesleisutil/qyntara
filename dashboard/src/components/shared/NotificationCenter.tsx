@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, X, TrendingUp, Activity, CheckCircle, AlertTriangle, Clock, Send } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 
 interface Notification {
   id: string;
@@ -84,9 +85,9 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         const latest = await latestRes.json();
         const recDate = latest.date;
         const recs = latest.recommendations || [];
-        const buyCount = recs.filter((r: any) => r.score >= 1.5).length;
-        const sellCount = recs.filter((r: any) => r.score <= -1.5).length;
-        const topBuy = recs.filter((r: any) => r.score >= 1.5).sort((a: any, b: any) => b.score - a.score)[0];
+        const buyCount = recs.filter((r: any) => r.score >= SCORE_BUY_THRESHOLD).length;
+        const sellCount = recs.filter((r: any) => r.score <= SCORE_SELL_THRESHOLD).length;
+        const topBuy = recs.filter((r: any) => r.score >= SCORE_BUY_THRESHOLD).sort((a: any, b: any) => b.score - a.score)[0];
 
         notes.push({
           id: `rec-${recDate}`, type: 'recommendations',

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
 import InfoTooltip from '../shared/InfoTooltip';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -32,9 +33,9 @@ function deriveExplanation(td: TickerData) {
   const negFactors: { name: string; detail: string; impact: string }[] = [];
 
   // Score-based
-  if (score >= 1.5) {
+  if (score >= SCORE_BUY_THRESHOLD) {
     posFactors.push({ name: 'Score do Modelo', detail: `Score ${score.toFixed(2)} indica sinal de compra forte`, impact: `+${(absScore * 2).toFixed(1)}%` });
-  } else if (score <= -1.5) {
+  } else if (score <= SCORE_SELL_THRESHOLD) {
     negFactors.push({ name: 'Score do Modelo', detail: `Score ${score.toFixed(2)} indica sinal de venda`, impact: `-${(absScore * 2).toFixed(1)}%` });
   }
 
@@ -87,7 +88,7 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
 
   const confColor = confidence >= 0.7 ? '#10b981' : confidence >= 0.5 ? '#f59e0b' : '#ef4444';
   const confLabel = confidence >= 0.7 ? 'alta' : confidence >= 0.5 ? 'moderada' : 'baixa';
-  const signal = tickerData.score >= 1.5 ? 'Compra' : tickerData.score <= -1.5 ? 'Venda' : 'Neutro';
+  const signal = tickerData.score >= SCORE_BUY_THRESHOLD ? 'Compra' : tickerData.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
 
   return (
     <div style={{

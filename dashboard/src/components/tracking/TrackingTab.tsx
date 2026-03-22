@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { CheckCircle, TrendingUp, TrendingDown, BarChart3, Target, ChevronDown, ChevronRight, Activity, Calendar, ArrowUpRight, ArrowDownRight, Minus, Search, Filter, Award, SlidersHorizontal, Crown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getPriceDataKeys } from '../../constants';
 import InfoTooltip from '../shared/InfoTooltip';
 
 interface TrackingTabProps { darkMode?: boolean; }
@@ -88,11 +89,12 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
     setLoading(true); setError(null);
     try {
       const headers = { 'x-api-key': API_KEY };
+      const [curKey, prevKey] = getPriceDataKeys();
       const [histRes, valRes, mar, feb] = await Promise.all([
         fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
         fetch(`${API_BASE_URL}/api/recommendations/validation`, { headers }),
-        fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }),
-        fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=02/daily.csv`, { headers }),
+        fetch(`${API_BASE_URL}/s3-proxy?key=${curKey}`, { headers }),
+        fetch(`${API_BASE_URL}/s3-proxy?key=${prevKey}`, { headers }),
       ]);
       if (!histRes.ok || !valRes.ok) throw new Error('Falha ao carregar dados');
       const histData = await histRes.json();
@@ -148,7 +150,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
           date: d, close: tickerPrices[d], partialReturn: (tickerPrices[d] - basePrice) / basePrice,
         }));
         const signal: 'Compra' | 'Venda' | 'Neutro' =
-          predEntry.score >= 1.5 ? 'Compra' : predEntry.score <= -1.5 ? 'Venda' : 'Neutro';
+          predEntry.score >= SCORE_BUY_THRESHOLD ? 'Compra' : predEntry.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
         const trackingPrediction = predEntry.exp_return_20 >= 0 ? partialReturn >= 0 : partialReturn <= 0;
         tickers.push({ ticker, basePrice, currentPrice, predictedReturn: predEntry.exp_return_20,
           partialReturn, score: predEntry.score, signal, dailyPrices, daysElapsed, totalDays, trackingPrediction });

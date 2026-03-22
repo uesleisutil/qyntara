@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { RefreshCw, TrendingUp, Target, BarChart3, Award, Calendar, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getPriceDataKeys, UNIVERSE_SIZE_FALLBACK } from '../../constants';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface PriceRow { date: string; ticker: string; close: string; }
@@ -26,10 +27,11 @@ const AdminPerformancePage: React.FC = () => {
     setLoading(true);
     try {
       const headers = { 'x-api-key': API_KEY };
+      const [curKey, prevKey] = getPriceDataKeys();
       const [histRes, marRes, febRes, monRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
-        fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }),
-        fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=02/daily.csv`, { headers }),
+        fetch(`${API_BASE_URL}/s3-proxy?key=${curKey}`, { headers }),
+        fetch(`${API_BASE_URL}/s3-proxy?key=${prevKey}`, { headers }),
         fetch(`${API_BASE_URL}/api/monitoring/model-performance`, { headers }),
       ]);
       if (histRes.ok) { const hd = await histRes.json(); setHistory(hd.data || {}); }
@@ -73,8 +75,8 @@ const AdminPerformancePage: React.FC = () => {
         const tp = prices[ticker];
         if (!tp || !tp[predDate] || !tp[nextDate]) return;
         const dayReturn = (tp[nextDate] - tp[predDate]) / tp[predDate];
-        if (entry.score >= 1.5) buyReturns.push(dayReturn);
-        else if (entry.score <= -1.5) sellReturns.push(dayReturn);
+        if (entry.score >= SCORE_BUY_THRESHOLD) buyReturns.push(dayReturn);
+        else if (entry.score <= SCORE_SELL_THRESHOLD) sellReturns.push(dayReturn);
       });
 
       const avgBuy = buyReturns.length ? buyReturns.reduce((s, r) => s + r, 0) / buyReturns.length : 0;
@@ -112,7 +114,7 @@ const AdminPerformancePage: React.FC = () => {
       const tp = prices[ticker];
       if (!tp || !tp[firstDate] || !tp[latestDate]) return;
       const actualReturn = (tp[latestDate] - tp[firstDate]) / tp[firstDate];
-      const signal = firstEntry.score >= 1.5 ? 'Compra' : firstEntry.score <= -1.5 ? 'Venda' : 'Neutro';
+      const signal = firstEntry.score >= SCORE_BUY_THRESHOLD ? 'Compra' : firstEntry.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
       const correct = signal === 'Compra' ? actualReturn > 0 : signal === 'Venda' ? actualReturn < 0 : true;
       tickerPerf.push({ ticker, signal, predReturn: firstEntry.exp_return_20, actualReturn, correct });
     });
@@ -188,7 +190,7 @@ const AdminPerformancePage: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
               { label: 'Retorno realizado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn)}%`, color: perfData.totalReturn >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Retorno real acumulado seguindo sinais de Compra.' },
-              { label: 'Média do universo', value: `${perfData.universeReturn >= 0 ? '+' : ''}${fmt(perfData.universeReturn)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />, tip: 'Retorno acumulado de todas as 46 ações com peso igual.' },
+              { label: 'Média do universo', value: `${perfData.universeReturn >= 0 ? '+' : ''}${fmt(perfData.universeReturn)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />, tip: `Retorno acumulado de todas as ${UNIVERSE_SIZE_FALLBACK} ações com peso igual.` },
               { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha)}pp`, color: perfData.alpha >= 0 ? '#10b981' : '#ef4444', icon: <Award size={16} />, tip: 'Diferença entre retorno da estratégia e média do universo.' },
               { label: 'Win rate (Compra)', value: `${fmt(perfData.buyWinRate * 100, 0)}%`, color: perfData.buyWinRate >= 0.55 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno positivo nos sinais de Compra.' },
               { label: 'Win rate (Venda)', value: `${fmt(perfData.sellWinRate * 100, 0)}%`, color: perfData.sellWinRate >= 0.55 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno negativo nos sinais de Venda (acerto).' },

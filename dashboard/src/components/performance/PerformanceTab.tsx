@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, TrendingUp, BarChart3, Target, Award, Calendar } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getPriceDataKeys, UNIVERSE_SIZE_FALLBACK } from '../../constants';
 import InfoTooltip from '../shared/InfoTooltip';
 import ShareButton from '../shared/ShareButton';
 import { markChecklistItem } from '../shared/ActivationChecklist';
@@ -37,10 +38,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
     (async () => {
       try {
         const headers = { 'x-api-key': API_KEY };
+        const [curKey, prevKey] = getPriceDataKeys();
         const [histRes, marRes, febRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
-          fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }),
-          fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=02/daily.csv`, { headers }),
+          fetch(`${API_BASE_URL}/s3-proxy?key=${curKey}`, { headers }),
+          fetch(`${API_BASE_URL}/s3-proxy?key=${prevKey}`, { headers }),
         ]);
         if (histRes.ok) {
           const hd = await histRes.json();
@@ -94,8 +96,8 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
 
         const dayReturn = (tp[nextDate] - tp[predDate]) / tp[predDate];
 
-        if (entry.score >= 1.5) buyReturns.push(dayReturn);
-        else if (entry.score <= -1.5) sellReturns.push(dayReturn);
+        if (entry.score >= SCORE_BUY_THRESHOLD) buyReturns.push(dayReturn);
+        else if (entry.score <= SCORE_SELL_THRESHOLD) sellReturns.push(dayReturn);
       });
 
       const avgBuy = buyReturns.length ? buyReturns.reduce((s, r) => s + r, 0) / buyReturns.length : 0;
@@ -269,7 +271,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
           { label: 'Retorno realizado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%`, color: perfData.totalReturn >= 0 ? theme.green : theme.red, icon: <TrendingUp size={16} />,
             tip: 'Retorno real acumulado comprando igualmente todas as ações com sinal de Compra entre cada atualização do modelo. Diferente do retorno previsto em Recomendações — aqui é o que realmente aconteceu.' },
           { label: 'Média do universo', value: `${perfData.ibovReturn >= 0 ? '+' : ''}${fmt(perfData.ibovReturn, 2)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />,
-            tip: 'Retorno acumulado de uma carteira com peso igual em todas as 46 ações do universo.' },
+            tip: `Retorno acumulado de uma carteira com peso igual em todas as ${UNIVERSE_SIZE_FALLBACK} ações do universo.` },
           { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha, 2)}pp`, color: perfData.alpha >= 0 ? theme.green : theme.red, icon: <Award size={16} />,
             tip: 'Diferença entre o retorno realizado da estratégia e a média do universo. Positivo = modelo superou o mercado.' },
           { label: 'Win rate (Compra)', value: `${fmt(perfData.buyWinRate * 100, 0)}%`, color: perfData.buyWinRate >= 0.55 ? theme.green : theme.yellow, icon: <Target size={16} />,

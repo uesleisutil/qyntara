@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { TrendingUp, DollarSign, AlertTriangle, CheckCircle, Activity, Server, Database, RefreshCw, Shield, Clock, XCircle, Loader2 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
+import { getCurrentMonthPriceKey } from '../../constants';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface HealthStatus { name: string; desc: string; status: 'ok' | 'error' | 'loading'; latency?: number; }
@@ -30,7 +31,7 @@ const AdminOverviewPage: React.FC = () => {
     const checks: { name: string; desc: string; fn: () => Promise<Response> }[] = [
       { name: 'API Gateway', desc: 'REST endpoints', fn: () => fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers }) },
       { name: 'Lambda Auth', desc: 'Autenticação', fn: () => fetch(`${API_BASE_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } }) },
-      { name: 'S3 Proxy', desc: 'Dados curados', fn: () => fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }) },
+      { name: 'S3 Proxy', desc: 'Dados curados', fn: () => fetch(`${API_BASE_URL}/s3-proxy?key=${getCurrentMonthPriceKey()}`, { headers }) },
       { name: 'DynamoDB', desc: 'Users + Notifications', fn: () => fetch(`${API_BASE_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } }) },
       { name: 'Recomendações', desc: 'ML pipeline', fn: () => fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }) },
     ];

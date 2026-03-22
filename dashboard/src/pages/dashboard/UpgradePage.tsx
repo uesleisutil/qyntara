@@ -3,6 +3,7 @@ import { useOutletContext, useNavigate, useSearchParams } from 'react-router-dom
 import { Crown, CheckCircle, Briefcase, LineChart, Shield, Target, Zap, ArrowLeft, CreditCard, Loader2, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_BASE_URL } from '../../config';
+import { PRO_PRICE, PRO_PRICE_LABEL, UNIVERSE_SIZE_FALLBACK } from '../../constants';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
@@ -130,7 +131,7 @@ const UpgradePage: React.FC = () => {
   }
 
   const proFeatures = [
-    { icon: <Zap size={20} />, title: 'Todas as 46 ações', desc: 'Acesso completo a todas as recomendações diárias' },
+    { icon: <Zap size={20} />, title: `Todas as ${UNIVERSE_SIZE_FALLBACK} ações`, desc: 'Acesso completo a todas as recomendações diárias' },
     { icon: <Target size={20} />, title: 'Confiança, Stop-Loss & Take-Profit', desc: 'Colunas exclusivas desbloqueadas sem blur' },
     { icon: <Briefcase size={20} />, title: 'Carteira Modelo', desc: 'Top 5 ações com alocação otimizada por risco' },
     { icon: <LineChart size={20} />, title: 'Tracking por Safra', desc: 'Acompanhe o progresso diário de cada safra' },
@@ -200,7 +201,7 @@ const UpgradePage: React.FC = () => {
       }}>
         <div style={{ fontSize: '0.8rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>Plano Pro</div>
         <div style={{ marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', fontWeight: 800, color: theme.text }}>R$ 49</span>
+          <span style={{ fontSize: 'clamp(2rem, 5vw, 2.5rem)', fontWeight: 800, color: theme.text }}>{PRO_PRICE}</span>
           <span style={{ color: theme.textSecondary, fontSize: '0.9rem' }}>/mês</span>
         </div>
 
@@ -225,7 +226,7 @@ const UpgradePage: React.FC = () => {
             opacity: loading ? 0.7 : 1,
           }}>
           {loading ? <Loader2 size={20} className="spin" /> : <CreditCard size={20} />}
-          {loading ? 'Redirecionando...' : 'Assinar Pro — R$ 49/mês'}
+          {loading ? 'Redirecionando...' : `Assinar Pro — ${PRO_PRICE_LABEL}`}
         </button>
 
         <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
@@ -246,7 +247,7 @@ const UpgradePage: React.FC = () => {
           </thead>
           <tbody>
             {[
-              { feature: 'Recomendações diárias (46 ações)', free: true, pro: true },
+              { feature: `Recomendações diárias (${UNIVERSE_SIZE_FALLBACK} ações)`, free: true, pro: true },
               { feature: 'Explicabilidade (SHAP)', free: true, pro: true },
               { feature: 'Backtesting com dados reais', free: true, pro: true },
               { feature: 'Performance acumulada', free: true, pro: true },

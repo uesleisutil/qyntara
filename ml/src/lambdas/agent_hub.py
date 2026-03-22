@@ -210,8 +210,10 @@ def _get_system_metrics() -> dict:
             resp3 = s3.list_objects_v2(Bucket=BUCKET, Prefix=prefix, MaxKeys=1)
             monitoring[prefix.split("/")[1]] = resp3.get("KeyCount", 0) > 0
 
-        # Check curated data months
-        resp_curated = s3.list_objects_v2(Bucket=BUCKET, Prefix="curated/daily_monthly/year=2026/", Delimiter="/", MaxKeys=20)
+        # Check curated data months (dynamic year)
+        from datetime import datetime as _dt
+        _current_year = _dt.utcnow().year
+        resp_curated = s3.list_objects_v2(Bucket=BUCKET, Prefix=f"curated/daily_monthly/year={_current_year}/", Delimiter="/", MaxKeys=20)
         curated_months = len(resp_curated.get("CommonPrefixes", []))
 
         metrics["data"] = {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Shield, BarChart3, Zap, ArrowRight, CheckCircle, Menu, X, Award, Target } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../config';
+import { SCORE_BUY_THRESHOLD, getPriceDataKeys, PRO_PRICE, UNIVERSE_SIZE_FALLBACK } from '../constants';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,10 +14,11 @@ const LandingPage: React.FC = () => {
     (async () => {
       try {
         const headers = { 'x-api-key': API_KEY };
+        const [curKey, prevKey] = getPriceDataKeys();
         const [histRes, marRes, febRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
-          fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }),
-          fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=02/daily.csv`, { headers }),
+          fetch(`${API_BASE_URL}/s3-proxy?key=${curKey}`, { headers }),
+          fetch(`${API_BASE_URL}/s3-proxy?key=${prevKey}`, { headers }),
         ]);
         if (!histRes.ok) return;
         const hd = await histRes.json();
@@ -47,7 +49,7 @@ const LandingPage: React.FC = () => {
             const tp = priceMap[ticker];
             if (!tp || !tp[predDate] || !tp[nextDate]) return;
             const dayReturn = (tp[nextDate] - tp[predDate]) / tp[predDate];
-            if (entry.score >= 1.5) buyReturns.push(dayReturn);
+            if (entry.score >= SCORE_BUY_THRESHOLD) buyReturns.push(dayReturn);
           });
           Object.values(priceMap).forEach(tp => {
             if (tp[predDate] && tp[nextDate]) allReturns.push((tp[nextDate] - tp[predDate]) / tp[predDate]);
@@ -194,7 +196,7 @@ const LandingPage: React.FC = () => {
         display: 'flex', justifyContent: 'center', gap: 'clamp(1.5rem, 4vw, 3rem)', flexWrap: 'wrap',
       }}>
         {[
-          { value: '46', label: 'Ações analisadas diariamente' },
+          { value: `${UNIVERSE_SIZE_FALLBACK}`, label: 'Ações analisadas diariamente' },
           { value: socialProof.userCount > 0 ? `${socialProof.userCount}+` : '20+', label: 'Investidores cadastrados' },
           { value: '100%', label: 'Automatizado por ML' },
         ].map((s, i) => (
@@ -324,7 +326,7 @@ const LandingPage: React.FC = () => {
           </div>
           <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
             <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
-              + 42 ações analisadas · Colunas Pro com blur
+              + {UNIVERSE_SIZE_FALLBACK - 4} ações analisadas · Colunas Pro com blur
             </span>
           </div>
         </div>
@@ -375,8 +377,8 @@ const LandingPage: React.FC = () => {
         <p style={{ color: '#64748b', marginBottom: '2.5rem' }}>Comece grátis e escale conforme sua necessidade.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '1.5rem' }}>
           {[
-            { name: 'Free', price: 'R$ 0', period: '/mês', features: ['46 ações analisadas diariamente', 'Explicabilidade (SHAP)', 'Backtesting com dados reais', 'Performance acumulada', 'Colunas Pro com blur'], cta: 'Começar Grátis', highlight: false },
-            { name: 'Pro', price: 'R$ 49', period: '/mês', features: ['Tudo do Free, sem restrições', 'Confiança, Stop-Loss, Take-Profit', 'Carteira modelo otimizada', 'Tracking por safra', 'Ranking de confiança', 'Portfólio com perfis de risco'], cta: 'Assinar Pro', highlight: true },
+            { name: 'Free', price: 'R$ 0', period: '/mês', features: [`${UNIVERSE_SIZE_FALLBACK} ações analisadas diariamente`, 'Explicabilidade (SHAP)', 'Backtesting com dados reais', 'Performance acumulada', 'Colunas Pro com blur'], cta: 'Começar Grátis', highlight: false },
+            { name: 'Pro', price: PRO_PRICE, period: '/mês', features: ['Tudo do Free, sem restrições', 'Confiança, Stop-Loss, Take-Profit', 'Carteira modelo otimizada', 'Tracking por safra', 'Ranking de confiança', 'Portfólio com perfis de risco'], cta: 'Assinar Pro', highlight: true },
           ].map((plan, i) => (
             <div key={i} style={{
               background: plan.highlight ? 'linear-gradient(135deg, rgba(37,99,235,0.15), rgba(59,130,246,0.05))' : 'rgba(255,255,255,0.02)',

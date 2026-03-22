@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Info, RefreshCw } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
+import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
@@ -167,7 +168,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             backgroundColor: darkMode ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.03)',
             border: `1px solid ${darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)'}`,
             borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1rem)', marginBottom: '1.25rem',
-            borderLeft: `4px solid ${currentTicker.score >= 1.5 ? '#10b981' : currentTicker.score <= -1.5 ? '#ef4444' : '#f59e0b'}`,
+            borderLeft: `4px solid ${currentTicker.score >= SCORE_BUY_THRESHOLD ? '#10b981' : currentTicker.score <= SCORE_SELL_THRESHOLD ? '#ef4444' : '#f59e0b'}`,
           }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text, marginBottom: '0.3rem' }}>
               📊 Resumo Rápido — {currentTicker.ticker}
@@ -181,8 +182,8 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               nos próximos 20 pregões ({(currentTicker.exp_return_20 >= 0 ? '+' : '')}{(currentTicker.exp_return_20 * 100).toFixed(1)}%).
               {' '}Com volatilidade de {(currentTicker.vol_20d * 100).toFixed(1)}% e score de{' '}
               <strong style={{ color: '#3b82f6' }}>{currentTicker.score.toFixed(2)}</strong>, o sinal é{' '}
-              <strong style={{ color: currentTicker.score >= 1.5 ? '#10b981' : currentTicker.score <= -1.5 ? '#ef4444' : '#f59e0b' }}>
-                {currentTicker.score >= 1.5 ? 'Compra' : currentTicker.score <= -1.5 ? 'Venda' : 'Neutro'}
+              <strong style={{ color: currentTicker.score >= SCORE_BUY_THRESHOLD ? '#10b981' : currentTicker.score <= SCORE_SELL_THRESHOLD ? '#ef4444' : '#f59e0b' }}>
+                {currentTicker.score >= SCORE_BUY_THRESHOLD ? 'Compra' : currentTicker.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro'}
               </strong>.
               {' '}Veja abaixo quais fatores mais influenciaram essa previsão.
             </div>
