@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, Plus, Trash2, ArrowUp, ArrowDown, X, CheckCircle } from 'lucide-react';
-import InfoTooltip from './InfoTooltip';
+import { Plus, Trash2, ArrowUp, ArrowDown, X, CheckCircle } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 
 const ALERTS_KEY = 'b3tr_price_alerts';
@@ -96,10 +95,6 @@ const PriceAlerts: React.FC<PriceAlertsProps> = ({ darkMode, theme }) => {
     setTriggered(prev => prev.filter(t => t.id !== id));
   };
 
-  const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
-    border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
-  };
   const inputStyle: React.CSSProperties = {
     padding: '0.5rem 0.65rem', borderRadius: 8, border: `1px solid ${theme.border}`,
     background: darkMode ? '#0f172a' : '#f8fafc', color: theme.text, fontSize: '0.85rem',
@@ -113,7 +108,7 @@ const PriceAlerts: React.FC<PriceAlertsProps> = ({ darkMode, theme }) => {
       {/* Triggered alerts toast */}
       {triggered.map(t => (
         <div key={t.id} style={{
-          ...cardStyle, marginBottom: '0.75rem', padding: '0.75rem 1rem',
+          marginBottom: '0.75rem', padding: '0.75rem 1rem', borderRadius: 8,
           background: darkMode ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.06)',
           border: '1px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', gap: '0.5rem',
         }}>
@@ -133,17 +128,14 @@ const PriceAlerts: React.FC<PriceAlertsProps> = ({ darkMode, theme }) => {
         </div>
       ))}
 
-      <div style={cardStyle}>
+      <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Bell size={18} color="#f59e0b" />
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: theme.text }}>Alertas de Preço</h3>
             {activeAlerts.length > 0 && (
               <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontWeight: 600 }}>
                 {activeAlerts.length} ativo{activeAlerts.length !== 1 ? 's' : ''}
               </span>
             )}
-            <InfoTooltip text="Crie alertas para ser notificado quando uma ação atingir um preço específico. Os alertas são verificados quando você acessa o dashboard." darkMode={darkMode} size={12} />
           </div>
           <button onClick={() => setShowForm(!showForm)} style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.75rem',

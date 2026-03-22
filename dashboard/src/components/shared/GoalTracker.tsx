@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Edit3, Check, X } from 'lucide-react';
+import { Edit3, Check, X } from 'lucide-react';
 import { getFollowedPositions } from './FollowButton';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { useIsPro } from './ProGate';
-import InfoTooltip from './InfoTooltip';
 
 interface Props { darkMode: boolean; theme: Record<string, string>; }
 
@@ -64,24 +63,13 @@ const GoalTracker: React.FC<Props> = ({ darkMode, theme }) => {
   const progress = goalPct ? Math.min(100, Math.max(0, (currentReturn / goalPct) * 100)) : 0;
   const reached = goalPct !== null && currentReturn >= goalPct;
 
-  const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
-    border: `1px solid ${theme.border}`, borderRadius: 12, padding: '0.75rem',
-    marginBottom: '0.75rem',
-  };
-
   return (
-    <div style={cardStyle}>
+    <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Target size={14} color={reached ? '#10b981' : '#f59e0b'} />
-          <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>Meta de Rentabilidade</span>
-          <InfoTooltip text="Defina uma meta de retorno (%) e acompanhe o progresso baseado nas suas posições seguidas." darkMode={darkMode} size={11} />
-        </div>
         {!editing && (
           <button onClick={() => { setEditing(true); setInput(goalPct?.toString() || ''); }} style={{
             background: 'none', border: 'none', cursor: 'pointer', color: theme.textSecondary,
-            display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem',
+            display: 'flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', marginLeft: 'auto',
           }}>
             <Edit3 size={12} /> {goalPct !== null ? 'Editar' : 'Definir meta'}
           </button>

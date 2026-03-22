@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, Award, Target, BarChart3 } from 'lucide-react';
 import { getFollowedPositions, FollowedPosition } from './FollowButton';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from './InfoTooltip';
 
 interface Props { darkMode: boolean; theme: Record<string, string>; }
 
@@ -53,12 +52,6 @@ const PersonalPerformance: React.FC<Props> = ({ darkMode, theme }) => {
   const totalCurrent = stats.reduce((s, p) => s + (1000 * p.current / p.entryPrice), 0);
   const totalPnl = totalCurrent - totalInvested;
 
-  const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
-    border: `1px solid ${theme.border}`, borderRadius: 12, padding: '0.75rem',
-    marginBottom: '0.75rem',
-  };
-
   const metricBox = (label: string, value: string, color: string, icon: React.ReactNode) => (
     <div style={{
       flex: '1 1 100px', padding: '0.5rem', borderRadius: 8,
@@ -73,12 +66,7 @@ const PersonalPerformance: React.FC<Props> = ({ darkMode, theme }) => {
   );
 
   return (
-    <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.6rem' }}>
-        <BarChart3 size={14} color="#3b82f6" />
-        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>Minha Performance</span>
-        <InfoTooltip text="Resumo da performance das ações que você está seguindo. Baseado no preço de entrada vs preço atual." darkMode={darkMode} size={11} />
-      </div>
+    <div>
       <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
         {metricBox('P&L Total', `${totalPnl >= 0 ? '+' : ''}R$ ${Math.round(totalPnl).toLocaleString('pt-BR')}`, totalPnl >= 0 ? '#10b981' : '#ef4444', <TrendingUp size={10} />)}
         {metricBox('Ret. Médio', `${avgReturn >= 0 ? '+' : ''}${fmt(avgReturn, 1)}%`, avgReturn >= 0 ? '#10b981' : '#ef4444', <Target size={10} />)}

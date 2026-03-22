@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Star, Trash2, TrendingUp, TrendingDown, Briefcase, Clock } from 'lucide-react';
 import { getFollowedPositions, setFollowedPositions, FollowedPosition } from './FollowButton';
-import InfoTooltip from './InfoTooltip';
 import { API_BASE_URL, API_KEY } from '../../config';
 
 interface MyPositionsPanelProps {
@@ -48,14 +47,9 @@ const MyPositionsPanel: React.FC<MyPositionsPanelProps> = ({ darkMode, theme }) 
     window.dispatchEvent(new Event('b3tr_follow_changed'));
   };
 
-  const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
-    border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
-  };
-
   if (positions.length === 0) {
     return (
-      <div style={{ ...cardStyle, textAlign: 'center', padding: '1.5rem' }}>
+      <div style={{ textAlign: 'center', padding: '1rem' }}>
         <Briefcase size={28} color={theme.textSecondary} style={{ marginBottom: '0.5rem', opacity: 0.4 }} />
         <div style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '0.3rem' }}>
           Nenhuma posição seguida
@@ -78,35 +72,32 @@ const MyPositionsPanel: React.FC<MyPositionsPanelProps> = ({ darkMode, theme }) 
 
   return (
     <div>
-      {/* Summary card */}
+      {/* Summary */}
       <div style={{
-        ...cardStyle, marginBottom: '1rem',
+        marginBottom: '0.75rem', padding: '0.65rem 0.75rem', borderRadius: 10,
         background: totalReturn >= 0
-          ? (darkMode ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02))' : 'linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.01))')
-          : (darkMode ? 'linear-gradient(135deg, rgba(239,68,68,0.08), rgba(239,68,68,0.02))' : 'linear-gradient(135deg, rgba(239,68,68,0.06), rgba(239,68,68,0.01))'),
-        border: `1px solid ${totalReturn >= 0 ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+          ? (darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)')
+          : (darkMode ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.04)'),
+        border: `1px solid ${totalReturn >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}`,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-          <Briefcase size={18} color={totalReturn >= 0 ? '#10b981' : '#ef4444'} />
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text }}>Suas Posições</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
           <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontWeight: 600 }}>
             {positions.length} ação{positions.length !== 1 ? 'ões' : ''}
           </span>
-          <InfoTooltip text="Retorno simulado baseado no preço de entrada (quando você clicou 'Seguir') vs preço atual. Simulação com R$ 1.000 por posição." darkMode={darkMode} size={12} />
+          <span style={{ fontSize: '0.65rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <Clock size={9} /> Preços 1×/dia
+          </span>
         </div>
-        <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-          <Clock size={10} /> Preços atualizados 1×/dia (fechamento). Variações intraday não são refletidas.
-        </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.78rem', color: theme.textSecondary }}>
             R$ {totalInvested.toLocaleString('pt-BR')}
           </span>
-          <span style={{ color: theme.textSecondary }}>→</span>
-          <span style={{ fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', fontWeight: 800, color: totalReturn >= 0 ? '#10b981' : '#ef4444' }}>
+          <span style={{ color: theme.textSecondary, fontSize: '0.78rem' }}>→</span>
+          <span style={{ fontSize: 'clamp(1.1rem, 3vw, 1.5rem)', fontWeight: 800, color: totalReturn >= 0 ? '#10b981' : '#ef4444' }}>
             R$ {Math.round(totalCurrent).toLocaleString('pt-BR')}
           </span>
           <span style={{
-            padding: '0.2rem 0.6rem', borderRadius: 12, fontSize: '0.75rem', fontWeight: 600,
+            padding: '0.15rem 0.5rem', borderRadius: 10, fontSize: '0.72rem', fontWeight: 600,
             background: totalReturn >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
             color: totalReturn >= 0 ? '#10b981' : '#ef4444',
           }}>
@@ -123,11 +114,11 @@ const MyPositionsPanel: React.FC<MyPositionsPanelProps> = ({ darkMode, theme }) 
           const isUp = ret >= 0;
           return (
             <div key={p.ticker} style={{
-              ...cardStyle, padding: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem',
-              flexWrap: 'wrap', transition: 'background 0.15s',
+              padding: '0.6rem 0.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem',
+              flexWrap: 'wrap', transition: 'background 0.15s', borderRadius: 8,
             }}
               onMouseEnter={e => { e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = theme.card || (darkMode ? '#1e293b' : '#fff'); }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
               <Star size={16} fill="#f59e0b" color="#f59e0b" />
               <div style={{ flex: 1, minWidth: 100 }}>
