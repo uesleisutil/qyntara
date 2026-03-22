@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock, Lock, Crown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
+import { useIsPro } from '../../components/shared/ProGate';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -14,6 +15,7 @@ const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) 
 
 const RecommendationsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
+  const isPro = useIsPro();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [date, setDate] = useState('');
   const [loading, setLoading] = useState(true);
@@ -284,8 +286,17 @@ const RecommendationsPage: React.FC = () => {
       </div>
 
       {/* Results count */}
-      <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.5rem', paddingLeft: '0.25rem' }}>
+      <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.5rem', paddingLeft: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
         {filtered.length} de {recommendations.length} ações
+        {!isPro && filtered.length > 5 && (
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3, padding: '0.15rem 0.5rem',
+            borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#f59e0b',
+            fontSize: '0.68rem', fontWeight: 600,
+          }}>
+            <Lock size={10} /> Plano Free: top 5 visíveis · <a href="#/dashboard/upgrade" style={{ color: '#f59e0b', textDecoration: 'underline' }}>Upgrade</a>
+          </span>
+        )}
       </div>
 
       {/* Desktop Table */}
@@ -303,6 +314,11 @@ const RecommendationsPage: React.FC = () => {
                   { key: 'vol', label: 'Vol', sortable: true, tip: 'Volatilidade dos últimos 20 dias — mede o risco. Quanto maior, mais a ação oscila.' },
                   { key: 'score', label: 'Score', sortable: true, tip: 'Pontuação do modelo de ML. Combina retorno esperado, risco e indicadores. Quanto maior, mais atrativa.' },
                   { key: '', label: 'Sinal', sortable: false, tip: 'Recomendação simplificada: Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
+                  ...(isPro ? [
+                    { key: '', label: 'Confiança', sortable: false, tip: 'Nível de confiança do modelo baseado no score. Quanto maior, mais convicto.' },
+                    { key: '', label: 'Stop-loss', sortable: false, tip: 'Preço sugerido para limitar perdas (2× volatilidade abaixo do preço atual).' },
+                    { key: '', label: 'Take-profit', sortable: false, tip: 'Preço-alvo do modelo para 20 pregões.' },
+                  ] : []),
                 ].map((h, idx) => (
                   <th key={idx}
                     onClick={() => h.sortable && handleSort(h.key)}
@@ -326,8 +342,8 @@ const RecommendationsPage: React.FC = () => {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: theme.textSecondary }}>Nenhuma recomendação encontrada</td></tr>
-              ) : filtered.map((rec, i) => {
+                <tr><td colSpan={isPro ? 11 : 8} style={{ padding: '2rem', textAlign: 'center', color: theme.textSecondary }}>Nenhuma recomendação encontrada</td></tr>
+              ) : (isPro ? filtered : filtered.slice(0, 5)).map((rec, i) => {
                 const signal = getSignal(rec.score);
                 const sc = getSignalColor(signal);
                 const ret = rec.exp_return_20;
@@ -358,6 +374,30 @@ const RecommendationsPage: React.FC = () => {
                     <td style={{ padding: '0.5rem 0.6rem' }}>
                       <span style={{ padding: '0.2rem 0.5rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600, background: sc.bg, color: sc.text }}>{signal}</span>
                     </td>
+                    {isPro && (
+                      <>
+                        <td style={{ padding: '0.5rem 0.6rem' }}>
+                          {(() => {
+                            const conf = Math.min(Math.abs(rec.score) / 5 * 100, 99);
+                            const confColor = conf >= 70 ? '#10b981' : conf >= 50 ? '#f59e0b' : '#ef4444';
+                            return (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                <div style={{ flex: 1, height: 5, borderRadius: 3, background: darkMode ? '#334155' : '#e2e8f0', maxWidth: 50, overflow: 'hidden' }}>
+                                  <div style={{ height: '100%', borderRadius: 3, width: `${conf}%`, background: confColor }} />
+                                </div>
+                                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: confColor }}>{fmt(conf, 0)}%</span>
+                              </div>
+                            );
+                          })()}
+                        </td>
+                        <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.82rem', fontWeight: 600, color: '#ef4444' }}>
+                          R$ {fmt(rec.last_close * (1 - Math.max(rec.vol_20d * 2, 0.03)), 2)}
+                        </td>
+                        <td style={{ padding: '0.5rem 0.6rem', fontSize: '0.82rem', fontWeight: 600, color: '#10b981' }}>
+                          R$ {fmt(rec.pred_price_t_plus_20, 2)}
+                        </td>
+                      </>
+                    )}
                   </tr>
                 );
               })}
@@ -366,11 +406,41 @@ const RecommendationsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Free user upgrade prompt */}
+      {!isPro && filtered.length > 5 && (
+        <div style={{
+          ...cardStyle, marginTop: '-1px', borderTopLeftRadius: 0, borderTopRightRadius: 0,
+          textAlign: 'center', padding: '1.25rem',
+          background: darkMode
+            ? 'linear-gradient(180deg, rgba(245,158,11,0.05), rgba(245,158,11,0.02))'
+            : 'linear-gradient(180deg, rgba(245,158,11,0.04), rgba(245,158,11,0.01))',
+          borderColor: 'rgba(245,158,11,0.2)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <Crown size={18} color="#f59e0b" />
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>
+              +{filtered.length - 5} ações disponíveis no plano Pro
+            </span>
+          </div>
+          <p style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.75rem' }}>
+            Desbloqueie todas as recomendações, confiança, stop-loss e take-profit
+          </p>
+          <a href="#/dashboard/upgrade" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+            padding: '0.5rem 1.2rem', borderRadius: 8, textDecoration: 'none',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white',
+            fontSize: '0.82rem', fontWeight: 600,
+          }}>
+            <Crown size={14} /> Fazer Upgrade
+          </a>
+        </div>
+      )}
+
       {/* Mobile Cards (hidden on desktop) */}
       <div className="rec-cards-mobile" style={{ display: 'none', flexDirection: 'column', gap: '0.5rem' }}>
         {filtered.length === 0 ? (
           <div style={{ ...cardStyle, textAlign: 'center', color: theme.textSecondary }}>Nenhuma recomendação encontrada</div>
-        ) : filtered.map((rec, i) => {
+        ) : (isPro ? filtered : filtered.slice(0, 5)).map((rec, i) => {
           const signal = getSignal(rec.score);
           const sc = getSignalColor(signal);
           const ret = rec.exp_return_20;

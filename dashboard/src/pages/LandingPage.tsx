@@ -171,8 +171,8 @@ const LandingPage: React.FC = () => {
         <p style={{ color: '#64748b', marginBottom: '2.5rem' }}>Comece grátis e escale conforme sua necessidade.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '1.5rem' }}>
           {[
-            { name: 'Free', price: 'R$ 0', period: '/mês', features: ['Top 5 recomendações', 'Explicabilidade básica', 'Atualização diária'], cta: 'Começar Grátis', highlight: false },
-            { name: 'Pro', price: 'R$ 49', period: '/mês', features: ['Top 50 recomendações', 'Explicabilidade completa', 'Backtesting', 'Alertas personalizados', 'Suporte prioritário'], cta: 'Assinar Pro', highlight: true },
+            { name: 'Free', price: 'R$ 0', period: '/mês', features: ['Recomendações diárias (top 5)', 'Explicabilidade básica', 'Backtesting', 'Acompanhamento por safra'], cta: 'Começar Grátis', highlight: false },
+            { name: 'Pro', price: 'R$ 49', period: '/mês', features: ['Todas as 46 recomendações', 'Carteira modelo otimizada', 'Stop-loss e take-profit', 'Performance acumulada vs Ibovespa', 'Ranking de confiança', 'Notificações e alertas'], cta: 'Assinar Pro', highlight: true },
           ].map((plan, i) => (
             <div key={i} style={{
               background: plan.highlight ? 'linear-gradient(135deg, rgba(37,99,235,0.15), rgba(59,130,246,0.05))' : 'rgba(255,255,255,0.02)',

@@ -3,8 +3,11 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
+  Briefcase, LineChart, Crown,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationCenter from '../components/shared/NotificationCenter';
+import { ProBadge } from '../components/shared/ProGate';
 
 const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -25,12 +28,18 @@ const DashboardLayout: React.FC = () => {
   };
 
   const isAdmin = user?.role === 'admin';
+  const isPro = user?.plan === 'pro' || user?.role === 'admin';
 
   const userMenuItems = [
     { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} /> },
     { path: '/dashboard/tracking', label: 'Acompanhamento', icon: <Target size={18} /> },
     { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} /> },
     { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} /> },
+  ];
+
+  const proMenuItems = [
+    { path: '/dashboard/portfolio', label: 'Carteira Modelo', icon: <Briefcase size={18} /> },
+    { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} /> },
   ];
 
   const adminMenuItems = [
@@ -103,6 +112,32 @@ const DashboardLayout: React.FC = () => {
         </div>
         {userMenuItems.map(renderNavButton)}
 
+        {/* Pro section */}
+        <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Crown size={11} color="#f59e0b" /> Pro
+          </span>
+        </div>
+        {proMenuItems.map(item => (
+          <button key={item.path} onClick={() => handleNav(item.path)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
+              padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
+              background: isActive(item.path) ? theme.activeItem : 'transparent',
+              color: isActive(item.path) ? '#f59e0b' : theme.textSecondary,
+              fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
+              transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
+              opacity: isPro ? 1 : 0.6,
+            }}
+            onMouseEnter={e => { if (!isActive(item.path)) e.currentTarget.style.background = theme.hover; }}
+            onMouseLeave={e => { if (!isActive(item.path)) e.currentTarget.style.background = 'transparent'; }}
+          >
+            {item.icon} {item.label}
+            {!isPro && <Lock size={12} style={{ marginLeft: 'auto', opacity: 0.5 }} />}
+            {isActive(item.path) && isPro && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
+          </button>
+        ))}
+
         {isAdmin && (
           <>
             <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
@@ -131,8 +166,9 @@ const DashboardLayout: React.FC = () => {
             <div style={{ fontSize: '0.8rem', fontWeight: 500, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user?.name || user?.email}
             </div>
-            <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               {user?.role === 'admin' ? 'Administrador' : 'Usuário'}
+              {isPro && <ProBadge small />}
             </div>
           </div>
         </div>
@@ -208,6 +244,9 @@ const DashboardLayout: React.FC = () => {
               if (p.includes('explainability')) return '🧠 Explicabilidade';
               if (p.includes('backtesting')) return '🧪 Backtesting';
               if (p.includes('change-password')) return '🔒 Alterar Senha';
+              if (p.includes('portfolio')) return '👑 Carteira Modelo';
+              if (p.includes('performance')) return '👑 Performance';
+              if (p.includes('upgrade')) return '👑 Upgrade Pro';
               if (p === '/admin') return '🔒 Admin — Visão Geral';
               if (p.includes('performance')) return '🔒 Admin — Performance';
               if (p.includes('costs')) return '🔒 Admin — Custos';
@@ -218,6 +257,7 @@ const DashboardLayout: React.FC = () => {
             })()}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+            <NotificationCenter darkMode={darkMode} />
             <div style={{ position: 'relative' }}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{
                 display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.6rem',
@@ -241,7 +281,10 @@ const DashboardLayout: React.FC = () => {
                   }}>
                     <div style={{ padding: '0.6rem 0.75rem', borderBottom: `1px solid ${theme.border}` }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.text }}>{user?.name || user?.email}</div>
-                      <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>{user?.role === 'admin' ? 'Administrador' : 'Usuário'}</div>
+                      <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        {user?.role === 'admin' ? 'Administrador' : 'Usuário'}
+                        {isPro && <ProBadge small />}
+                      </div>
                     </div>
                     <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/change-password'); }} style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -254,6 +297,19 @@ const DashboardLayout: React.FC = () => {
                     >
                       <Lock size={14} /> Alterar Senha
                     </button>
+                    {!isPro && (
+                      <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                        color: '#f59e0b', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                        transition: 'background 0.1s', fontWeight: 500,
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.08)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <Crown size={14} /> Upgrade Pro
+                      </button>
+                    )}
                     <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
                       padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',

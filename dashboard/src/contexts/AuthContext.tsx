@@ -6,6 +6,7 @@ interface User {
   email: string;
   name?: string;
   role: 'admin' | 'analyst' | 'viewer';
+  plan?: 'free' | 'pro';
   emailVerified?: boolean;
 }
 
@@ -49,7 +50,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               const data = await res.json();
               setUser({
                 id: data.userId, email: data.email, name: data.name,
-                role: data.role || 'viewer', emailVerified: data.emailVerified ?? true,
+                role: data.role || 'viewer', plan: data.plan || 'free',
+                emailVerified: data.emailVerified ?? true,
               });
             } else { clearStorage(); }
           } else { clearStorage(); }
@@ -106,7 +108,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const data = await res.json();
     saveSession(data.accessToken, {
       id: data.userId, email: data.email, name: data.name,
-      role: data.role || 'viewer', emailVerified: data.emailVerified ?? true,
+      role: data.role || 'viewer', plan: data.plan || 'free',
+      emailVerified: data.emailVerified ?? true,
     });
   }, []);
 
@@ -122,7 +125,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const data = await res.json();
     saveSession(data.accessToken, {
       id: data.userId, email: data.email, name: data.name,
-      role: data.role || 'viewer', emailVerified: data.emailVerified ?? false,
+      role: data.role || 'viewer', plan: data.plan || 'free',
+      emailVerified: data.emailVerified ?? false,
     });
   }, []);
 

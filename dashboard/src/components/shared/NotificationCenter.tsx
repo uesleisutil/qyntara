@@ -1,0 +1,253 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { Bell, X, TrendingUp, Activity, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+import { API_BASE_URL, API_KEY } from '../../config';
+
+interface Notification {
+  id: string;
+  type: 'model_run' | 'recommendations' | 'tracking' | 'alert' | 'system';
+  title: string;
+  message: string;
+  time: Date;
+  read: boolean;
+  icon: React.ReactNode;
+  color: string;
+}
+
+interface NotificationCenterProps {
+  darkMode: boolean;
+}
+
+const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => {
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const theme = {
+    bg: darkMode ? '#1e293b' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f172a',
+    textSecondary: darkMode ? '#94a3b8' : '#64748b',
+    border: darkMode ? '#334155' : '#e2e8f0',
+    hover: darkMode ? '#334155' : '#f1f5f9',
+  };
+
+  const generateNotifications = useCallback(async () => {
+    const notes: Notification[] = [];
+    const now = new Date();
+
+    try {
+      const headers = { 'x-api-key': API_KEY };
+      const [latestRes, histRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers }),
+        fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
+      ]);
+
+      if (latestRes.ok) {
+        const latest = await latestRes.json();
+        const recDate = latest.date;
+        const recs = latest.recommendations || [];
+        const buyCount = recs.filter((r: any) => r.score >= 1.5).length;
+        const sellCount = recs.filter((r: any) => r.score <= -1.5).length;
+        const topBuy = recs.filter((r: any) => r.score >= 1.5).sort((a: any, b: any) => b.score - a.score)[0];
+
+        // Recommendation ready notification
+        notes.push({
+          id: `rec-${recDate}`,
+          type: 'recommendations',
+          title: 'Recomendações do dia prontas',
+          message: `${recs.length} ações analisadas: ${buyCount} compra, ${sellCount} venda${topBuy ? `. Destaque: ${topBuy.ticker} (score ${topBuy.score.toFixed(1)})` : ''}`,
+          time: new Date(recDate + 'T09:30:00'),
+          read: false,
+          icon: <TrendingUp size={16} />,
+          color: '#10b981',
+        });
+
+        // Model run notification
+        notes.push({
+          id: `model-${recDate}`,
+          type: 'model_run',
+          title: 'Modelo executado com sucesso',
+          message: `Pipeline ML concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
+          time: new Date(recDate + 'T08:00:00'),
+          read: false,
+          icon: <Activity size={16} />,
+          color: '#3b82f6',
+        });
+
+        // Strong signals alert
+        const strongBuys = recs.filter((r: any) => r.score >= 4);
+        if (strongBuys.length > 0) {
+          notes.push({
+            id: `strong-${recDate}`,
+            type: 'alert',
+            title: 'Sinais fortes detectados',
+            message: `${strongBuys.length} ação(ões) com score acima de 4: ${strongBuys.map((r: any) => r.ticker).join(', ')}`,
+            time: new Date(recDate + 'T09:35:00'),
+            read: false,
+            icon: <AlertTriangle size={16} />,
+            color: '#f59e0b',
+          });
+        }
+      }
+
+      if (histRes.ok) {
+        const hist = await histRes.json();
+        const dates = new Set<string>();
+        Object.values(hist.data as Record<string, any[]>).forEach((entries: any[]) =>
+          entries.forEach((e: any) => dates.add(e.date))
+        );
+        const sortedDates = Array.from(dates).sort().reverse();
+
+        if (sortedDates.length >= 2) {
+          notes.push({
+            id: `history-${sortedDates[0]}`,
+            type: 'system',
+            title: 'Dados históricos atualizados',
+            message: `${sortedDates.length} dias de histórico disponíveis. Último: ${new Date(sortedDates[0] + 'T12:00:00').toLocaleDateString('pt-BR')}.`,
+            time: new Date(sortedDates[0] + 'T07:00:00'),
+            read: false,
+            icon: <Clock size={16} />,
+            color: '#8b5cf6',
+          });
+        }
+      }
+    } catch {
+      // Silently fail — notifications are non-critical
+    }
+
+    // System welcome notification
+    notes.push({
+      id: 'welcome',
+      type: 'system',
+      title: 'Bem-vindo ao B3 Tactical',
+      message: 'Explore as recomendações, acompanhe safras e analise a explicabilidade do modelo.',
+      time: new Date(now.getTime() - 86400000),
+      read: true,
+      icon: <CheckCircle size={16} />,
+      color: '#10b981',
+    });
+
+    // Mark read from localStorage
+    const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    notes.forEach(n => { if (readIds.includes(n.id)) n.read = true; });
+
+    notes.sort((a, b) => b.time.getTime() - a.time.getTime());
+    setNotifications(notes);
+  }, []);
+
+  useEffect(() => { generateNotifications(); }, [generateNotifications]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllRead = () => {
+    const ids = notifications.map(n => n.id);
+    localStorage.setItem('readNotifications', JSON.stringify(ids));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
+  const markRead = (id: string) => {
+    const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    if (!readIds.includes(id)) {
+      readIds.push(id);
+      localStorage.setItem('readNotifications', JSON.stringify(readIds));
+    }
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const timeAgo = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}min atrás`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h atrás`;
+    const days = Math.floor(hours / 24);
+    return `${days}d atrás`;
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <button onClick={() => setOpen(!open)} style={{
+        position: 'relative', background: 'none', border: 'none', cursor: 'pointer',
+        color: theme.textSecondary, padding: 6, borderRadius: 6, transition: 'color 0.15s',
+        display: 'flex', alignItems: 'center',
+      }}
+        onMouseEnter={e => e.currentTarget.style.color = theme.text}
+        onMouseLeave={e => e.currentTarget.style.color = theme.textSecondary}
+        aria-label="Notificações"
+      >
+        <Bell size={18} />
+        {unreadCount > 0 && (
+          <span style={{
+            position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%',
+            background: '#ef4444', color: 'white', fontSize: '0.6rem', fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setOpen(false)} />
+          <div style={{
+            position: 'absolute', right: 0, top: '100%', marginTop: 8, width: 'min(360px, 90vw)',
+            background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 12,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)', zIndex: 50, overflow: 'hidden',
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '0.75rem 1rem', borderBottom: `1px solid ${theme.border}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text }}>Notificações</span>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} style={{
+                    background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer',
+                    fontSize: '0.72rem', fontWeight: 500, padding: 0,
+                  }}>Marcar todas como lidas</button>
+                )}
+                <button onClick={() => setOpen(false)} style={{
+                  background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer', padding: 2,
+                }}><X size={16} /></button>
+              </div>
+            </div>
+
+            {/* Notifications list */}
+            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+              {notifications.length === 0 ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: theme.textSecondary, fontSize: '0.85rem' }}>
+                  Nenhuma notificação
+                </div>
+              ) : notifications.map(n => (
+                <div key={n.id} onClick={() => markRead(n.id)} style={{
+                  padding: '0.7rem 1rem', borderBottom: `1px solid ${theme.border}`,
+                  display: 'flex', gap: '0.6rem', cursor: 'pointer',
+                  background: n.read ? 'transparent' : (darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)'),
+                  transition: 'background 0.15s',
+                }}
+                  onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                  onMouseLeave={e => e.currentTarget.style.background = n.read ? 'transparent' : (darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)')}
+                >
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                    background: `${n.color}15`, color: n.color,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{n.icon}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: n.read ? 400 : 600, color: theme.text }}>{n.title}</span>
+                      {!n.read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', flexShrink: 0, marginTop: 5 }} />}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.4, marginTop: 2 }}>{n.message}</div>
+                    <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginTop: 3, opacity: 0.7 }}>{timeAgo(n.time)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default NotificationCenter;

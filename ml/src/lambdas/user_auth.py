@@ -715,6 +715,7 @@ def _handle_login(event: dict) -> dict:
         "email": email,
         "role": item.get("role", "viewer"),
         "name": item.get("name", ""),
+        "plan": item.get("plan", "free"),
         "exp": int(time.time()) + SESSION_HOURS * 3600,
     })
 
@@ -736,6 +737,7 @@ def _handle_login(event: dict) -> dict:
         "email": email,
         "name": item.get("name", ""),
         "role": item.get("role", "viewer"),
+        "plan": item.get("plan", "free"),
         "emailVerified": item.get("emailVerified", True),
     })
 
@@ -761,6 +763,7 @@ def _handle_me(event: dict) -> dict:
         "email": payload.get("email"),
         "name": payload.get("name"),
         "role": payload.get("role"),
+        "plan": payload.get("plan", "free"),
     })
 
 
