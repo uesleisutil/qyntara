@@ -92,19 +92,32 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
       </p>
 
       <div style={{
-        display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1rem',
-        padding: '0.6rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8,
+        display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1rem',
+        padding: '0.6rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 10,
+        border: `1px solid ${theme.border}`,
       }}>
         {ALL_FEATURES.map(f => {
           const isSel = selected.includes(f);
           const idx = selected.indexOf(f);
+          const atMax = !isSel && selected.length >= 5;
           return (
-            <button key={f} onClick={() => toggle(f)} style={{
-              padding: '0.35rem 0.7rem', fontSize: '0.78rem', borderRadius: 6, cursor: 'pointer',
-              border: `1px solid ${isSel ? COLORS[idx] : theme.border}`,
-              backgroundColor: isSel ? COLORS[idx] : 'transparent',
-              color: isSel ? 'white' : theme.text, fontWeight: isSel ? 600 : 400,
-            }}>
+            <button key={f} onClick={() => toggle(f)}
+              onMouseDown={e => { if (!atMax) e.currentTarget.style.transform = 'scale(0.94)'; }}
+              onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+              style={{
+                padding: '0.35rem 0.65rem', fontSize: '0.76rem', borderRadius: 20,
+                cursor: atMax ? 'not-allowed' : 'pointer',
+                border: isSel ? 'none' : `1px solid ${theme.border}`,
+                backgroundColor: isSel ? COLORS[idx] : 'transparent',
+                color: isSel ? 'white' : (atMax ? theme.border : theme.text),
+                fontWeight: isSel ? 600 : 400,
+                opacity: atMax ? 0.4 : 1,
+                transition: 'all 0.2s ease',
+                boxShadow: isSel ? `0 2px 6px ${COLORS[idx]}40` : 'none',
+                WebkitTapHighlightColor: 'transparent',
+              }}>
+              {isSel && <span style={{ marginRight: 3, fontSize: '0.7rem' }}>✓</span>}
               {f}
             </button>
           );

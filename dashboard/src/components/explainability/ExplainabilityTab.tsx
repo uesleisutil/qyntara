@@ -77,26 +77,76 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>Ação:</label>
-          <select
-            value={selectedTicker}
-            onChange={(e) => setSelectedTicker(e.target.value)}
-            style={{
-              padding: '0.5rem 0.75rem', fontSize: '0.9rem', border: `1px solid ${theme.border}`,
-              borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer',
-              minWidth: 0, flex: '1 1 180px', maxWidth: 280,
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: '1 1 180px', maxWidth: 340 }}>
+            <button onClick={() => {
+              const idx = tickers.findIndex(t => t.ticker === selectedTicker);
+              if (idx > 0) setSelectedTicker(tickers[idx - 1].ticker);
             }}
-          >
-            {tickers.map(t => (
-              <option key={t.ticker} value={t.ticker}>
-                {t.ticker} (Score: {t.score.toFixed(2)})
-              </option>
-            ))}
-          </select>
+              disabled={tickers.findIndex(t => t.ticker === selectedTicker) <= 0}
+              style={{
+                width: 32, height: 32, borderRadius: 6, border: `1px solid ${theme.border}`,
+                background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                opacity: tickers.findIndex(t => t.ticker === selectedTicker) <= 0 ? 0.3 : 1,
+                transition: 'all 0.15s',
+              }}
+              aria-label="Ação anterior"
+            >‹</button>
+            <select
+              value={selectedTicker}
+              onChange={(e) => setSelectedTicker(e.target.value)}
+              style={{
+                padding: '0.5rem 0.75rem', fontSize: '0.9rem', border: `1px solid ${theme.border}`,
+                borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer',
+                minWidth: 0, flex: 1, transition: 'border-color 0.2s', outline: 'none',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = '#3b82f6'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
+            >
+              {tickers.map(t => (
+                <option key={t.ticker} value={t.ticker}>
+                  {t.ticker} (Score: {t.score.toFixed(2)})
+                </option>
+              ))}
+            </select>
+            <button onClick={() => {
+              const idx = tickers.findIndex(t => t.ticker === selectedTicker);
+              if (idx < tickers.length - 1) setSelectedTicker(tickers[idx + 1].ticker);
+            }}
+              disabled={tickers.findIndex(t => t.ticker === selectedTicker) >= tickers.length - 1}
+              style={{
+                width: 32, height: 32, borderRadius: 6, border: `1px solid ${theme.border}`,
+                background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                opacity: tickers.findIndex(t => t.ticker === selectedTicker) >= tickers.length - 1 ? 0.3 : 1,
+                transition: 'all 0.15s',
+              }}
+              aria-label="Próxima ação"
+            >›</button>
+          </div>
           {currentTicker && (
-            <span style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.4 }}>
-              R$ {currentTicker.last_close.toFixed(2)} → R$ {currentTicker.pred_price_t_plus_20.toFixed(2)} | 
-              Ret: {(currentTicker.exp_return_20 * 100).toFixed(1)}% | Vol: {(currentTicker.vol_20d * 100).toFixed(1)}%
-            </span>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{
+                padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
+                background: darkMode ? '#0f172a' : '#f0f9ff', color: '#3b82f6',
+                border: `1px solid rgba(59,130,246,0.2)`,
+              }}>
+                R$ {currentTicker.last_close.toFixed(2)} → R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}
+              </span>
+              <span style={{
+                padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
+                background: currentTicker.exp_return_20 >= 0 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
+                color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444',
+              }}>
+                Ret: {(currentTicker.exp_return_20 * 100).toFixed(1)}%
+              </span>
+              <span style={{
+                padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
+                background: 'rgba(245,158,11,0.12)', color: '#f59e0b',
+              }}>
+                Vol: {(currentTicker.vol_20d * 100).toFixed(1)}%
+              </span>
+            </div>
           )}
         </div>
       </div>
