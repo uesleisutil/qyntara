@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Star, Trash2, TrendingUp, TrendingDown, Briefcase } from 'lucide-react';
+import { Star, Trash2, TrendingUp, TrendingDown, Briefcase, Clock } from 'lucide-react';
 import { getFollowedPositions, setFollowedPositions, FollowedPosition } from './FollowButton';
 import InfoTooltip from './InfoTooltip';
 import { API_BASE_URL, API_KEY } from '../../config';
@@ -93,6 +93,9 @@ const MyPositionsPanel: React.FC<MyPositionsPanelProps> = ({ darkMode, theme }) 
             {positions.length} ação{positions.length !== 1 ? 'ões' : ''}
           </span>
           <InfoTooltip text="Retorno simulado baseado no preço de entrada (quando você clicou 'Seguir') vs preço atual. Simulação com R$ 1.000 por posição." darkMode={darkMode} size={12} />
+        </div>
+        <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <Clock size={10} /> Preços atualizados 1×/dia (fechamento). Variações intraday não são refletidas.
         </div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>

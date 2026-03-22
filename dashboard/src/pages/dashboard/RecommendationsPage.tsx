@@ -295,8 +295,19 @@ const RecommendationsPage: React.FC = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
           <thead>
             <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
-              {['#', ...(isPro ? ['★'] : []), 'Ticker', 'Sinal', 'Score', 'Preço Atual', 'Preço Previsto', 'Retorno Previsto', 'Volatilidade',
-                ...(true ? ['Confiança', 'Stop-Loss', 'Take-Profit'] : [])
+              {[
+                { label: '#', tip: '' },
+                ...(isPro ? [{ label: '★', tip: 'Clique para seguir/deixar de seguir a ação.' }] : []),
+                { label: 'Ticker', tip: 'Código da ação na B3.' },
+                { label: 'Sinal', tip: 'Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
+                { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra.' },
+                { label: 'Preço Atual', tip: 'Último preço de fechamento disponível.' },
+                { label: 'Preço Previsto', tip: 'Preço previsto pelo modelo para daqui 20 pregões.' },
+                { label: 'Retorno Previsto', tip: 'Retorno esperado em 20 pregões: (previsto - atual) / atual.' },
+                { label: 'Volatilidade', tip: 'Volatilidade dos últimos 20 dias. Menor = mais estável.' },
+                { label: 'Confiança', tip: 'Nível de confiança do modelo baseado no score e volatilidade.' },
+                { label: 'Stop-Loss', tip: 'Preço sugerido para limitar perdas (baseado em volatilidade).' },
+                { label: 'Take-Profit', tip: 'Preço-alvo sugerido para realizar lucro.' },
               ].map((h, i) => (
                 <th key={i} style={{
                   padding: '0.6rem 0.5rem', textAlign: i <= 1 ? 'left' : 'right', color: theme.textSecondary,
@@ -311,7 +322,10 @@ const RecommendationsPage: React.FC = () => {
                     else if (i === 7 + offset) handleSort('vol');
                   }}
                 >
-                  {h}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                    {h.label}
+                    {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={10} />}
+                  </span>
                   {i >= (isPro ? 9 : 8) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}

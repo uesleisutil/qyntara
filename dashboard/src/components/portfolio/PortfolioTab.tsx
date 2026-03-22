@@ -12,21 +12,24 @@ interface Rec {
 
 type Profile = 'conservador' | 'moderado' | 'arrojado';
 
-const PROFILES: Record<Profile, { label: string; icon: React.ReactNode; color: string; desc: string; maxVol: number; minScore: number; topN: number; stopMult: number }> = {
+const PROFILES: Record<Profile, { label: string; icon: React.ReactNode; color: string; desc: string; maxVol: number; minScore: number; topN: number; stopMult: number; sortBy: 'risk_adjusted' | 'return' | 'score'; weightBy: 'inv_vol' | 'equal' | 'score' }> = {
   conservador: {
     label: 'Conservador', icon: <ShieldCheck size={16} />, color: '#3b82f6',
     desc: 'Prioriza baixa volatilidade e alta confiança. Menos ações, mais proteção.',
-    maxVol: 0.025, minScore: 2.0, topN: 3, stopMult: 1.5,
+    maxVol: 0.025, minScore: 2.5, topN: 3, stopMult: 1.5,
+    sortBy: 'risk_adjusted', weightBy: 'inv_vol',
   },
   moderado: {
     label: 'Moderado', icon: <Scale size={16} />, color: '#f59e0b',
     desc: 'Equilíbrio entre risco e retorno. Diversificação média.',
-    maxVol: 0.04, minScore: 1.5, topN: 5, stopMult: 2.0,
+    maxVol: 0.045, minScore: 1.5, topN: 5, stopMult: 2.0,
+    sortBy: 'risk_adjusted', weightBy: 'inv_vol',
   },
   arrojado: {
     label: 'Arrojado', icon: <Flame size={16} />, color: '#ef4444',
-    desc: 'Busca maior retorno, aceita mais volatilidade. Mais ações, mais risco.',
-    maxVol: 1.0, minScore: 1.5, topN: 8, stopMult: 2.5,
+    desc: 'Busca maior retorno, aceita mais volatilidade. Mais ações, peso por retorno.',
+    maxVol: 1.0, minScore: 1.0, topN: 8, stopMult: 2.5,
+    sortBy: 'return', weightBy: 'score',
   },
 };
 
@@ -82,6 +85,9 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
     const buys = recs
       .filter(r => r.score >= p.minScore && r.vol_20d <= p.maxVol)
       .sort((a, b) => {
+        if (p.sortBy === 'return') return (b.exp_return_20 || 0) - (a.exp_return_20 || 0);
+        if (p.sortBy === 'score') return b.score - a.score;
+        // risk_adjusted: score / volatility
         const aRatio = a.score / (a.vol_20d || 0.01);
         const bRatio = b.score / (b.vol_20d || 0.01);
         return bRatio - aRatio;
@@ -90,11 +96,22 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
     const top = buys.slice(0, p.topN);
     if (!top.length) return [];
 
-    const invVols = top.map(r => 1 / (r.vol_20d || 0.01));
-    const totalInvVol = invVols.reduce((s, v) => s + v, 0);
+    let weights: number[];
+    if (p.weightBy === 'equal') {
+      weights = top.map(() => 1 / top.length);
+    } else if (p.weightBy === 'score') {
+      const totalScore = top.reduce((s, r) => s + Math.abs(r.score), 0);
+      weights = top.map(r => Math.abs(r.score) / (totalScore || 1));
+    } else {
+      // inv_vol
+      const invVols = top.map(r => 1 / (r.vol_20d || 0.01));
+      const totalInvVol = invVols.reduce((s, v) => s + v, 0);
+      weights = invVols.map(v => v / (totalInvVol || 1));
+    }
+
     return top.map((r, i) => ({
       ...r,
-      weight: invVols[i] / totalInvVol,
+      weight: weights[i],
       confidence: Math.min(Math.abs(r.score) / 5 * 100, 99),
       stopLoss: r.last_close * (1 - Math.max(r.vol_20d * p.stopMult, 0.03)),
       takeProfit: r.pred_price_t_plus_20,
@@ -172,7 +189,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
         <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: '0.4rem', lineHeight: 1.5 }}>
           {p.icon} {p.desc}
           <span style={{ display: 'block', marginTop: '0.2rem', fontSize: '0.68rem', opacity: 0.8 }}>
-            Filtros: vol ≤ {p.maxVol < 1 ? `${(p.maxVol * 100).toFixed(1)}%` : 'sem limite'} · score ≥ {p.minScore} · até {p.topN} ações · stop {p.stopMult}× vol
+            Filtros: vol ≤ {p.maxVol < 1 ? `${(p.maxVol * 100).toFixed(1)}%` : 'sem limite'} · score ≥ {p.minScore} · até {p.topN} ações · stop {p.stopMult}× vol · ordena por {p.sortBy === 'return' ? 'retorno' : p.sortBy === 'score' ? 'score' : 'risco-ajustado'} · peso por {p.weightBy === 'inv_vol' ? 'vol. inversa' : p.weightBy === 'score' ? 'score' : 'igual'}
           </span>
         </div>
       </div>
