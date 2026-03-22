@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Info, RefreshCw } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
+import { useIsPro } from '../shared/ProGate';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
@@ -26,6 +27,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const [selectedTicker, setSelectedTicker] = useState<string>('');
   const [tickers, setTickers] = useState<TickerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const isPro = useIsPro();
 
   const theme = {
     bg: darkMode ? '#0f172a' : '#f8fafc',
@@ -138,18 +140,20 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
                 background: darkMode ? '#0f172a' : '#f0f9ff', color: '#3b82f6',
                 border: `1px solid rgba(59,130,246,0.2)`,
               }}>
-                R$ {currentTicker.last_close.toFixed(2)} → R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}
+                R$ {currentTicker.last_close.toFixed(2)} → <span style={{ filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}</span>
               </span>
               <span style={{
                 padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
                 background: currentTicker.exp_return_20 >= 0 ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
                 color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444',
+                filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none',
               }}>
                 Ret: {(currentTicker.exp_return_20 * 100).toFixed(1)}%
               </span>
               <span style={{
                 padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
                 background: 'rgba(245,158,11,0.12)', color: '#f59e0b',
+                filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none',
               }}>
                 Vol: {(currentTicker.vol_20d * 100).toFixed(1)}%
               </span>
@@ -176,11 +180,11 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7 }}>
               O modelo prevê que <strong style={{ color: theme.text }}>{currentTicker.ticker}</strong> vá de{' '}
               <strong style={{ color: theme.text }}>R$ {currentTicker.last_close.toFixed(2)}</strong> para{' '}
-              <strong style={{ color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
+              <strong style={{ color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444', filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>
                 R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}
               </strong>{' '}
-              nos próximos 20 pregões ({(currentTicker.exp_return_20 >= 0 ? '+' : '')}{(currentTicker.exp_return_20 * 100).toFixed(1)}%).
-              {' '}Com volatilidade de {(currentTicker.vol_20d * 100).toFixed(1)}% e score de{' '}
+              nos próximos 20 pregões (<span style={{ filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>{(currentTicker.exp_return_20 >= 0 ? '+' : '')}{(currentTicker.exp_return_20 * 100).toFixed(1)}%</span>).
+              {' '}Com volatilidade de <span style={{ filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>{(currentTicker.vol_20d * 100).toFixed(1)}%</span> e score de{' '}
               <strong style={{ color: '#3b82f6' }}>{currentTicker.score.toFixed(2)}</strong>, o sinal é{' '}
               <strong style={{ color: currentTicker.score >= SCORE_BUY_THRESHOLD ? '#10b981' : currentTicker.score <= SCORE_SELL_THRESHOLD ? '#ef4444' : '#f59e0b' }}>
                 {currentTicker.score >= SCORE_BUY_THRESHOLD ? 'Compra' : currentTicker.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro'}

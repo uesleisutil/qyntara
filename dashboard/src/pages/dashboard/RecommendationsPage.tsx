@@ -15,8 +15,7 @@ import ExportCSV from '../../components/shared/ExportCSV';
 import Sparkline from '../../components/shared/Sparkline';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getSignal, getSignalColor, getCurrentMonthPriceKey, PRO_PRICE_LABEL } from '../../constants';
 import { getSector, ALL_SECTORS } from '../../constants/sectors';
-import SignalChanges from '../../components/shared/SignalChanges';
-import TemporalComparison from '../../components/shared/RankingComparison';
+import SignalChangesDropdown from '../../components/shared/SignalChangesDropdown';
 import PersonalPerformance from '../../components/shared/PersonalPerformance';
 import GoalTracker from '../../components/shared/GoalTracker';
 import MonthlyReport from '../../components/shared/MonthlyReport';
@@ -254,11 +253,8 @@ const RecommendationsPage: React.FC = () => {
         />
       )}
 
-      {/* Signal Changes — tickers that changed signal today */}
-      <SignalChanges darkMode={darkMode} theme={theme} />
-
-      {/* Temporal Comparison — ranking diff vs previous days */}
-      <TemporalComparison darkMode={darkMode} theme={theme} />
+      {/* Floating "Novidades" button — only shows when there are signal changes */}
+      <SignalChangesDropdown darkMode={darkMode} theme={theme} />
 
       {/* Compact KPI strip — Resumo do Dia inline */}
       {recommendations.length > 0 && (
@@ -461,7 +457,10 @@ const RecommendationsPage: React.FC = () => {
                     </span>
                     {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
                   </td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</td>
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
+                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</span>
+                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
+                  </td>
                   {/* #12: Merged Faixa column (Stop-Loss → Take-Profit) */}
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
                     <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.text, fontSize: '0.75rem' }}>
@@ -510,7 +509,7 @@ const RecommendationsPage: React.FC = () => {
                 <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.last_close, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
                 <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
-                <div><span style={{ color: theme.textSecondary }}>Vol:</span> <strong style={{ color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</strong></div>
+                <div><span style={{ color: theme.textSecondary }}>Vol:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
                 <div style={{ position: 'relative' }}>
                   <span style={{ color: theme.textSecondary }}>Confiança:</span>{' '}
                   <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: confidence >= 70 ? '#10b981' : '#94a3b8' }}>{confidence}%</strong>
