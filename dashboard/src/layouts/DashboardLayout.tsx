@@ -20,6 +20,7 @@ const DashboardLayout: React.FC = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTour, setShowTour] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : true;
@@ -46,6 +47,37 @@ const DashboardLayout: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  // Keyboard shortcuts: 1-4 for tabs, Ctrl+K for search
+  React.useEffect(() => {
+    const goOnline = () => setIsOffline(false);
+    const goOffline = () => setIsOffline(true);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
+  }, []);
+
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if (e.key === '1') navigate('/dashboard');
+      else if (e.key === '2') navigate('/dashboard/explainability');
+      else if (e.key === '3') navigate('/dashboard/backtesting');
+      else if (e.key === '4') navigate('/dashboard/performance');
+
+      // Ctrl+K or Cmd+K: focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('[data-tour="search-bar"] input') as HTMLInputElement;
+        if (searchInput) searchInput.focus();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate]);
 
   const userMenuItems = [
     { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} />, tourId: 'nav-recommendations' },
@@ -390,6 +422,17 @@ const DashboardLayout: React.FC = () => {
           </div>
         </header>
         <div style={{ padding: 'clamp(0.75rem, 3vw, 1.5rem)' }}>
+          {/* Offline indicator */}
+          {isOffline && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.5rem 0.75rem', marginBottom: '0.75rem', borderRadius: 8,
+              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+              fontSize: '0.78rem', color: '#f87171',
+            }}>
+              📡 Sem conexão com a internet. Dados podem estar desatualizados.
+            </div>
+          )}
           {/* Email verification banner */}
           {user && user.emailVerified === false && (
             <EmailVerificationBanner darkMode={darkMode} theme={theme} />

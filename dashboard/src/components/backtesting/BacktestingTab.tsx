@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
 import { markChecklistItem } from '../shared/ActivationChecklist';
+import { saveBacktestResult, loadBacktestResult } from '../shared/BacktestCache';
 
 interface BacktestingTabProps { darkMode?: boolean; }
 
@@ -350,6 +351,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'config' | 'portfolio' | 'metrics' | 'risk'>('config');
+  const [savedLabel, setSavedLabel] = useState<string | null>(null);
   const [config, setConfig] = useState<Config>({
     startDate: '2026-02-02',
     endDate: new Date().toISOString().split('T')[0],
@@ -368,6 +370,18 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
   };
 
   const today = new Date().toISOString().split('T')[0];
+
+  // Load cached backtest result on mount
+  React.useEffect(() => {
+    const cached = loadBacktestResult();
+    if (cached) {
+      setResult(cached.result);
+      setConfig(cached.config);
+      setActiveTab('portfolio');
+      const savedDate = new Date(cached.savedAt);
+      setSavedLabel(`Resultado salvo em ${savedDate.toLocaleDateString('pt-BR')} ${savedDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`);
+    }
+  }, []);
 
   const handleRun = async () => {
     if (config.endDate > today) {
@@ -393,6 +407,8 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       const simResult = runBacktest(config, tickers, allPrices);
       setResult(simResult);
       setActiveTab('portfolio');
+      saveBacktestResult(simResult, config);
+      setSavedLabel(null);
       markChecklistItem('ranBacktest');
     } catch (err: any) { setError(err.message); }
     finally { setLoading(false); }
@@ -519,10 +535,15 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       {activeTab === 'portfolio' && result && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Data source badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: theme.textSecondary }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: theme.textSecondary, flexWrap: 'wrap' }}>
             <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(16,185,129,0.1)', color: '#10b981', fontWeight: 600 }}>
               ✓ Dados reais
             </span>
+            {savedLabel && (
+              <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(59,130,246,0.1)', color: '#3b82f6', fontWeight: 500 }}>
+                💾 {savedLabel}
+              </span>
+            )}
             {result.tradingDays} pregões · Comissões: {fmtBRL(result.totalCommission)}
           </div>
           {/* Verdict Card */}

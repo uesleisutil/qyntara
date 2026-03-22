@@ -32,6 +32,9 @@ const API_CACHE_DURATIONS = {
   '/api/monitoring/data-quality': 60 * 60, // 60 minutes
   '/api/monitoring/drift': 30 * 60, // 30 minutes
   '/api/explainability': 60 * 60, // 60 minutes
+  '/s3-proxy': 120 * 60, // 2 hours — price data changes once per day
+  '/notifications': 5 * 60, // 5 minutes
+  '/auth/me': 2 * 60, // 2 minutes
 };
 
 // Install event - cache static assets
@@ -84,8 +87,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Handle API requests
-  if (url.pathname.startsWith('/api/')) {
+  // Handle API requests (both /api/ and external API gateway)
+  if (url.pathname.startsWith('/api/') || url.pathname.includes('/s3-proxy') || url.pathname.includes('/notifications') || url.pathname.includes('/auth/')) {
     event.respondWith(handleAPIRequest(request));
     return;
   }

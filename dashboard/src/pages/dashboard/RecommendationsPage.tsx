@@ -10,6 +10,9 @@ import MyPositionsPanel from '../../components/shared/MyPositionsPanel';
 import PriceAlerts from '../../components/shared/PriceAlerts';
 import DailyHighlight from '../../components/shared/DailyHighlight';
 import ActivationChecklist, { markChecklistItem } from '../../components/shared/ActivationChecklist';
+import { WatchlistButton, getWatchlist } from '../../components/shared/Watchlist';
+import ExportCSV from '../../components/shared/ExportCSV';
+import Sparkline from '../../components/shared/Sparkline';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -29,11 +32,42 @@ const RecommendationsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('score');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-  const [signalFilter, setSignalFilter] = useState<'ALL' | 'Compra' | 'Venda' | 'Neutro'>('ALL');
+  const [signalFilter, setSignalFilter] = useState<'ALL' | 'Compra' | 'Venda' | 'Neutro' | 'Favoritos'>('ALL');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [sparklineData, setSparklineData] = useState<Record<string, number[]>>({});
+  const [watchlistVersion, setWatchlistVersion] = useState(0);
 
   useEffect(() => { fetchRecommendations(); }, []);
 
+  // Fetch sparkline price data
+  useEffect(() => {
+    (async () => {
+      try {
+        const headers = { 'x-api-key': API_KEY };
+        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers });
+        if (!res.ok) return;
+        const rows: { date: string; ticker: string; close: string }[] = await res.json();
+        const map: Record<string, { date: string; close: number }[]> = {};
+        rows.forEach(r => {
+          if (!map[r.ticker]) map[r.ticker] = [];
+          map[r.ticker].push({ date: r.date, close: parseFloat(r.close) });
+        });
+        const sparklines: Record<string, number[]> = {};
+        Object.entries(map).forEach(([ticker, entries]) => {
+          entries.sort((a, b) => a.date.localeCompare(b.date));
+          sparklines[ticker] = entries.slice(-20).map(e => e.close);
+        });
+        setSparklineData(sparklines);
+      } catch { /* silent */ }
+    })();
+  }, []);
+
+  // Listen for watchlist changes
+  useEffect(() => {
+    const handler = () => setWatchlistVersion(v => v + 1);
+    window.addEventListener('watchlist-change', handler);
+    return () => window.removeEventListener('watchlist-change', handler);
+  }, []);
   const fetchRecommendations = async () => {
     setLoading(true); setError(null);
     try {
@@ -65,9 +99,15 @@ const RecommendationsPage: React.FC = () => {
     else { setSortBy(field); setSortDir('desc'); }
   }, [sortBy]);
 
+  const watchlist = useMemo(() => getWatchlist(), [watchlistVersion]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const filtered = recommendations
     .filter(r => !searchTerm || r.ticker?.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter(r => signalFilter === 'ALL' || getSignal(r.score) === signalFilter)
+    .filter(r => {
+      if (signalFilter === 'ALL') return true;
+      if (signalFilter === 'Favoritos') return watchlist.includes(r.ticker);
+      return getSignal(r.score) === signalFilter;
+    })
     .sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       if (sortBy === 'score') return (a.score - b.score) * dir;
@@ -159,6 +199,22 @@ const RecommendationsPage: React.FC = () => {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          {isPro && recommendations.length > 0 && (
+            <ExportCSV
+              darkMode={darkMode}
+              filename="b3_recomendacoes"
+              label="CSV"
+              data={recommendations.map(r => ({
+                Ticker: r.ticker,
+                Sinal: getSignal(r.score),
+                Score: fmt(r.score, 2),
+                'Preço Atual': fmt(r.last_close, 2),
+                'Preço Previsto': fmt(r.pred_price_t_plus_20, 2),
+                'Retorno Previsto (%)': fmt(r.exp_return_20 * 100, 2),
+                'Volatilidade (%)': fmt(r.vol_20d * 100, 1),
+              }))}
+            />
+          )}
           <ShareButton
             text={`📊 B3 Tactical — ${date}\n${totalBuy} compra, ${totalSell} venda, ${totalNeutral} neutros\nTop: ${topTicker?.ticker || '—'} (${topTicker ? fmt(topTicker.score, 2) : '—'})`}
             darkMode={darkMode}
@@ -290,6 +346,7 @@ const RecommendationsPage: React.FC = () => {
             fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
           }}>
           <option value="ALL">Todos</option>
+          <option value="Favoritos">★ Favoritos</option>
           <option value="Compra">Compra</option>
           <option value="Venda">Venda</option>
           <option value="Neutro">Neutro</option>
@@ -313,8 +370,10 @@ const RecommendationsPage: React.FC = () => {
             <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
               {[
                 { label: '#', tip: '' },
-                ...(isPro ? [{ label: '★', tip: 'Clique para seguir/deixar de seguir a ação.' }] : []),
+                { label: '★', tip: 'Clique para adicionar/remover dos favoritos.' },
+                ...(isPro ? [{ label: '⊕', tip: 'Clique para seguir/deixar de seguir a ação.' }] : []),
                 { label: 'Ticker', tip: 'Código da ação na B3.' },
+                { label: '', tip: '' }, // sparkline column
                 { label: 'Sinal', tip: 'Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
                 { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra.' },
                 { label: 'Preço Atual', tip: 'Último preço de fechamento disponível.' },
@@ -331,18 +390,18 @@ const RecommendationsPage: React.FC = () => {
                   whiteSpace: 'nowrap', cursor: 'pointer',
                 }}
                   onClick={() => {
-                    const offset = isPro ? 1 : 0;
-                    if (i === 1 + offset) handleSort('ticker');
-                    else if (i === 3 + offset) handleSort('score');
-                    else if (i === 6 + offset) handleSort('return');
-                    else if (i === 7 + offset) handleSort('vol');
+                    const offset = isPro ? 2 : 1;
+                    if (i === 2 + offset) handleSort('ticker');
+                    else if (i === 4 + offset) handleSort('score');
+                    else if (i === 7 + offset) handleSort('return');
+                    else if (i === 8 + offset) handleSort('vol');
                   }}
                 >
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                     {h.label}
                     {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={10} />}
                   </span>
-                  {i >= (isPro ? 9 : 8) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
+                  {i >= (isPro ? 11 : 10) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}
             </tr>
@@ -364,12 +423,18 @@ const RecommendationsPage: React.FC = () => {
                   onMouseLeave={e => { e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)'); }}
                 >
                   <td style={{ padding: '0.55rem 0.5rem', color: theme.textSecondary, fontSize: '0.72rem' }}>{idx + 1}</td>
+                  <td style={{ padding: '0.55rem 0.3rem', textAlign: 'center' }}>
+                    <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
+                  </td>
                   {isPro && (
                     <td style={{ padding: '0.55rem 0.3rem', textAlign: 'center' }}>
                       <FollowButton ticker={r.ticker} entryPrice={r.last_close} predPrice={r.pred_price_t_plus_20} score={r.score} darkMode={darkMode} compact />
                     </td>
                   )}
                   <td style={{ padding: '0.55rem 0.5rem', fontWeight: 700, color: theme.text }}>{r.ticker}</td>
+                  <td style={{ padding: '0.55rem 0.3rem' }}>
+                    {sparklineData[r.ticker] && <Sparkline data={sparklineData[r.ticker]} width={56} height={18} />}
+                  </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
@@ -425,7 +490,9 @@ const RecommendationsPage: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ fontSize: '0.65rem', color: theme.textSecondary }}>#{idx + 1}</span>
+                  <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
                   <span style={{ fontWeight: 700, color: theme.text, fontSize: '0.95rem' }}>{r.ticker}</span>
+                  {sparklineData[r.ticker] && <Sparkline data={sparklineData[r.ticker]} width={44} height={16} />}
                   {isPro && <FollowButton ticker={r.ticker} entryPrice={r.last_close} predPrice={r.pred_price_t_plus_20} score={r.score} darkMode={darkMode} compact />}
                 </div>
                 <span style={{

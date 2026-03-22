@@ -4,6 +4,7 @@ import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
 import ShareButton from '../shared/ShareButton';
 import { markChecklistItem } from '../shared/ActivationChecklist';
+import RetroactiveValidation from '../shared/RetroactiveValidation';
 
 interface PerformanceTabProps { darkMode?: boolean; }
 
@@ -315,7 +316,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
         </div>
       </div>
 
-      {/* Chart */}
+      {/* Retroactive Validation */}
+      <RetroactiveValidation darkMode={darkMode} theme={theme} history={history} prices={prices} />
+
+      {/* Cumulative Chart */}
       <div style={{ ...cardStyle, marginBottom: '1rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.75rem' }}>
           Retorno realizado — Sinais de Compra vs Média do Universo

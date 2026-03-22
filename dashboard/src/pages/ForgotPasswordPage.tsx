@@ -10,6 +10,23 @@ const ForgotPasswordPage: React.FC = () => {
   const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [dark] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return true;
+  });
+
+  const t = {
+    bg: dark ? '#0f172a' : '#f8fafc',
+    card: dark ? 'rgba(255,255,255,0.03)' : 'white',
+    cardBorder: dark ? '#1e293b' : '#e2e8f0',
+    input: dark ? '#1e293b' : '#f1f5f9',
+    inputBorder: dark ? '#334155' : '#d1d5db',
+    text: dark ? '#f1f5f9' : '#0f172a',
+    textSecondary: dark ? '#64748b' : '#64748b',
+    label: dark ? '#94a3b8' : '#475569',
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,24 +41,24 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '0.75rem 1rem', background: '#1e293b', border: '1px solid #334155',
-    borderRadius: 8, color: '#f1f5f9', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s',
+    width: '100%', padding: '0.75rem 1rem', background: t.input, border: `1px solid ${t.inputBorder}`,
+    borderRadius: 8, color: t.text, fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s',
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: t.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <TrendingUp size={32} color="#3b82f6" />
-          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>B3 Tactical Ranking</span>
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: t.text }}>B3 Tactical Ranking</span>
         </div>
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem', textAlign: 'center' }}>
+        <div style={{ background: t.card, border: `1px solid ${t.cardBorder}`, borderRadius: 16, padding: '2rem', boxShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.08)' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: t.text, marginBottom: '0.5rem', textAlign: 'center' }}>
             {sent ? 'Código Enviado' : 'Esqueci minha senha'}
           </h2>
           {!sent ? (
             <>
-              <p style={{ color: '#64748b', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              <p style={{ color: t.textSecondary, textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
                 Digite seu email para receber o código de redefinição
               </p>
               {error && (
@@ -51,9 +68,9 @@ const ForgotPasswordPage: React.FC = () => {
               )}
               <form onSubmit={handleSubmit}>
                 <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Email</label>
+                  <label style={{ display: 'block', color: t.label, fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Email</label>
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" required style={inputStyle}
-                    onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = '#334155'} />
+                    onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = t.inputBorder} />
                 </div>
                 <button type="submit" disabled={loading} style={{
                   width: '100%', padding: '0.8rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',

@@ -13,6 +13,23 @@ const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dark] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return true;
+  });
+
+  const t = {
+    bg: dark ? '#0f172a' : '#f8fafc',
+    card: dark ? 'rgba(255,255,255,0.03)' : 'white',
+    cardBorder: dark ? '#1e293b' : '#e2e8f0',
+    input: dark ? '#1e293b' : '#f1f5f9',
+    inputBorder: dark ? '#334155' : '#d1d5db',
+    text: dark ? '#f1f5f9' : '#0f172a',
+    textSecondary: dark ? '#64748b' : '#64748b',
+    label: dark ? '#94a3b8' : '#475569',
+  };
 
   const passwordChecks = [
     { label: 'Mínimo 8 caracteres', valid: password.length >= 8 },
@@ -44,13 +61,13 @@ const RegisterPage: React.FC = () => {
   };
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '0.75rem 1rem', background: '#1e293b', border: '1px solid #334155',
-    borderRadius: 8, color: '#f1f5f9', fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s',
+    width: '100%', padding: '0.75rem 1rem', background: t.input, border: `1px solid ${t.inputBorder}`,
+    borderRadius: 8, color: t.text, fontSize: '0.95rem', outline: 'none', transition: 'border-color 0.2s',
   };
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center',
+      minHeight: '100vh', background: t.bg, display: 'flex', alignItems: 'center',
       justifyContent: 'center', padding: '2rem',
     }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
@@ -59,16 +76,17 @@ const RegisterPage: React.FC = () => {
           onClick={() => navigate('/')}
         >
           <TrendingUp size={32} color="#3b82f6" />
-          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>B3 Tactical Ranking</span>
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: t.text }}>B3 Tactical Ranking</span>
         </div>
 
         <div style={{
-          background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: '2rem',
+          background: t.card, border: `1px solid ${t.cardBorder}`, borderRadius: 16, padding: '2rem',
+          boxShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
         }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: t.text, marginBottom: '0.5rem', textAlign: 'center' }}>
             Criar sua conta
           </h2>
-          <p style={{ color: '#64748b', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+          <p style={{ color: t.textSecondary, textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Comece a receber recomendações inteligentes
           </p>
 
@@ -84,24 +102,24 @@ const RegisterPage: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Nome</label>
+              <label style={{ display: 'block', color: t.label, fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Nome</label>
               <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Seu nome" required style={inputStyle}
-                onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = '#334155'} />
+                onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = t.inputBorder} />
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Email</label>
+              <label style={{ display: 'block', color: t.label, fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" required style={inputStyle}
-                onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = '#334155'} />
+                onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = t.inputBorder} />
             </div>
             <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Senha</label>
+              <label style={{ display: 'block', color: t.label, fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Senha</label>
               <div style={{ position: 'relative' }}>
                 <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••" required style={{ ...inputStyle, paddingRight: '2.5rem' }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = '#334155'} />
+                  onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = t.inputBorder} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} style={{
                   position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4,
+                  background: 'none', border: 'none', color: t.textSecondary, cursor: 'pointer', padding: 4,
                 }} aria-label={showPassword ? 'Esconder senha' : 'Mostrar senha'}>
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -115,10 +133,10 @@ const RegisterPage: React.FC = () => {
               </div>
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Confirmar Senha</label>
+              <label style={{ display: 'block', color: t.label, fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>Confirmar Senha</label>
               <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="••••••••" required style={inputStyle}
-                onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = '#334155'} />
+                onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => e.currentTarget.style.borderColor = t.inputBorder} />
             </div>
             <button type="submit" disabled={loading} style={{
               width: '100%', padding: '0.8rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
@@ -136,7 +154,7 @@ const RegisterPage: React.FC = () => {
           </form>
         </div>
 
-        <p style={{ textAlign: 'center', marginTop: '1.5rem', color: '#64748b', fontSize: '0.9rem' }}>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', color: t.textSecondary, fontSize: '0.9rem' }}>
           Já tem conta?{' '}
           <Link to="/login" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>Entrar</Link>
         </p>
