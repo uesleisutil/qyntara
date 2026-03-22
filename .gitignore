@@ -56,7 +56,7 @@ Thumbs.db
 # Logs
 *.log
 
-# Lambda layers (gerados automaticamente)
+# Lambda layers
 lambda-layer*.zip
 lambda-layer*/
 
@@ -69,8 +69,40 @@ lambda-layer*/
 
 # Test outputs
 /test-outputs/
+test-output*
 
 # Local data
 /data/
 *.csv
 *.json.local
+
+# Build artifacts
+artifact.tar
+asset-manifest.json
+/static/
+/favicon.ico
+/index.html
+
+# Test coverage reports
+coverage/
+
+# CDK/infra outputs (contain real ARNs)
+infra/outputs.json
+
+# Compiled TypeScript (infra)
+infra/**/*.js
+infra/**/*.d.ts
+!infra/jest.config.js
+
+# Task/checkpoint/implementation summaries (AI-generated docs)
+TASK_*.md
+CHECKPOINT_*.md
+*IMPLEMENTATION_SUMMARY.md
+*IMPLEMENTATION*.md
+*COMPLETION*.md
+*VERIFICATION*.md
+*STATUS*.md
+*VALIDATION_CHECKPOINT*.md
+
+# Pytest cache
+.pytest_cache/
