@@ -5,6 +5,7 @@ import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
 import ExplanationText from './ExplanationText';
+import StockComparator from './StockComparator';
 
 interface ExplainabilityTabProps {
   darkMode?: boolean;
@@ -153,6 +154,9 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           )}
         </div>
       </div>
+
+      {/* Stock Comparator */}
+      <StockComparator tickers={tickers} darkMode={darkMode} />
 
       {currentTicker && (
         <>

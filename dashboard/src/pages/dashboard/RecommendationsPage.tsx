@@ -5,6 +5,9 @@ import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
 import ShareButton from '../../components/shared/ShareButton';
 import { useIsPro } from '../../components/shared/ProGate';
+import FollowButton from '../../components/shared/FollowButton';
+import MyPositionsPanel from '../../components/shared/MyPositionsPanel';
+import PriceAlerts from '../../components/shared/PriceAlerts';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -301,6 +304,20 @@ const RecommendationsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Pro: My Positions Panel */}
+      {isPro && (
+        <div style={{ marginBottom: '1rem' }}>
+          <MyPositionsPanel darkMode={darkMode} theme={theme} />
+        </div>
+      )}
+
+      {/* Pro: Price Alerts */}
+      {isPro && (
+        <div style={{ marginBottom: '1rem' }}>
+          <PriceAlerts darkMode={darkMode} theme={theme} />
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
         {[
@@ -362,7 +379,7 @@ const RecommendationsPage: React.FC = () => {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
           <thead>
             <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
-              {['#', 'Ticker', 'Sinal', 'Score', 'Preço Atual', 'Preço Previsto', 'Retorno Previsto', 'Volatilidade',
+              {['#', ...(isPro ? ['★'] : []), 'Ticker', 'Sinal', 'Score', 'Preço Atual', 'Preço Previsto', 'Retorno Previsto', 'Volatilidade',
                 ...(true ? ['Confiança', 'Stop-Loss', 'Take-Profit'] : [])
               ].map((h, i) => (
                 <th key={i} style={{
@@ -372,14 +389,15 @@ const RecommendationsPage: React.FC = () => {
                   position: 'relative',
                 }}
                   onClick={() => {
-                    if (i === 1) handleSort('ticker');
-                    else if (i === 3) handleSort('score');
-                    else if (i === 6) handleSort('return');
-                    else if (i === 7) handleSort('vol');
+                    const offset = isPro ? 1 : 0;
+                    if (i === 1 + offset) handleSort('ticker');
+                    else if (i === 3 + offset) handleSort('score');
+                    else if (i === 6 + offset) handleSort('return');
+                    else if (i === 7 + offset) handleSort('vol');
                   }}
                 >
                   {h}
-                  {i >= 8 && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
+                  {i >= (isPro ? 9 : 8) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}
             </tr>
@@ -401,6 +419,11 @@ const RecommendationsPage: React.FC = () => {
                   onMouseLeave={e => { e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)'); }}
                 >
                   <td style={{ padding: '0.55rem 0.5rem', color: theme.textSecondary, fontSize: '0.72rem' }}>{idx + 1}</td>
+                  {isPro && (
+                    <td style={{ padding: '0.55rem 0.3rem', textAlign: 'center' }}>
+                      <FollowButton ticker={r.ticker} entryPrice={r.last_close} predPrice={r.pred_price_t_plus_20} score={r.score} darkMode={darkMode} compact />
+                    </td>
+                  )}
                   <td style={{ padding: '0.55rem 0.5rem', fontWeight: 700, color: theme.text }}>{r.ticker}</td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
                     <span style={{
@@ -459,6 +482,7 @@ const RecommendationsPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ fontSize: '0.65rem', color: theme.textSecondary }}>#{idx + 1}</span>
                   <span style={{ fontWeight: 700, color: theme.text, fontSize: '0.95rem' }}>{r.ticker}</span>
+                  {isPro && <FollowButton ticker={r.ticker} entryPrice={r.last_close} predPrice={r.pred_price_t_plus_20} score={r.score} darkMode={darkMode} compact />}
                 </div>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
