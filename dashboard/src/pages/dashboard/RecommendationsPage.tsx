@@ -370,9 +370,8 @@ const RecommendationsPage: React.FC = () => {
             <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
               {[
                 { label: '#', tip: '' },
-                { label: '★', tip: 'Clique para adicionar/remover dos favoritos.' },
                 ...(isPro ? [{ label: '⊕', tip: 'Clique para seguir/deixar de seguir a ação.' }] : []),
-                { label: 'Ticker', tip: 'Código da ação na B3.' },
+                { label: 'Ticker', tip: 'Código da ação na B3. Clique na ★ para favoritar.' },
                 { label: '', tip: '' }, // sparkline column
                 { label: 'Sinal', tip: 'Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
                 { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra.' },
@@ -385,23 +384,23 @@ const RecommendationsPage: React.FC = () => {
                 { label: 'Take-Profit', tip: 'Preço-alvo sugerido para realizar lucro.' },
               ].map((h, i) => (
                 <th key={i} style={{
-                  padding: '0.6rem 0.5rem', textAlign: i <= 1 ? 'left' : 'right', color: theme.textSecondary,
+                  padding: '0.6rem 0.5rem', textAlign: i === 0 ? 'left' : 'right', color: theme.textSecondary,
                   fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.03em',
                   whiteSpace: 'nowrap', cursor: 'pointer',
                 }}
                   onClick={() => {
-                    const offset = isPro ? 2 : 1;
-                    if (i === 2 + offset) handleSort('ticker');
-                    else if (i === 4 + offset) handleSort('score');
-                    else if (i === 7 + offset) handleSort('return');
-                    else if (i === 8 + offset) handleSort('vol');
+                    const offset = isPro ? 1 : 0;
+                    if (i === 1 + offset) handleSort('ticker');
+                    else if (i === 3 + offset) handleSort('score');
+                    else if (i === 6 + offset) handleSort('return');
+                    else if (i === 7 + offset) handleSort('vol');
                   }}
                 >
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                     {h.label}
                     {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={10} />}
                   </span>
-                  {i >= (isPro ? 11 : 10) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
+                  {i >= (isPro ? 10 : 9) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}
             </tr>
@@ -423,15 +422,17 @@ const RecommendationsPage: React.FC = () => {
                   onMouseLeave={e => { e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)'); }}
                 >
                   <td style={{ padding: '0.55rem 0.5rem', color: theme.textSecondary, fontSize: '0.72rem' }}>{idx + 1}</td>
-                  <td style={{ padding: '0.55rem 0.3rem', textAlign: 'center' }}>
-                    <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
-                  </td>
                   {isPro && (
                     <td style={{ padding: '0.55rem 0.3rem', textAlign: 'center' }}>
                       <FollowButton ticker={r.ticker} entryPrice={r.last_close} predPrice={r.pred_price_t_plus_20} score={r.score} darkMode={darkMode} compact />
                     </td>
                   )}
-                  <td style={{ padding: '0.55rem 0.5rem', fontWeight: 700, color: theme.text }}>{r.ticker}</td>
+                  <td style={{ padding: '0.55rem 0.5rem', fontWeight: 700, color: theme.text }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
+                      {r.ticker}
+                    </span>
+                  </td>
                   <td style={{ padding: '0.55rem 0.3rem' }}>
                     {sparklineData[r.ticker] && <Sparkline data={sparklineData[r.ticker]} width={56} height={18} />}
                   </td>
