@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Bell, X, TrendingUp, Activity, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+import { Bell, X, TrendingUp, Activity, CheckCircle, AlertTriangle, Clock, Send } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 
 interface Notification {
   id: string;
-  type: 'model_run' | 'recommendations' | 'tracking' | 'alert' | 'system';
+  type: string;
   title: string;
   message: string;
   time: Date;
@@ -16,6 +16,18 @@ interface Notification {
 interface NotificationCenterProps {
   darkMode: boolean;
 }
+
+const TYPE_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
+  auto_model_run: { icon: <Activity size={16} />, color: '#3b82f6' },
+  auto_recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
+  auto_strong_signals: { icon: <AlertTriangle size={16} />, color: '#f59e0b' },
+  auto_history: { icon: <Clock size={16} />, color: '#8b5cf6' },
+  manual: { icon: <Send size={16} />, color: '#3b82f6' },
+  system: { icon: <CheckCircle size={16} />, color: '#10b981' },
+  recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
+  model_run: { icon: <Activity size={16} />, color: '#3b82f6' },
+  alert: { icon: <AlertTriangle size={16} />, color: '#f59e0b' },
+};
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => {
   const [open, setOpen] = useState(false);
@@ -32,7 +44,35 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
   const generateNotifications = useCallback(async () => {
     const notes: Notification[] = [];
     const now = new Date();
+    const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
 
+    // 1. Fetch backend notifications (from DynamoDB via /notifications endpoint)
+    const authToken = localStorage.getItem('authToken');
+    if (authToken) {
+      try {
+        const backendRes = await fetch(`${API_BASE_URL}/notifications`, {
+          headers: { 'Authorization': `Bearer ${authToken}` },
+        });
+        if (backendRes.ok) {
+          const data = await backendRes.json();
+          (data.notifications || []).forEach((n: any) => {
+            const typeInfo = TYPE_ICONS[n.type] || TYPE_ICONS.manual;
+            notes.push({
+              id: `backend-${n.id}`,
+              type: n.type,
+              title: n.title,
+              message: n.message,
+              time: new Date(n.created_at),
+              read: readIds.includes(`backend-${n.id}`),
+              icon: typeInfo.icon,
+              color: typeInfo.color,
+            });
+          });
+        }
+      } catch { /* silent */ }
+    }
+
+    // 2. Fetch live data notifications (from API)
     try {
       const headers = { 'x-api-key': API_KEY };
       const [latestRes, histRes] = await Promise.all([
@@ -48,42 +88,30 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         const sellCount = recs.filter((r: any) => r.score <= -1.5).length;
         const topBuy = recs.filter((r: any) => r.score >= 1.5).sort((a: any, b: any) => b.score - a.score)[0];
 
-        // Recommendation ready notification
         notes.push({
-          id: `rec-${recDate}`,
-          type: 'recommendations',
+          id: `rec-${recDate}`, type: 'recommendations',
           title: 'Recomendações do dia prontas',
           message: `${recs.length} ações analisadas: ${buyCount} compra, ${sellCount} venda${topBuy ? `. Destaque: ${topBuy.ticker} (score ${topBuy.score.toFixed(1)})` : ''}`,
-          time: new Date(recDate + 'T09:30:00'),
-          read: false,
-          icon: <TrendingUp size={16} />,
-          color: '#10b981',
+          time: new Date(recDate + 'T09:30:00'), read: readIds.includes(`rec-${recDate}`),
+          icon: <TrendingUp size={16} />, color: '#10b981',
         });
 
-        // Model run notification
         notes.push({
-          id: `model-${recDate}`,
-          type: 'model_run',
+          id: `model-${recDate}`, type: 'model_run',
           title: 'Modelo executado com sucesso',
           message: `Pipeline ML concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
-          time: new Date(recDate + 'T08:00:00'),
-          read: false,
-          icon: <Activity size={16} />,
-          color: '#3b82f6',
+          time: new Date(recDate + 'T08:00:00'), read: readIds.includes(`model-${recDate}`),
+          icon: <Activity size={16} />, color: '#3b82f6',
         });
 
-        // Strong signals alert
         const strongBuys = recs.filter((r: any) => r.score >= 4);
         if (strongBuys.length > 0) {
           notes.push({
-            id: `strong-${recDate}`,
-            type: 'alert',
+            id: `strong-${recDate}`, type: 'alert',
             title: 'Sinais fortes detectados',
             message: `${strongBuys.length} ação(ões) com score acima de 4: ${strongBuys.map((r: any) => r.ticker).join(', ')}`,
-            time: new Date(recDate + 'T09:35:00'),
-            read: false,
-            icon: <AlertTriangle size={16} />,
-            color: '#f59e0b',
+            time: new Date(recDate + 'T09:35:00'), read: readIds.includes(`strong-${recDate}`),
+            icon: <AlertTriangle size={16} />, color: '#f59e0b',
           });
         }
       }
@@ -95,42 +123,32 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
           entries.forEach((e: any) => dates.add(e.date))
         );
         const sortedDates = Array.from(dates).sort().reverse();
-
         if (sortedDates.length >= 2) {
           notes.push({
-            id: `history-${sortedDates[0]}`,
-            type: 'system',
+            id: `history-${sortedDates[0]}`, type: 'system',
             title: 'Dados históricos atualizados',
             message: `${sortedDates.length} dias de histórico disponíveis. Último: ${new Date(sortedDates[0] + 'T12:00:00').toLocaleDateString('pt-BR')}.`,
-            time: new Date(sortedDates[0] + 'T07:00:00'),
-            read: false,
-            icon: <Clock size={16} />,
-            color: '#8b5cf6',
+            time: new Date(sortedDates[0] + 'T07:00:00'), read: readIds.includes(`history-${sortedDates[0]}`),
+            icon: <Clock size={16} />, color: '#8b5cf6',
           });
         }
       }
-    } catch {
-      // Silently fail — notifications are non-critical
-    }
+    } catch { /* silent */ }
 
-    // System welcome notification
+    // Welcome
     notes.push({
-      id: 'welcome',
-      type: 'system',
+      id: 'welcome', type: 'system',
       title: 'Bem-vindo ao B3 Tactical',
       message: 'Explore as recomendações, acompanhe safras e analise a explicabilidade do modelo.',
-      time: new Date(now.getTime() - 86400000),
-      read: true,
-      icon: <CheckCircle size={16} />,
-      color: '#10b981',
+      time: new Date(now.getTime() - 86400000), read: readIds.includes('welcome'),
+      icon: <CheckCircle size={16} />, color: '#10b981',
     });
 
-    // Mark read from localStorage
-    const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
-    notes.forEach(n => { if (readIds.includes(n.id)) n.read = true; });
-
-    notes.sort((a, b) => b.time.getTime() - a.time.getTime());
-    setNotifications(notes);
+    // Deduplicate by id
+    const seen = new Set<string>();
+    const unique = notes.filter(n => { if (seen.has(n.id)) return false; seen.add(n.id); return true; });
+    unique.sort((a, b) => b.time.getTime() - a.time.getTime());
+    setNotifications(unique);
   }, []);
 
   useEffect(() => { generateNotifications(); }, [generateNotifications]);
@@ -145,22 +163,17 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
 
   const markRead = (id: string) => {
     const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
-    if (!readIds.includes(id)) {
-      readIds.push(id);
-      localStorage.setItem('readNotifications', JSON.stringify(readIds));
-    }
+    if (!readIds.includes(id)) { readIds.push(id); localStorage.setItem('readNotifications', JSON.stringify(readIds)); }
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
   };
 
   const timeAgo = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = Date.now() - date.getTime();
     const mins = Math.floor(diff / 60000);
     if (mins < 60) return `${mins}min atrás`;
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours}h atrás`;
-    const days = Math.floor(hours / 24);
-    return `${days}d atrás`;
+    return `${Math.floor(hours / 24)}d atrás`;
   };
 
   return (
@@ -192,7 +205,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
             background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 12,
             boxShadow: '0 8px 32px rgba(0,0,0,0.2)', zIndex: 50, overflow: 'hidden',
           }}>
-            {/* Header */}
             <div style={{
               padding: '0.75rem 1rem', borderBottom: `1px solid ${theme.border}`,
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -211,7 +223,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
               </div>
             </div>
 
-            {/* Notifications list */}
             <div style={{ maxHeight: 400, overflowY: 'auto' }}>
               {notifications.length === 0 ? (
                 <div style={{ padding: '2rem', textAlign: 'center', color: theme.textSecondary, fontSize: '0.85rem' }}>

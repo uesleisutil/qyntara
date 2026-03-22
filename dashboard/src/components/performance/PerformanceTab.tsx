@@ -96,7 +96,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
       const avgBuy = buyReturns.length ? buyReturns.reduce((s, r) => s + r, 0) / buyReturns.length : 0;
       const avgSell = sellReturns.length ? sellReturns.reduce((s, r) => s + r, 0) / sellReturns.length : 0;
 
-      // Simulated Ibovespa: average of all tickers (equal weight)
+      // Média do universo: average of all tickers (equal weight)
       const allReturns: number[] = [];
       Object.entries(prices).forEach(([, tp]) => {
         if (tp[predDate] && tp[nextDate]) {
@@ -191,7 +191,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
         <circle cx={padL + 10} cy={padT + 8} r={4} fill={theme.green} />
         <text x={padL + 18} y={padT + 12} fontSize={9} fill={theme.text}>Sinais de Compra</text>
         <line x1={padL + 110} y1={padT + 8} x2={padL + 125} y2={padT + 8} stroke={theme.textSecondary} strokeWidth={1.5} strokeDasharray="3,2" />
-        <text x={padL + 130} y={padT + 12} fontSize={9} fill={theme.textSecondary}>Ibovespa (proxy)</text>
+        <text x={padL + 130} y={padT + 12} fontSize={9} fill={theme.textSecondary}>Média do universo</text>
       </svg>
     );
   };
@@ -234,8 +234,8 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
         {[
           { label: 'Retorno acumulado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%`, color: perfData.totalReturn >= 0 ? theme.green : theme.red, icon: <TrendingUp size={16} />,
             tip: 'Retorno acumulado se você tivesse comprado igualmente todas as ações com sinal de Compra a cada dia.' },
-          { label: 'Ibovespa (proxy)', value: `${perfData.ibovReturn >= 0 ? '+' : ''}${fmt(perfData.ibovReturn, 2)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />,
-            tip: 'Retorno acumulado de uma carteira com peso igual em todas as 46 ações (proxy do Ibovespa).' },
+          { label: 'Média do universo', value: `${perfData.ibovReturn >= 0 ? '+' : ''}${fmt(perfData.ibovReturn, 2)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />,
+            tip: 'Retorno acumulado de uma carteira com peso igual em todas as 46 ações do universo.' },
           { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha, 2)}pp`, color: perfData.alpha >= 0 ? theme.green : theme.red, icon: <Award size={16} />,
             tip: 'Diferença entre o retorno da estratégia e o Ibovespa. Positivo = modelo superou o mercado.' },
           { label: 'Win rate (Compra)', value: `${fmt(perfData.buyWinRate * 100, 0)}%`, color: perfData.buyWinRate >= 0.55 ? theme.green : theme.yellow, icon: <Target size={16} />,
@@ -270,8 +270,8 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
         </div>
         <div style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>
           {perfData.alpha >= 0
-            ? `Os sinais de Compra acumularam ${fmt(perfData.totalReturn, 2)}% vs ${fmt(perfData.ibovReturn, 2)}% do mercado, gerando ${fmt(perfData.alpha, 2)}pp de alpha em ${perfData.totalDays} pregões.`
-            : `Os sinais de Compra acumularam ${fmt(perfData.totalReturn, 2)}% vs ${fmt(perfData.ibovReturn, 2)}% do mercado. O período analisado é curto — a performance tende a melhorar com mais dados.`
+            ? `Os sinais de Compra acumularam ${fmt(perfData.totalReturn, 2)}% vs ${fmt(perfData.ibovReturn, 2)}% da média do universo, gerando ${fmt(perfData.alpha, 2)}pp de alpha em ${perfData.totalDays} pregões.`
+            : `Os sinais de Compra acumularam ${fmt(perfData.totalReturn, 2)}% vs ${fmt(perfData.ibovReturn, 2)}% da média do universo. O período analisado é curto — a performance tende a melhorar com mais dados.`
           }
         </div>
       </div>
@@ -279,7 +279,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
       {/* Chart */}
       <div style={{ ...cardStyle, marginBottom: '1rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.75rem' }}>
-          Retorno acumulado — Sinais de Compra vs Ibovespa
+          Retorno acumulado — Sinais de Compra vs Média do Universo
         </div>
         <CumulativeChart data={perfData.cumulative} />
       </div>

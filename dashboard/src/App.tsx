@@ -25,6 +25,7 @@ import AdminCostsPage from './pages/admin/AdminCostsPage';
 import AdminDataQualityPage from './pages/admin/AdminDataQualityPage';
 import AdminDriftPage from './pages/admin/AdminDriftPage';
 import AdminValidationPage from './pages/admin/AdminValidationPage';
+import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
@@ -113,6 +114,7 @@ const AppRoutes: React.FC = () => {
         <Route path="data-quality" element={<AdminDataQualityPage />} />
         <Route path="drift" element={<AdminDriftPage />} />
         <Route path="validation" element={<AdminValidationPage />} />
+        <Route path="notifications" element={<AdminNotificationsPage />} />
       </Route>
 
       {/* Catch-all */}

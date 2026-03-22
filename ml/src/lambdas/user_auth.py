@@ -1036,8 +1036,221 @@ def _handle_change_password(event: dict) -> dict:
     return _cors_response(200, {"message": "Senha alterada com sucesso."})
 
 
+# ── Notifications (Admin) ──
+
+NOTIFICATIONS_TABLE = os.environ.get("NOTIFICATIONS_TABLE", "B3Dashboard-Notifications")
+
+
+def _require_admin(event: dict) -> Optional[dict]:
+    """Verify JWT and check admin role. Returns user dict or None."""
+    auth_header = ""
+    headers = event.get("headers") or {}
+    for k, v in headers.items():
+        if k.lower() == "authorization":
+            auth_header = v
+            break
+    if not auth_header.startswith("Bearer "):
+        return None
+    token = auth_header[7:]
+    payload = _verify_jwt(token)
+    if not payload:
+        return None
+    if payload.get("role") != "admin":
+        return None
+    return payload
+
+
+def _handle_get_notifications(event: dict) -> dict:
+    """GET /admin/notifications — list all notifications."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        table = dynamodb.Table(NOTIFICATIONS_TABLE)
+        result = table.scan()
+        items = result.get("Items", [])
+        # Convert Decimal to float
+        for item in items:
+            for k, v in item.items():
+                if isinstance(v, Decimal):
+                    item[k] = float(v)
+        items.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return _cors_response(200, {"notifications": items})
+    except Exception as e:
+        logger.error(f"Error listing notifications: {e}")
+        return _cors_response(500, {"message": "Erro ao listar notificações"})
+
+
+def _handle_create_notification(event: dict) -> dict:
+    """POST /admin/notifications — create a notification."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    title = _sanitize_string(body.get("title", ""), 200)
+    message = _sanitize_string(body.get("message", ""), 1000)
+    notif_type = body.get("type", "manual")  # manual, auto_model_run, auto_recommendations, auto_strong_signals, auto_history
+    target = body.get("target", "all")  # all, free, pro
+    enabled = body.get("enabled", True)
+
+    if not title or not message:
+        return _cors_response(400, {"message": "Título e mensagem são obrigatórios"})
+
+    if notif_type not in ("manual", "auto_model_run", "auto_recommendations", "auto_strong_signals", "auto_history"):
+        return _cors_response(400, {"message": "Tipo inválido"})
+
+    if target not in ("all", "free", "pro"):
+        return _cors_response(400, {"message": "Target inválido"})
+
+    notif_id = str(uuid.uuid4())[:8]
+    now = datetime.now(UTC).isoformat()
+
+    item = {
+        "id": notif_id,
+        "title": title,
+        "message": message,
+        "type": notif_type,
+        "target": target,
+        "enabled": enabled,
+        "created_at": now,
+        "created_by": admin.get("email", "admin"),
+    }
+
+    try:
+        table = dynamodb.Table(NOTIFICATIONS_TABLE)
+        table.put_item(Item=item)
+        return _cors_response(201, {"message": "Notificação criada", "notification": item})
+    except Exception as e:
+        logger.error(f"Error creating notification: {e}")
+        return _cors_response(500, {"message": "Erro ao criar notificação"})
+
+
+def _handle_update_notification(event: dict) -> dict:
+    """PUT /admin/notifications — update a notification."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    notif_id = body.get("id", "")
+    if not notif_id:
+        return _cors_response(400, {"message": "ID obrigatório"})
+
+    update_expr_parts = []
+    expr_values = {}
+    expr_names = {}
+
+    if "title" in body:
+        update_expr_parts.append("#t = :t")
+        expr_names["#t"] = "title"
+        expr_values[":t"] = _sanitize_string(body["title"], 200)
+    if "message" in body:
+        update_expr_parts.append("#m = :m")
+        expr_names["#m"] = "message"
+        expr_values[":m"] = _sanitize_string(body["message"], 1000)
+    if "enabled" in body:
+        update_expr_parts.append("#e = :e")
+        expr_names["#e"] = "enabled"
+        expr_values[":e"] = bool(body["enabled"])
+    if "target" in body:
+        update_expr_parts.append("#tg = :tg")
+        expr_names["#tg"] = "target"
+        expr_values[":tg"] = body["target"]
+
+    if not update_expr_parts:
+        return _cors_response(400, {"message": "Nenhum campo para atualizar"})
+
+    try:
+        table = dynamodb.Table(NOTIFICATIONS_TABLE)
+        table.update_item(
+            Key={"id": notif_id},
+            UpdateExpression="SET " + ", ".join(update_expr_parts),
+            ExpressionAttributeNames=expr_names,
+            ExpressionAttributeValues=expr_values,
+        )
+        return _cors_response(200, {"message": "Notificação atualizada"})
+    except Exception as e:
+        logger.error(f"Error updating notification: {e}")
+        return _cors_response(500, {"message": "Erro ao atualizar notificação"})
+
+
+def _handle_delete_notification(event: dict) -> dict:
+    """DELETE /admin/notifications — delete a notification."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    notif_id = body.get("id", "")
+    if not notif_id:
+        return _cors_response(400, {"message": "ID obrigatório"})
+
+    try:
+        table = dynamodb.Table(NOTIFICATIONS_TABLE)
+        table.delete_item(Key={"id": notif_id})
+        return _cors_response(200, {"message": "Notificação removida"})
+    except Exception as e:
+        logger.error(f"Error deleting notification: {e}")
+        return _cors_response(500, {"message": "Erro ao remover notificação"})
+
+
+def _handle_get_user_notifications(event: dict) -> dict:
+    """GET /notifications — get notifications for the current user (based on plan)."""
+    auth_header = ""
+    headers = event.get("headers") or {}
+    for k, v in headers.items():
+        if k.lower() == "authorization":
+            auth_header = v
+            break
+    if not auth_header.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token obrigatório"})
+    token = auth_header[7:]
+    payload = _verify_jwt(token)
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    user_plan = payload.get("plan", "free")
+
+    try:
+        table = dynamodb.Table(NOTIFICATIONS_TABLE)
+        result = table.scan()
+        items = result.get("Items", [])
+
+        # Filter: enabled + target matches user plan
+        filtered = []
+        for item in items:
+            if not item.get("enabled", True):
+                continue
+            target = item.get("target", "all")
+            if target == "all" or target == user_plan:
+                for k, v in item.items():
+                    if isinstance(v, Decimal):
+                        item[k] = float(v)
+                filtered.append(item)
+
+        filtered.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+        return _cors_response(200, {"notifications": filtered})
+    except Exception as e:
+        logger.error(f"Error fetching user notifications: {e}")
+        return _cors_response(200, {"notifications": []})
+
+
 def handler(event: dict, context: Any = None) -> dict:
-    """Lambda handler — routes to register/login/me/verify/reset/change-password."""
+    """Lambda handler — routes to register/login/me/verify/reset/change-password/notifications."""
     method = event.get("httpMethod", "")
     if method == "OPTIONS":
         return _cors_response(200, {})
@@ -1060,5 +1273,15 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_reset_password(event)
     elif path.endswith("/auth/change-password") and method == "POST":
         return _handle_change_password(event)
+    elif path.endswith("/admin/notifications") and method == "GET":
+        return _handle_get_notifications(event)
+    elif path.endswith("/admin/notifications") and method == "POST":
+        return _handle_create_notification(event)
+    elif path.endswith("/admin/notifications") and method == "PUT":
+        return _handle_update_notification(event)
+    elif path.endswith("/admin/notifications") and method == "DELETE":
+        return _handle_delete_notification(event)
+    elif path.endswith("/notifications") and method == "GET" and not path.endswith("/admin/notifications"):
+        return _handle_get_user_notifications(event)
     else:
         return _cors_response(404, {"message": "Not found"})

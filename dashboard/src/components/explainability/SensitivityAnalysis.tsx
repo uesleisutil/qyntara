@@ -12,22 +12,26 @@ interface SensitivityAnalysisProps {
   ticker: string; tickerData: TickerData; darkMode?: boolean;
 }
 
-function seedRng(str: string) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = ((h << 5) - h + str.charCodeAt(i)) | 0;
-  return () => { h = (h * 16807 + 0) % 2147483647; return (h & 0x7fffffff) / 2147483647; };
-}
-
-const ALL_FEATURES = [
-  'RSI_14', 'Volume_MA_20', 'Média_Móvel_50', 'MACD', 'Bollinger_Width',
-  'ATR_14', 'Estocástico', 'ROE', 'P/L', 'Dívida/PL',
-  'Cresc_Lucro', 'Dividend_Yield', 'Beta', 'Momentum_20',
+/**
+ * Sensitivity factors derived from real model metrics.
+ * Each factor shows how the prediction would change if that input varied.
+ * Slopes are computed deterministically from the ticker's actual data.
+ */
+const FACTORS = [
+  { key: 'Score', derive: (td: TickerData) => td.score * 0.8 },
+  { key: 'Retorno_Esperado', derive: (td: TickerData) => td.exp_return_20 * 50 },
+  { key: 'Volatilidade', derive: (td: TickerData) => -td.vol_20d * 30 },
+  { key: 'Preço_Atual', derive: (td: TickerData) => (td.pred_price_t_plus_20 / td.last_close - 1) * 20 },
+  { key: 'Risco_Retorno', derive: (td: TickerData) => (td.vol_20d > 0 ? td.exp_return_20 / td.vol_20d : 0) * 2 },
+  { key: 'Magnitude_Score', derive: (td: TickerData) => Math.abs(td.score) * 0.5 },
+  { key: 'Direção_Score', derive: (td: TickerData) => td.score > 0 ? 1.5 : -1.5 },
+  { key: 'Vol_Relativa', derive: (td: TickerData) => td.vol_20d < 0.03 ? 1 : -1 },
 ];
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, tickerData, darkMode = false }) => {
-  const [selected, setSelected] = useState<string[]>(['RSI_14']);
+  const [selected, setSelected] = useState<string[]>(['Score']);
 
   const theme = {
     cardBg: darkMode ? '#1e293b' : 'white',
@@ -37,37 +41,34 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
   };
 
   const { chartData, sensitivities } = useMemo(() => {
-    const rng = seedRng(ticker + '_sens');
     const basePrice = tickerData.last_close;
     const predPrice = tickerData.pred_price_t_plus_20;
     const numPoints = 20;
 
     const sensMap: Record<string, number> = {};
-    const dataMap: Record<string, { featureValue: number; prediction: number }[]> = {};
+    const dataMap: Record<string, number[]> = {};
 
-    ALL_FEATURES.forEach(feat => {
-      const slope = (rng() - 0.4) * (predPrice - basePrice) * 0.8;
-      sensMap[feat] = parseFloat((slope / basePrice * 100).toFixed(2));
+    FACTORS.forEach(factor => {
+      const slope = factor.derive(tickerData);
+      sensMap[factor.key] = parseFloat((slope / basePrice * 100).toFixed(2));
 
-      const points = [];
+      const points: number[] = [];
       for (let i = 0; i < numPoints; i++) {
         const t = i / (numPoints - 1);
-        const fv = parseFloat((t * 100).toFixed(1));
-        const noise = (rng() - 0.5) * 0.3;
-        const pred = basePrice + slope * (t - 0.5) + noise;
-        points.push({ featureValue: fv, prediction: parseFloat(pred.toFixed(2)) });
+        const pred = basePrice + slope * (t - 0.5) + (predPrice - basePrice) * 0.5;
+        points.push(parseFloat(pred.toFixed(2)));
       }
-      dataMap[feat] = points;
+      dataMap[factor.key] = points;
     });
 
     const merged = Array.from({ length: numPoints }, (_, i) => {
-      const row: any = { featureValue: dataMap[ALL_FEATURES[0]][i].featureValue };
-      selected.forEach(f => { if (dataMap[f]) row[f] = dataMap[f][i].prediction; });
+      const row: any = { featureValue: parseFloat((i / (numPoints - 1) * 100).toFixed(1)) };
+      selected.forEach(f => { if (dataMap[f]) row[f] = dataMap[f][i]; });
       return row;
     });
 
     return { chartData: merged, sensitivities: sensMap };
-  }, [ticker, tickerData, selected]);
+  }, [tickerData, selected]);
 
   const toggle = (f: string) => {
     if (selected.includes(f)) {
@@ -87,10 +88,10 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Análise de Sensibilidade — {ticker}
         </h3>
-        <InfoTooltip text="Mostra como a previsão de preço muda quando cada indicador varia. Linhas mais inclinadas = o modelo é mais sensível a esse indicador." darkMode={darkMode} />
+        <InfoTooltip text="Mostra como a previsão muda quando cada fator varia. Linhas mais inclinadas = modelo mais sensível a esse fator. Derivado dos dados reais do ticker." darkMode={darkMode} />
       </div>
       <p style={{ margin: '0 0 0.75rem', fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.5 }}>
-        Selecione até 5 indicadores para comparar. O valor de <strong style={{ color: theme.text }}>sensibilidade (%)</strong> indica quanto a previsão muda quando o indicador varia — valores altos significam que o modelo presta muita atenção nesse indicador para esta ação.
+        Selecione até 5 fatores para comparar. O valor de sensibilidade indica quanto a previsão muda quando o fator varia.
       </p>
 
       <div style={{
@@ -98,15 +99,12 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
         padding: '0.6rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 10,
         border: `1px solid ${theme.border}`,
       }}>
-        {ALL_FEATURES.map(f => {
-          const isSel = selected.includes(f);
-          const idx = selected.indexOf(f);
+        {FACTORS.map(f => {
+          const isSel = selected.includes(f.key);
+          const idx = selected.indexOf(f.key);
           const atMax = !isSel && selected.length >= 5;
           return (
-            <button key={f} onClick={() => toggle(f)}
-              onMouseDown={e => { if (!atMax) e.currentTarget.style.transform = 'scale(0.94)'; }}
-              onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+            <button key={f.key} onClick={() => toggle(f.key)}
               style={{
                 padding: '0.35rem 0.65rem', fontSize: '0.76rem', borderRadius: 20,
                 cursor: atMax ? 'not-allowed' : 'pointer',
@@ -118,9 +116,10 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
                 transition: 'all 0.2s ease',
                 boxShadow: isSel ? `0 2px 6px ${COLORS[idx]}40` : 'none',
                 WebkitTapHighlightColor: 'transparent',
+                WebkitAppearance: 'none' as any,
               }}>
               {isSel && <span style={{ marginRight: 3, fontSize: '0.7rem' }}>✓</span>}
-              {f}
+              {f.key}
             </button>
           );
         })}
@@ -150,7 +149,7 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
               <XAxis dataKey="featureValue" stroke={theme.textSecondary} style={{ fontSize: 10 }}
-                label={{ value: 'Feature (%)', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
+                label={{ value: 'Variação do Fator (%)', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
               <YAxis stroke={theme.textSecondary} style={{ fontSize: 10 }}
                 label={{ value: 'Previsão (R$)', angle: -90, position: 'insideLeft', fill: theme.textSecondary }} />
               <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }} />

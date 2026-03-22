@@ -1000,6 +1000,14 @@ export class InfraStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
+    // DynamoDB Notifications Table
+    new cdk.aws_dynamodb.Table(this, "NotificationsTable", {
+      tableName: "B3Dashboard-Notifications",
+      partitionKey: { name: "id", type: cdk.aws_dynamodb.AttributeType.STRING },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     // JWT Secret via SSM
     const jwtSecret = envOr("JWT_SECRET", "b3tr-jwt-secret-change-in-production-" + cdk.Aws.ACCOUNT_ID);
     const adminEmail = envOr("ADMIN_EMAIL", "");
@@ -1009,6 +1017,7 @@ export class InfraStack extends cdk.Stack {
       USERS_TABLE: usersTable.tableName,
       AUTH_LOGS_TABLE: "B3Dashboard-AuthLogs",
       RATE_LIMITS_TABLE: "B3Dashboard-RateLimits",
+      NOTIFICATIONS_TABLE: "B3Dashboard-Notifications",
       JWT_SECRET: jwtSecret,
       ADMIN_EMAIL: adminEmail,
       SES_SENDER_EMAIL: adminEmail,
@@ -1025,6 +1034,12 @@ export class InfraStack extends cdk.Stack {
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
       actions: ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem"],
       resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-RateLimits`],
+    }));
+
+    // Grant notifications table access
+    userAuthFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ["dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
+      resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-Notifications`],
     }));
 
     const userAuthIntegration = new apigateway.LambdaIntegration(userAuthFn, {
@@ -1052,6 +1067,20 @@ export class InfraStack extends cdk.Stack {
     authResetPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const authChangePassword = authResource.addResource("change-password");
     authChangePassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+
+    // /admin/notifications routes (JWT-protected, admin only)
+    const adminResource = api.root.addResource("admin");
+    const adminNotifications = adminResource.addResource("notifications");
+    adminNotifications.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+    adminNotifications.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    adminNotifications.addMethod("PUT", userAuthIntegration, { apiKeyRequired: false });
+    adminNotifications.addMethod("DELETE", userAuthIntegration, { apiKeyRequired: false });
+    adminNotifications.addCorsPreflight({ allowOrigins: ["*"], allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], allowHeaders: ["Content-Type", "Authorization", "X-Api-Key"] });
+
+    // /notifications route (JWT-protected, user-facing)
+    const notificationsResource = api.root.addResource("notifications");
+    notificationsResource.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+    notificationsResource.addCorsPreflight({ allowOrigins: ["*"], allowMethods: ["GET", "OPTIONS"], allowHeaders: ["Content-Type", "Authorization", "X-Api-Key"] });
 
     // SES permissions for sending verification emails
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({

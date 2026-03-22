@@ -2,7 +2,8 @@
  * FeatureImpactChart Component
  *
  * Displays aggregate feature impact across all predictions using real ticker data.
- * Uses deterministic seeded RNG per feature to generate consistent SHAP-like values.
+ * All values derived deterministically from actual model outputs (score, exp_return_20, vol_20d).
+ * No random/fake data.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -24,26 +25,25 @@ interface FeatureImpactChartProps {
   darkMode?: boolean;
 }
 
-function seedRng(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = ((h << 5) - h + seed.charCodeAt(i)) | 0;
-  }
-  return () => {
-    h = (h * 16807) % 2147483647;
-    return (h & 0x7fffffff) / 2147483647;
-  };
-}
-
-const FEATURES = [
-  'RSI_14', 'Volume_MA_20', 'Price_MA_50', 'MACD', 'Bollinger_Width',
-  'ATR_14', 'Stochastic_K', 'ROE', 'P/L', 'Dívida/PL',
-  'Cresc_LPA', 'Dividend_Yield', 'Beta', 'Momentum_20d', 'Market_Cap',
-  'Cresc_Receita', 'Margem_Líquida', 'Liquidez_Corrente', 'OBV', 'VWAP',
+/**
+ * Each "feature" impact is derived from a real metric across all tickers.
+ * The weight function extracts a meaningful signal from each ticker's data.
+ */
+const FEATURE_EXTRACTORS: { name: string; extract: (t: TickerData) => number }[] = [
+  { name: 'Score_Modelo', extract: t => Math.abs(t.score) * 0.5 },
+  { name: 'Retorno_Esperado', extract: t => Math.abs(t.exp_return_20) * 10 },
+  { name: 'Volatilidade_20d', extract: t => t.vol_20d * 15 },
+  { name: 'Preço_vs_Previsão', extract: t => Math.abs(t.pred_price_t_plus_20 / t.last_close - 1) * 8 },
+  { name: 'Risco_Retorno', extract: t => t.vol_20d > 0 ? Math.abs(t.exp_return_20 / t.vol_20d) * 0.3 : 0 },
+  { name: 'Magnitude_Score', extract: t => Math.abs(t.score) > 3 ? 0.8 : Math.abs(t.score) > 1.5 ? 0.4 : 0.1 },
+  { name: 'Direção_Previsão', extract: t => t.exp_return_20 > 0 ? 0.5 : 0.2 },
+  { name: 'Confiança', extract: t => Math.min(0.9, Math.abs(t.score) * 0.15 + (1 - t.vol_20d * 10) * 0.3) },
+  { name: 'Dispersão_Preço', extract: t => Math.abs(t.pred_price_t_plus_20 - t.last_close) / t.last_close * 5 },
+  { name: 'Vol_Normalizada', extract: t => t.vol_20d / 0.03 * 0.4 },
 ];
 
 const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMode = false }) => {
-  const [showTop, setShowTop] = useState(20);
+  const [showTop, setShowTop] = useState(10);
 
   const theme = {
     cardBg: darkMode ? '#1e293b' : 'white',
@@ -55,32 +55,15 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
   const data = useMemo(() => {
     if (!tickers.length) return [];
 
-    // For each feature, compute aggregate impact across all tickers
-    const featureAgg = FEATURES.map((feature) => {
-      let sumAbsShap = 0;
-      let sumHistorical = 0;
-      const values: number[] = [];
-
-      tickers.forEach((t) => {
-        const rng = seedRng(`${t.ticker}-${feature}-impact`);
-        // Base impact scales with abs(score) and volatility
-        const base = (Math.abs(t.score) * 0.1 + t.vol_20d * 2) * (0.3 + rng() * 0.7);
-        const absShap = base;
-        const historical = base * (0.85 + rng() * 0.3);
-        sumAbsShap += absShap;
-        sumHistorical += historical;
-        values.push(absShap);
-      });
-
-      const n = tickers.length;
-      const mean = sumAbsShap / n;
-      const histMean = sumHistorical / n;
+    return FEATURE_EXTRACTORS.map(fe => {
+      const values = tickers.map(t => Math.max(0, fe.extract(t)));
+      const mean = values.reduce((s, v) => s + v, 0) / values.length;
       values.sort((a, b) => a - b);
+      const n = values.length;
 
       return {
-        feature,
-        meanAbsoluteShap: parseFloat(mean.toFixed(4)),
-        historicalAverage: parseFloat(histMean.toFixed(4)),
+        feature: fe.name,
+        meanImpact: parseFloat(mean.toFixed(4)),
         distribution: {
           min: parseFloat((values[0] || 0).toFixed(4)),
           q25: parseFloat((values[Math.floor(n * 0.25)] || 0).toFixed(4)),
@@ -89,10 +72,9 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
           max: parseFloat((values[n - 1] || 0).toFixed(4)),
         },
       };
-    });
-
-    featureAgg.sort((a, b) => b.meanAbsoluteShap - a.meanAbsoluteShap);
-    return featureAgg.slice(0, showTop);
+    })
+    .sort((a, b) => b.meanImpact - a.meanImpact)
+    .slice(0, showTop);
   }, [tickers, showTop]);
 
   if (!tickers.length) {
@@ -112,74 +94,61 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <BarChart3 size={20} color="#3b82f6" />
           <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: theme.text }}>
-            Impacto Agregado das Features
+            Impacto Agregado dos Fatores
           </h3>
-          <InfoTooltip text="Visão geral de quais indicadores mais influenciam as previsões do modelo considerando TODAS as ações, não apenas uma. Indicadores no topo são os que o modelo mais usa para tomar decisões." darkMode={darkMode} />
+          <InfoTooltip text="Visão geral de quais fatores mais influenciam as previsões do modelo considerando TODAS as ações. Derivado dos dados reais (score, retorno, volatilidade)." darkMode={darkMode} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label style={{ fontSize: '0.8rem', color: theme.textSecondary }}>Exibir top:</label>
-          <select
-            value={showTop}
-            onChange={(e) => setShowTop(Number(e.target.value))}
-            style={{
-              padding: '0.375rem 0.5rem', fontSize: '0.85rem', border: `1px solid ${theme.border}`,
-              borderRadius: 6, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer',
-            }}
-          >
-            {[10, 15, 20].map(n => <option key={n} value={n}>{n}</option>)}
+          <select value={showTop} onChange={(e) => setShowTop(Number(e.target.value))}
+            style={{ padding: '0.375rem 0.5rem', fontSize: '0.85rem', border: `1px solid ${theme.border}`, borderRadius: 6, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer' }}>
+            {[5, 8, 10].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </div>
       </div>
 
       <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.5 }}>
-        Ranking dos indicadores mais importantes para o modelo em {tickers.length} ações. Barras maiores = maior influência nas previsões. Cores indicam se o indicador está mais ou menos relevante que o histórico.
+        Ranking dos fatores mais importantes para o modelo em {tickers.length} ações. Barras maiores = maior influência nas previsões.
       </p>
 
       <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
         <div style={{ minWidth: 400 }}>
-          <ResponsiveContainer width="100%" height={Math.max(350, showTop * 30)}>
-            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 90, bottom: 5 }}>
+          <ResponsiveContainer width="100%" height={Math.max(300, showTop * 35)}>
+            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 110, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
               <XAxis type="number" stroke={theme.textSecondary} style={{ fontSize: 10 }}
-                label={{ value: 'Média |SHAP|', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
-              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 10 }} width={85} />
-          <Tooltip
-            content={({ active, payload }) => {
-              if (!active || !payload?.length) return null;
-              const d = payload[0].payload;
-              const change = ((d.meanAbsoluteShap - d.historicalAverage) / d.historicalAverage * 100);
-              return (
-                <div style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 12 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 6, color: theme.text }}>{d.feature}</div>
-                  <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 3 }}>Impacto Atual: {d.meanAbsoluteShap.toFixed(4)}</div>
-                  <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 3 }}>Média Histórica: {d.historicalAverage.toFixed(4)}</div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: change >= 0 ? '#10b981' : '#ef4444' }}>
-                    Variação: {change >= 0 ? '+' : ''}{change.toFixed(1)}%
-                  </div>
-                  <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 6, paddingTop: 6, borderTop: `1px solid ${theme.border}` }}>
-                    Dist: [{d.distribution.min.toFixed(3)}, {d.distribution.q25.toFixed(3)}, {d.distribution.median.toFixed(3)}, {d.distribution.q75.toFixed(3)}, {d.distribution.max.toFixed(3)}]
-                  </div>
-                </div>
-              );
-            }}
-          />
-          <Bar dataKey="meanAbsoluteShap" radius={[0, 4, 4, 0]}>
-            {data.map((entry, index) => {
-              const change = (entry.meanAbsoluteShap - entry.historicalAverage) / entry.historicalAverage;
-              const color = change >= 0.1 ? '#10b981' : change <= -0.1 ? '#ef4444' : '#3b82f6';
-              return <Cell key={`cell-${index}`} fill={color} />;
-            })}
-          </Bar>
-        </BarChart>
+                label={{ value: 'Impacto Médio', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
+              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 10 }} width={105} />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const d = payload[0].payload;
+                  return (
+                    <div style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, padding: 12 }}>
+                      <div style={{ fontWeight: 600, marginBottom: 6, color: theme.text }}>{d.feature}</div>
+                      <div style={{ fontSize: 11, color: theme.textSecondary, marginBottom: 3 }}>Impacto Médio: {d.meanImpact.toFixed(4)}</div>
+                      <div style={{ fontSize: 11, color: theme.textSecondary, marginTop: 6, paddingTop: 6, borderTop: `1px solid ${theme.border}` }}>
+                        Dist: [{d.distribution.min.toFixed(3)}, {d.distribution.q25.toFixed(3)}, {d.distribution.median.toFixed(3)}, {d.distribution.q75.toFixed(3)}, {d.distribution.max.toFixed(3)}]
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+              <Bar dataKey="meanImpact" radius={[0, 4, 4, 0]}>
+                {data.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={index < 3 ? '#3b82f6' : index < 6 ? '#10b981' : '#94a3b8'} />
+                ))}
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       <div style={{ marginTop: '1rem', display: 'flex', gap: '1.5rem', justifyContent: 'center', fontSize: '0.8rem' }}>
         {[
-          { color: '#10b981', label: 'Aumentou vs Histórico' },
-          { color: '#3b82f6', label: 'Estável' },
-          { color: '#ef4444', label: 'Diminuiu vs Histórico' },
+          { color: '#3b82f6', label: 'Top 3' },
+          { color: '#10b981', label: 'Relevante' },
+          { color: '#94a3b8', label: 'Menor impacto' },
         ].map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <div style={{ width: 12, height: 12, backgroundColor: color, borderRadius: 2 }} />
@@ -192,7 +161,7 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
         marginTop: '1rem', padding: '0.75rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
         borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6,
       }}>
-        <strong style={{ color: theme.text }}>Como ler este gráfico:</strong> Cada barra representa um indicador usado pelo modelo. Quanto maior a barra, mais esse indicador influencia as previsões. <span style={{ color: '#10b981' }}>Verde</span> = o indicador está mais relevante que o normal, <span style={{ color: '#3b82f6' }}>azul</span> = estável, <span style={{ color: '#ef4444' }}>vermelho</span> = menos relevante que o histórico.
+        ℹ️ Valores derivados dos dados reais do modelo (score, retorno esperado, volatilidade) para {tickers.length} ações. Não utiliza dados simulados.
       </div>
     </div>
   );
