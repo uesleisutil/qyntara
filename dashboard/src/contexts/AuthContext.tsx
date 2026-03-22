@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { API_BASE_URL } from '../config';
 
 interface User {
   id: string;
@@ -12,13 +13,15 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const SESSION_TIMEOUT = 60 * 60 * 1000; // 60 minutes
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours (matches JWT)
+const AUTH_URL = `${API_BASE_URL}/auth`;
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -29,175 +32,141 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const storedUser = localStorage.getItem('user');
         const storedToken = localStorage.getItem('authToken');
         const storedExpiry = localStorage.getItem('sessionExpiry');
 
-        if (storedUser && storedToken && storedExpiry) {
+        if (storedToken && storedExpiry) {
           const expiry = parseInt(storedExpiry, 10);
           if (Date.now() < expiry) {
-            setUser(JSON.parse(storedUser));
+            // Validate token with backend
+            const res = await fetch(`${AUTH_URL}/me`, {
+              headers: { 'Authorization': `Bearer ${storedToken}` },
+            });
+            if (res.ok) {
+              const data = await res.json();
+              setUser({
+                id: data.userId,
+                email: data.email,
+                name: data.name,
+                role: data.role || 'viewer',
+              });
+            } else {
+              clearStorage();
+            }
           } else {
-            // Session expired
-            await logout();
+            clearStorage();
           }
         }
-      } catch (error) {
-        console.error('Session check failed:', error);
+      } catch {
+        // Offline or API error - use stored user if available
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try { setUser(JSON.parse(storedUser)); } catch { clearStorage(); }
+        }
       } finally {
         setIsLoading(false);
       }
     };
-
     checkSession();
   }, []);
 
-  // Track user activity for session timeout
+  // Track activity for session timeout
   useEffect(() => {
-    const handleActivity = () => {
-      setLastActivity(Date.now());
-    };
-
-    window.addEventListener('mousedown', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('scroll', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
-
-    return () => {
-      window.removeEventListener('mousedown', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('scroll', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-    };
+    const handleActivity = () => setLastActivity(Date.now());
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach(e => window.addEventListener(e, handleActivity));
+    return () => events.forEach(e => window.removeEventListener(e, handleActivity));
   }, []);
 
-  // Check for session timeout
+  // Session timeout check
   useEffect(() => {
     if (!user) return;
-
-    const checkTimeout = setInterval(() => {
-      const timeSinceActivity = Date.now() - lastActivity;
-      if (timeSinceActivity > SESSION_TIMEOUT) {
-        logout();
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivity > SESSION_TIMEOUT) {
+        clearStorage();
+        setUser(null);
       }
-    }, 60000); // Check every minute
-
-    return () => clearInterval(checkTimeout);
+    }, 60000);
+    return () => clearInterval(interval);
   }, [user, lastActivity]);
 
+  const clearStorage = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('sessionExpiry');
+  };
+
+  const saveSession = (token: string, userData: User) => {
+    const expiry = Date.now() + SESSION_TIMEOUT;
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('sessionExpiry', expiry.toString());
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    setLastActivity(Date.now());
+  };
+
   const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // AWS Cognito authentication
-      // In production, use AWS Amplify or Cognito SDK
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const res = await fetch(`${AUTH_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (!response.ok) {
-        throw new Error('Authentication failed');
-      }
-
-      const data = await response.json();
-      
-      const user: User = {
-        id: data.userId,
-        email: data.email,
-        name: data.name,
-        role: data.role,
-      };
-
-      const expiry = Date.now() + SESSION_TIMEOUT;
-
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('authToken', data.accessToken);
-      localStorage.setItem('sessionExpiry', expiry.toString());
-
-      setUser(user);
-      setLastActivity(Date.now());
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Falha na autenticação');
     }
+
+    const data = await res.json();
+    saveSession(data.accessToken, {
+      id: data.userId,
+      email: data.email,
+      name: data.name,
+      role: data.role || 'viewer',
+    });
+  }, []);
+
+  const register = useCallback(async (name: string, email: string, password: string) => {
+    const res = await fetch(`${AUTH_URL}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Falha no cadastro');
+    }
+
+    const data = await res.json();
+    saveSession(data.accessToken, {
+      id: data.userId,
+      email: data.email,
+      name: data.name,
+      role: data.role || 'viewer',
+    });
   }, []);
 
   const logout = useCallback(async () => {
-    try {
-      // Call logout endpoint to invalidate session
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-      }
-      
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('sessionExpiry');
-      setUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      // Clear local storage even if API call fails
-      localStorage.removeItem('user');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('sessionExpiry');
-      setUser(null);
-    }
+    clearStorage();
+    setUser(null);
   }, []);
 
   const refreshSession = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No token available');
-      }
-
-      // Refresh token with backend
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Session refresh failed');
-      }
-
-      const data = await response.json();
-      
-      const expiry = Date.now() + SESSION_TIMEOUT;
-      localStorage.setItem('authToken', data.accessToken);
-      localStorage.setItem('sessionExpiry', expiry.toString());
-      setLastActivity(Date.now());
-    } catch (error) {
-      console.error('Session refresh failed:', error);
-      // If refresh fails, log out the user
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('No token');
+    const res = await fetch(`${AUTH_URL}/me`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if (!res.ok) {
       await logout();
-      throw error;
+      throw new Error('Session expired');
     }
+    setLastActivity(Date.now());
   }, [logout]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        logout,
-        refreshSession,
-      }}
-    >
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, logout, refreshSession }}>
       {children}
     </AuthContext.Provider>
   );
@@ -205,8 +174,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };

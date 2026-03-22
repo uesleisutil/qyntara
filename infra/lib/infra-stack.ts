@@ -989,6 +989,51 @@ export class InfraStack extends cdk.Stack {
     storageOptimizerRule.addTarget(new targets.LambdaFunction(storageOptimizerFn));
 
     // -----------------------
+    // DynamoDB Users Table (Auth)
+    // -----------------------
+    const usersTable = new cdk.aws_dynamodb.Table(this, "UsersTable", {
+      tableName: "B3Dashboard-Users",
+      partitionKey: { name: "email", type: cdk.aws_dynamodb.AttributeType.STRING },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: cdk.aws_dynamodb.TableEncryption.AWS_MANAGED,
+      pointInTimeRecovery: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    // JWT Secret via SSM
+    const jwtSecret = envOr("JWT_SECRET", "b3tr-jwt-secret-change-in-production-" + cdk.Aws.ACCOUNT_ID);
+    const adminEmail = envOr("ADMIN_EMAIL", "");
+
+    // User Auth Lambda
+    const userAuthFn = mkPyLambda("UserAuth", "ml.src.lambdas.user_auth.handler", {
+      USERS_TABLE: usersTable.tableName,
+      AUTH_LOGS_TABLE: "B3Dashboard-AuthLogs",
+      JWT_SECRET: jwtSecret,
+      ADMIN_EMAIL: adminEmail,
+    });
+    usersTable.grantReadWriteData(userAuthFn);
+
+    // Grant auth logs write
+    userAuthFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ["dynamodb:PutItem"],
+      resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-AuthLogs`],
+    }));
+
+    const userAuthIntegration = new apigateway.LambdaIntegration(userAuthFn, {
+      proxy: true,
+      allowTestInvoke: false,
+    });
+
+    // /auth routes (NO API key required - public endpoints)
+    const authResource = api.root.addResource("auth");
+    const authRegister = authResource.addResource("register");
+    authRegister.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authLogin = authResource.addResource("login");
+    authLogin.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authMe = authResource.addResource("me");
+    authMe.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+
+    // -----------------------
     // Outputs
     // -----------------------
     new cdk.CfnOutput(this, "BucketName", { value: bucket.bucketName });

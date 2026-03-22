@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,16 +33,7 @@ const RegisterPage: React.FC = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || ''}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || 'Falha no cadastro');
-      }
-      await login(email, password);
+      await register(name, email, password);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
