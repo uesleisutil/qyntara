@@ -145,6 +145,41 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
       icon: <CheckCircle size={16} />, color: '#10b981',
     });
 
+    // Signal change notifications (compare last 2 days from history)
+    try {
+      const headers = { 'x-api-key': API_KEY };
+      const histRes2 = await fetch(`${API_BASE_URL}/api/recommendations/history`, { headers });
+      if (histRes2.ok) {
+        const histData = await histRes2.json();
+        const history: Record<string, { date: string; score: number }[]> = histData.data || {};
+        const allDates2 = new Set<string>();
+        Object.values(history).forEach(entries => entries.forEach(e => allDates2.add(e.date)));
+        const sortedDates2 = Array.from(allDates2).sort();
+        if (sortedDates2.length >= 2) {
+          const todayD = sortedDates2[sortedDates2.length - 1];
+          const yesterdayD = sortedDates2[sortedDates2.length - 2];
+          const signalChanges: string[] = [];
+          Object.entries(history).forEach(([ticker, entries]) => {
+            const t = entries.find(e => e.date === todayD);
+            const y = entries.find(e => e.date === yesterdayD);
+            if (!t || !y) return;
+            const tSig = t.score >= SCORE_BUY_THRESHOLD ? 'Compra' : t.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
+            const ySig = y.score >= SCORE_BUY_THRESHOLD ? 'Compra' : y.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
+            if (tSig !== ySig) signalChanges.push(`${ticker}: ${ySig} → ${tSig}`);
+          });
+          if (signalChanges.length > 0) {
+            notes.push({
+              id: `signal-change-${todayD}`, type: 'alert',
+              title: `${signalChanges.length} mudança(s) de sinal`,
+              message: signalChanges.slice(0, 5).join(', ') + (signalChanges.length > 5 ? ` e mais ${signalChanges.length - 5}` : ''),
+              time: new Date(todayD + 'T09:40:00'), read: readIds.includes(`signal-change-${todayD}`),
+              icon: <AlertTriangle size={16} />, color: '#f59e0b',
+            });
+          }
+        }
+      }
+    } catch { /* silent */ }
+
     // Deduplicate by id
     const seen = new Set<string>();
     const unique = notes.filter(n => { if (seen.has(n.id)) return false; seen.add(n.id); return true; });

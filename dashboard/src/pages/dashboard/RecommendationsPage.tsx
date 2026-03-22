@@ -14,6 +14,12 @@ import { WatchlistButton, getWatchlist } from '../../components/shared/Watchlist
 import ExportCSV from '../../components/shared/ExportCSV';
 import Sparkline from '../../components/shared/Sparkline';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getSignal, getSignalColor, getCurrentMonthPriceKey, PRO_PRICE_LABEL } from '../../constants';
+import { getSector, ALL_SECTORS } from '../../constants/sectors';
+import SignalChanges from '../../components/shared/SignalChanges';
+import TemporalComparison from '../../components/shared/RankingComparison';
+import PersonalPerformance from '../../components/shared/PersonalPerformance';
+import GoalTracker from '../../components/shared/GoalTracker';
+import MonthlyReport from '../../components/shared/MonthlyReport';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -34,6 +40,7 @@ const RecommendationsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState('score');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [signalFilter, setSignalFilter] = useState<'ALL' | 'Compra' | 'Venda' | 'Neutro' | 'Favoritos'>('ALL');
+  const [sectorFilter, setSectorFilter] = useState('ALL');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sparklineData, setSparklineData] = useState<Record<string, number[]>>({});
   const [watchlistVersion, setWatchlistVersion] = useState(0);
@@ -104,6 +111,7 @@ const RecommendationsPage: React.FC = () => {
       if (signalFilter === 'Favoritos') return watchlist.includes(r.ticker);
       return getSignal(r.score) === signalFilter;
     })
+    .filter(r => sectorFilter === 'ALL' || getSector(r.ticker).sector === sectorFilter)
     .sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       if (sortBy === 'score') return (a.score - b.score) * dir;
@@ -174,10 +182,6 @@ const RecommendationsPage: React.FC = () => {
     );
   }
 
-  const now = new Date();
-  const hour = now.getHours();
-  const isAfterCutoff = hour >= 14;
-
   return (
     <div>
       {/* Header: Title + Refresh */}
@@ -196,7 +200,9 @@ const RecommendationsPage: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
           {isPro && recommendations.length > 0 && (
-            <ExportCSV
+            <>
+              <MonthlyReport darkMode={darkMode} theme={theme} />
+              <ExportCSV
               darkMode={darkMode}
               filename="b3_recomendacoes"
               label="CSV"
@@ -210,6 +216,7 @@ const RecommendationsPage: React.FC = () => {
                 'Volatilidade (%)': fmt(r.vol_20d * 100, 1),
               }))}
             />
+            </>
           )}
           <ShareButton
             text={`📊 B3 Tactical — ${date}\n${totalBuy} compra, ${totalSell} venda, ${totalNeutral} neutros\nTop: ${topTicker?.ticker || '—'} (${topTicker ? fmt(topTicker.score, 2) : '—'})`}
@@ -246,6 +253,12 @@ const RecommendationsPage: React.FC = () => {
           date={date}
         />
       )}
+
+      {/* Signal Changes — tickers that changed signal today */}
+      <SignalChanges darkMode={darkMode} theme={theme} />
+
+      {/* Temporal Comparison — ranking diff vs previous days */}
+      <TemporalComparison darkMode={darkMode} theme={theme} />
 
       {/* Compact KPI strip — Resumo do Dia inline */}
       {recommendations.length > 0 && (
@@ -293,21 +306,7 @@ const RecommendationsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Strategy F: Time-limited hint for free users */}
-      {!isPro && isAfterCutoff && (
-        <div style={{
-          marginBottom: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 8,
-          background: darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
-          border: '1px solid rgba(245,158,11,0.2)',
-          display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem',
-        }}>
-          <Clock size={14} color="#f59e0b" />
-          <span style={{ color: theme.textSecondary }}>
-            Recomendações atualizadas até 14h no Free.{' '}
-            <a href="#/dashboard/upgrade" style={{ color: '#f59e0b', fontWeight: 600 }}>Assinar Pro →</a>
-          </span>
-        </div>
-      )}
+
 
       {/* #5: Pro panels collapsed by default to reduce noise */}
       {isPro && (
@@ -322,6 +321,8 @@ const RecommendationsPage: React.FC = () => {
             <span style={{ fontSize: '0.7rem', color: theme.textSecondary, marginLeft: 'auto' }}>clique para expandir</span>
           </summary>
           <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <PersonalPerformance darkMode={darkMode} theme={theme} />
+            <GoalTracker darkMode={darkMode} theme={theme} />
             <MyPositionsPanel darkMode={darkMode} theme={theme} />
             <PriceAlerts darkMode={darkMode} theme={theme} />
           </div>
@@ -353,6 +354,15 @@ const RecommendationsPage: React.FC = () => {
           <option value="Compra">Compra</option>
           <option value="Venda">Venda</option>
           <option value="Neutro">Neutro</option>
+        </select>
+        <select value={sectorFilter} onChange={e => setSectorFilter(e.target.value)}
+          style={{
+            padding: '0.55rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+            background: theme.card || (darkMode ? '#1e293b' : '#fff'), color: theme.text,
+            fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
+          }}>
+          <option value="ALL">Setor: Todos</option>
+          {ALL_SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <button onClick={() => handleSort(sortBy === 'score' ? 'return' : sortBy === 'return' ? 'ticker' : sortBy === 'ticker' ? 'vol' : 'score')}
           style={{ ...btnBase, padding: '0.55rem 0.75rem', background: theme.card || (darkMode ? '#1e293b' : '#fff'), color: theme.text, border: `1px solid ${theme.border}` }}>
@@ -432,6 +442,7 @@ const RecommendationsPage: React.FC = () => {
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
                       <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
                       {r.ticker}
+                      <span style={{ fontSize: '0.6rem', opacity: 0.7 }} title={getSector(r.ticker).sector}>{getSector(r.ticker).icon}</span>
                     </span>
                   </td>
                   <td style={{ padding: '0.55rem 0.3rem' }}>
