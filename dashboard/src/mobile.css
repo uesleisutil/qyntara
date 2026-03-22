@@ -37,18 +37,21 @@ input, button, select, textarea {
 }
 
 /* Better touch targets */
-button, a, select, input {
+button, a, select, input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea {
   min-height: 44px;
 }
 
-/* Override min-height for small inline buttons (tooltips, icon buttons) */
+/* Override min-height for small inline buttons (tooltips, icon buttons, badges) */
 button[aria-label="Mais informações"],
+button[aria-label="Notificações"],
+button[aria-label="Fechar"],
+button[aria-label="Menu"],
 button[aria-label="Ação anterior"],
 button[aria-label="Próxima ação"] {
   min-height: auto;
 }
 
-input[type="text"], input[type="email"], input[type="password"], select {
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], select, textarea {
   font-size: 16px !important; /* Prevents iOS zoom on focus */
 }
 
@@ -57,21 +60,121 @@ input[type="text"], input[type="email"], input[type="password"], select {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+.spin { animation: spin 1s linear infinite; }
 
 /* ===== Mobile breakpoint: 768px ===== */
 @media (max-width: 768px) {
-  /* Dashboard layout adjustments */
+  /* Dashboard layout */
   .sidebar-desktop { display: none !important; }
   .sidebar-mobile { display: flex !important; }
   .main-content { margin-left: 0 !important; }
   .mobile-menu-btn { display: flex !important; }
+
+  /* Header email — hide on mobile to save space */
+  .header-email { display: none !important; }
+
+  /* ===== TABLES: scrollable wrapper approach ===== */
+  /* Don't override table display globally — it breaks layouts.
+     Instead, wrap tables in overflow containers in the components. */
+
+  /* Notification dropdown — bottom sheet on mobile */
+  .notif-dropdown {
+    position: fixed !important;
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    top: auto !important;
+    bottom: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: 70vh !important;
+    border-radius: 12px 12px 0 0 !important;
+    z-index: 9000 !important;
+    margin-top: 0 !important;
+  }
+
+  /* User menu dropdown — constrain to viewport */
+  .user-menu-dropdown {
+    right: 0 !important;
+    left: auto !important;
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  /* Modals — full width on mobile */
+  .modal-content, [role="dialog"] > div:last-child {
+    width: calc(100vw - 1.5rem) !important;
+    max-width: none !important;
+    max-height: 85vh !important;
+  }
+
+  /* Charts — ensure minimum height and scrollable container */
+  .recharts-responsive-container {
+    min-height: 200px;
+  }
+
+  /* Grid overrides — force single column */
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* AdminUsersPage: hide table, show cards on mobile */
+  .admin-users-table { display: none !important; }
+  .admin-users-cards { display: flex !important; }
+
+  /* AdminAgentsPage: force single column on detail view */
+  .agents-detail-grid { grid-template-columns: 1fr !important; }
+
+  /* Chat pages: fix height for mobile with address bar */
+  .chat-container {
+    height: calc(100dvh - 200px) !important;
+    max-height: none !important;
+  }
+
+  /* Portfolio table: hide table, show cards */
+  .portfolio-table-desktop { display: none !important; }
+  .portfolio-cards-mobile { display: flex !important; }
+
+  /* Recommendations table: hide table, show cards */
+  .rec-table-desktop { display: none !important; }
+  .rec-cards-mobile { display: block !important; }
+
+  /* Tracking expanded table: horizontal scroll hint */
+  .tracking-table-wrap {
+    position: relative;
+  }
+  .tracking-table-wrap::after {
+    content: '→ deslize';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.65rem;
+    color: #94a3b8;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* Ensure all text wraps properly on mobile */
+  p, span, div, label, h1, h2, h3, h4 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Fix main content padding for mobile */
+  .main-content > div:last-child {
+    padding: 0.75rem !important;
+  }
 }
 
 /* ===== Small mobile: 480px ===== */
 @media (max-width: 480px) {
   /* Tighter padding on very small screens */
   .main-content > div:last-child {
-    padding: 0.75rem !important;
+    padding: 0.5rem !important;
+  }
+
+  /* Even smaller font for KPI cards */
+  .kpi-value {
+    font-size: 1rem !important;
   }
 }
 

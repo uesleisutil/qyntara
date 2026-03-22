@@ -118,7 +118,7 @@ const AdminChatPage: React.FC = () => {
     const msgs = activeTicket.messages || [];
     const si = statusInfo(activeTicket.status);
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', maxHeight: 700 }}>
+      <div className="chat-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', maxHeight: 700 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
           <button onClick={() => setActiveTicket(null)} style={{ background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer', padding: 4, WebkitAppearance: 'none' as any }}>
             <ChevronLeft size={20} />

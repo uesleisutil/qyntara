@@ -199,11 +199,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
 
       {open && (
         <>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setOpen(false)} />
-          <div style={{
+          <div style={{ position: 'fixed', inset: 0, zIndex: 8999 }} onClick={() => setOpen(false)} />
+          <div className="notif-dropdown" style={{
             position: 'absolute', right: 0, top: '100%', marginTop: 8, width: 'min(360px, 90vw)',
             background: theme.bg, border: `1px solid ${theme.border}`, borderRadius: 12,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)', zIndex: 50, overflow: 'hidden',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)', zIndex: 9000, overflow: 'hidden',
           }}>
             <div style={{
               padding: '0.75rem 1rem', borderBottom: `1px solid ${theme.border}`,

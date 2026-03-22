@@ -474,12 +474,7 @@ const RecommendationsPage: React.FC = () => {
         </div>
       )}
 
-      <style>{`
-        @media (max-width: 768px) {
-          .rec-table-desktop { display: none !important; }
-          .rec-cards-mobile { display: block !important; }
-        }
-      `}</style>
+
     </div>
   );
 };

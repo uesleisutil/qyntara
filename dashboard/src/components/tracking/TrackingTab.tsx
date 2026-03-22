@@ -451,7 +451,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
               {/* Expanded detail */}
               {isExpanded && (
                 <div style={{ borderTop: `1px solid ${theme.border}` }}>
-                  <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <div className="tracking-table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 650 }}>
                       <thead>
                         <tr style={{ borderBottom: `1px solid ${theme.border}` }}>

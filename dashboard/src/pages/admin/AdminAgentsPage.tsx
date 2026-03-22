@@ -195,9 +195,9 @@ const AdminAgentsPage: React.FC = () => {
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="agents-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
           {/* Insights */}
-          <div style={{ ...cardStyle, gridColumn: window.innerWidth < 768 ? '1 / -1' : undefined }}>
+          <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
               <Zap size={16} color={currentAgent.color} />
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>Insights</span>
@@ -210,7 +210,7 @@ const AdminAgentsPage: React.FC = () => {
           </div>
 
           {/* Tasks */}
-          <div style={{ ...cardStyle, gridColumn: window.innerWidth < 768 ? '1 / -1' : undefined }}>
+          <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
               <ListTodo size={16} color={currentAgent.color} />
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>Plano de Ação</span>
@@ -307,11 +307,6 @@ const AdminAgentsPage: React.FC = () => {
           </div>
         </div>
 
-        <style>{`
-          @media (max-width: 768px) {
-            div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
       </div>
     );
   }

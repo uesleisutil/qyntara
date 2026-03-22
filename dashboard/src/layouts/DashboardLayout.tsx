@@ -250,7 +250,7 @@ const DashboardLayout: React.FC = () => {
           }} className="mobile-menu-btn" aria-label="Menu">
             {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <div style={{ fontSize: '0.9rem', color: theme.textSecondary, whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: '0.9rem', color: theme.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
             {(() => {
               const p = location.pathname;
               if (p === '/dashboard') return '📊 Recomendações';
@@ -298,7 +298,7 @@ const DashboardLayout: React.FC = () => {
                     position: 'absolute', right: 0, top: '100%', marginTop: 6, minWidth: 200,
                     background: theme.sidebar, border: `1px solid ${theme.border}`, borderRadius: 8,
                     boxShadow: '0 4px 16px rgba(0,0,0,0.15)', zIndex: 50, overflow: 'hidden',
-                  }}>
+                  }} className="user-menu-dropdown">
                     <div style={{ padding: '0.6rem 0.75rem', borderBottom: `1px solid ${theme.border}` }}>
                       <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.text }}>{user?.name || user?.email}</div>
                       <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>

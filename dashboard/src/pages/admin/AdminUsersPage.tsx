@@ -167,82 +167,131 @@ const AdminUsersPage: React.FC = () => {
       {loading ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: theme.textSecondary }}>
           <Loader2 size={24} className="spin" /> <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>Carregando...</div>
-          <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: 700 }}>
-            <thead>
-              <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
-                {[
-                  { l: 'Email', t: '' }, { l: 'Nome', t: '' }, { l: 'Plano', t: 'Plano atual do usuário' },
-                  { l: 'Expira', t: 'Data de expiração do plano Pro (se aplicável)' },
-                  { l: 'Origem', t: 'Como o plano foi ativado: stripe, admin ou —' },
-                  { l: 'Cadastro', t: '' }, { l: 'Último Login', t: '' }, { l: 'Ações', t: '' },
-                ].map(h => (
-                  <th key={h.l} style={{ padding: '0.5rem 0.4rem', textAlign: 'left', fontSize: '0.7rem', fontWeight: 600, color: theme.textSecondary, whiteSpace: 'nowrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                      {h.l} {h.t && <InfoTooltip text={h.t} darkMode={darkMode} size={10} />}
-                    </span>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(u => {
-                const isPro = u.plan === 'pro' && !u.planExpired;
-                const isExpiring = isPro && u.planExpiresAt;
-                return (
-                  <tr key={u.email} style={{ borderBottom: `1px solid ${theme.border}` }}
-                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <td style={{ padding: '0.5rem 0.4rem', color: theme.text, fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {u.email}
-                      {u.role === 'admin' && <span style={{ marginLeft: 4, fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: 4, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 600 }}>admin</span>}
-                    </td>
-                    <td style={{ padding: '0.5rem 0.4rem', color: theme.textSecondary }}>{u.name || '—'}</td>
-                    <td style={{ padding: '0.5rem 0.4rem' }}>
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 3,
-                        padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
-                        background: isPro ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
-                        color: isPro ? '#f59e0b' : '#94a3b8',
-                      }}>
-                        {isPro ? <Crown size={10} /> : null} {isPro ? 'Pro' : 'Free'}
+        <>
+          {/* Desktop Table */}
+          <div className="admin-users-table" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: 700 }}>
+              <thead>
+                <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
+                  {[
+                    { l: 'Email', t: '' }, { l: 'Nome', t: '' }, { l: 'Plano', t: 'Plano atual do usuário' },
+                    { l: 'Expira', t: 'Data de expiração do plano Pro (se aplicável)' },
+                    { l: 'Origem', t: 'Como o plano foi ativado: stripe, admin ou —' },
+                    { l: 'Cadastro', t: '' }, { l: 'Último Login', t: '' }, { l: 'Ações', t: '' },
+                  ].map(h => (
+                    <th key={h.l} style={{ padding: '0.5rem 0.4rem', textAlign: 'left', fontSize: '0.7rem', fontWeight: 600, color: theme.textSecondary, whiteSpace: 'nowrap' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                        {h.l} {h.t && <InfoTooltip text={h.t} darkMode={darkMode} size={10} />}
                       </span>
-                    </td>
-                    <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.75rem', color: isExpiring ? '#f59e0b' : theme.textSecondary }}>
-                      {isExpiring ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                          <Clock size={10} /> {fmtDate(u.planExpiresAt)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(u => {
+                  const isPro = u.plan === 'pro' && !u.planExpired;
+                  const isExpiring = isPro && u.planExpiresAt;
+                  return (
+                    <tr key={u.email} style={{ borderBottom: `1px solid ${theme.border}` }}
+                      onMouseEnter={e => e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{ padding: '0.5rem 0.4rem', color: theme.text, fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {u.email}
+                        {u.role === 'admin' && <span style={{ marginLeft: 4, fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: 4, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 600 }}>admin</span>}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.4rem', color: theme.textSecondary }}>{u.name || '—'}</td>
+                      <td style={{ padding: '0.5rem 0.4rem' }}>
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 3,
+                          padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
+                          background: isPro ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
+                          color: isPro ? '#f59e0b' : '#94a3b8',
+                        }}>
+                          {isPro ? <Crown size={10} /> : null} {isPro ? 'Pro' : 'Free'}
                         </span>
-                      ) : isPro ? '∞' : '—'}
-                    </td>
-                    <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>
-                      {u.planSource === 'admin' ? '🔧 Admin' : u.stripeSubscriptionId ? '💳 Stripe' : '—'}
-                    </td>
-                    <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDate(u.createdAt)}</td>
-                    <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDateTime(u.lastLoginAt)}</td>
-                    <td style={{ padding: '0.5rem 0.4rem' }}>
-                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
-                          style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#94a3b8' : '#f59e0b' }}>
-                          {isPro ? 'Rebaixar' : 'Tornar Pro'}
-                        </button>
-                        <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
-                          disabled={roleLoading === u.email}
-                          style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#3b82f6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
-                          {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
-                          {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
-                        </button>
+                      </td>
+                      <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.75rem', color: isExpiring ? '#f59e0b' : theme.textSecondary }}>
+                        {isExpiring ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                            <Clock size={10} /> {fmtDate(u.planExpiresAt)}
+                          </span>
+                        ) : isPro ? '∞' : '—'}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>
+                        {u.planSource === 'admin' ? '🔧 Admin' : u.stripeSubscriptionId ? '💳 Stripe' : '—'}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDate(u.createdAt)}</td>
+                      <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDateTime(u.lastLoginAt)}</td>
+                      <td style={{ padding: '0.5rem 0.4rem' }}>
+                        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                          <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#94a3b8' : '#f59e0b' }}>
+                            {isPro ? 'Rebaixar' : 'Tornar Pro'}
+                          </button>
+                          <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
+                            disabled={roleLoading === u.email}
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#3b82f6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
+                            {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
+                            {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="admin-users-cards" style={{ display: 'none', flexDirection: 'column', gap: '0.5rem' }}>
+            {filtered.map(u => {
+              const isPro = u.plan === 'pro' && !u.planExpired;
+              const isExpiring = isPro && u.planExpiresAt;
+              return (
+                <div key={u.email} style={{ ...cardStyle, padding: '0.85rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', gap: '0.5rem' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {u.email}
+                        {u.role === 'admin' && <span style={{ marginLeft: 4, fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: 4, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 600 }}>admin</span>}
                       </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                      {u.name && <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{u.name}</div>}
+                    </div>
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 3, flexShrink: 0,
+                      padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
+                      background: isPro ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
+                      color: isPro ? '#f59e0b' : '#94a3b8',
+                    }}>
+                      {isPro ? <Crown size={10} /> : null} {isPro ? 'Pro' : 'Free'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem', fontSize: '0.72rem', marginBottom: '0.5rem' }}>
+                    <div><span style={{ color: theme.textSecondary }}>Expira:</span> <span style={{ color: isExpiring ? '#f59e0b' : theme.textSecondary }}>{isExpiring ? fmtDate(u.planExpiresAt) : isPro ? '∞' : '—'}</span></div>
+                    <div><span style={{ color: theme.textSecondary }}>Origem:</span> {u.planSource === 'admin' ? '🔧 Admin' : u.stripeSubscriptionId ? '💳 Stripe' : '—'}</div>
+                    <div><span style={{ color: theme.textSecondary }}>Cadastro:</span> {fmtDate(u.createdAt)}</div>
+                    <div><span style={{ color: theme.textSecondary }}>Login:</span> {fmtDateTime(u.lastLoginAt)}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.35rem' }}>
+                    <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
+                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#94a3b8' : '#f59e0b' }}>
+                      {isPro ? 'Rebaixar' : 'Tornar Pro'}
+                    </button>
+                    <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
+                      disabled={roleLoading === u.email}
+                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#3b82f6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
+                      {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
+                      {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {/* Set Plan Modal */}

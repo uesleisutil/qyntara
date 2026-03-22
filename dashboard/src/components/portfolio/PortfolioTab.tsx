@@ -247,7 +247,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
 
           {/* Table */}
           <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <div className="portfolio-table-desktop" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 650 }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
@@ -316,6 +316,35 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="portfolio-cards-mobile" style={{ display: 'none', flexDirection: 'column', gap: '0.5rem', padding: '0.75rem' }}>
+              {portfolio.map((q, i) => {
+                const rr = q.vol_20d > 0 ? q.exp_return_20 / q.vol_20d : 0;
+                return (
+                  <div key={q.ticker} style={{ padding: '0.75rem', borderRadius: 10, border: `1px solid ${theme.border}`, borderLeft: `3px solid ${pieColors[i % pieColors.length]}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ fontSize: '0.68rem', color: theme.textSecondary }}>#{i + 1}</span>
+                        <span style={{ fontWeight: 700, color: theme.text, fontSize: '0.95rem' }}>{q.ticker}</span>
+                        <ArrowUpRight size={13} color={theme.green} />
+                      </div>
+                      <span style={{ padding: '0.12rem 0.4rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, background: `${pieColors[i % pieColors.length]}15`, color: pieColors[i % pieColors.length] }}>
+                        {fmt(q.weight * 100, 1)}%
+                      </span>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem', fontSize: '0.75rem' }}>
+                      <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(q.last_close, 2)}</strong></div>
+                      <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <strong style={{ color: q.exp_return_20 >= 0 ? theme.green : theme.red }}>{q.exp_return_20 >= 0 ? '+' : ''}{fmt(q.exp_return_20 * 100, 2)}%</strong></div>
+                      <div><span style={{ color: theme.textSecondary }}>Stop:</span> <strong style={{ color: theme.red }}>R$ {fmt(q.stopLoss, 2)}</strong></div>
+                      <div><span style={{ color: theme.textSecondary }}>Take:</span> <strong style={{ color: theme.green }}>R$ {fmt(q.takeProfit, 2)}</strong></div>
+                      <div><span style={{ color: theme.textSecondary }}>Confiança:</span> <strong style={{ color: q.confidence >= 70 ? theme.green : q.confidence >= 50 ? theme.yellow : theme.red }}>{fmt(q.confidence, 0)}%</strong></div>
+                      <div><span style={{ color: theme.textSecondary }}>R/R:</span> <strong style={{ color: rr >= 2 ? theme.green : rr >= 1 ? theme.yellow : theme.red }}>{fmt(rr, 1)}x</strong></div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>

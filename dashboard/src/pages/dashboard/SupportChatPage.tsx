@@ -105,7 +105,7 @@ const SupportChatPage: React.FC = () => {
   if (activeTicket) {
     const msgs = activeTicket.messages || [];
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', maxHeight: 700 }}>
+      <div className="chat-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 180px)', maxHeight: 700 }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
           <button onClick={() => setActiveTicket(null)} style={{ background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer', padding: 4, WebkitAppearance: 'none' as any }}>

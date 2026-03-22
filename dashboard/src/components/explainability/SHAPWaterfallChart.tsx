@@ -79,20 +79,21 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
       <div style={{
         display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', padding: '0.6rem',
         backgroundColor: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8, flexWrap: 'wrap', gap: '0.5rem',
+        overflowX: 'auto', WebkitOverflowScrolling: 'touch',
       }}>
-        <div>
+        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Base</div>
-          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: theme.text }}>R$ {baseValue.toFixed(2)}</div>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: theme.text, whiteSpace: 'nowrap' }}>R$ {baseValue.toFixed(2)}</div>
         </div>
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'center', minWidth: 0, flex: '1 1 auto' }}>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Previsão</div>
-          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444', whiteSpace: 'nowrap' }}>
             R$ {prediction.toFixed(2)}
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ textAlign: 'right', minWidth: 0, flex: '1 1 auto' }}>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Diferença</div>
-          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444', whiteSpace: 'nowrap' }}>
             {prediction >= baseValue ? '+' : ''}{(prediction - baseValue).toFixed(2)}
           </div>
         </div>
