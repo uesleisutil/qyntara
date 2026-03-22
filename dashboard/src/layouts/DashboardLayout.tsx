@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
-  BarChart3, Brain, TestTubes, Moon, Sun, User, Lock,
+  BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -28,6 +28,7 @@ const DashboardLayout: React.FC = () => {
 
   const userMenuItems = [
     { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} /> },
+    { path: '/dashboard/tracking', label: 'Acompanhamento', icon: <Target size={18} /> },
     { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} /> },
     { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} /> },
   ];
@@ -203,6 +204,7 @@ const DashboardLayout: React.FC = () => {
             {(() => {
               const p = location.pathname;
               if (p === '/dashboard') return '📊 Recomendações';
+              if (p.includes('tracking')) return '🎯 Acompanhamento';
               if (p.includes('explainability')) return '🧠 Explicabilidade';
               if (p.includes('backtesting')) return '🧪 Backtesting';
               if (p.includes('change-password')) return '🔒 Alterar Senha';
