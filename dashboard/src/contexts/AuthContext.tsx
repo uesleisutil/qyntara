@@ -19,6 +19,7 @@ interface AuthContextType {
   resendCode: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -176,6 +177,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('Não autenticado');
+    const res = await fetch(`${AUTH_URL}/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao alterar senha');
+    }
+  }, []);
+
   const logout = useCallback(async () => { clearStorage(); setUser(null); }, []);
 
   const refreshSession = useCallback(async () => {
@@ -189,7 +204,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider value={{
       user, isAuthenticated: !!user, isLoading,
-      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, logout, refreshSession,
+      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession,
     }}>
       {children}
     </AuthContext.Provider>

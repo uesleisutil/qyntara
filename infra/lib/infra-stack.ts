@@ -1050,6 +1050,8 @@ export class InfraStack extends cdk.Stack {
     authForgotPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const authResetPassword = authResource.addResource("reset-password");
     authResetPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authChangePassword = authResource.addResource("change-password");
+    authChangePassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
 
     // SES permissions for sending verification emails
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
-  BarChart3, Brain, TestTubes, Moon, Sun, User,
+  BarChart3, Brain, TestTubes, Moon, Sun, User, Lock,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -29,6 +29,7 @@ const DashboardLayout: React.FC = () => {
     { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} /> },
     { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} /> },
     { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} /> },
+    { path: '/dashboard/change-password', label: 'Alterar Senha', icon: <Lock size={18} /> },
   ];
 
   const adminMenuItems = [

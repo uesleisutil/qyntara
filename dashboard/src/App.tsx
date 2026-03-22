@@ -13,6 +13,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import RecommendationsPage from './pages/dashboard/RecommendationsPage';
 import ExplainabilityPage from './pages/dashboard/ExplainabilityPage';
 import BacktestingPage from './pages/dashboard/BacktestingPage';
+import ChangePasswordPage from './pages/dashboard/ChangePasswordPage';
 import AdminOverviewPage from './pages/admin/AdminOverviewPage';
 import AdminPerformancePage from './pages/admin/AdminPerformancePage';
 import AdminCostsPage from './pages/admin/AdminCostsPage';
@@ -92,6 +93,7 @@ const AppRoutes: React.FC = () => {
         <Route index element={<RecommendationsPage />} />
         <Route path="explainability" element={<ExplainabilityPage />} />
         <Route path="backtesting" element={<BacktestingPage />} />
+        <Route path="change-password" element={<ChangePasswordPage />} />
       </Route>
 
       {/* Admin panel */}

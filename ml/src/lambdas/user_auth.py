@@ -950,8 +950,91 @@ def _handle_reset_password(event: dict) -> dict:
     return _cors_response(200, {"message": "Senha redefinida com sucesso. Faça login com a nova senha."})
 
 
+def _handle_change_password(event: dict) -> dict:
+    """Change password for authenticated user (requires current password)."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    if _check_rate_limit(ip):
+        return _cors_response(429, {"message": "Muitas tentativas. Aguarde 15 minutos."})
+    _increment_rate_limit(ip)
+
+    # Verify JWT
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token não fornecido"})
+
+    token = auth[7:].strip()
+    if len(token) > 4096:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    payload = _verify_jwt(token)
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido ou expirado"})
+
+    email = payload.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    # Parse body
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    current_password = body.get("currentPassword", "")
+    new_password = body.get("newPassword", "")
+
+    if not current_password or not new_password:
+        return _cors_response(400, {"message": "Senha atual e nova senha são obrigatórias"})
+
+    # Validate new password strength
+    pwd_error = _validate_password(new_password)
+    if pwd_error:
+        return _cors_response(400, {"message": pwd_error})
+
+    # Fetch user
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email})
+    except ClientError as e:
+        logger.error(f"DynamoDB error: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+    user = result.get("Item")
+    if not user:
+        return _cors_response(401, {"message": "Credenciais inválidas"})
+
+    # Verify current password
+    if not _verify_password(current_password, user.get("passwordHash", "")):
+        _log_auth(email, "change_password", False, ip, ua, "wrong_current_password")
+        return _cors_response(400, {"message": "Senha atual incorreta"})
+
+    # Hash new password and update
+    new_hash = _hash_password(new_password)
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET passwordHash = :h, updatedAt = :now",
+            ExpressionAttributeValues={
+                ":h": new_hash,
+                ":now": datetime.now(UTC).isoformat(),
+            },
+        )
+    except ClientError as e:
+        logger.error(f"DynamoDB error changing password: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+    _log_auth(email, "change_password", True, ip, ua)
+    return _cors_response(200, {"message": "Senha alterada com sucesso."})
+
+
 def handler(event: dict, context: Any = None) -> dict:
-    """Lambda handler — routes to register/login/me/verify/reset."""
+    """Lambda handler — routes to register/login/me/verify/reset/change-password."""
     method = event.get("httpMethod", "")
     if method == "OPTIONS":
         return _cors_response(200, {})
@@ -972,5 +1055,7 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_forgot_password(event)
     elif path.endswith("/auth/reset-password") and method == "POST":
         return _handle_reset_password(event)
+    elif path.endswith("/auth/change-password") and method == "POST":
+        return _handle_change_password(event)
     else:
         return _cors_response(404, {"message": "Not found"})
