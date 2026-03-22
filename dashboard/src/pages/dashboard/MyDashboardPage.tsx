@@ -34,6 +34,16 @@ const WIDGETS = [
   { id: 'comparator', label: 'Comparar Ações', proOnly: false },
 ];
 
+const TOOLTIPS: Record<string, string> = {
+  highlight: 'Ação com maior score do dia, incluindo sinal, preço atual e previsão de retorno em 20 dias.',
+  signals: 'Mudanças recentes de sinal (Compra/Venda/Neutro) e variações no ranking das ações.',
+  positions: 'Ações que você está seguindo com P&L total e retorno individual.',
+  performance: 'Resumo da sua carteira: P&L acumulado, taxa de acerto e total de posições.',
+  goal: 'Defina uma meta de rentabilidade e acompanhe seu progresso.',
+  alerts: 'Configure alertas de preço para ser notificado quando uma ação atingir o valor desejado.',
+  comparator: 'Compare duas ações lado a lado: score, retorno esperado e volatilidade.',
+};
+
 const ICONS: Record<string, (c: string) => React.ReactNode> = {
   highlight: c => <Trophy size={13} color={c} />,
   signals: c => <Sparkles size={13} color={c} />,
@@ -197,7 +207,7 @@ const MyDashboardPage: React.FC = () => {
                   const w = WIDGETS.find(x => x.id === id)!;
                   const c = renderWidget(id);
                   if (!c) return null;
-                  return <WidgetCard key={id} id={id} title={w.label} icon={ICONS[id]?.(COLORS[id])} accentColor={COLORS[id]} darkMode={darkMode} theme={theme} collapsed={collapsed[id]} onToggleCollapse={() => setCollapsed(p => ({ ...p, [id]: !p[id] }))}>{c}</WidgetCard>;
+                  return <WidgetCard key={id} id={id} title={w.label} tooltip={TOOLTIPS[id]} icon={ICONS[id]?.(COLORS[id])} accentColor={COLORS[id]} darkMode={darkMode} theme={theme} collapsed={collapsed[id]} onToggleCollapse={() => setCollapsed(p => ({ ...p, [id]: !p[id] }))}>{c}</WidgetCard>;
                 })}
               </div>
             );
@@ -206,7 +216,7 @@ const MyDashboardPage: React.FC = () => {
           const w = WIDGETS.find(x => x.id === id)!;
           const c = renderWidget(id);
           if (!c) return null;
-          return <WidgetCard key={id} id={id} title={w.label} icon={ICONS[id]?.(COLORS[id])} accentColor={COLORS[id]} darkMode={darkMode} theme={theme} collapsed={collapsed[id]} onToggleCollapse={() => setCollapsed(p => ({ ...p, [id]: !p[id] }))}>{c}</WidgetCard>;
+          return <WidgetCard key={id} id={id} title={w.label} tooltip={TOOLTIPS[id]} icon={ICONS[id]?.(COLORS[id])} accentColor={COLORS[id]} darkMode={darkMode} theme={theme} collapsed={collapsed[id]} onToggleCollapse={() => setCollapsed(p => ({ ...p, [id]: !p[id] }))}>{c}</WidgetCard>;
         })}
       </div>
 

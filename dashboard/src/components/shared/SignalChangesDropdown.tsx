@@ -115,9 +115,9 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
         changes.length === 0 ? (
           <div style={{ padding: '1rem', textAlign: 'center', color: theme.textSecondary, fontSize: '0.78rem' }}>Nenhuma mudança de sinal.</div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
+              <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1e293b' : '#ffffff'), zIndex: 1 }}>
                 <tr>
                   <th style={thS}>Ação</th>
                   <th style={thS}>Anterior</th>
@@ -165,9 +165,9 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
           {diffs.length === 0 ? (
             <div style={{ padding: '1rem', textAlign: 'center', color: theme.textSecondary, fontSize: '0.78rem' }}>Sem mudanças no ranking.</div>
           ) : (
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
+                <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1e293b' : '#ffffff'), zIndex: 1 }}>
                   <tr>
                     <th style={thS}>Ação</th>
                     <th style={thS}>Sinal</th>
