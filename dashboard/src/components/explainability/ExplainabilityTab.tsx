@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Info, RefreshCw } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../shared/InfoTooltip';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
