@@ -1106,6 +1106,8 @@ export class InfraStack extends cdk.Stack {
     adminUsers.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
     const adminUsersSetPlan = adminUsers.addResource("set-plan");
     adminUsersSetPlan.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const adminUsersSetRole = adminUsers.addResource("set-role");
+    adminUsersSetRole.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
 
     // /admin/chat routes (JWT-protected, admin only)
     const adminChat = adminResource.addResource("chat");

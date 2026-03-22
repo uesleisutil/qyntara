@@ -67,7 +67,7 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
         {feature} está disponível no plano Pro. Faça upgrade para desbloquear
         carteira modelo, stop-loss, ranking de confiança e muito mais.
       </p>
-      <button onClick={() => window.location.hash = '#/upgrade'} style={{
+      <button onClick={() => window.location.hash = '#/dashboard/upgrade'} style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
         padding: '0.7rem 1.5rem', borderRadius: 10, border: 'none', cursor: 'pointer',
         background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white',

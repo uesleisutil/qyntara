@@ -2194,6 +2194,56 @@ def _handle_admin_set_plan(event: dict) -> dict:
         return _cors_response(500, {"message": "Erro ao alterar plano"})
 
 
+def _handle_admin_set_role(event: dict) -> dict:
+    """POST /admin/users/set-role — admin toggles a user's role (admin/viewer)."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    role = body.get("role", "")
+
+    if not email:
+        return _cors_response(400, {"message": "Email obrigatório"})
+    if role not in ("admin", "viewer"):
+        return _cors_response(400, {"message": "Role deve ser 'admin' ou 'viewer'"})
+
+    # Prevent removing own admin
+    if email == admin.get("email", "") and role != "admin":
+        return _cors_response(400, {"message": "Você não pode remover seu próprio acesso admin."})
+
+    table = dynamodb.Table(USERS_TABLE)
+
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="email")
+        if "Item" not in result:
+            return _cors_response(404, {"message": "Usuário não encontrado"})
+    except Exception:
+        return _cors_response(500, {"message": "Erro interno"})
+
+    now = datetime.now(UTC).isoformat()
+
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET #r = :role, updatedAt = :now",
+            ExpressionAttributeNames={"#r": "role"},
+            ExpressionAttributeValues={":role": role, ":now": now},
+        )
+        label = "Administrador" if role == "admin" else "Usuário"
+        _log_auth(email, f"admin_set_role_{role}", True, "admin", admin.get("email", "admin"),
+                   f"by {admin.get('email')}")
+        return _cors_response(200, {"message": f"{email} agora é {label}", "role": role})
+    except Exception as e:
+        logger.error(f"Error setting role for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao alterar role"})
+
+
 def handler(event: dict, context: Any = None) -> dict:
     """Lambda handler — routes to register/login/me/verify/reset/change-password/notifications."""
     method = event.get("httpMethod", "")
@@ -2236,6 +2286,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_admin_list_users(event)
     elif path.endswith("/admin/users/set-plan") and method == "POST":
         return _handle_admin_set_plan(event)
+    elif path.endswith("/admin/users/set-role") and method == "POST":
+        return _handle_admin_set_role(event)
     elif path.endswith("/admin/chat") and method == "GET":
         return _handle_admin_chat_list(event)
     elif path.endswith("/admin/chat/reply") and method == "POST":

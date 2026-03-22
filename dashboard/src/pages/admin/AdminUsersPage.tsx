@@ -26,6 +26,7 @@ const AdminUsersPage: React.FC = () => {
   const [modalDuration, setModalDuration] = useState<string>('30');
   const [modalLoading, setModalLoading] = useState(false);
   const [modalMsg, setModalMsg] = useState('');
+  const [roleLoading, setRoleLoading] = useState<string>(''); // email of user being toggled
 
   const fetchUsers = useCallback(async () => {
     setLoading(true); setError('');
@@ -66,6 +67,23 @@ const AdminUsersPage: React.FC = () => {
     } catch (err: any) {
       setModalMsg(err.message);
     } finally { setModalLoading(false); }
+  };
+
+  const handleSetRole = async (email: string, newRole: 'admin' | 'viewer') => {
+    setRoleLoading(email);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API_BASE_URL}/admin/users/set-role`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, role: newRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro');
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    } finally { setRoleLoading(''); }
   };
 
   const filtered = users
@@ -206,10 +224,18 @@ const AdminUsersPage: React.FC = () => {
                     <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDate(u.createdAt)}</td>
                     <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDateTime(u.lastLoginAt)}</td>
                     <td style={{ padding: '0.5rem 0.4rem' }}>
-                      <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
-                        style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#94a3b8' : '#f59e0b' }}>
-                        {isPro ? 'Rebaixar' : 'Tornar Pro'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
+                          style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#94a3b8' : '#f59e0b' }}>
+                          {isPro ? 'Rebaixar' : 'Tornar Pro'}
+                        </button>
+                        <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
+                          disabled={roleLoading === u.email}
+                          style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#3b82f6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
+                          {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
+                          {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
