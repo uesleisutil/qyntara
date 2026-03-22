@@ -82,9 +82,14 @@ const LoginPage: React.FC = () => {
               />
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', color: '#94a3b8', fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>
-                Senha
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                <label style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: 500 }}>
+                  Senha
+                </label>
+                <Link to="/forgot-password" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.8rem' }}>
+                  Esqueci minha senha
+                </Link>
+              </div>
               <div style={{ position: 'relative' }}>
                 <input
                   type={showPassword ? 'text' : 'password'} value={password}

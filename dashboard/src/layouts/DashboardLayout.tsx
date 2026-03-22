@@ -58,45 +58,49 @@ const DashboardLayout: React.FC = () => {
     navigate('/');
   };
 
+  const handleNav = (path: string) => {
+    navigate(path);
+    setSidebarOpen(false);
+  };
 
-  const SidebarContent = () => (
+  const renderNavButton = (item: { path: string; label: string; icon: React.ReactNode }) => (
+    <button key={item.path} onClick={() => handleNav(item.path)}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
+        padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
+        background: isActive(item.path) ? theme.activeItem : 'transparent',
+        color: isActive(item.path) ? '#3b82f6' : theme.textSecondary,
+        fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
+        transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
+      }}
+      onMouseEnter={e => { if (!isActive(item.path)) e.currentTarget.style.background = theme.hover; }}
+      onMouseLeave={e => { if (!isActive(item.path)) e.currentTarget.style.background = 'transparent'; }}
+    >
+      {item.icon} {item.label}
+      {isActive(item.path) && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
+    </button>
+  );
+
+  const sidebarContent = (
     <>
       {/* Logo */}
       <div style={{
         padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
         borderBottom: `1px solid ${theme.border}`, cursor: 'pointer',
-      }} onClick={() => navigate('/dashboard')}>
+      }} onClick={() => handleNav('/dashboard')}>
         <TrendingUp size={24} color="#3b82f6" />
         <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>B3 Tactical</span>
       </div>
 
       {/* Navigation */}
-      <nav style={{ padding: '1rem 0.5rem', flex: 1 }}>
-        {/* User section */}
+      <nav style={{ padding: '1rem 0.5rem', flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '0 0.5rem', marginBottom: '0.5rem' }}>
           <span style={{ fontSize: '0.7rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Dashboard
           </span>
         </div>
-        {userMenuItems.map(item => (
-          <button key={item.path} onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
-              padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: isActive(item.path) ? theme.activeItem : 'transparent',
-              color: isActive(item.path) ? '#3b82f6' : theme.textSecondary,
-              fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
-              transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
-            }}
-            onMouseEnter={e => { if (!isActive(item.path)) e.currentTarget.style.background = theme.hover; }}
-            onMouseLeave={e => { if (!isActive(item.path)) e.currentTarget.style.background = 'transparent'; }}
-          >
-            {item.icon} {item.label}
-            {isActive(item.path) && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
-          </button>
-        ))}
+        {userMenuItems.map(renderNavButton)}
 
-        {/* Admin section */}
         {isAdmin && (
           <>
             <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
@@ -104,23 +108,7 @@ const DashboardLayout: React.FC = () => {
                 Admin
               </span>
             </div>
-            {adminMenuItems.map(item => (
-              <button key={item.path} onClick={() => { navigate(item.path); setSidebarOpen(false); }}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
-                  padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: isActive(item.path) ? theme.activeItem : 'transparent',
-                  color: isActive(item.path) ? '#3b82f6' : theme.textSecondary,
-                  fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
-                  transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
-                }}
-                onMouseEnter={e => { if (!isActive(item.path)) e.currentTarget.style.background = theme.hover; }}
-                onMouseLeave={e => { if (!isActive(item.path)) e.currentTarget.style.background = 'transparent'; }}
-              >
-                {item.icon} {item.label}
-                {isActive(item.path) && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
-              </button>
-            ))}
+            {adminMenuItems.map(renderNavButton)}
           </>
         )}
       </nav>
@@ -176,39 +164,29 @@ const DashboardLayout: React.FC = () => {
     <div style={{ display: 'flex', minHeight: '100vh', background: theme.bg }}>
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40 }}
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40 }}
+          onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Sidebar - Desktop */}
       <aside style={{
         width: 240, background: theme.sidebar, borderRight: `1px solid ${theme.border}`,
-        display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0,
-        zIndex: 50, transition: 'transform 0.2s',
-        transform: sidebarOpen ? 'translateX(0)' : undefined,
-      }}
-        className="sidebar-desktop"
-      >
-        <SidebarContent />
+        display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 50,
+      }} className="sidebar-desktop">
+        {sidebarContent}
       </aside>
 
       {/* Sidebar - Mobile */}
       <aside style={{
         width: 260, background: theme.sidebar, borderRight: `1px solid ${theme.border}`,
         display: 'none', flexDirection: 'column', position: 'fixed', top: 0, bottom: 0, left: 0,
-        zIndex: 50, transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
-        transition: 'transform 0.2s',
-      }}
-        className="sidebar-mobile"
-      >
-        <SidebarContent />
+        zIndex: 50, transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform 0.2s',
+      }} className="sidebar-mobile">
+        {sidebarContent}
       </aside>
 
       {/* Main content */}
       <main style={{ flex: 1, marginLeft: 240, minHeight: '100vh' }} className="main-content">
-        {/* Top bar */}
         <header style={{
           padding: '0.75rem 1.5rem', borderBottom: `1px solid ${theme.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -232,14 +210,11 @@ const DashboardLayout: React.FC = () => {
             </div>
           </div>
         </header>
-
-        {/* Page content */}
         <div style={{ padding: '1.5rem' }}>
           <Outlet context={{ darkMode, theme }} />
         </div>
       </main>
 
-      {/* Responsive CSS */}
       <style>{`
         @media (max-width: 768px) {
           .sidebar-desktop { display: none !important; }

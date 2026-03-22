@@ -35,7 +35,7 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
     try {
       await register(name, email, password);
-      navigate('/dashboard');
+      navigate('/verify-email');
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
     } finally {

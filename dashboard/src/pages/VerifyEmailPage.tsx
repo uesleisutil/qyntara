@@ -1,0 +1,139 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { TrendingUp, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+
+const VerifyEmailPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, verifyEmail, resendCode } = useAuth();
+  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const email = user?.email || '';
+
+  useEffect(() => {
+    if (!email) navigate('/register');
+  }, [email, navigate]);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const t = setTimeout(() => setCooldown(c => c - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [cooldown]);
+
+  const handleChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newCode = [...code];
+    newCode[index] = value.slice(-1);
+    setCode(newCode);
+    if (value && index < 5) inputRefs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const newCode = [...code];
+    for (let i = 0; i < pasted.length; i++) newCode[i] = pasted[i];
+    setCode(newCode);
+    if (pasted.length > 0) inputRefs.current[Math.min(pasted.length, 5)]?.focus();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(''); setSuccess('');
+    const fullCode = code.join('');
+    if (fullCode.length !== 6) { setError('Digite o código completo de 6 dígitos.'); return; }
+    setLoading(true);
+    try {
+      await verifyEmail(email, fullCode);
+      setSuccess('Email verificado com sucesso!');
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (err: any) {
+      setError(err.message || 'Código inválido ou expirado.');
+    } finally { setLoading(false); }
+  };
+
+  const handleResend = async () => {
+    if (cooldown > 0) return;
+    setResending(true); setError(''); setSuccess('');
+    try {
+      await resendCode(email);
+      setSuccess('Novo código enviado para seu email.');
+      setCooldown(60);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao reenviar código.');
+    } finally { setResending(false); }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: 48, height: 56, textAlign: 'center', fontSize: '1.5rem', fontWeight: 700,
+    background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#f1f5f9', outline: 'none',
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
+          <TrendingUp size={32} color="#3b82f6" />
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>B3 Tactical Ranking</span>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem', textAlign: 'center' }}>Verificar Email</h2>
+          <p style={{ color: '#64748b', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Enviamos um código de 6 dígitos para<br /><span style={{ color: '#3b82f6' }}>{email}</span>
+          </p>
+          {error && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#f87171', fontSize: '0.85rem' }}>
+              <AlertCircle size={16} /> {error}
+            </div>
+          )}
+          {success && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#10b981', fontSize: '0.85rem' }}>
+              <CheckCircle size={16} /> {success}
+            </div>
+          )}
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '1.5rem' }} onPaste={handlePaste}>
+              {code.map((digit, i) => (
+                <input key={i} ref={el => { inputRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1}
+                  value={digit} onChange={e => handleChange(i, e.target.value)} onKeyDown={e => handleKeyDown(i, e)}
+                  style={{ ...inputStyle, borderColor: digit ? '#3b82f6' : '#334155' }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => { if (!digit) e.currentTarget.style.borderColor = '#334155'; }}
+                  aria-label={`Dígito ${i + 1}`} />
+              ))}
+            </div>
+            <button type="submit" disabled={loading} style={{
+              width: '100%', padding: '0.8rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+              border: 'none', color: 'white', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
+              fontWeight: 600, fontSize: '0.95rem', opacity: loading ? 0.7 : 1, transition: 'all 0.2s',
+            }}>
+              {loading ? 'Verificando...' : 'Verificar Email'}
+            </button>
+          </form>
+          <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+            <button onClick={handleResend} disabled={resending || cooldown > 0} style={{
+              background: 'none', border: 'none', color: cooldown > 0 ? '#475569' : '#3b82f6',
+              cursor: cooldown > 0 ? 'default' : 'pointer', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+            }}>
+              <RefreshCw size={14} /> {cooldown > 0 ? `Reenviar em ${cooldown}s` : 'Reenviar código'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VerifyEmailPage;

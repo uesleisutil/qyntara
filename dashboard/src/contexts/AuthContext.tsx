@@ -6,6 +6,7 @@ interface User {
   email: string;
   name?: string;
   role: 'admin' | 'analyst' | 'viewer';
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {
@@ -14,13 +15,17 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
+  resendCode: (email: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours (matches JWT)
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -28,49 +33,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
   const [lastActivity, setLastActivity] = useState(Date.now());
 
-  // Check for existing session on mount
   useEffect(() => {
     const checkSession = async () => {
       try {
         const storedToken = localStorage.getItem('authToken');
         const storedExpiry = localStorage.getItem('sessionExpiry');
-
         if (storedToken && storedExpiry) {
           const expiry = parseInt(storedExpiry, 10);
           if (Date.now() < expiry) {
-            // Validate token with backend
             const res = await fetch(`${AUTH_URL}/me`, {
               headers: { 'Authorization': `Bearer ${storedToken}` },
             });
             if (res.ok) {
               const data = await res.json();
               setUser({
-                id: data.userId,
-                email: data.email,
-                name: data.name,
-                role: data.role || 'viewer',
+                id: data.userId, email: data.email, name: data.name,
+                role: data.role || 'viewer', emailVerified: data.emailVerified ?? true,
               });
-            } else {
-              clearStorage();
-            }
-          } else {
-            clearStorage();
-          }
+            } else { clearStorage(); }
+          } else { clearStorage(); }
         }
       } catch {
-        // Offline or API error - use stored user if available
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           try { setUser(JSON.parse(storedUser)); } catch { clearStorage(); }
         }
-      } finally {
-        setIsLoading(false);
-      }
+      } finally { setIsLoading(false); }
     };
     checkSession();
   }, []);
 
-  // Track activity for session timeout
   useEffect(() => {
     const handleActivity = () => setLastActivity(Date.now());
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
@@ -78,14 +70,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => events.forEach(e => window.removeEventListener(e, handleActivity));
   }, []);
 
-  // Session timeout check
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(() => {
-      if (Date.now() - lastActivity > SESSION_TIMEOUT) {
-        clearStorage();
-        setUser(null);
-      }
+      if (Date.now() - lastActivity > SESSION_TIMEOUT) { clearStorage(); setUser(null); }
     }, 60000);
     return () => clearInterval(interval);
   }, [user, lastActivity]);
@@ -107,66 +95,102 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await fetch(`${AUTH_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.message || 'Falha na autenticação');
     }
-
     const data = await res.json();
     saveSession(data.accessToken, {
-      id: data.userId,
-      email: data.email,
-      name: data.name,
-      role: data.role || 'viewer',
+      id: data.userId, email: data.email, name: data.name,
+      role: data.role || 'viewer', emailVerified: data.emailVerified ?? true,
     });
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
     const res = await fetch(`${AUTH_URL}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password }),
     });
-
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.message || 'Falha no cadastro');
     }
-
     const data = await res.json();
     saveSession(data.accessToken, {
-      id: data.userId,
-      email: data.email,
-      name: data.name,
-      role: data.role || 'viewer',
+      id: data.userId, email: data.email, name: data.name,
+      role: data.role || 'viewer', emailVerified: data.emailVerified ?? false,
     });
   }, []);
 
-  const logout = useCallback(async () => {
-    clearStorage();
-    setUser(null);
+  const verifyEmail = useCallback(async (email: string, code: string) => {
+    const res = await fetch(`${AUTH_URL}/verify-email`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Código inválido');
+    }
+    const data = await res.json();
+    if (data.accessToken) {
+      const storedUser = localStorage.getItem('user');
+      const currentUser = storedUser ? JSON.parse(storedUser) : {};
+      saveSession(data.accessToken, { ...currentUser, emailVerified: true });
+    }
+    if (user) setUser({ ...user, emailVerified: true });
+  }, [user]);
+
+  const resendCode = useCallback(async (email: string) => {
+    const res = await fetch(`${AUTH_URL}/resend-code`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao reenviar código');
+    }
   }, []);
+
+  const forgotPassword = useCallback(async (email: string) => {
+    const res = await fetch(`${AUTH_URL}/forgot-password`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao enviar código');
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (email: string, code: string, newPassword: string) => {
+    const res = await fetch(`${AUTH_URL}/reset-password`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, newPassword }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao redefinir senha');
+    }
+  }, []);
+
+  const logout = useCallback(async () => { clearStorage(); setUser(null); }, []);
 
   const refreshSession = useCallback(async () => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No token');
-    const res = await fetch(`${AUTH_URL}/me`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!res.ok) {
-      await logout();
-      throw new Error('Session expired');
-    }
+    const res = await fetch(`${AUTH_URL}/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) { await logout(); throw new Error('Session expired'); }
     setLastActivity(Date.now());
   }, [logout]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, register, logout, refreshSession }}>
+    <AuthContext.Provider value={{
+      user, isAuthenticated: !!user, isLoading,
+      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, logout, refreshSession,
+    }}>
       {children}
     </AuthContext.Provider>
   );

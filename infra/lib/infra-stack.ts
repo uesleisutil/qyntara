@@ -1011,6 +1011,7 @@ export class InfraStack extends cdk.Stack {
       RATE_LIMITS_TABLE: "B3Dashboard-RateLimits",
       JWT_SECRET: jwtSecret,
       ADMIN_EMAIL: adminEmail,
+      SES_SENDER_EMAIL: adminEmail,
     });
     usersTable.grantReadWriteData(userAuthFn);
 
@@ -1039,6 +1040,22 @@ export class InfraStack extends cdk.Stack {
     authLogin.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const authMe = authResource.addResource("me");
     authMe.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+
+    // Email verification & password reset routes
+    const authVerifyEmail = authResource.addResource("verify-email");
+    authVerifyEmail.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authResendCode = authResource.addResource("resend-code");
+    authResendCode.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authForgotPassword = authResource.addResource("forgot-password");
+    authForgotPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authResetPassword = authResource.addResource("reset-password");
+    authResetPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+
+    // SES permissions for sending verification emails
+    userAuthFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ["ses:SendEmail", "ses:SendRawEmail"],
+      resources: ["*"],
+    }));
 
     // -----------------------
     // Outputs

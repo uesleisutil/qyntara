@@ -31,6 +31,9 @@ from datetime import datetime, UTC, timedelta
 from decimal import Decimal
 from typing import Any, Dict, Optional
 
+import random
+import string
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -39,6 +42,7 @@ logger.setLevel(logging.INFO)
 
 dynamodb = boto3.resource("dynamodb")
 secrets_client = boto3.client("secretsmanager")
+ses_client = boto3.client("ses", region_name="us-east-1")
 
 USERS_TABLE = os.environ.get("USERS_TABLE", "B3Dashboard-Users")
 AUTH_LOGS_TABLE = os.environ.get("AUTH_LOGS_TABLE", "B3Dashboard-AuthLogs")
@@ -46,6 +50,7 @@ RATE_LIMITS_TABLE = os.environ.get("RATE_LIMITS_TABLE", "B3Dashboard-RateLimits"
 JWT_SECRET_ID = os.environ.get("JWT_SECRET_ID", "")
 JWT_SECRET_ENV = os.environ.get("JWT_SECRET", "")  # Fallback only
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "")
+SES_SENDER_EMAIL = os.environ.get("SES_SENDER_EMAIL", os.environ.get("ADMIN_EMAIL", ""))
 
 # ── Security constants ──
 SESSION_HOURS = 24
@@ -60,6 +65,9 @@ EMAIL_MAX_LENGTH = 254
 PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128
 NAME_MAX_LENGTH = 100
+VERIFICATION_CODE_LENGTH = 6
+VERIFICATION_CODE_EXPIRY = 15 * 60  # 15 minutes
+RESET_CODE_EXPIRY = 30 * 60  # 30 minutes
 
 # Cached JWT secret (loaded once per Lambda cold start)
 _jwt_secret_cache: Optional[str] = None
@@ -403,6 +411,127 @@ def _cors_response(status: int, body: dict) -> dict:
 _GENERIC_LOGIN_ERROR = "Email ou senha inválidos"
 
 
+# ── Email verification codes ──
+
+def _generate_code() -> str:
+    """Generate a 6-digit numeric verification code."""
+    return "".join(random.choices(string.digits, k=VERIFICATION_CODE_LENGTH))
+
+
+def _store_verification_code(email: str, code: str, purpose: str = "email_verify") -> None:
+    """Store verification code in RateLimits table (reuse for simplicity)."""
+    table = dynamodb.Table(RATE_LIMITS_TABLE)
+    now = int(time.time())
+    expiry = VERIFICATION_CODE_EXPIRY if purpose == "email_verify" else RESET_CODE_EXPIRY
+    hashed_code = hashlib.sha256(code.encode()).hexdigest()
+    table.put_item(Item={
+        "identifier": f"{purpose}:{email}",
+        "code": hashed_code,
+        "createdAt": now,
+        "ttl": now + expiry + 60,
+        "attempts": 0,
+    })
+
+
+def _verify_code(email: str, code: str, purpose: str = "email_verify") -> bool:
+    """Verify a code — timing-safe, max 5 attempts."""
+    table = dynamodb.Table(RATE_LIMITS_TABLE)
+    key = f"{purpose}:{email}"
+    try:
+        result = table.get_item(Key={"identifier": key})
+        item = result.get("Item")
+        if not item:
+            return False
+
+        # Check max attempts
+        attempts = int(item.get("attempts", 0))
+        if attempts >= 5:
+            return False
+
+        # Increment attempts
+        table.update_item(
+            Key={"identifier": key},
+            UpdateExpression="SET attempts = attempts + :inc",
+            ExpressionAttributeValues={":inc": 1},
+        )
+
+        # Check expiry
+        expiry = VERIFICATION_CODE_EXPIRY if purpose == "email_verify" else RESET_CODE_EXPIRY
+        created = int(item.get("createdAt", 0))
+        if int(time.time()) - created > expiry:
+            return False
+
+        # Timing-safe comparison
+        hashed_input = hashlib.sha256(code.encode()).hexdigest()
+        return hmac.compare_digest(hashed_input, item.get("code", ""))
+    except Exception as e:
+        logger.warning(f"Code verification failed: {e}")
+        return False
+
+
+def _delete_code(email: str, purpose: str = "email_verify") -> None:
+    """Delete used verification code."""
+    try:
+        table = dynamodb.Table(RATE_LIMITS_TABLE)
+        table.delete_item(Key={"identifier": f"{purpose}:{email}"})
+    except Exception:
+        pass
+
+
+def _send_verification_email(email: str, code: str, purpose: str = "email_verify") -> bool:
+    """Send verification code via SES."""
+    sender = SES_SENDER_EMAIL
+    if not sender:
+        logger.error("SES_SENDER_EMAIL not configured")
+        return False
+
+    if purpose == "email_verify":
+        subject = "B3 Tactical Ranking — Código de Verificação"
+        body_html = f"""
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+            <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
+            <p>Seu código de verificação é:</p>
+            <div style="background:#f1f5f9;border-radius:8px;padding:20px;text-align:center;margin:20px 0;">
+                <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#0f172a;">{code}</span>
+            </div>
+            <p style="color:#64748b;font-size:14px;">Este código expira em 15 minutos.</p>
+            <p style="color:#64748b;font-size:14px;">Se você não solicitou este código, ignore este email.</p>
+        </div>
+        """
+        body_text = f"Seu código de verificação B3 Tactical Ranking: {code}\nExpira em 15 minutos."
+    else:
+        subject = "B3 Tactical Ranking — Redefinir Senha"
+        body_html = f"""
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+            <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
+            <p>Você solicitou a redefinição de senha. Use o código abaixo:</p>
+            <div style="background:#f1f5f9;border-radius:8px;padding:20px;text-align:center;margin:20px 0;">
+                <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#0f172a;">{code}</span>
+            </div>
+            <p style="color:#64748b;font-size:14px;">Este código expira em 30 minutos.</p>
+            <p style="color:#64748b;font-size:14px;">Se você não solicitou, ignore este email. Sua senha não será alterada.</p>
+        </div>
+        """
+        body_text = f"Código para redefinir senha B3 Tactical Ranking: {code}\nExpira em 30 minutos."
+
+    try:
+        ses_client.send_email(
+            Source=sender,
+            Destination={"ToAddresses": [email]},
+            Message={
+                "Subject": {"Data": subject, "Charset": "UTF-8"},
+                "Body": {
+                    "Html": {"Data": body_html, "Charset": "UTF-8"},
+                    "Text": {"Data": body_text, "Charset": "UTF-8"},
+                },
+            },
+        )
+        return True
+    except ClientError as e:
+        logger.error(f"SES send failed for {email}: {e}")
+        return False
+
+
 # ── Route handlers ──
 
 def _handle_register(event: dict) -> dict:
@@ -467,6 +596,7 @@ def _handle_register(event: dict) -> dict:
                 "createdAt": now,
                 "updatedAt": now,
                 "enabled": True,
+                "emailVerified": False,
                 "failedAttempts": 0,
             },
             ConditionExpression="attribute_not_exists(email)",  # Prevent race condition
@@ -477,12 +607,18 @@ def _handle_register(event: dict) -> dict:
         logger.error(f"DynamoDB error creating user: {e}")
         return _cors_response(500, {"message": "Erro interno"})
 
-    # Issue JWT
+    # Send verification code
+    code = _generate_code()
+    _store_verification_code(email, code, "email_verify")
+    _send_verification_email(email, code, "email_verify")
+
+    # Issue JWT (limited — emailVerified=false)
     token = _create_jwt({
         "sub": user_id,
         "email": email,
         "role": role,
         "name": name,
+        "emailVerified": False,
         "exp": int(time.time()) + SESSION_HOURS * 3600,
     })
 
@@ -494,6 +630,8 @@ def _handle_register(event: dict) -> dict:
         "email": email,
         "name": name,
         "role": role,
+        "emailVerified": False,
+        "message": "Conta criada. Verifique seu email para ativar.",
     })
 
 
@@ -598,6 +736,7 @@ def _handle_login(event: dict) -> dict:
         "email": email,
         "name": item.get("name", ""),
         "role": item.get("role", "viewer"),
+        "emailVerified": item.get("emailVerified", True),
     })
 
 
@@ -625,8 +764,194 @@ def _handle_me(event: dict) -> dict:
     })
 
 
+def _handle_verify_email(event: dict) -> dict:
+    """Verify email with 6-digit code."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    if _check_rate_limit(ip):
+        return _cors_response(429, {"message": "Muitas tentativas. Aguarde 15 minutos."})
+    _increment_rate_limit(ip)
+
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    code = _sanitize_string(body.get("code", ""), 10)
+
+    if not email or not code:
+        return _cors_response(400, {"message": "Email e código são obrigatórios"})
+
+    if not _verify_code(email, code, "email_verify"):
+        _log_auth(email, "verify_email", False, ip, ua, "invalid_code")
+        return _cors_response(400, {"message": "Código inválido ou expirado"})
+
+    # Mark email as verified
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET emailVerified = :v, updatedAt = :now",
+            ExpressionAttributeValues={":v": True, ":now": datetime.now(UTC).isoformat()},
+            ReturnValues="ALL_NEW",
+        )
+        item = result.get("Attributes", {})
+    except ClientError as e:
+        logger.error(f"DynamoDB error verifying email: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+    _delete_code(email, "email_verify")
+
+    # Issue fresh JWT with emailVerified=true
+    token = _create_jwt({
+        "sub": item.get("userId", ""),
+        "email": email,
+        "role": item.get("role", "viewer"),
+        "name": item.get("name", ""),
+        "emailVerified": True,
+        "exp": int(time.time()) + SESSION_HOURS * 3600,
+    })
+
+    _log_auth(email, "verify_email", True, ip, ua)
+
+    return _cors_response(200, {
+        "message": "Email verificado com sucesso",
+        "accessToken": token,
+        "emailVerified": True,
+    })
+
+
+def _handle_resend_code(event: dict) -> dict:
+    """Resend verification code."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    if _check_rate_limit(ip):
+        return _cors_response(429, {"message": "Muitas tentativas. Aguarde 15 minutos."})
+    _increment_rate_limit(ip)
+
+    raw_body = event.get("body", "") or ""
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    if not email:
+        return _cors_response(400, {"message": "Email inválido"})
+
+    # Always return success to prevent enumeration
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="email, emailVerified")
+        item = result.get("Item")
+        if item and not item.get("emailVerified", True):
+            code = _generate_code()
+            _store_verification_code(email, code, "email_verify")
+            _send_verification_email(email, code, "email_verify")
+    except Exception as e:
+        logger.warning(f"Resend code error: {e}")
+
+    _log_auth(email, "resend_code", True, ip, ua)
+    return _cors_response(200, {"message": "Se o email existir, um novo código foi enviado."})
+
+
+def _handle_forgot_password(event: dict) -> dict:
+    """Send password reset code to email."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    if _check_rate_limit(ip):
+        return _cors_response(429, {"message": "Muitas tentativas. Aguarde 15 minutos."})
+    _increment_rate_limit(ip)
+
+    raw_body = event.get("body", "") or ""
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    if not email:
+        return _cors_response(400, {"message": "Email inválido"})
+
+    # Always return success to prevent enumeration
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="email, enabled")
+        item = result.get("Item")
+        if item and item.get("enabled", True):
+            code = _generate_code()
+            _store_verification_code(email, code, "password_reset")
+            _send_verification_email(email, code, "password_reset")
+    except Exception as e:
+        logger.warning(f"Forgot password error: {e}")
+
+    _log_auth(email, "forgot_password", True, ip, ua)
+    return _cors_response(200, {"message": "Se o email existir, um código de redefinição foi enviado."})
+
+
+def _handle_reset_password(event: dict) -> dict:
+    """Reset password with verification code."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    if _check_rate_limit(ip):
+        return _cors_response(429, {"message": "Muitas tentativas. Aguarde 15 minutos."})
+    _increment_rate_limit(ip)
+
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    code = _sanitize_string(body.get("code", ""), 10)
+    new_password = body.get("newPassword", "")
+
+    if not email or not code or not new_password:
+        return _cors_response(400, {"message": "Email, código e nova senha são obrigatórios"})
+
+    pwd_error = _validate_password(new_password)
+    if pwd_error:
+        return _cors_response(400, {"message": pwd_error})
+
+    if not _verify_code(email, code, "password_reset"):
+        _log_auth(email, "reset_password", False, ip, ua, "invalid_code")
+        return _cors_response(400, {"message": "Código inválido ou expirado"})
+
+    # Update password
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET passwordHash = :h, updatedAt = :now, failedAttempts = :zero REMOVE lockedUntil",
+            ExpressionAttributeValues={
+                ":h": _hash_password(new_password),
+                ":now": datetime.now(UTC).isoformat(),
+                ":zero": 0,
+            },
+        )
+    except ClientError as e:
+        logger.error(f"DynamoDB error resetting password: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+    _delete_code(email, "password_reset")
+    _log_auth(email, "reset_password", True, ip, ua)
+
+    return _cors_response(200, {"message": "Senha redefinida com sucesso. Faça login com a nova senha."})
+
+
 def handler(event: dict, context: Any = None) -> dict:
-    """Lambda handler — routes to register/login/me."""
+    """Lambda handler — routes to register/login/me/verify/reset."""
     method = event.get("httpMethod", "")
     if method == "OPTIONS":
         return _cors_response(200, {})
@@ -639,5 +964,13 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_login(event)
     elif path.endswith("/auth/me") and method == "GET":
         return _handle_me(event)
+    elif path.endswith("/auth/verify-email") and method == "POST":
+        return _handle_verify_email(event)
+    elif path.endswith("/auth/resend-code") and method == "POST":
+        return _handle_resend_code(event)
+    elif path.endswith("/auth/forgot-password") and method == "POST":
+        return _handle_forgot_password(event)
+    elif path.endswith("/auth/reset-password") and method == "POST":
+        return _handle_reset_password(event)
     else:
         return _cors_response(404, {"message": "Not found"})

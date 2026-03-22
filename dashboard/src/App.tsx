@@ -7,6 +7,9 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import RecommendationsPage from './pages/dashboard/RecommendationsPage';
 import ExplainabilityPage from './pages/dashboard/ExplainabilityPage';
 import BacktestingPage from './pages/dashboard/BacktestingPage';
@@ -26,20 +29,18 @@ const queryClient = new QueryClient({
   },
 });
 
-// Protected route wrapper
+// Protected route wrapper — also redirects unverified emails
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   if (isLoading) {
     return (
-      <div style={{
-        minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', color: '#94a3b8',
-      }}>
+      <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
         Carregando...
       </div>
     );
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user && user.emailVerified === false) return <Navigate to="/verify-email" replace />;
   return <>{children}</>;
 };
 
@@ -48,24 +49,30 @@ const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const { user, isAuthenticated, isLoading } = useAuth();
   if (isLoading) {
     return (
-      <div style={{
-        minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', color: '#94a3b8',
-      }}>
+      <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
         Carregando...
       </div>
     );
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user && user.emailVerified === false) return <Navigate to="/verify-email" replace />;
   if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
 
 // Redirect authenticated users away from public pages
 const PublicOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  if (isLoading) return null;
+  if (isAuthenticated && user?.emailVerified !== false) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
+
+// Requires login but NOT email verification (for verify-email page)
+const RequireLoginOnly: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) return null;
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
 };
 
@@ -76,6 +83,9 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<PublicOnly><LandingPage /></PublicOnly>} />
       <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
       <Route path="/register" element={<PublicOnly><RegisterPage /></PublicOnly>} />
+      <Route path="/verify-email" element={<RequireLoginOnly><VerifyEmailPage /></RequireLoginOnly>} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* User dashboard */}
       <Route path="/dashboard" element={<RequireAuth><DashboardLayout /></RequireAuth>}>
