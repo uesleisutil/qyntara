@@ -1008,6 +1008,7 @@ export class InfraStack extends cdk.Stack {
     const userAuthFn = mkPyLambda("UserAuth", "ml.src.lambdas.user_auth.handler", {
       USERS_TABLE: usersTable.tableName,
       AUTH_LOGS_TABLE: "B3Dashboard-AuthLogs",
+      RATE_LIMITS_TABLE: "B3Dashboard-RateLimits",
       JWT_SECRET: jwtSecret,
       ADMIN_EMAIL: adminEmail,
     });
@@ -1017,6 +1018,12 @@ export class InfraStack extends cdk.Stack {
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
       actions: ["dynamodb:PutItem"],
       resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-AuthLogs`],
+    }));
+
+    // Grant rate limits table access
+    userAuthFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ["dynamodb:GetItem", "dynamodb:UpdateItem", "dynamodb:PutItem"],
+      resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-RateLimits`],
     }));
 
     const userAuthIntegration = new apigateway.LambdaIntegration(userAuthFn, {
