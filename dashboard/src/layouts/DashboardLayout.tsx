@@ -32,14 +32,14 @@ const DashboardLayout: React.FC = () => {
 
   const userMenuItems = [
     { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} /> },
-    { path: '/dashboard/tracking', label: 'Acompanhamento', icon: <Target size={18} /> },
     { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} /> },
     { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} /> },
+    { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} /> },
   ];
 
   const proMenuItems = [
+    { path: '/dashboard/tracking', label: 'Acompanhamento', icon: <Target size={18} /> },
     { path: '/dashboard/portfolio', label: 'Carteira Modelo', icon: <Briefcase size={18} /> },
-    { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} /> },
   ];
 
   const adminMenuItems = [

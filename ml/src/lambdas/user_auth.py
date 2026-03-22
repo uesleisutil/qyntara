@@ -395,7 +395,7 @@ def _cors_response(status: int, body: dict) -> dict:
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Api-Key",
-            "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+            "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
             # Security headers
             "Cache-Control": "no-store, no-cache, must-revalidate",
             "Pragma": "no-cache",
