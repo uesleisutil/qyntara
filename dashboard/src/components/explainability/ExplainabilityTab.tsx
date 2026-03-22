@@ -3,6 +3,7 @@ import { Info, RefreshCw } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 import { useIsPro } from '../shared/ProGate';
+import ProBlur from '../shared/ProBlur';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
@@ -189,18 +190,20 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             </div>
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <SHAPWaterfallChart ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
-          </div>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <ExplanationText ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
-          </div>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <SensitivityAnalysis ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
-          </div>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <FeatureImpactChart tickers={tickers} darkMode={darkMode} />
-          </div>
+          <ProBlur isPro={isPro} darkMode={darkMode} label="Desbloqueie gráficos detalhados de explicabilidade">
+            <div style={{ marginBottom: '1.5rem' }}>
+              <SHAPWaterfallChart ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <ExplanationText ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <SensitivityAnalysis ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
+            </div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <FeatureImpactChart tickers={tickers} darkMode={darkMode} />
+            </div>
+          </ProBlur>
         </>
       )}
     </div>

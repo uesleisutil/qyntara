@@ -1,0 +1,44 @@
+import React from 'react';
+import { Lock } from 'lucide-react';
+
+interface Props {
+  isPro: boolean;
+  darkMode: boolean;
+  label?: string;
+  children: React.ReactNode;
+}
+
+const ProBlur: React.FC<Props> = ({ isPro, darkMode, label = 'Disponível no plano Pro', children }) => {
+  if (isPro) return <>{children}</>;
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div style={{ filter: 'blur(6px)', pointerEvents: 'none', userSelect: 'none' }}>
+        {children}
+      </div>
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+        background: darkMode ? 'rgba(15,23,42,0.6)' : 'rgba(248,250,252,0.6)',
+        borderRadius: 12,
+      }}>
+        <div style={{
+          textAlign: 'center', padding: '1.5rem 2rem', borderRadius: 12,
+          background: darkMode ? '#1e293b' : '#ffffff',
+          border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+          maxWidth: 320,
+        }}>
+          <Lock size={24} color="#f59e0b" style={{ marginBottom: 8 }} />
+          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: darkMode ? '#f1f5f9' : '#0f172a', marginBottom: 4 }}>
+            {label}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: darkMode ? '#94a3b8' : '#64748b', lineHeight: 1.5 }}>
+            Assine o plano Pro para acessar análises completas de explicabilidade.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProBlur;
