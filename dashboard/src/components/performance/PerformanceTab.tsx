@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Crown, TrendingUp, BarChart3, Target, Award, Calendar } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../shared/InfoTooltip';
+import ShareButton from '../shared/ShareButton';
 
 interface PerformanceTabProps { darkMode?: boolean; }
 
@@ -276,8 +277,14 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
           ? (darkMode ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)')
           : (darkMode ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.15)'),
       }}>
-        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text, marginBottom: 2 }}>
-          {perfData.alpha >= 0 ? '✅ Modelo superou o mercado' : '⚠️ Modelo abaixo do mercado'}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>
+            {perfData.alpha >= 0 ? '✅ Modelo superou o mercado' : '⚠️ Modelo abaixo do mercado'}
+          </div>
+          <ShareButton
+            text={`📈 B3 Tactical Ranking — Performance\nRetorno realizado: ${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%\nAlpha vs mercado: ${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha, 2)}pp\nWin rate: ${fmt(perfData.buyWinRate * 100, 0)}%\n${perfData.totalDays} pregões analisados`}
+            darkMode={darkMode}
+          />
         </div>
         <div style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>
           {perfData.alpha >= 0

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
+import OnboardingModal, { shouldShowOnboarding } from '../components/shared/OnboardingModal';
 import { ProBadge } from '../components/shared/ProGate';
 
 const DashboardLayout: React.FC = () => {
@@ -15,6 +16,7 @@ const DashboardLayout: React.FC = () => {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : true;
@@ -29,6 +31,14 @@ const DashboardLayout: React.FC = () => {
 
   const isAdmin = user?.role === 'admin';
   const isPro = user?.plan === 'pro' || user?.role === 'admin';
+
+  // Show onboarding on first visit
+  React.useEffect(() => {
+    if (shouldShowOnboarding()) {
+      const timer = setTimeout(() => setShowOnboarding(true), 600);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const userMenuItems = [
     { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} /> },
@@ -350,6 +360,11 @@ const DashboardLayout: React.FC = () => {
           .mobile-menu-btn { display: flex !important; }
         }
       `}</style>
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <OnboardingModal darkMode={darkMode} onClose={() => setShowOnboarding(false)} />
+      )}
     </div>
   );
 };

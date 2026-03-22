@@ -1067,6 +1067,8 @@ export class InfraStack extends cdk.Stack {
     authResetPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const authChangePassword = authResource.addResource("change-password");
     authChangePassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authStats = authResource.addResource("stats");
+    authStats.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
 
     // /admin/notifications routes (JWT-protected, admin only)
     const adminResource = api.root.addResource("admin");

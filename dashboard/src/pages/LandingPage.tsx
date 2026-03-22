@@ -7,6 +7,7 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [trackRecord, setTrackRecord] = useState<{ totalReturn: number; alpha: number; winRate: number; days: number } | null>(null);
+  const [socialProof, setSocialProof] = useState<{ userCount: number; lastUpdate: string }>({ userCount: 0, lastUpdate: '' });
 
   useEffect(() => {
     (async () => {
@@ -66,6 +67,30 @@ const LandingPage: React.FC = () => {
           winRate: dailyReturns.length > 0 ? (buyWins / dailyReturns.length) * 100 : 0,
           days: dailyReturns.length,
         });
+      } catch {}
+    })();
+  }, []);
+
+  // Fetch social proof: user count + last recommendation date
+  useEffect(() => {
+    (async () => {
+      try {
+        const headers = { 'x-api-key': API_KEY };
+        const [statsRes, recRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/auth/stats`).catch(() => null),
+          fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers }),
+        ]);
+        let userCount = 0;
+        if (statsRes && statsRes.ok) {
+          const sd = await statsRes.json();
+          userCount = sd.userCount || 0;
+        }
+        let lastUpdate = '';
+        if (recRes && recRes.ok) {
+          const rd = await recRes.json();
+          lastUpdate = rd.date || '';
+        }
+        setSocialProof({ userCount, lastUpdate });
       } catch {}
     })();
   }, []);
@@ -170,7 +195,7 @@ const LandingPage: React.FC = () => {
       }}>
         {[
           { value: '46', label: 'Ações analisadas diariamente' },
-          { value: '20+', label: 'Indicadores por ação' },
+          { value: socialProof.userCount > 0 ? `${socialProof.userCount}+` : '20+', label: 'Investidores cadastrados' },
           { value: '100%', label: 'Automatizado por ML' },
         ].map((s, i) => (
           <div key={i} style={{ textAlign: 'center', minWidth: 120 }}>
@@ -179,6 +204,18 @@ const LandingPage: React.FC = () => {
           </div>
         ))}
       </section>
+      {/* Last update timestamp */}
+      {socialProof.lastUpdate && (
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.25rem 0.75rem', borderRadius: 20, fontSize: '0.72rem',
+            background: 'rgba(16,185,129,0.1)', color: '#10b981', fontWeight: 500,
+          }}>
+            ● Última atualização: {new Date(socialProof.lastUpdate + 'T18:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+          </span>
+        </div>
+      )}
 
       {/* How it works */}
       <section style={{

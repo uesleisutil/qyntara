@@ -1249,6 +1249,19 @@ def _handle_get_user_notifications(event: dict) -> dict:
         return _cors_response(200, {"notifications": []})
 
 
+def _handle_stats(event: dict) -> dict:
+    """Public endpoint: return user count and last recommendation date."""
+    try:
+        table = dynamodb.Table(USERS_TABLE)
+        # Use scan with Select=COUNT for efficiency (no data returned)
+        result = table.scan(Select="COUNT")
+        user_count = result.get("Count", 0)
+        return _cors_response(200, {"userCount": user_count})
+    except Exception as e:
+        logger.error(f"Error fetching stats: {e}")
+        return _cors_response(200, {"userCount": 0})
+
+
 def handler(event: dict, context: Any = None) -> dict:
     """Lambda handler — routes to register/login/me/verify/reset/change-password/notifications."""
     method = event.get("httpMethod", "")
@@ -1283,5 +1296,7 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_delete_notification(event)
     elif path.endswith("/notifications") and method == "GET" and not path.endswith("/admin/notifications"):
         return _handle_get_user_notifications(event)
+    elif path.endswith("/auth/stats") and method == "GET":
+        return _handle_stats(event)
     else:
         return _cors_response(404, {"message": "Not found"})

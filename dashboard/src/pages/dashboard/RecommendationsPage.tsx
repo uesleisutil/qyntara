@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock, Lock, Crown, Eye, Zap, DollarSign } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
+import ShareButton from '../../components/shared/ShareButton';
 import { useIsPro } from '../../components/shared/ProGate';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
@@ -173,6 +174,12 @@ const RecommendationsPage: React.FC = () => {
             <Zap size={18} color="#3b82f6" />
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>Resumo do Dia</span>
             <span style={{ fontSize: '0.68rem', color: theme.textSecondary }}>{date}</span>
+            <span style={{ marginLeft: 'auto' }}>
+              <ShareButton
+                text={`📊 B3 Tactical Ranking — ${date}\n${totalBuy} sinais de compra, ${totalSell} de venda, ${totalNeutral} neutros.\nTop sinal: ${topTicker?.ticker || '—'} (score ${topTicker ? fmt(topTicker.score, 2) : '—'})\nRetorno médio previsto (compra): ${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 2)}%`}
+                darkMode={darkMode}
+              />
+            </span>
           </div>
           <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ fontSize: '0.82rem', color: theme.textSecondary, lineHeight: 1.6 }}>
