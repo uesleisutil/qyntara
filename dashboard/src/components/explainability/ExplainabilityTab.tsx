@@ -1,17 +1,6 @@
-/**
- * ExplainabilityTab Component
- * 
- * Main tab for model explainability features including:
- * - SHAP value visualization
- * - Sensitivity analysis
- * - Aggregate feature impact
- * - Natural language explanations
- * 
- * Requirements: 29.1, 30.1, 31.1, 32.1
- */
-
-import React, { useState } from 'react';
-import { Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Info, RefreshCw } from 'lucide-react';
+import { API_BASE_URL, API_KEY } from '../../config';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
@@ -21,12 +10,19 @@ interface ExplainabilityTabProps {
   darkMode?: boolean;
 }
 
+interface TickerData {
+  ticker: string;
+  last_close: number;
+  pred_price_t_plus_20: number;
+  exp_return_20: number;
+  vol_20d: number;
+  score: number;
+}
+
 const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false }) => {
-  const [selectedTicker, setSelectedTicker] = useState<string>('PETR4');
-  const [availableTickers] = useState<string[]>([
-    'PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'ABEV3', 
-    'WEGE3', 'RENT3', 'MGLU3', 'B3SA3', 'SUZB3'
-  ]);
+  const [selectedTicker, setSelectedTicker] = useState<string>('');
+  const [tickers, setTickers] = useState<TickerData[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const theme = {
     bg: darkMode ? '#0f172a' : '#f8fafc',
@@ -36,84 +32,90 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
     border: darkMode ? '#334155' : '#e2e8f0',
   };
 
+  useEffect(() => {
+    const fetchTickers = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, {
+          headers: { 'x-api-key': API_KEY },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const recs: TickerData[] = data.recommendations || [];
+          recs.sort((a, b) => b.score - a.score);
+          setTickers(recs);
+          if (recs.length > 0 && !selectedTicker) setSelectedTicker(recs[0].ticker);
+        }
+      } catch (err) { console.error(err); }
+      finally { setLoading(false); }
+    };
+    fetchTickers();
+  }, []);
+
+  const currentTicker = tickers.find(t => t.ticker === selectedTicker) || null;
+
+  if (loading) {
+    return (
+      <div style={{ backgroundColor: theme.cardBg, padding: '2rem', borderRadius: 12, textAlign: 'center' }}>
+        <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} />
+        <span style={{ color: theme.textSecondary }}>Carregando dados...</span>
+      </div>
+    );
+  }
+
   return (
     <div>
-      {/* Header */}
       <div style={{
-        backgroundColor: theme.cardBg,
-        padding: '1.5rem',
-        borderRadius: '12px',
-        marginBottom: '1.5rem',
+        backgroundColor: theme.cardBg, padding: '1.25rem', borderRadius: 12, marginBottom: '1.5rem',
         boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
           <Info size={24} color="#3b82f6" />
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700', color: theme.text }}>
-            Model Explainability
+          <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: theme.text }}>
+            Explicabilidade do Modelo
           </h2>
         </div>
-        <p style={{ margin: 0, color: theme.textSecondary, fontSize: '0.875rem' }}>
-          Understand how the model makes predictions through SHAP values, sensitivity analysis, and feature impacts
-        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: theme.text }}>Selecionar Ação:</label>
+          <select
+            value={selectedTicker}
+            onChange={(e) => setSelectedTicker(e.target.value)}
+            style={{
+              padding: '0.5rem 0.75rem', fontSize: '0.9rem', border: `1px solid ${theme.border}`,
+              borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer', minWidth: 200,
+            }}
+          >
+            {tickers.map(t => (
+              <option key={t.ticker} value={t.ticker}>
+                {t.ticker} (Score: {t.score.toFixed(2)})
+              </option>
+            ))}
+          </select>
+          {currentTicker && (
+            <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>
+              Preço: R$ {currentTicker.last_close.toFixed(2)} → R$ {currentTicker.pred_price_t_plus_20.toFixed(2)} | 
+              Retorno: {(currentTicker.exp_return_20 * 100).toFixed(1)}% | Vol: {(currentTicker.vol_20d * 100).toFixed(1)}%
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Ticker Selector */}
-      <div style={{
-        backgroundColor: theme.cardBg,
-        padding: '1.25rem',
-        borderRadius: '12px',
-        marginBottom: '1.5rem',
-        boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
-      }}>
-        <label style={{
-          display: 'block',
-          marginBottom: '0.5rem',
-          fontSize: '0.875rem',
-          fontWeight: '600',
-          color: theme.text
-        }}>
-          Select Ticker
-        </label>
-        <select
-          value={selectedTicker}
-          onChange={(e) => setSelectedTicker(e.target.value)}
-          style={{
-            width: '100%',
-            maxWidth: '300px',
-            padding: '0.625rem 0.875rem',
-            fontSize: '0.9375rem',
-            border: `1px solid ${theme.border}`,
-            borderRadius: '8px',
-            backgroundColor: theme.cardBg,
-            color: theme.text,
-            cursor: 'pointer'
-          }}
-        >
-          {availableTickers.map(ticker => (
-            <option key={ticker} value={ticker}>{ticker}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* SHAP Waterfall Chart Section */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <SHAPWaterfallChart ticker={selectedTicker} darkMode={darkMode} />
-      </div>
-
-      {/* Natural Language Explanation Section */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <ExplanationText ticker={selectedTicker} darkMode={darkMode} />
-      </div>
-
-      {/* Sensitivity Analysis Section */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <SensitivityAnalysis ticker={selectedTicker} darkMode={darkMode} />
-      </div>
-
-      {/* Aggregate Feature Impact Section */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <FeatureImpactChart darkMode={darkMode} />
-      </div>
+      {currentTicker && (
+        <>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <SHAPWaterfallChart ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
+          </div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <ExplanationText ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
+          </div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <SensitivityAnalysis ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
+          </div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <FeatureImpactChart tickers={tickers} darkMode={darkMode} />
+          </div>
+        </>
+      )}
     </div>
   );
 };
