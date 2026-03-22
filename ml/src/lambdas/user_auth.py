@@ -52,6 +52,12 @@ JWT_SECRET_ENV = os.environ.get("JWT_SECRET", "")  # Fallback only
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "")
 SES_SENDER_EMAIL = os.environ.get("SES_SENDER_EMAIL", os.environ.get("ADMIN_EMAIL", ""))
 
+# Stripe
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_ID = os.environ.get("STRIPE_PRICE_ID", "")  # price_xxx for R$49/mo
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://uesleisutil.github.io/b3-tactical-ranking")
+
 # ── Security constants ──
 SESSION_HOURS = 24
 PBKDF2_ITERATIONS = 600_000  # OWASP 2024 recommendation for SHA-256
@@ -758,13 +764,49 @@ def _handle_me(event: dict) -> dict:
     if not payload:
         return _cors_response(401, {"message": "Token inválido ou expirado"})
 
-    return _cors_response(200, {
-        "userId": payload.get("sub"),
-        "email": payload.get("email"),
-        "name": payload.get("name"),
-        "role": payload.get("role"),
-        "plan": payload.get("plan", "free"),
-    })
+    email = payload.get("email", "")
+
+    # Fetch fresh data from DB (plan may have changed or expired)
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email})
+        item = result.get("Item", {})
+        plan = item.get("plan", "free")
+        plan_expires = item.get("planExpiresAt", "")
+
+        # Auto-downgrade if plan expired
+        if plan == "pro" and plan_expires:
+            try:
+                exp_dt = datetime.fromisoformat(plan_expires.replace("Z", "+00:00"))
+                if datetime.now(UTC) > exp_dt:
+                    plan = "free"
+                    table.update_item(
+                        Key={"email": email},
+                        UpdateExpression="SET #p = :free, updatedAt = :now REMOVE planExpiresAt",
+                        ExpressionAttributeNames={"#p": "plan"},
+                        ExpressionAttributeValues={":free": "free", ":now": datetime.now(UTC).isoformat()},
+                    )
+                    logger.info(f"Auto-downgraded expired plan for {email}")
+            except Exception:
+                pass
+
+        return _cors_response(200, {
+            "userId": item.get("userId", payload.get("sub")),
+            "email": email,
+            "name": item.get("name", payload.get("name")),
+            "role": item.get("role", payload.get("role")),
+            "plan": plan,
+            "planExpiresAt": plan_expires if plan == "pro" else "",
+        })
+    except Exception:
+        # Fallback to JWT data
+        return _cors_response(200, {
+            "userId": payload.get("sub"),
+            "email": payload.get("email"),
+            "name": payload.get("name"),
+            "role": payload.get("role"),
+            "plan": payload.get("plan", "free"),
+        })
 
 
 def _handle_verify_email(event: dict) -> dict:
@@ -1039,6 +1081,7 @@ def _handle_change_password(event: dict) -> dict:
 # ── Notifications (Admin) ──
 
 NOTIFICATIONS_TABLE = os.environ.get("NOTIFICATIONS_TABLE", "B3Dashboard-Notifications")
+CHAT_TABLE = os.environ.get("CHAT_TABLE", "B3Dashboard-Chat")
 
 
 def _require_admin(event: dict) -> Optional[dict]:
@@ -1398,6 +1441,759 @@ def _handle_stats(event: dict) -> dict:
         return _cors_response(200, {"userCount": 0})
 
 
+# ── Stripe helpers ──
+
+def _stripe_request(method: str, endpoint: str, data: dict = None) -> dict:
+    """Make a request to Stripe API using urllib (no external deps)."""
+    import urllib.request
+    import urllib.parse
+    import urllib.error
+
+    url = f"https://api.stripe.com/v1/{endpoint}"
+    headers_dict = {
+        "Authorization": f"Bearer {STRIPE_SECRET_KEY}",
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+    body = None
+    if data:
+        body = urllib.parse.urlencode(_flatten_dict(data)).encode("utf-8")
+
+    req = urllib.request.Request(url, data=body, headers=headers_dict, method=method)
+    try:
+        with urllib.request.urlopen(req) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8")
+        logger.error(f"Stripe API error {e.code}: {error_body}")
+        raise Exception(f"Stripe error {e.code}: {error_body}")
+
+
+def _flatten_dict(d: dict, parent_key: str = "") -> list:
+    """Flatten nested dict for Stripe's form-encoded API. Returns list of (key, value) tuples."""
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}[{k}]" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(_flatten_dict(v, new_key))
+        elif isinstance(v, list):
+            for i, item in enumerate(v):
+                if isinstance(item, dict):
+                    items.extend(_flatten_dict(item, f"{new_key}[{i}]"))
+                else:
+                    items.append((f"{new_key}[{i}]", str(item)))
+        else:
+            items.append((new_key, str(v)))
+    return items
+
+
+def _verify_stripe_signature(payload: str, sig_header: str) -> bool:
+    """Verify Stripe webhook signature (v1)."""
+    if not STRIPE_WEBHOOK_SECRET or not sig_header:
+        return False
+    try:
+        elements = {}
+        for part in sig_header.split(","):
+            k, v = part.strip().split("=", 1)
+            elements.setdefault(k, []).append(v)
+
+        timestamp = elements.get("t", [None])[0]
+        signatures = elements.get("v1", [])
+        if not timestamp or not signatures:
+            return False
+
+        # Check timestamp tolerance (5 min)
+        if abs(int(time.time()) - int(timestamp)) > 300:
+            return False
+
+        signed_payload = f"{timestamp}.{payload}"
+        expected = hmac.new(
+            STRIPE_WEBHOOK_SECRET.encode("utf-8"),
+            signed_payload.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return any(hmac.compare_digest(expected, s) for s in signatures)
+    except Exception as e:
+        logger.error(f"Stripe signature verification failed: {e}")
+        return False
+
+
+def _handle_create_checkout(event: dict) -> dict:
+    """POST /auth/create-checkout — create Stripe Checkout Session for Pro upgrade."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    if not STRIPE_SECRET_KEY or not STRIPE_PRICE_ID:
+        return _cors_response(503, {"message": "Pagamento não configurado. Entre em contato pelo WhatsApp."})
+
+    # Verify JWT
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token não fornecido"})
+
+    payload = _verify_jwt(auth[7:].strip())
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido ou expirado"})
+
+    email = payload.get("email", "")
+    user_id = payload.get("sub", "")
+
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    # Check if already pro
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="#p, stripeCustomerId", ExpressionAttributeNames={"#p": "plan"})
+        item = result.get("Item", {})
+        if item.get("plan") == "pro":
+            return _cors_response(400, {"message": "Você já é Pro!"})
+    except Exception:
+        pass
+
+    try:
+        # Check if user already has a Stripe customer ID
+        stripe_customer_id = item.get("stripeCustomerId", "")
+
+        if not stripe_customer_id:
+            # Create Stripe customer
+            customer = _stripe_request("POST", "customers", {
+                "email": email,
+                "metadata": {"userId": user_id, "source": "b3tactical"},
+            })
+            stripe_customer_id = customer["id"]
+
+            # Save customer ID
+            table.update_item(
+                Key={"email": email},
+                UpdateExpression="SET stripeCustomerId = :cid",
+                ExpressionAttributeValues={":cid": stripe_customer_id},
+            )
+
+        # Create Checkout Session
+        session = _stripe_request("POST", "checkout/sessions", {
+            "customer": stripe_customer_id,
+            "mode": "subscription",
+            "payment_method_types": {"0": "card"},
+            "line_items": {"0": {"price": STRIPE_PRICE_ID, "quantity": "1"}},
+            "success_url": f"{FRONTEND_URL}/#/dashboard/upgrade?session_id={{CHECKOUT_SESSION_ID}}&status=success",
+            "cancel_url": f"{FRONTEND_URL}/#/dashboard/upgrade?status=cancelled",
+            "metadata": {"userId": user_id, "email": email},
+            "subscription_data": {"metadata": {"userId": user_id, "email": email}},
+            "allow_promotion_codes": "true",
+        })
+
+        _log_auth(email, "create_checkout", True, ip, ua)
+
+        return _cors_response(200, {
+            "checkoutUrl": session["url"],
+            "sessionId": session["id"],
+        })
+
+    except Exception as e:
+        logger.error(f"Stripe checkout creation failed: {e}")
+        _log_auth(email, "create_checkout", False, ip, ua, str(e))
+        return _cors_response(500, {"message": "Erro ao criar sessão de pagamento. Tente novamente."})
+
+
+def _handle_stripe_webhook(event: dict) -> dict:
+    """POST /auth/stripe-webhook — handle Stripe webhook events."""
+    raw_body = event.get("body", "") or ""
+    headers = event.get("headers", {}) or {}
+    sig = headers.get("Stripe-Signature", headers.get("stripe-signature", ""))
+
+    if not _verify_stripe_signature(raw_body, sig):
+        logger.warning("Stripe webhook: invalid signature")
+        return _cors_response(400, {"message": "Invalid signature"})
+
+    try:
+        evt = json.loads(raw_body)
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "Invalid JSON"})
+
+    evt_type = evt.get("type", "")
+    data_obj = evt.get("data", {}).get("object", {})
+
+    logger.info(f"Stripe webhook: {evt_type}")
+
+    table = dynamodb.Table(USERS_TABLE)
+
+    if evt_type == "checkout.session.completed":
+        # Payment successful — upgrade user
+        email = (data_obj.get("metadata", {}).get("email", "") or
+                 data_obj.get("customer_details", {}).get("email", ""))
+        subscription_id = data_obj.get("subscription", "")
+        customer_id = data_obj.get("customer", "")
+
+        if email:
+            email = email.lower().strip()
+            try:
+                now = datetime.now(UTC).isoformat()
+                table.update_item(
+                    Key={"email": email},
+                    UpdateExpression="SET #p = :pro, stripeSubscriptionId = :sid, stripeCustomerId = :cid, upgradedAt = :now, updatedAt = :now",
+                    ExpressionAttributeNames={"#p": "plan"},
+                    ExpressionAttributeValues={
+                        ":pro": "pro",
+                        ":sid": subscription_id,
+                        ":cid": customer_id,
+                        ":now": now,
+                    },
+                )
+                logger.info(f"User upgraded to Pro: {email}")
+                _log_auth(email, "upgrade_pro", True, "stripe", "webhook")
+
+                # Send confirmation email
+                _send_upgrade_email(email)
+
+            except Exception as e:
+                logger.error(f"Failed to upgrade user {email}: {e}")
+                return _cors_response(500, {"message": "Failed to process"})
+
+    elif evt_type in ("customer.subscription.deleted", "customer.subscription.paused"):
+        # Subscription cancelled — set expiry to current_period_end so user keeps Pro until paid period ends
+        email = data_obj.get("metadata", {}).get("email", "")
+        customer_id = data_obj.get("customer", "")
+
+        # If no email in metadata, look up by customer ID
+        if not email and customer_id:
+            try:
+                result = table.scan(
+                    FilterExpression="stripeCustomerId = :cid",
+                    ExpressionAttributeValues={":cid": customer_id},
+                    ProjectionExpression="email",
+                )
+                items = result.get("Items", [])
+                if items:
+                    email = items[0].get("email", "")
+            except Exception:
+                pass
+
+        if email:
+            email = email.lower().strip()
+            try:
+                now = datetime.now(UTC).isoformat()
+                # Get current_period_end from subscription — user keeps Pro until then
+                period_end_ts = data_obj.get("current_period_end")
+                if period_end_ts:
+                    expires_at = datetime.fromtimestamp(int(period_end_ts), tz=UTC).isoformat()
+                    table.update_item(
+                        Key={"email": email},
+                        UpdateExpression="SET planExpiresAt = :exp, updatedAt = :now REMOVE stripeSubscriptionId",
+                        ExpressionAttributeValues={":exp": expires_at, ":now": now},
+                    )
+                    logger.info(f"Subscription cancelled for {email}, Pro until {expires_at}")
+                else:
+                    # No period end — downgrade immediately
+                    table.update_item(
+                        Key={"email": email},
+                        UpdateExpression="SET #p = :free, updatedAt = :now REMOVE stripeSubscriptionId, planExpiresAt",
+                        ExpressionAttributeNames={"#p": "plan"},
+                        ExpressionAttributeValues={":free": "free", ":now": now},
+                    )
+                    logger.info(f"User downgraded to Free (no period end): {email}")
+                _log_auth(email, "subscription_cancelled", True, "stripe", "webhook")
+            except Exception as e:
+                logger.error(f"Failed to handle cancellation for {email}: {e}")
+
+    elif evt_type == "invoice.payment_failed":
+        # Payment failed — notify but don't downgrade yet (Stripe retries)
+        email = data_obj.get("customer_email", "")
+        if email:
+            logger.warning(f"Payment failed for {email}")
+            _log_auth(email, "payment_failed", False, "stripe", "webhook")
+
+    return _cors_response(200, {"received": True})
+
+
+def _send_upgrade_email(email: str) -> None:
+    """Send Pro upgrade confirmation email."""
+    sender = SES_SENDER_EMAIL
+    if not sender:
+        return
+    try:
+        ses_client.send_email(
+            Source=sender,
+            Destination={"ToAddresses": [email]},
+            Message={
+                "Subject": {"Data": "🎉 Bem-vindo ao Pro — B3 Tactical Ranking", "Charset": "UTF-8"},
+                "Body": {
+                    "Html": {
+                        "Data": f"""
+                        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+                            <h2 style="color:#f59e0b;">🎉 Você agora é Pro!</h2>
+                            <p>Seu plano Pro do B3 Tactical Ranking foi ativado com sucesso.</p>
+                            <p>Agora você tem acesso a:</p>
+                            <ul>
+                                <li>Todas as colunas desbloqueadas (Confiança, Stop-Loss, Take-Profit)</li>
+                                <li>Carteira Modelo otimizada</li>
+                                <li>Tracking por Safra</li>
+                                <li>Alertas de preço</li>
+                            </ul>
+                            <p style="color:#64748b;font-size:14px;">Qualquer dúvida, responda este email.</p>
+                        </div>
+                        """,
+                        "Charset": "UTF-8",
+                    },
+                    "Text": {
+                        "Data": "Você agora é Pro! Seu plano foi ativado. Acesse: https://uesleisutil.github.io/b3-tactical-ranking/",
+                        "Charset": "UTF-8",
+                    },
+                },
+            },
+        )
+    except Exception as e:
+        logger.warning(f"Failed to send upgrade email to {email}: {e}")
+
+
+def _handle_check_session(event: dict) -> dict:
+    """GET /auth/check-session — check if checkout session completed and return updated plan."""
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token não fornecido"})
+
+    payload = _verify_jwt(auth[7:].strip())
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido ou expirado"})
+
+    email = payload.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    # Fetch current plan from DB
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="#p, stripeSubscriptionId, planExpiresAt", ExpressionAttributeNames={"#p": "plan"})
+        item = result.get("Item", {})
+        plan = item.get("plan", "free")
+        has_subscription = bool(item.get("stripeSubscriptionId"))
+        plan_expires = item.get("planExpiresAt", "")
+
+        # Auto-downgrade if expired
+        if plan == "pro" and plan_expires:
+            try:
+                exp_dt = datetime.fromisoformat(plan_expires.replace("Z", "+00:00"))
+                if datetime.now(UTC) > exp_dt:
+                    plan = "free"
+                    plan_expires = ""
+                    table.update_item(
+                        Key={"email": email},
+                        UpdateExpression="SET #p = :free, updatedAt = :now REMOVE planExpiresAt",
+                        ExpressionAttributeNames={"#p": "plan"},
+                        ExpressionAttributeValues={":free": "free", ":now": datetime.now(UTC).isoformat()},
+                    )
+            except Exception:
+                pass
+
+        # Issue fresh JWT with updated plan
+        new_token = _create_jwt({
+            "sub": payload.get("sub"),
+            "email": email,
+            "role": payload.get("role", "viewer"),
+            "name": payload.get("name", ""),
+            "plan": plan,
+            "exp": int(time.time()) + SESSION_HOURS * 3600,
+        })
+
+        return _cors_response(200, {
+            "plan": plan,
+            "hasSubscription": has_subscription,
+            "planExpiresAt": plan_expires,
+            "accessToken": new_token,
+        })
+    except Exception as e:
+        logger.error(f"Error checking session: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+
+def _handle_manage_billing(event: dict) -> dict:
+    """POST /auth/manage-billing — create Stripe Customer Portal session."""
+    if not STRIPE_SECRET_KEY:
+        return _cors_response(503, {"message": "Pagamento não configurado."})
+
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token não fornecido"})
+
+    payload = _verify_jwt(auth[7:].strip())
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido ou expirado"})
+
+    email = payload.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="stripeCustomerId")
+        customer_id = result.get("Item", {}).get("stripeCustomerId", "")
+        if not customer_id:
+            return _cors_response(400, {"message": "Nenhuma assinatura encontrada."})
+
+        session = _stripe_request("POST", "billing_portal/sessions", {
+            "customer": customer_id,
+            "return_url": f"{FRONTEND_URL}/#/dashboard/upgrade",
+        })
+
+        return _cors_response(200, {"portalUrl": session["url"]})
+    except Exception as e:
+        logger.error(f"Stripe portal error: {e}")
+        return _cors_response(500, {"message": "Erro ao abrir portal de pagamento."})
+
+
+# ── Admin user management ──
+
+def _get_authenticated_user(event: dict) -> Optional[dict]:
+    """Verify JWT and return payload. Returns None if invalid."""
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return None
+    token = auth[7:].strip()
+    if len(token) > 4096:
+        return None
+    return _verify_jwt(token)
+
+
+# ── Support Chat ──
+
+def _handle_chat_send(event: dict) -> dict:
+    """POST /chat/messages — user sends a message (creates ticket if needed)."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    message = _sanitize_string(body.get("message", ""), 2000)
+    if not message:
+        return _cors_response(400, {"message": "Mensagem obrigatória"})
+
+    email = user.get("email", "")
+    user_name = user.get("name", "") or email.split("@")[0]
+    now = datetime.now(UTC).isoformat()
+    table = dynamodb.Table(CHAT_TABLE)
+
+    # Check if user has an open ticket
+    ticket_id = body.get("ticketId", "")
+
+    if not ticket_id:
+        # Look for existing open ticket
+        try:
+            result = table.scan(
+                FilterExpression="userEmail = :e AND #s <> :closed",
+                ExpressionAttributeNames={"#s": "status"},
+                ExpressionAttributeValues={":e": email, ":closed": "closed"},
+            )
+            items = result.get("Items", [])
+            if items:
+                # Use most recent open ticket
+                items.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                ticket_id = items[0].get("ticketId", "")
+        except Exception:
+            pass
+
+    if not ticket_id:
+        # Create new ticket
+        ticket_id = str(uuid.uuid4())[:12]
+        table.put_item(Item={
+            "ticketId": ticket_id,
+            "userEmail": email,
+            "userName": user_name,
+            "status": "open",  # open, answered, closed
+            "subject": message[:80],
+            "createdAt": now,
+            "updatedAt": now,
+            "messages": [{
+                "id": str(uuid.uuid4())[:8],
+                "sender": "user",
+                "senderName": user_name,
+                "message": message,
+                "timestamp": now,
+            }],
+            "ttl": int((datetime.now(UTC) + timedelta(days=180)).timestamp()),
+        })
+        return _cors_response(201, {"ticketId": ticket_id, "message": "Chamado criado"})
+
+    # Append message to existing ticket
+    try:
+        msg_item = {
+            "id": str(uuid.uuid4())[:8],
+            "sender": "user",
+            "senderName": user_name,
+            "message": message,
+            "timestamp": now,
+        }
+        table.update_item(
+            Key={"ticketId": ticket_id},
+            UpdateExpression="SET messages = list_append(messages, :msg), updatedAt = :now, #s = :open",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={
+                ":msg": [msg_item],
+                ":now": now,
+                ":open": "open",
+            },
+        )
+        return _cors_response(200, {"ticketId": ticket_id, "message": "Mensagem enviada"})
+    except Exception as e:
+        logger.error(f"Error sending chat message: {e}")
+        return _cors_response(500, {"message": "Erro ao enviar mensagem"})
+
+
+def _handle_chat_get_user_tickets(event: dict) -> dict:
+    """GET /chat/tickets — get current user's tickets."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    email = user.get("email", "")
+    table = dynamodb.Table(CHAT_TABLE)
+
+    try:
+        result = table.scan(
+            FilterExpression="userEmail = :e",
+            ExpressionAttributeValues={":e": email},
+        )
+        items = result.get("Items", [])
+        for item in items:
+            for k, v in item.items():
+                if isinstance(v, Decimal):
+                    item[k] = float(v)
+        items.sort(key=lambda x: x.get("updatedAt", ""), reverse=True)
+        return _cors_response(200, {"tickets": items})
+    except Exception as e:
+        logger.error(f"Error fetching user tickets: {e}")
+        return _cors_response(500, {"message": "Erro ao carregar chamados"})
+
+
+def _handle_admin_chat_list(event: dict) -> dict:
+    """GET /admin/chat — list all tickets (admin)."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    table = dynamodb.Table(CHAT_TABLE)
+    try:
+        result = table.scan()
+        items = result.get("Items", [])
+        for item in items:
+            for k, v in item.items():
+                if isinstance(v, Decimal):
+                    item[k] = float(v)
+            # Add unread count (messages from user after last admin reply)
+            msgs = item.get("messages", [])
+            last_admin_idx = -1
+            for i, m in enumerate(msgs):
+                if m.get("sender") == "admin":
+                    last_admin_idx = i
+            item["unreadCount"] = len([m for i, m in enumerate(msgs) if i > last_admin_idx and m.get("sender") == "user"])
+        items.sort(key=lambda x: x.get("updatedAt", ""), reverse=True)
+        return _cors_response(200, {"tickets": items})
+    except Exception as e:
+        logger.error(f"Error listing tickets: {e}")
+        return _cors_response(500, {"message": "Erro ao listar chamados"})
+
+
+def _handle_admin_chat_reply(event: dict) -> dict:
+    """POST /admin/chat/reply — admin replies to a ticket."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    ticket_id = body.get("ticketId", "")
+    message = _sanitize_string(body.get("message", ""), 2000)
+
+    if not ticket_id or not message:
+        return _cors_response(400, {"message": "ticketId e message obrigatórios"})
+
+    now = datetime.now(UTC).isoformat()
+    admin_name = admin.get("name", "") or admin.get("email", "Admin")
+    table = dynamodb.Table(CHAT_TABLE)
+
+    try:
+        msg_item = {
+            "id": str(uuid.uuid4())[:8],
+            "sender": "admin",
+            "senderName": admin_name,
+            "message": message,
+            "timestamp": now,
+        }
+        table.update_item(
+            Key={"ticketId": ticket_id},
+            UpdateExpression="SET messages = list_append(messages, :msg), updatedAt = :now, #s = :answered",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={
+                ":msg": [msg_item],
+                ":now": now,
+                ":answered": "answered",
+            },
+        )
+        return _cors_response(200, {"message": "Resposta enviada"})
+    except Exception as e:
+        logger.error(f"Error replying to ticket: {e}")
+        return _cors_response(500, {"message": "Erro ao responder"})
+
+
+def _handle_admin_chat_close(event: dict) -> dict:
+    """POST /admin/chat/close — admin closes a ticket."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    ticket_id = body.get("ticketId", "")
+    if not ticket_id:
+        return _cors_response(400, {"message": "ticketId obrigatório"})
+
+    now = datetime.now(UTC).isoformat()
+    table = dynamodb.Table(CHAT_TABLE)
+
+    try:
+        table.update_item(
+            Key={"ticketId": ticket_id},
+            UpdateExpression="SET #s = :closed, closedAt = :now, updatedAt = :now",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={":closed": "closed", ":now": now},
+        )
+        return _cors_response(200, {"message": "Chamado encerrado"})
+    except Exception as e:
+        logger.error(f"Error closing ticket: {e}")
+        return _cors_response(500, {"message": "Erro ao encerrar chamado"})
+
+def _handle_admin_list_users(event: dict) -> dict:
+    """GET /admin/users — list all users with plan info."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.scan(
+            ProjectionExpression="email, #n, userId, #r, #p, planExpiresAt, planSource, createdAt, lastLoginAt, emailVerified, stripeSubscriptionId, enabled",
+            ExpressionAttributeNames={"#n": "name", "#r": "role", "#p": "plan"},
+        )
+        users = result.get("Items", [])
+
+        now = datetime.now(UTC)
+        for u in users:
+            # Convert Decimal
+            for k, v in u.items():
+                if isinstance(v, Decimal):
+                    u[k] = float(v)
+            # Check if plan expired
+            plan_expires = u.get("planExpiresAt", "")
+            if u.get("plan") == "pro" and plan_expires:
+                try:
+                    exp_dt = datetime.fromisoformat(plan_expires.replace("Z", "+00:00"))
+                    if now > exp_dt:
+                        u["plan"] = "free"
+                        u["planExpired"] = True
+                except Exception:
+                    pass
+
+        users.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+        return _cors_response(200, {"users": users})
+    except Exception as e:
+        logger.error(f"Error listing users: {e}")
+        return _cors_response(500, {"message": "Erro ao listar usuários"})
+
+
+def _handle_admin_set_plan(event: dict) -> dict:
+    """POST /admin/users/set-plan — admin sets a user's plan and duration."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    plan = body.get("plan", "")  # "pro" or "free"
+    duration_days = body.get("durationDays", 0)  # 0 = indefinido
+
+    if not email:
+        return _cors_response(400, {"message": "Email obrigatório"})
+    if plan not in ("pro", "free"):
+        return _cors_response(400, {"message": "Plano deve ser 'pro' ou 'free'"})
+
+    table = dynamodb.Table(USERS_TABLE)
+
+    # Verify user exists
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="email")
+        if "Item" not in result:
+            return _cors_response(404, {"message": "Usuário não encontrado"})
+    except Exception:
+        return _cors_response(500, {"message": "Erro interno"})
+
+    now = datetime.now(UTC).isoformat()
+
+    try:
+        if plan == "pro":
+            update_expr = "SET #p = :plan, planSource = :src, updatedAt = :now"
+            expr_values: dict = {":plan": "pro", ":src": "admin", ":now": now}
+            expr_names = {"#p": "plan"}
+
+            if duration_days and int(duration_days) > 0:
+                expires_at = (datetime.now(UTC) + timedelta(days=int(duration_days))).isoformat()
+                update_expr += ", planExpiresAt = :exp"
+                expr_values[":exp"] = expires_at
+            else:
+                # Indefinido — remove expiry
+                update_expr += " REMOVE planExpiresAt"
+
+            table.update_item(
+                Key={"email": email},
+                UpdateExpression=update_expr,
+                ExpressionAttributeNames=expr_names,
+                ExpressionAttributeValues=expr_values,
+            )
+
+            _log_auth(email, "admin_set_pro", True, "admin", admin.get("email", "admin"),
+                       f"duration={duration_days or 'indefinido'} by {admin.get('email')}")
+
+            return _cors_response(200, {
+                "message": f"Plano Pro ativado para {email}" + (f" por {duration_days} dias" if duration_days else " (indefinido)"),
+                "plan": "pro",
+                "planExpiresAt": expires_at if duration_days and int(duration_days) > 0 else "",
+            })
+        else:
+            # Downgrade to free
+            table.update_item(
+                Key={"email": email},
+                UpdateExpression="SET #p = :free, updatedAt = :now REMOVE planExpiresAt, planSource",
+                ExpressionAttributeNames={"#p": "plan"},
+                ExpressionAttributeValues={":free": "free", ":now": now},
+            )
+
+            _log_auth(email, "admin_set_free", True, "admin", admin.get("email", "admin"),
+                       f"by {admin.get('email')}")
+
+            return _cors_response(200, {"message": f"Plano Free ativado para {email}", "plan": "free"})
+
+    except Exception as e:
+        logger.error(f"Error setting plan for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao alterar plano"})
+
+
 def handler(event: dict, context: Any = None) -> dict:
     """Lambda handler — routes to register/login/me/verify/reset/change-password/notifications."""
     method = event.get("httpMethod", "")
@@ -1436,9 +2232,31 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_delete_notification(event)
     elif path.endswith("/admin/whatsapp") and method == "POST":
         return _handle_send_whatsapp_notification(event)
+    elif path.endswith("/admin/users") and method == "GET":
+        return _handle_admin_list_users(event)
+    elif path.endswith("/admin/users/set-plan") and method == "POST":
+        return _handle_admin_set_plan(event)
+    elif path.endswith("/admin/chat") and method == "GET":
+        return _handle_admin_chat_list(event)
+    elif path.endswith("/admin/chat/reply") and method == "POST":
+        return _handle_admin_chat_reply(event)
+    elif path.endswith("/admin/chat/close") and method == "POST":
+        return _handle_admin_chat_close(event)
+    elif path.endswith("/chat/messages") and method == "POST":
+        return _handle_chat_send(event)
+    elif path.endswith("/chat/tickets") and method == "GET":
+        return _handle_chat_get_user_tickets(event)
     elif path.endswith("/notifications") and method == "GET" and not path.endswith("/admin/notifications"):
         return _handle_get_user_notifications(event)
     elif path.endswith("/auth/stats") and method == "GET":
         return _handle_stats(event)
+    elif path.endswith("/auth/create-checkout") and method == "POST":
+        return _handle_create_checkout(event)
+    elif path.endswith("/auth/stripe-webhook") and method == "POST":
+        return _handle_stripe_webhook(event)
+    elif path.endswith("/auth/check-session") and method == "GET":
+        return _handle_check_session(event)
+    elif path.endswith("/auth/manage-billing") and method == "POST":
+        return _handle_manage_billing(event)
     else:
         return _cors_response(404, {"message": "Not found"})

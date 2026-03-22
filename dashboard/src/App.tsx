@@ -28,6 +28,9 @@ import AdminDriftPage from './pages/admin/AdminDriftPage';
 import AdminValidationPage from './pages/admin/AdminValidationPage';
 import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 import AdminAgentsPage from './pages/admin/AdminAgentsPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminChatPage from './pages/admin/AdminChatPage';
+import SupportChatPage from './pages/dashboard/SupportChatPage';
 
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
@@ -107,6 +110,7 @@ const AppRoutes: React.FC = () => {
         <Route path="upgrade" element={<UpgradePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
         <Route path="change-phone" element={<ChangePhonePage />} />
+        <Route path="support" element={<SupportChatPage />} />
       </Route>
 
       {/* Admin panel */}
@@ -119,6 +123,8 @@ const AppRoutes: React.FC = () => {
         <Route path="validation" element={<AdminValidationPage />} />
         <Route path="notifications" element={<AdminNotificationsPage />} />
         <Route path="agents" element={<AdminAgentsPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="chat" element={<AdminChatPage />} />
       </Route>
 
       {/* Catch-all */}

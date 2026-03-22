@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
-  Briefcase, LineChart, Crown, Bell, Phone, Bot,
+  Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
@@ -61,6 +61,8 @@ const DashboardLayout: React.FC = () => {
     { path: '/admin/validation', label: 'Validação', icon: <TestTubes size={18} /> },
     { path: '/admin/notifications', label: 'Notificações', icon: <Bell size={18} /> },
     { path: '/admin/agents', label: 'Agentes IA', icon: <Bot size={18} /> },
+    { path: '/admin/users', label: 'Usuários', icon: <Users size={18} /> },
+    { path: '/admin/chat', label: 'Chat', icon: <MessageCircle size={18} /> },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -257,6 +259,7 @@ const DashboardLayout: React.FC = () => {
               if (p.includes('backtesting')) return '🧪 Backtesting';
               if (p.includes('change-password')) return '🔒 Alterar Senha';
               if (p.includes('change-phone')) return '📱 Alertas WhatsApp';
+              if (p.includes('support')) return '💬 Fale Conosco';
               if (p.includes('portfolio')) return '👑 Carteira Modelo';
               if (p.includes('performance')) return '👑 Performance';
               if (p.includes('upgrade')) return '👑 Upgrade Pro';
@@ -268,6 +271,8 @@ const DashboardLayout: React.FC = () => {
               if (p.includes('validation')) return '🔒 Admin — Validação';
               if (p.includes('notifications')) return '🔒 Admin — Notificações';
               if (p.includes('agents')) return '🤖 Admin — Agentes IA';
+              if (p.includes('users')) return '👥 Admin — Usuários';
+              if (p.includes('/admin/chat')) return '💬 Admin — Chat';
               return location.pathname.startsWith('/admin') ? '🔒 Admin' : 'Dashboard';
             })()}
           </div>
@@ -322,6 +327,17 @@ const DashboardLayout: React.FC = () => {
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <Phone size={14} /> Alertas WhatsApp
+                    </button>
+                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/support'); }} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                      transition: 'background 0.1s',
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <MessageCircle size={14} /> Fale Conosco
                     </button>
                     {!isPro && (
                       <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{

@@ -1013,9 +1013,14 @@ export class InfraStack extends cdk.Stack {
       AUTH_LOGS_TABLE: "B3Dashboard-AuthLogs",
       RATE_LIMITS_TABLE: "B3Dashboard-RateLimits",
       NOTIFICATIONS_TABLE: "B3Dashboard-Notifications",
+      CHAT_TABLE: "B3Dashboard-Chat",
       JWT_SECRET: jwtSecret,
       ADMIN_EMAIL: adminEmail,
       SES_SENDER_EMAIL: adminEmail,
+      STRIPE_SECRET_KEY: envOr("STRIPE_SECRET_KEY", ""),
+      STRIPE_WEBHOOK_SECRET: envOr("STRIPE_WEBHOOK_SECRET", ""),
+      STRIPE_PRICE_ID: envOr("STRIPE_PRICE_ID", ""),
+      FRONTEND_URL: "https://uesleisutil.github.io/b3-tactical-ranking",
     });
     usersTable.grantReadWriteData(userAuthFn);
 
@@ -1035,6 +1040,12 @@ export class InfraStack extends cdk.Stack {
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
       actions: ["dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
       resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-Notifications`],
+    }));
+
+    // Grant chat table access
+    userAuthFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ["dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"],
+      resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-Chat`],
     }));
 
     const userAuthIntegration = new apigateway.LambdaIntegration(userAuthFn, {
@@ -1068,6 +1079,16 @@ export class InfraStack extends cdk.Stack {
     authPhone.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
     authPhone.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
 
+    // Stripe payment routes
+    const authCreateCheckout = authResource.addResource("create-checkout");
+    authCreateCheckout.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authStripeWebhook = authResource.addResource("stripe-webhook");
+    authStripeWebhook.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const authCheckSession = authResource.addResource("check-session");
+    authCheckSession.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+    const authManageBilling = authResource.addResource("manage-billing");
+    authManageBilling.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+
     // /admin/notifications routes (JWT-protected, admin only)
     const adminResource = api.root.addResource("admin");
     const adminNotifications = adminResource.addResource("notifications");
@@ -1079,6 +1100,27 @@ export class InfraStack extends cdk.Stack {
     // /admin/whatsapp route (JWT-protected, admin only)
     const adminWhatsapp = adminResource.addResource("whatsapp");
     adminWhatsapp.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+
+    // /admin/users routes (JWT-protected, admin only)
+    const adminUsers = adminResource.addResource("users");
+    adminUsers.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+    const adminUsersSetPlan = adminUsers.addResource("set-plan");
+    adminUsersSetPlan.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+
+    // /admin/chat routes (JWT-protected, admin only)
+    const adminChat = adminResource.addResource("chat");
+    adminChat.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+    const adminChatReply = adminChat.addResource("reply");
+    adminChatReply.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const adminChatClose = adminChat.addResource("close");
+    adminChatClose.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+
+    // /chat routes (JWT-protected, user-facing)
+    const chatResource = api.root.addResource("chat");
+    const chatMessages = chatResource.addResource("messages");
+    chatMessages.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const chatTickets = chatResource.addResource("tickets");
+    chatTickets.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
 
     // -----------------------
     // Agent Hub (Multi-Agent Governance)

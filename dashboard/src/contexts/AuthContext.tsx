@@ -7,6 +7,7 @@ interface User {
   name?: string;
   role: 'admin' | 'analyst' | 'viewer';
   plan?: 'free' | 'pro';
+  planExpiresAt?: string;
   emailVerified?: boolean;
 }
 
@@ -23,6 +24,7 @@ interface AuthContextType {
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
+  refreshPlan: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,6 +53,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               setUser({
                 id: data.userId, email: data.email, name: data.name,
                 role: data.role || 'viewer', plan: data.plan || 'free',
+                planExpiresAt: data.planExpiresAt || '',
                 emailVerified: data.emailVerified ?? true,
               });
             } else { clearStorage(); }
@@ -205,10 +208,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLastActivity(Date.now());
   }, [logout]);
 
+  const refreshPlan = useCallback(async () => {
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('No token');
+    const res = await fetch(`${AUTH_URL}/check-session`, { headers: { 'Authorization': `Bearer ${token}` } });
+    if (!res.ok) throw new Error('Failed to check plan');
+    const data = await res.json();
+    if (data.accessToken) {
+      const currentUser = user;
+      if (currentUser) {
+        const updated = { ...currentUser, plan: data.plan as 'free' | 'pro' };
+        saveSession(data.accessToken, updated);
+      }
+    }
+  }, [user]);
+
   return (
     <AuthContext.Provider value={{
       user, isAuthenticated: !!user, isLoading,
-      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession,
+      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession, refreshPlan,
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,39 +1,130 @@
-import React from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
-import { Crown, CheckCircle, Briefcase, LineChart, Shield, Target, Zap, ArrowLeft, MessageCircle, Mail, Clock, Star } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useOutletContext, useNavigate, useSearchParams } from 'react-router-dom';
+import { Crown, CheckCircle, Briefcase, LineChart, Shield, Target, Zap, ArrowLeft, CreditCard, Loader2, Settings, Clock, Star, MessageCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { API_BASE_URL } from '../../config';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
 const UpgradePage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
-  const { user } = useAuth();
+  const { user, refreshPlan } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isPro = user?.plan === 'pro' || user?.role === 'admin';
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [billingLoading, setBillingLoading] = useState(false);
+
+  // Handle return from Stripe checkout
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      setSuccessMsg('Pagamento confirmado! Ativando seu plano Pro...');
+      // Poll for plan update (webhook may take a few seconds)
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          await refreshPlan();
+        } catch { /* ignore */ }
+        if (attempts >= 10) clearInterval(poll);
+      }, 2000);
+      return () => clearInterval(poll);
+    }
+    if (status === 'cancelled') {
+      setError('Pagamento cancelado. Você pode tentar novamente quando quiser.');
+    }
+  }, [searchParams, refreshPlan]);
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1e293b' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
+  const btnBase: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+    width: '100%', padding: '0.85rem', borderRadius: 10, border: 'none', cursor: 'pointer',
+    fontSize: '1rem', fontWeight: 700, textDecoration: 'none',
+    WebkitAppearance: 'none' as any, transition: 'transform 0.15s, opacity 0.15s',
+  };
 
+  const handleCheckout = async () => {
+    setLoading(true); setError('');
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API_BASE_URL}/auth/create-checkout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro ao iniciar pagamento');
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao iniciar pagamento. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setBillingLoading(true);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API_BASE_URL}/auth/manage-billing`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      if (data.portalUrl) window.location.href = data.portalUrl;
+    } catch (err: any) {
+      setError(err.message || 'Erro ao abrir portal.');
+    } finally {
+      setBillingLoading(false);
+    }
+  };
+
+  // Already Pro view
   if (isPro) {
     return (
-      <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '2rem 1rem', textAlign: 'center' }}>
+        {successMsg && (
+          <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: '0.85rem' }}>
+            🎉 {successMsg}
+          </div>
+        )}
         <Crown size={48} color="#f59e0b" style={{ marginBottom: '1rem' }} />
         <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: theme.text, marginBottom: '0.5rem' }}>
-          Você já é Pro!
+          Você é Pro!
         </h2>
-        <p style={{ color: theme.textSecondary, marginBottom: '1.5rem' }}>
+        <p style={{ color: theme.textSecondary, marginBottom: '1.5rem', fontSize: '0.85rem' }}>
           Todos os recursos exclusivos estão desbloqueados.
         </p>
-        <button onClick={() => navigate('/dashboard')} style={{
-          display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-          padding: '0.6rem 1.2rem', borderRadius: 8, border: `1px solid ${theme.border}`,
-          background: 'transparent', color: theme.text, cursor: 'pointer', fontSize: '0.85rem',
-          WebkitAppearance: 'none' as any, appearance: 'none' as any,
-        }}>
-          <ArrowLeft size={16} /> Voltar ao Dashboard
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button onClick={() => navigate('/dashboard')} style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            padding: '0.6rem 1.2rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+            background: 'transparent', color: theme.text, cursor: 'pointer', fontSize: '0.85rem',
+            WebkitAppearance: 'none' as any,
+          }}>
+            <ArrowLeft size={16} /> Voltar ao Dashboard
+          </button>
+          <button onClick={handleManageBilling} disabled={billingLoading} style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            padding: '0.6rem 1.2rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+            background: 'transparent', color: theme.text, cursor: 'pointer', fontSize: '0.85rem',
+            WebkitAppearance: 'none' as any, opacity: billingLoading ? 0.6 : 1,
+          }}>
+            {billingLoading ? <Loader2 size={16} className="spin" /> : <Settings size={16} />}
+            Gerenciar Assinatura
+          </button>
+        </div>
+        {error && <div style={{ marginTop: '0.75rem', color: '#ef4444', fontSize: '0.8rem' }}>{error}</div>}
+        <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -48,6 +139,21 @@ const UpgradePage: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '1rem 0' }}>
+      {/* Success message */}
+      {successMsg && (
+        <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: '0.85rem', textAlign: 'center' }}>
+          <Loader2 size={16} className="spin" style={{ verticalAlign: 'middle', marginRight: 6 }} />
+          {successMsg}
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.85rem', textAlign: 'center' }}>
+          {error}
+        </div>
+      )}
+
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%',
@@ -108,40 +214,41 @@ const UpgradePage: React.FC = () => {
           <Shield size={12} /> 7 dias de garantia — não gostou, devolvemos
         </div>
 
-        {/* WhatsApp CTA — primary */}
+        {/* Stripe Checkout CTA — primary */}
+        <button onClick={handleCheckout} disabled={loading}
+          onMouseEnter={e => { if (!loading) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
+          style={{
+            ...btnBase,
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white',
+            boxShadow: '0 4px 14px rgba(245,158,11,0.3)',
+            opacity: loading ? 0.7 : 1,
+          }}>
+          {loading ? <Loader2 size={20} className="spin" /> : <CreditCard size={20} />}
+          {loading ? 'Redirecionando...' : 'Assinar Pro — R$ 49/mês'}
+        </button>
+
+        <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+          <Shield size={10} /> Pagamento seguro via Stripe · Cancele quando quiser
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.75rem 0', color: theme.textSecondary, fontSize: '0.75rem' }}>
+          <div style={{ flex: 1, height: 1, background: theme.border }} />
+          ou pague via Pix
+          <div style={{ flex: 1, height: 1, background: theme.border }} />
+        </div>
+
+        {/* WhatsApp CTA — secondary */}
         <a href="https://wa.me/5548999999999?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20Pro%20do%20B3%20Tactical%20Ranking."
           target="_blank" rel="noopener noreferrer"
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-            width: '100%', padding: '0.85rem', borderRadius: 10, border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(135deg, #25d366, #128c7e)', color: 'white',
-            fontSize: '1rem', fontWeight: 700, textDecoration: 'none',
-            boxShadow: '0 4px 14px rgba(37,211,102,0.3)',
-            WebkitAppearance: 'none' as any, transition: 'transform 0.15s',
+            ...btnBase, background: 'linear-gradient(135deg, #25d366, #128c7e)', color: 'white',
+            boxShadow: '0 2px 10px rgba(37,211,102,0.2)', marginBottom: '0.5rem',
           }}
           onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
           onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          <MessageCircle size={20} /> Assinar via WhatsApp
-        </a>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.75rem 0', color: theme.textSecondary, fontSize: '0.75rem' }}>
-          <div style={{ flex: 1, height: 1, background: theme.border }} />
-          ou
-          <div style={{ flex: 1, height: 1, background: theme.border }} />
-        </div>
-
-        {/* Email CTA — secondary */}
-        <a href="mailto:ueslei@outlook.com?subject=Quero%20assinar%20o%20Pro%20-%20B3%20Tactical%20Ranking"
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-            width: '100%', padding: '0.7rem', borderRadius: 10, textDecoration: 'none',
-            border: `1px solid ${theme.border}`, background: 'transparent', color: theme.text,
-            fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer',
-            WebkitAppearance: 'none' as any,
-          }}
-        >
-          <Mail size={16} /> ueslei@outlook.com
+          <MessageCircle size={18} /> Assinar via WhatsApp (Pix)
         </a>
       </div>
 
@@ -180,16 +287,19 @@ const UpgradePage: React.FC = () => {
       <div style={{ ...cardStyle, padding: '1.25rem' }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text, marginBottom: '0.75rem' }}>Perguntas Frequentes</div>
         {[
-          { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem fidelidade. Basta avisar pelo WhatsApp ou e-mail.' },
+          { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem fidelidade. Cancele direto pelo portal de pagamento ou avise pelo WhatsApp.' },
           { q: 'E se eu não gostar?', a: 'Você tem 7 dias de garantia. Se não ficar satisfeito, devolvemos 100% do valor.' },
-          { q: 'Como funciona a ativação?', a: 'Após o pagamento, enviamos a confirmação e seu plano é ativado em até 1 hora.' },
+          { q: 'Como funciona a ativação?', a: 'Pagamento por cartão: ativação instantânea. Pix: até 1 hora após envio do comprovante.' },
+          { q: 'Quais formas de pagamento?', a: 'Cartão de crédito (via Stripe) ou Pix. Ambos com total segurança.' },
         ].map((faq, i) => (
-          <div key={i} style={{ marginBottom: i < 2 ? '0.75rem' : 0, paddingBottom: i < 2 ? '0.75rem' : 0, borderBottom: i < 2 ? `1px solid ${theme.border}` : 'none' }}>
+          <div key={i} style={{ marginBottom: i < 3 ? '0.75rem' : 0, paddingBottom: i < 3 ? '0.75rem' : 0, borderBottom: i < 3 ? `1px solid ${theme.border}` : 'none' }}>
             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.text, marginBottom: '0.2rem' }}>{faq.q}</div>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>{faq.a}</div>
           </div>
         ))}
       </div>
+
+      <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };
