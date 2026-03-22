@@ -11,7 +11,7 @@ const UpgradePage: React.FC = () => {
   const { user, refreshPlan } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const isPro = user?.plan === 'pro' || user?.role === 'admin';
+  const isPro = user?.plan === 'pro';
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

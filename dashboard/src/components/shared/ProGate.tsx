@@ -11,7 +11,7 @@ interface ProGateProps {
 
 export const useIsPro = () => {
   const { user } = useAuth();
-  return user?.plan === 'pro' || user?.role === 'admin';
+  return user?.plan === 'pro';
 };
 
 const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', darkMode = true, inline = false }) => {

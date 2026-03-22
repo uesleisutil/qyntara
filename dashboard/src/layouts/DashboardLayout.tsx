@@ -30,7 +30,7 @@ const DashboardLayout: React.FC = () => {
   };
 
   const isAdmin = user?.role === 'admin';
-  const isPro = user?.plan === 'pro' || user?.role === 'admin';
+  const isPro = user?.plan === 'pro';
 
   // Show onboarding on first visit
   React.useEffect(() => {

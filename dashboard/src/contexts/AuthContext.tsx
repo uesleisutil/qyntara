@@ -50,19 +50,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
             if (res.ok) {
               const data = await res.json();
-              setUser({
+              const freshUser = {
                 id: data.userId, email: data.email, name: data.name,
                 role: data.role || 'viewer', plan: data.plan || 'free',
                 planExpiresAt: data.planExpiresAt || '',
                 emailVerified: data.emailVerified ?? true,
-              });
+              };
+              setUser(freshUser);
+              // Keep localStorage in sync so fallback is never stale
+              localStorage.setItem('user', JSON.stringify(freshUser));
             } else { clearStorage(); }
           } else { clearStorage(); }
         }
       } catch {
+        // Network error — use cached user but force plan to 'free' for safety
+        // (plan will be corrected on next successful /auth/me call)
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-          try { setUser(JSON.parse(storedUser)); } catch { clearStorage(); }
+          try {
+            const parsed = JSON.parse(storedUser);
+            parsed.plan = 'free'; // Never trust cached plan on network failure
+            setUser(parsed);
+          } catch { clearStorage(); }
         }
       } finally { setIsLoading(false); }
     };
@@ -84,10 +93,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => clearInterval(interval);
   }, [user, lastActivity]);
 
-  // Periodic plan sync — polls /auth/me every 60s to catch admin plan changes
+  // Periodic plan sync — polls /auth/me every 30s to catch admin plan changes
+  // Also re-checks immediately when user returns to the tab
   useEffect(() => {
     if (!user) return;
-    const planInterval = setInterval(async () => {
+
+    const syncPlan = async () => {
       const token = localStorage.getItem('authToken');
       if (!token) return;
       try {
@@ -108,9 +119,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             return prev;
           });
         }
-      } catch { /* silent — don't break UX on network blip */ }
-    }, 60000);
-    return () => clearInterval(planInterval);
+      } catch { /* silent */ }
+    };
+
+    const planInterval = setInterval(syncPlan, 30000);
+
+    // Re-check when user returns to tab
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') syncPlan();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(planInterval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [user]);
 
   const clearStorage = () => {
