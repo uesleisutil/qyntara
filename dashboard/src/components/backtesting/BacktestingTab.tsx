@@ -20,27 +20,31 @@ const fmtBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionD
 
 async function fetchAllPrices(): Promise<PriceRow[]> {
   const headers: Record<string, string> = { 'x-api-key': API_KEY };
-  // Fetch available months from S3
-  const listRes = await fetch(`${API_BASE_URL}/s3-proxy/list?prefix=curated/daily_monthly/year=2026`, { headers });
   const allPrices: PriceRow[] = [];
-  if (listRes.ok) {
-    const objects: { key: string }[] = await listRes.json();
-    const csvKeys = objects.map(o => o.key || o).filter((k: any) => typeof k === 'string' && k.endsWith('daily.csv'));
-    for (const key of csvKeys) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${key}`, { headers });
-        if (res.ok) {
-          const rows: PriceRow[] = await res.json();
-          allPrices.push(...rows);
-        }
-      } catch { /* skip failed months */ }
+  // Fetch available months from S3
+  try {
+    const listRes = await fetch(`${API_BASE_URL}/s3-proxy/list?prefix=curated/daily_monthly/year=2026`, { headers });
+    if (listRes.ok) {
+      const data = await listRes.json();
+      // API returns { objects: [{ Key, ... }], count, prefix }
+      const items: any[] = Array.isArray(data) ? data : (data.objects || []);
+      const csvKeys = items.map(o => o.Key || o.key || o).filter((k: any) => typeof k === 'string' && k.endsWith('daily.csv'));
+      for (const key of csvKeys) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${encodeURIComponent(key)}`, { headers });
+          if (res.ok) {
+            const rows: PriceRow[] = await res.json();
+            allPrices.push(...rows);
+          }
+        } catch { /* skip failed months */ }
+      }
     }
-  }
+  } catch { /* list failed */ }
   // Fallback: try known months directly
   if (allPrices.length === 0) {
-    for (const m of ['02', '03']) {
+    for (const m of ['01', '02', '03']) {
       try {
-        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=${m}/daily.csv`, { headers });
+        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${encodeURIComponent(`curated/daily_monthly/year=2026/month=${m}/daily.csv`)}`, { headers });
         if (res.ok) {
           const rows: PriceRow[] = await res.json();
           allPrices.push(...rows);
