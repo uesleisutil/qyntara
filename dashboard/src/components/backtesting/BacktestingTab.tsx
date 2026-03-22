@@ -140,7 +140,19 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
     hover: darkMode ? '#334155' : '#f1f5f9',
   };
 
+  const today = new Date().toISOString().split('T')[0];
+
   const handleRun = async () => {
+    // Validate: endDate cannot be in the future
+    if (config.endDate > today) {
+      setError('A data fim não pode ser no futuro. O backtest simula apenas com dados passados.');
+      handleChange('endDate', today);
+      return;
+    }
+    if (config.startDate >= config.endDate) {
+      setError('A data início deve ser anterior à data fim.');
+      return;
+    }
     setLoading(true); setError(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers: { 'x-api-key': API_KEY } });
@@ -216,8 +228,8 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             💡 O backtest simula como sua carteira teria se comportado no passado usando a estratégia do modelo. Defina o período, capital e quantas ações incluir. Isso ajuda a entender o potencial de retorno e risco antes de investir de verdade.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
-            <div><label style={labelStyle}>Data Início <InfoTooltip text="Início do período de simulação. Quanto mais longo, mais confiável o resultado." darkMode={darkMode} size={12} /></label><input type="date" value={config.startDate} onChange={e => handleChange('startDate', e.target.value)} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Data Fim <InfoTooltip text="Fim do período de simulação." darkMode={darkMode} size={12} /></label><input type="date" value={config.endDate} onChange={e => handleChange('endDate', e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Data Início <InfoTooltip text="Início do período de simulação. Quanto mais longo, mais confiável o resultado." darkMode={darkMode} size={12} /></label><input type="date" value={config.startDate} onChange={e => handleChange('startDate', e.target.value)} max={today} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Data Fim <InfoTooltip text="Fim do período de simulação. Não pode ser no futuro — backtest usa apenas dados passados." darkMode={darkMode} size={12} /></label><input type="date" value={config.endDate} onChange={e => handleChange('endDate', e.target.value)} max={today} style={inputStyle} /></div>
             <div><label style={labelStyle}>Capital Inicial (R$) <InfoTooltip text="Quanto dinheiro você investiria no início. Não afeta os percentuais de retorno, apenas os valores em reais." darkMode={darkMode} size={12} /></label><input type="number" value={config.initialCapital} onChange={e => handleChange('initialCapital', +e.target.value)} min={1000} step={1000} style={inputStyle} /></div>
             <div><label style={labelStyle}>Alocação <InfoTooltip text="'Peso Igual' divide o capital igualmente entre as ações. 'Ponderado por Score' investe mais nas ações com score mais alto." darkMode={darkMode} size={12} /></label>
               <select value={config.positionSize} onChange={e => handleChange('positionSize', e.target.value)} style={inputStyle}>
