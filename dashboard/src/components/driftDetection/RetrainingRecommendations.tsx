@@ -1,456 +1,203 @@
-/**
- * RetrainingRecommendations Component
- * 
- * Implements Requirements:
- * - 28.1: Generate retraining recommendations on the Drift Detection tab
- * - 28.2: Recommend retraining when > 30% features drifted
- * - 28.3: Recommend retraining when concept drift detected
- * - 28.4: Recommend retraining when degradation persists > 7 days
- * - 28.5: Display retraining priority (low, medium, high, critical)
- * - 28.6: Estimate expected performance improvement from retraining
- * - 28.7: Display time since last training
- * - 28.8: Provide retraining checklist with required steps
- * 
- * Features:
- * - Priority-based recommendations
- * - Performance improvement estimates
- * - Interactive retraining checklist
- * - Dark mode support
- * - Mobile responsive layout
- */
-
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, AlertTriangle, CheckCircle, Circle, Clock, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
-import { StatusBadge } from '../shared/StatusBadge';
 
+interface ChecklistItem { item: string; completed: boolean; description?: string; }
+interface RetrainingTrigger { type: string; severity: 'low' | 'medium' | 'high' | 'critical'; description: string; value: number; threshold: number; }
 interface RetrainingRecommendation {
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  reason: string;
-  expectedImprovement: number;
-  daysSinceLastTraining: number;
-  checklist: ChecklistItem[];
-  triggers: RetrainingTrigger[];
+  priority: 'low' | 'medium' | 'high' | 'critical'; reason: string;
+  expectedImprovement: number; daysSinceLastTraining: number;
+  checklist: ChecklistItem[]; triggers: RetrainingTrigger[];
 }
 
-interface ChecklistItem {
-  item: string;
-  completed: boolean;
-  description?: string;
+interface Props {
+  driftedFeaturesPercentage?: number; conceptDriftDetected?: boolean;
+  performanceDegradationDays?: number; daysSinceLastTraining?: number;
+  darkMode?: boolean; isMobile?: boolean;
 }
 
-interface RetrainingTrigger {
-  type: 'data_drift' | 'concept_drift' | 'performance_degradation';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  description: string;
-  value: number;
-  threshold: number;
-}
-
-interface RetrainingRecommendationsProps {
-  driftedFeaturesPercentage?: number;
-  conceptDriftDetected?: boolean;
-  performanceDegradationDays?: number;
-  daysSinceLastTraining?: number;
-  darkMode?: boolean;
-  isMobile?: boolean;
-}
-
-export const RetrainingRecommendations: React.FC<RetrainingRecommendationsProps> = ({
-  driftedFeaturesPercentage = 0,
-  conceptDriftDetected = false,
-  performanceDegradationDays = 0,
-  daysSinceLastTraining = 0,
-  darkMode = false,
-  isMobile = false,
+export const RetrainingRecommendations: React.FC<Props> = ({
+  driftedFeaturesPercentage = 0, conceptDriftDetected = false,
+  performanceDegradationDays = 0, daysSinceLastTraining = 0,
+  darkMode = false, isMobile = false,
 }) => {
   const [recommendation, setRecommendation] = useState<RetrainingRecommendation | null>(null);
   const [showChecklist, setShowChecklist] = useState(false);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
 
   const theme = {
-    bg: darkMode ? '#0f172a' : '#f8fafc',
-    cardBg: darkMode ? '#1e293b' : 'white',
+    cardBg: darkMode ? '#1e293b' : '#fff',
     text: darkMode ? '#f1f5f9' : '#0f172a',
     textSecondary: darkMode ? '#94a3b8' : '#64748b',
     border: darkMode ? '#334155' : '#e2e8f0',
     priorityBg: {
-      critical: darkMode ? '#7f1d1d' : '#fef2f2',
-      high: darkMode ? '#7c2d12' : '#fff7ed',
-      medium: darkMode ? '#713f12' : '#fefce8',
-      low: darkMode ? '#1e3a8a' : '#eff6ff',
+      critical: darkMode ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.05)',
+      high: darkMode ? 'rgba(249,115,22,0.1)' : 'rgba(249,115,22,0.05)',
+      medium: darkMode ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.05)',
+      low: darkMode ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
     },
     priorityBorder: {
-      critical: darkMode ? '#991b1b' : '#fecaca',
-      high: darkMode ? '#9a3412' : '#fed7aa',
-      medium: darkMode ? '#854d0e' : '#fef08a',
-      low: darkMode ? '#1e40af' : '#bfdbfe',
+      critical: darkMode ? 'rgba(239,68,68,0.3)' : 'rgba(239,68,68,0.25)',
+      high: darkMode ? 'rgba(249,115,22,0.3)' : 'rgba(249,115,22,0.25)',
+      medium: darkMode ? 'rgba(245,158,11,0.3)' : 'rgba(245,158,11,0.25)',
+      low: darkMode ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.25)',
     },
-    priorityText: {
-      critical: darkMode ? '#fca5a5' : '#dc2626',
-      high: darkMode ? '#fdba74' : '#ea580c',
-      medium: darkMode ? '#fde047' : '#ca8a04',
-      low: darkMode ? '#93c5fd' : '#2563eb',
-    },
+    priorityText: { critical: '#ef4444', high: '#f97316', medium: '#f59e0b', low: '#3b82f6' },
   };
 
-  // Generate retraining recommendation based on triggers (Req 28.1, 28.2, 28.3, 28.4)
+  const cardStyle: React.CSSProperties = {
+    background: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 12, overflow: 'hidden',
+  };
+
+  const severityLabel: Record<string, string> = { critical: 'CRÍTICO', high: 'ALTO', medium: 'MÉDIO', low: 'BAIXO' };
+  const triggerTypeLabel: Record<string, string> = { data_drift: 'Data Drift', concept_drift: 'Concept Drift', performance_degradation: 'Degradação de Performance' };
+
   useEffect(() => {
     const triggers: RetrainingTrigger[] = [];
     let priority: 'low' | 'medium' | 'high' | 'critical' = 'low';
     let expectedImprovement = 0;
 
-    // Check data drift trigger (Req 28.2)
     if (driftedFeaturesPercentage > 30) {
       triggers.push({
         type: 'data_drift',
         severity: driftedFeaturesPercentage > 50 ? 'critical' : driftedFeaturesPercentage > 40 ? 'high' : 'medium',
-        description: `${driftedFeaturesPercentage.toFixed(1)}% of features show significant distribution drift`,
-        value: driftedFeaturesPercentage,
-        threshold: 30,
+        description: `${driftedFeaturesPercentage.toFixed(1)}% das features apresentam drift significativo na distribuição`,
+        value: driftedFeaturesPercentage, threshold: 30,
       });
       expectedImprovement += Math.min(driftedFeaturesPercentage * 0.3, 15);
       priority = driftedFeaturesPercentage > 50 ? 'critical' : driftedFeaturesPercentage > 40 ? 'high' : 'medium';
     }
 
-    // Check concept drift trigger (Req 28.3)
     if (conceptDriftDetected) {
       triggers.push({
-        type: 'concept_drift',
-        severity: 'high',
-        description: 'Feature-target relationships have changed significantly',
-        value: 1,
-        threshold: 1,
+        type: 'concept_drift', severity: 'high',
+        description: 'As relações entre features e target mudaram significativamente',
+        value: 1, threshold: 1,
       });
       expectedImprovement += 10;
-      if (priority === 'low' || priority === 'medium') {
-        priority = 'high';
-      }
+      if (priority === 'low' || priority === 'medium') priority = 'high';
     }
 
-    // Check performance degradation trigger (Req 28.4)
     if (performanceDegradationDays > 7) {
       triggers.push({
         type: 'performance_degradation',
         severity: performanceDegradationDays > 14 ? 'critical' : 'high',
-        description: `Performance degradation has persisted for ${performanceDegradationDays} days`,
-        value: performanceDegradationDays,
-        threshold: 7,
+        description: `Degradação de performance persiste há ${performanceDegradationDays} dias`,
+        value: performanceDegradationDays, threshold: 7,
       });
       expectedImprovement += Math.min(performanceDegradationDays * 0.5, 20);
-      if (performanceDegradationDays > 14) {
-        priority = 'critical';
-      } else if (priority !== 'critical') {
-        priority = 'high';
-      }
+      if (performanceDegradationDays > 14) priority = 'critical';
+      else if (priority !== 'critical') priority = 'high';
     }
 
-    // Generate recommendation if any triggers are present
     if (triggers.length > 0) {
-      const reason = generateRecommendationReason(triggers);
-      const checklistItems = generateChecklist(triggers);
-
+      const reasons = triggers.map(t => {
+        if (t.type === 'data_drift') return `${t.value.toFixed(1)}% das features driftaram`;
+        if (t.type === 'concept_drift') return 'concept drift detectado';
+        return `performance degradada há ${t.value} dias`;
+      });
+      const checklistItems: ChecklistItem[] = [
+        { item: 'Revisar análise de drift e identificar features afetadas', completed: false, description: 'Analisar quais features driftaram e entender as causas raiz' },
+        { item: 'Coletar e validar novos dados de treino', completed: false, description: 'Garantir qualidade e completude dos dados para o período de retreinamento' },
+        { item: 'Atualizar pipeline de feature engineering se necessário', completed: false, description: 'Ajustar transformações de features baseado nos padrões de drift' },
+        ...(triggers.some(t => t.type === 'concept_drift') ? [{ item: 'Revisar e atualizar arquitetura do modelo se necessário', completed: false, description: 'Considerar mudanças no modelo para capturar novas relações' }] : []),
+        { item: 'Retreinar modelos com dados atualizados', completed: false, description: 'Executar pipeline de treino com novos dados e hiperparâmetros' },
+        { item: 'Validar performance em conjunto de holdout', completed: false, description: 'Garantir que o novo modelo atende os limites de performance' },
+        { item: 'Executar backtesting em dados históricos recentes', completed: false, description: 'Verificar performance em condições recentes de mercado' },
+        { item: 'Deploy do novo modelo em staging', completed: false, description: 'Testar modelo em staging antes do deploy em produção' },
+        { item: 'Monitorar performance pós-deploy', completed: false, description: 'Acompanhar métricas de perto após deploy em produção' },
+      ];
       setRecommendation({
-        priority,
-        reason,
-        expectedImprovement: Math.min(expectedImprovement, 25), // Cap at 25%
-        daysSinceLastTraining,
-        checklist: checklistItems,
-        triggers,
+        priority, reason: `Retreinamento recomendado: ${reasons.join(', ')}.`,
+        expectedImprovement: Math.min(expectedImprovement, 25),
+        daysSinceLastTraining, checklist: checklistItems, triggers,
       });
       setChecklist(checklistItems);
     } else {
-      setRecommendation(null);
-      setChecklist([]);
+      setRecommendation(null); setChecklist([]);
     }
   }, [driftedFeaturesPercentage, conceptDriftDetected, performanceDegradationDays, daysSinceLastTraining]);
 
-  // Generate recommendation reason text
-  const generateRecommendationReason = (triggers: RetrainingTrigger[]): string => {
-    const reasons: string[] = [];
-    
-    triggers.forEach(trigger => {
-      switch (trigger.type) {
-        case 'data_drift':
-          reasons.push(`${trigger.value.toFixed(1)}% of features have drifted`);
-          break;
-        case 'concept_drift':
-          reasons.push('concept drift detected');
-          break;
-        case 'performance_degradation':
-          reasons.push(`performance degraded for ${trigger.value} days`);
-          break;
-      }
-    });
+  const toggleChecklistItem = (idx: number) => setChecklist(prev => prev.map((item, i) => i === idx ? { ...item, completed: !item.completed } : item));
 
-    return `Model retraining recommended due to: ${reasons.join(', ')}.`;
+  const formatDaysSince = (d: number) => {
+    if (d === 0) return 'Hoje';
+    if (d === 1) return '1 dia atrás';
+    if (d < 7) return `${d} dias atrás`;
+    if (d < 30) return `${Math.floor(d / 7)} semanas atrás`;
+    return `${Math.floor(d / 30)} meses atrás`;
   };
 
-  // Generate retraining checklist (Req 28.8)
-  const generateChecklist = (triggers: RetrainingTrigger[]): ChecklistItem[] => {
-    const items: ChecklistItem[] = [
-      {
-        item: 'Review drift analysis and identify affected features',
-        completed: false,
-        description: 'Analyze which features have drifted and understand the root causes',
-      },
-      {
-        item: 'Collect and validate new training data',
-        completed: false,
-        description: 'Ensure data quality and completeness for the retraining period',
-      },
-      {
-        item: 'Update feature engineering pipeline if needed',
-        completed: false,
-        description: 'Adjust feature transformations based on drift patterns',
-      },
-      {
-        item: 'Retrain models with updated data',
-        completed: false,
-        description: 'Execute training pipeline with new data and hyperparameters',
-      },
-      {
-        item: 'Validate model performance on holdout set',
-        completed: false,
-        description: 'Ensure new model meets performance thresholds',
-      },
-      {
-        item: 'Run backtesting on recent historical data',
-        completed: false,
-        description: 'Verify model performance on recent market conditions',
-      },
-      {
-        item: 'Deploy new model to staging environment',
-        completed: false,
-        description: 'Test model in staging before production deployment',
-      },
-      {
-        item: 'Monitor model performance post-deployment',
-        completed: false,
-        description: 'Track metrics closely after deployment to production',
-      },
-    ];
-
-    // Add specific items based on triggers
-    if (triggers.some(t => t.type === 'concept_drift')) {
-      items.splice(3, 0, {
-        item: 'Review and update model architecture if needed',
-        completed: false,
-        description: 'Consider model changes to capture new relationships',
-      });
-    }
-
-    return items;
-  };
-
-  const toggleChecklistItem = (index: number) => {
-    setChecklist(prev => 
-      prev.map((item, i) => 
-        i === index ? { ...item, completed: !item.completed } : item
-      )
-    );
-  };
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'critical':
-        return <AlertTriangle size={24} />;
-      case 'high':
-        return <AlertTriangle size={24} />;
-      case 'medium':
-        return <RefreshCw size={24} />;
-      default:
-        return <RefreshCw size={24} />;
-    }
-  };
-
-  const formatDaysSinceTraining = (days: number): string => {
-    if (days === 0) return 'Today';
-    if (days === 1) return '1 day ago';
-    if (days < 7) return `${days} days ago`;
-    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-    if (days < 365) return `${Math.floor(days / 30)} months ago`;
-    return `${Math.floor(days / 365)} years ago`;
-  };
-
-  // No recommendation needed
   if (!recommendation) {
     return (
-      <div
-        style={{
-          backgroundColor: theme.cardBg,
-          borderRadius: '8px',
-          border: `1px solid ${theme.border}`,
-          padding: '2rem',
-          textAlign: 'center',
-        }}
-      >
-        <CheckCircle size={48} color="#10b981" style={{ marginBottom: '1rem' }} />
-        <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.125rem', fontWeight: '600', color: theme.text }}>
-          No Retraining Required
-        </h4>
-        <p style={{ margin: 0, fontSize: '0.875rem', color: theme.textSecondary }}>
-          Model performance is stable. No significant drift or degradation detected.
-        </p>
+      <div style={{ ...cardStyle, padding: '2rem', textAlign: 'center' }}>
+        <CheckCircle size={40} color="#10b981" style={{ marginBottom: '0.75rem' }} />
+        <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '1rem', fontWeight: 600, color: theme.text }}>Retreinamento Não Necessário</h4>
+        <p style={{ margin: 0, fontSize: '0.85rem', color: theme.textSecondary }}>Performance do modelo está estável. Nenhum drift ou degradação significativa detectada.</p>
         {daysSinceLastTraining > 0 && (
-          <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', color: theme.textSecondary }}>
-            Last trained: {formatDaysSinceTraining(daysSinceLastTraining)}
-          </p>
+          <p style={{ margin: '0.4rem 0 0 0', fontSize: '0.72rem', color: theme.textSecondary }}>Último treino: {formatDaysSince(daysSinceLastTraining)}</p>
         )}
       </div>
     );
   }
 
-  const completedItems = checklist.filter(item => item.completed).length;
+  const completedItems = checklist.filter(i => i.completed).length;
   const totalItems = checklist.length;
-  const checklistProgress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+  const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Recommendation Card (Req 28.5, 28.6, 28.7) */}
-      <div
-        style={{
-          backgroundColor: theme.priorityBg[recommendation.priority],
-          border: `2px solid ${theme.priorityBorder[recommendation.priority]}`,
-          borderRadius: '8px',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ padding: isMobile ? '1rem' : '1.5rem' }}>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1rem' }}>
+      {/* Card de recomendação */}
+      <div style={{ background: theme.priorityBg[recommendation.priority], border: `2px solid ${theme.priorityBorder[recommendation.priority]}`, borderRadius: 12, overflow: 'hidden' }}>
+        <div style={{ padding: isMobile ? '1rem' : '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1rem' }}>
             <div style={{ color: theme.priorityText[recommendation.priority], flexShrink: 0 }}>
-              {getPriorityIcon(recommendation.priority)}
+              <AlertTriangle size={22} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                <h4 style={{ margin: 0, fontSize: isMobile ? '1rem' : '1.25rem', fontWeight: '700', color: theme.text }}>
-                  Model Retraining Recommended
-                </h4>
-                <StatusBadge
-                  status={recommendation.priority === 'critical' || recommendation.priority === 'high' ? 'error' : 'warning'}
-                  label={recommendation.priority.toUpperCase()}
-                />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+                <h4 style={{ margin: 0, fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 700, color: theme.text }}>Retreinamento do Modelo Recomendado</h4>
+                <span style={{
+                  padding: '0.15rem 0.5rem', borderRadius: 10, fontSize: '0.65rem', fontWeight: 600,
+                  background: theme.priorityBg[recommendation.priority], color: theme.priorityText[recommendation.priority],
+                  border: `1px solid ${theme.priorityBorder[recommendation.priority]}`,
+                }}>{severityLabel[recommendation.priority]}</span>
               </div>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: theme.text, lineHeight: '1.5' }}>
-                {recommendation.reason}
-              </p>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: theme.text, lineHeight: 1.5 }}>{recommendation.reason}</p>
             </div>
           </div>
 
-          {/* Metrics Grid */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-              gap: '1rem',
-              marginTop: '1.5rem',
-            }}
-          >
-            {/* Expected Improvement (Req 28.6) */}
-            <div
-              style={{
-                backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
-                padding: '1rem',
-                borderRadius: '6px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <TrendingUp size={16} color={theme.textSecondary} />
-                <span style={{ fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>
-                  Expected Improvement
-                </span>
+          {/* Métricas */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '1rem' }}>
+            {[
+              { icon: <TrendingUp size={14} />, label: 'MELHORIA ESPERADA', value: `+${recommendation.expectedImprovement.toFixed(1)}%`, sub: 'Ganho estimado de performance' },
+              { icon: <Clock size={14} />, label: 'ÚLTIMO TREINO', value: `${recommendation.daysSinceLastTraining}`, sub: formatDaysSince(recommendation.daysSinceLastTraining) },
+              { icon: <AlertTriangle size={14} />, label: 'GATILHOS ATIVOS', value: `${recommendation.triggers.length}`, sub: 'Condições de retreinamento atingidas' },
+            ].map((m, i) => (
+              <div key={i} style={{ background: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.5)', padding: '0.85rem', borderRadius: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem' }}>
+                  <span style={{ color: theme.textSecondary }}>{m.icon}</span>
+                  <span style={{ fontSize: '0.68rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase' as const }}>{m.label}</span>
+                </div>
+                <div style={{ fontSize: isMobile ? '1.3rem' : '1.5rem', fontWeight: 700, color: theme.text }}>{m.value}</div>
+                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginTop: '0.15rem' }}>{m.sub}</div>
               </div>
-              <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
-                +{recommendation.expectedImprovement.toFixed(1)}%
-              </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: '0.25rem' }}>
-                Estimated performance gain
-              </div>
-            </div>
-
-            {/* Time Since Last Training (Req 28.7) */}
-            <div
-              style={{
-                backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
-                padding: '1rem',
-                borderRadius: '6px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <Clock size={16} color={theme.textSecondary} />
-                <span style={{ fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>
-                  Last Training
-                </span>
-              </div>
-              <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
-                {recommendation.daysSinceLastTraining}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: '0.25rem' }}>
-                {formatDaysSinceTraining(recommendation.daysSinceLastTraining)}
-              </div>
-            </div>
-
-            {/* Active Triggers */}
-            <div
-              style={{
-                backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
-                padding: '1rem',
-                borderRadius: '6px',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                <AlertTriangle size={16} color={theme.textSecondary} />
-                <span style={{ fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, textTransform: 'uppercase' }}>
-                  Active Triggers
-                </span>
-              </div>
-              <div style={{ fontSize: isMobile ? '1.5rem' : '1.75rem', fontWeight: '700', color: theme.text }}>
-                {recommendation.triggers.length}
-              </div>
-              <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: '0.25rem' }}>
-                Retraining conditions met
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Triggers List */}
-          <div style={{ marginTop: '1.5rem' }}>
-            <h5
-              style={{
-                margin: '0 0 0.75rem 0',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: theme.text,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-              }}
-            >
-              Retraining Triggers
-            </h5>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {/* Gatilhos */}
+          <div style={{ marginTop: '1.25rem' }}>
+            <h5 style={{ margin: '0 0 0.6rem 0', fontSize: '0.8rem', fontWeight: 600, color: theme.text, textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>Gatilhos de Retreinamento</h5>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {recommendation.triggers.map((trigger, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.5)',
-                    padding: '0.75rem',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                  }}
-                >
-                  <StatusBadge
-                    status={trigger.severity === 'critical' || trigger.severity === 'high' ? 'error' : 'warning'}
-                    label={trigger.severity}
-                  />
+                <div key={idx} style={{ background: darkMode ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.5)', padding: '0.65rem', borderRadius: 8, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{
+                    padding: '0.15rem 0.45rem', borderRadius: 10, fontSize: '0.6rem', fontWeight: 600,
+                    background: theme.priorityBg[trigger.severity], color: theme.priorityText[trigger.severity],
+                    border: `1px solid ${theme.priorityBorder[trigger.severity]}`,
+                  }}>{severityLabel[trigger.severity]}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.875rem', fontWeight: '500', color: theme.text }}>
-                      {trigger.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: '0.125rem' }}>
-                      {trigger.description}
-                    </div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>{triggerTypeLabel[trigger.type] || trigger.type}</div>
+                    <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: '0.1rem' }}>{trigger.description}</div>
                   </div>
                 </div>
               ))}
@@ -459,140 +206,44 @@ export const RetrainingRecommendations: React.FC<RetrainingRecommendationsProps>
         </div>
       </div>
 
-      {/* Retraining Checklist (Req 28.8) */}
-      <div
-        style={{
-          backgroundColor: theme.cardBg,
-          borderRadius: '8px',
-          border: `1px solid ${theme.border}`,
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            padding: '1rem',
-            borderBottom: `1px solid ${theme.border}`,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            cursor: 'pointer',
-          }}
-          onClick={() => setShowChecklist(!showChecklist)}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <RefreshCw size={20} color={theme.textSecondary} />
-            <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: theme.text }}>
-              Retraining Checklist
-            </h4>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                color: theme.textSecondary,
-                backgroundColor: darkMode ? '#334155' : '#f1f5f9',
-                padding: '0.125rem 0.5rem',
-                borderRadius: '9999px',
-              }}
-            >
-              {completedItems} / {totalItems}
-            </span>
+      {/* Checklist */}
+      <div style={cardStyle}>
+        <div style={{ padding: '1rem', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+          onClick={() => setShowChecklist(!showChecklist)}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <RefreshCw size={18} color={theme.textSecondary} />
+            <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Checklist de Retreinamento</h4>
+            <span style={{ fontSize: '0.72rem', color: theme.textSecondary, background: darkMode ? '#334155' : '#f1f5f9', padding: '0.1rem 0.45rem', borderRadius: 10 }}>{completedItems} / {totalItems}</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', color: theme.textSecondary }}>
-              {checklistProgress.toFixed(0)}%
-            </span>
-            <div style={{ color: theme.textSecondary }}>
-              {showChecklist ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>{progress.toFixed(0)}%</span>
+            <div style={{ color: theme.textSecondary }}>{showChecklist ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</div>
           </div>
         </div>
-
-        {/* Progress Bar */}
-        <div
-          style={{
-            height: '4px',
-            backgroundColor: darkMode ? '#334155' : '#e2e8f0',
-            position: 'relative',
-          }}
-        >
-          <div
-            style={{
-              height: '100%',
-              width: `${checklistProgress}%`,
-              backgroundColor: checklistProgress === 100 ? '#10b981' : '#3b82f6',
-              transition: 'width 0.3s ease',
-            }}
-          />
+        <div style={{ height: 4, background: darkMode ? '#334155' : '#e2e8f0', position: 'relative' }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: progress === 100 ? '#10b981' : '#3b82f6', transition: 'width 0.3s ease' }} />
         </div>
-
-        {/* Checklist Items */}
         {showChecklist && (
           <div style={{ padding: '1rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               {checklist.map((item, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    padding: '0.75rem',
-                    backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    border: `1px solid ${item.completed ? '#10b981' : theme.border}`,
-                    transition: 'all 0.2s ease',
-                  }}
-                  onClick={() => toggleChecklistItem(idx)}
-                >
-                  <div style={{ flexShrink: 0, marginTop: '0.125rem' }}>
-                    {item.completed ? (
-                      <CheckCircle size={20} color="#10b981" />
-                    ) : (
-                      <Circle size={20} color={theme.textSecondary} />
-                    )}
+                <div key={idx} onClick={() => toggleChecklistItem(idx)} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '0.6rem', padding: '0.65rem',
+                  background: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8, cursor: 'pointer',
+                  border: `1px solid ${item.completed ? '#10b981' : theme.border}`, transition: 'all 0.2s ease',
+                }}>
+                  <div style={{ flexShrink: 0, marginTop: '0.1rem' }}>
+                    {item.completed ? <CheckCircle size={18} color="#10b981" /> : <Circle size={18} color={theme.textSecondary} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: item.completed ? theme.textSecondary : theme.text,
-                        textDecoration: item.completed ? 'line-through' : 'none',
-                      }}
-                    >
-                      {item.item}
-                    </div>
-                    {item.description && (
-                      <div
-                        style={{
-                          fontSize: '0.75rem',
-                          color: theme.textSecondary,
-                          marginTop: '0.25rem',
-                          lineHeight: '1.4',
-                        }}
-                      >
-                        {item.description}
-                      </div>
-                    )}
+                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: item.completed ? theme.textSecondary : theme.text, textDecoration: item.completed ? 'line-through' : 'none' }}>{item.item}</div>
+                    {item.description && <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: '0.15rem', lineHeight: 1.4 }}>{item.description}</div>}
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Checklist Footer */}
-            <div
-              style={{
-                marginTop: '1rem',
-                padding: '0.75rem',
-                backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
-                borderRadius: '6px',
-                fontSize: '0.75rem',
-                color: theme.textSecondary,
-                lineHeight: '1.5',
-              }}
-            >
-              <strong>Note:</strong> This checklist provides a recommended workflow for model retraining. 
-              Adjust steps based on your specific requirements and organizational processes.
+            <div style={{ marginTop: '0.75rem', padding: '0.65rem', background: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8, fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5 }}>
+              <strong style={{ color: theme.text }}>Nota:</strong> Este checklist fornece um fluxo recomendado para retreinamento do modelo. Ajuste os passos conforme seus requisitos e processos organizacionais.
             </div>
           </div>
         )}

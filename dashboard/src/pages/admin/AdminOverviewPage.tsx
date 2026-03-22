@@ -45,8 +45,7 @@ const AdminOverviewPage: React.FC = () => {
     const diff = Math.round((Date.now() - d.getTime()) / 1000);
     if (diff < 60) return 'agora mesmo';
     if (diff < 3600) return `há ${Math.floor(diff / 60)} min`;
-    if (diff < 86400) return `há ${Math.floor(diff / 3600)}h`;
-    return `há ${Math.floor(diff / 86400)}d`;
+    return `há ${Math.floor(diff / 3600)}h`;
   };
 
   if (loading) {
@@ -99,18 +98,18 @@ const AdminOverviewPage: React.FC = () => {
   if (mape != null && mape > 3) issues.push('MAPE acima de 3%');
   if (threshold.exceeded) issues.push('Orçamento mensal excedido');
   if (anomalies.length > 2) issues.push(`${anomalies.length} anomalias de custo`);
-  if (overallCompleteness != null && overallCompleteness < 0.9) issues.push('Completude de dados abaixo de 90%');
+  if (overallCompleteness != null && overallCompleteness < 0.9) issues.push('Completude abaixo de 90%');
   const verdictOk = issues.length === 0;
 
   const kpis = [
-    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100)}%` : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : dirAcc != null && dirAcc >= 0.5 ? '#f59e0b' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Percentual de previsões que acertaram a direção (alta/baixa) do preço.' },
-    { label: 'MAPE', value: mape != null ? `${fmt(mape)}%` : '—', color: mape != null && mape <= 1 ? '#10b981' : mape != null && mape <= 2 ? '#f59e0b' : '#ef4444', icon: <Activity size={16} />, tip: 'Erro percentual absoluto médio. Quanto menor, mais preciso o modelo.' },
-    { label: 'Sharpe Ratio', value: sharpe != null ? `${fmt(sharpe, 2)}` : '—', color: sharpe != null && sharpe >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Razão retorno/risco. Positivo indica retorno acima do CDI ajustado ao risco.' },
+    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100)}%` : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b', icon: <TrendingUp size={16} />, tip: 'Percentual de previsões que acertaram a direção (alta/baixa) do preço.' },
+    { label: 'MAPE', value: mape != null ? `${fmt(mape)}%` : '—', color: mape != null && mape <= 1 ? '#10b981' : mape != null && mape <= 2 ? '#f59e0b' : '#ef4444', icon: <Activity size={16} />, tip: 'Erro percentual absoluto médio. Quanto menor, mais preciso.' },
+    { label: 'Sharpe Ratio', value: sharpe != null ? `${fmt(sharpe, 2)}` : '—', color: sharpe != null && sharpe >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Razão retorno/risco. Positivo = retorno acima do CDI ajustado ao risco.' },
     { label: 'Projeção Mensal', value: projBrl != null ? `R$ ${fmt(projBrl, 2)}` : '—', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo AWS para o mês atual em reais.' },
-    { label: 'Custo 7d (USD)', value: cost7d != null ? `$${fmt(cost7d, 2)}` : '—', color: '#3b82f6', icon: <Server size={16} />, tip: 'Custo total dos últimos 7 dias em dólares americanos.' },
-    { label: 'Completude', value: overallCompleteness != null ? `${fmt(overallCompleteness * 100)}%` : '—', color: overallCompleteness != null && overallCompleteness >= 0.95 ? '#10b981' : '#f59e0b', icon: <Database size={16} />, tip: 'Percentual médio de dados presentes vs esperados para todos os tickers.' },
-    { label: 'Freshness', value: freshnessRate != null ? `${fmt(freshnessRate * 100)}%` : '—', color: freshnessRate != null && freshnessRate >= 0.9 ? '#10b981' : '#f59e0b', icon: <Clock size={16} />, tip: 'Percentual de fontes de dados atualizadas dentro do prazo esperado.' },
-    { label: 'Anomalias Custo', value: `${anomalies.length}`, color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Número de anomalias de custo detectadas (picos inesperados em serviços AWS).' },
+    { label: 'Custo 7d (USD)', value: cost7d != null ? `$${fmt(cost7d, 2)}` : '—', color: '#3b82f6', icon: <Server size={16} />, tip: 'Custo total dos últimos 7 dias em dólares.' },
+    { label: 'Completude', value: overallCompleteness != null ? `${fmt(overallCompleteness * 100)}%` : '—', color: overallCompleteness != null && overallCompleteness >= 0.95 ? '#10b981' : '#f59e0b', icon: <Database size={16} />, tip: 'Percentual médio de dados presentes vs esperados.' },
+    { label: 'Freshness', value: freshnessRate != null ? `${fmt(freshnessRate * 100)}%` : '—', color: freshnessRate != null && freshnessRate >= 0.9 ? '#10b981' : '#f59e0b', icon: <Clock size={16} />, tip: 'Percentual de fontes de dados atualizadas no prazo.' },
+    { label: 'Anomalias Custo', value: `${anomalies.length}`, color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Picos inesperados de custo em serviços AWS.' },
   ];
 
   const recentAnomalies = anomalies.slice(-5);
@@ -152,7 +151,7 @@ const AdminOverviewPage: React.FC = () => {
         </div>
       </div>
 
-      {/* How it works banner */}
+      {/* How it works */}
       <div style={{
         ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem',
         background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
@@ -184,7 +183,7 @@ const AdminOverviewPage: React.FC = () => {
           <div style={cardStyle}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <DollarSign size={16} color="#f59e0b" /> Orçamento Mensal
-              <InfoTooltip text="Barra de progresso mostrando quanto do orçamento mensal já foi projetado. Verde = OK, Amarelo = atenção, Vermelho = excedido." darkMode={darkMode} size={12} />
+              <InfoTooltip text="Barra de progresso do orçamento. Verde = OK, Amarelo = atenção, Vermelho = excedido." darkMode={darkMode} size={12} />
             </h3>
             <div style={{ marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
@@ -210,7 +209,7 @@ const AdminOverviewPage: React.FC = () => {
         <div style={cardStyle}>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Shield size={16} color="#3b82f6" /> Infraestrutura
-            <InfoTooltip text="Status dos serviços AWS utilizados pelo sistema. Todos devem estar ativos para operação normal." darkMode={darkMode} size={12} />
+            <InfoTooltip text="Status dos serviços AWS. Todos devem estar ativos para operação normal." darkMode={darkMode} size={12} />
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {[
@@ -238,7 +237,7 @@ const AdminOverviewPage: React.FC = () => {
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <AlertTriangle size={16} color="#f59e0b" /> Anomalias de Custo
             <span style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontWeight: 600 }}>{anomalies.length}</span>
-            <InfoTooltip text="Serviços AWS com custos significativamente acima da média histórica." darkMode={darkMode} size={12} />
+            <InfoTooltip text="Serviços AWS com custos acima da média histórica." darkMode={darkMode} size={12} />
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {recentAnomalies.map((a: any, i: number) => (

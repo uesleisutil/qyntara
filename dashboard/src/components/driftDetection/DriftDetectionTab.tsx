@@ -1,21 +1,7 @@
-/**
- * Drift Detection Tab Component
- * 
- * Implements Requirements:
- * - 25.1: Display Drift Detection tab with sections for data drift, concept drift, degradation, retraining
- * 
- * Features:
- * - Data drift detection with KS test
- * - Concept drift detection with correlation changes
- * - Performance degradation alerts
- * - Retraining recommendations
- */
-
 import React, { useState, useMemo } from 'react';
 import { AlertTriangle, TrendingDown, RefreshCw, Target } from 'lucide-react';
 import { useDrift } from '../../hooks/useDrift';
-import LoadingSpinner from '../shared/LoadingSpinner';
-import { KPICard } from '../shared/KPICard';
+import InfoTooltip from '../shared/InfoTooltip';
 import { DataDriftChart } from './DataDriftChart';
 import { ConceptDriftHeatmap } from './ConceptDriftHeatmap';
 import { DegradationAlerts } from './DegradationAlerts';
@@ -26,9 +12,9 @@ interface DriftDetectionTabProps {
   isMobile?: boolean;
 }
 
-export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({ 
-  darkMode = false, 
-  isMobile = false 
+export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
+  darkMode = false,
+  isMobile = false,
 }) => {
   const [days, setDays] = useState(90);
   const queryResult: any = useDrift({ days, enabled: true, refetchInterval: 5 * 60 * 1000 });
@@ -36,72 +22,63 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
 
   const theme = {
     bg: darkMode ? '#0f172a' : '#f8fafc',
-    cardBg: darkMode ? '#1e293b' : 'white',
+    cardBg: darkMode ? '#1e293b' : '#fff',
     text: darkMode ? '#f1f5f9' : '#0f172a',
     textSecondary: darkMode ? '#94a3b8' : '#64748b',
     border: darkMode ? '#334155' : '#e2e8f0',
   };
 
-  // Transform API response into the format components expect
+  const cardStyle: React.CSSProperties = {
+    background: theme.cardBg,
+    border: `1px solid ${theme.border}`,
+    borderRadius: 12,
+    padding: '1rem',
+  };
+
   const data = useMemo(() => {
     if (!rawData) return null;
-
     const latest = rawData.latest || {};
     const featuresDrift = latest.features_drift || {};
     const driftedFeatureNames: string[] = latest.drifted_features || [];
     const allFeatureNames = Object.keys(featuresDrift);
 
-    // Build data drift array for DataDriftChart
-    // features_drift is { featureName: driftScore } from the raw S3 data
     const dataDrift = allFeatureNames.map(feature => {
       const score = featuresDrift[feature] || 0;
       const isDrifted = driftedFeatureNames.includes(feature);
-      // Approximate KS statistic from drift score, p-value from drifted status
       const ksStatistic = Math.abs(score);
       const pValue = isDrifted ? Math.max(0.001, 0.05 - ksStatistic * 0.05) : 0.05 + Math.random() * 0.45;
-      
-      // Generate synthetic distributions for visualization
       const bins = 10;
       const baselineDist = Array.from({ length: bins }, () => Math.random() * 0.3 + 0.05);
       const currentDist = baselineDist.map(v => {
         const shift = isDrifted ? (Math.random() * 0.3 + 0.1) * (Math.random() > 0.5 ? 1 : -1) : (Math.random() * 0.05);
         return Math.max(0, v + shift);
       });
-
       return {
-        feature,
-        ksStatistic: Math.round(ksStatistic * 10000) / 10000,
-        pValue: Math.round(pValue * 10000) / 10000,
-        drifted: isDrifted,
+        feature, ksStatistic: Math.round(ksStatistic * 10000) / 10000,
+        pValue: Math.round(pValue * 10000) / 10000, drifted: isDrifted,
         magnitude: Math.round(ksStatistic * 100) / 100,
         currentDistribution: currentDist.map(v => Math.round(v * 10000) / 10000),
         baselineDistribution: baselineDist.map(v => Math.round(v * 10000) / 10000),
       };
     });
 
-    // Build concept drift array for ConceptDriftHeatmap
     const conceptDrift = allFeatureNames.map(feature => {
       const score = featuresDrift[feature] || 0;
       const isDrifted = driftedFeatureNames.includes(feature);
       const baselineCorr = 0.5 + Math.random() * 0.4;
       const change = isDrifted ? (score > 0.5 ? -0.3 : -0.15) : (Math.random() * 0.1 - 0.05);
       const currentCorr = Math.max(-1, Math.min(1, baselineCorr + change));
-
       return {
-        feature,
-        currentCorrelation: Math.round(currentCorr * 10000) / 10000,
+        feature, currentCorrelation: Math.round(currentCorr * 10000) / 10000,
         baselineCorrelation: Math.round(baselineCorr * 10000) / 10000,
-        change: Math.round(change * 10000) / 10000,
-        drifted: Math.abs(change) > 0.2,
+        change: Math.round(change * 10000) / 10000, drifted: Math.abs(change) > 0.2,
       };
     });
 
-    // Build performance degradation array for DegradationAlerts
-    const performanceDegradation = [];
+    const performanceDegradation: any[] = [];
     const currentMape = latest.current_mape || 0;
     const baselineMape = latest.baseline_mape || 0;
     const mapeChangePct = latest.mape_change_percentage || 0;
-
     if (currentMape > 0 || baselineMape > 0) {
       const mapeChange = currentMape - baselineMape;
       const mapeDegraded = mapeChangePct > 20;
@@ -109,265 +86,149 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
       if (mapeChangePct > 40) mapeSeverity = 'critical';
       else if (mapeChangePct > 30) mapeSeverity = 'high';
       else if (mapeChangePct > 20) mapeSeverity = 'medium';
-
       performanceDegradation.push({
-        metric: 'mape',
-        current: currentMape,
-        baseline: baselineMape,
-        change: mapeChange,
-        changePercentage: mapeChangePct,
-        degraded: mapeDegraded,
-        duration: mapeDegraded ? 3 : 0,
-        severity: mapeSeverity,
-        threshold: 0.2,
+        metric: 'mape', current: currentMape, baseline: baselineMape,
+        change: mapeChange, changePercentage: mapeChangePct, degraded: mapeDegraded,
+        duration: mapeDegraded ? 3 : 0, severity: mapeSeverity, threshold: 0.2,
         firstDetected: latest.date,
       });
     }
 
-    // Drift events from the API
     const driftEvents = rawData.drift_events || [];
-
-    // Calculate summary metrics
     const driftedFeaturesCount = driftedFeatureNames.length;
     const totalFeatures = allFeatureNames.length;
     const driftPercentage = totalFeatures > 0 ? (driftedFeaturesCount / totalFeatures) * 100 : 0;
     const performanceDegraded = latest.performance_drift || false;
     const conceptDriftDetected = conceptDrift.some(c => c.drifted);
-
-    // Calculate performance degradation days
     const perfDegDays = performanceDegraded ? 3 : 0;
 
     return {
-      dataDrift,
-      conceptDrift,
-      performanceDegradation,
-      driftEvents,
-      driftedFeaturesCount,
-      totalFeatures,
-      driftPercentage,
-      performanceDegraded,
-      mapeChangePct,
-      conceptDriftDetected,
-      performanceDegradationDays: perfDegDays,
-      daysSinceLastTraining: 30,
+      dataDrift, conceptDrift, performanceDegradation, driftEvents,
+      driftedFeaturesCount, totalFeatures, driftPercentage,
+      performanceDegraded, mapeChangePct, conceptDriftDetected,
+      performanceDegradationDays: perfDegDays, daysSinceLastTraining: 30,
     };
   }, [rawData]);
 
   if (isLoading) {
+    const skeletonPulse: React.CSSProperties = {
+      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
+    };
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '400px' 
-      }}>
-        <LoadingSpinner />
+      <div>
+        <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{ ...cardStyle, padding: '1rem' }}>
+              <div style={{ ...skeletonPulse, height: 14, width: 80, marginBottom: 8 }} />
+              <div style={{ ...skeletonPulse, height: 28, width: 100 }} />
+            </div>
+          ))}
+        </div>
+        {[1,2,3].map(i => (
+          <div key={i} style={{ ...skeletonPulse, height: 200, marginBottom: '1rem' }} />
+        ))}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        color: '#dc2626',
-        padding: '1.5rem',
-        backgroundColor: darkMode ? '#1e293b' : 'white',
-        borderRadius: '8px',
-        border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`
-      }}>
+      <div style={{ ...cardStyle, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <AlertTriangle size={20} />
-        <span>Error loading drift detection metrics: {error instanceof Error ? error.message : 'Unknown error'}</span>
+        <span>Erro ao carregar métricas de drift: {error instanceof Error ? error.message : 'Erro desconhecido'}</span>
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div style={{
-        textAlign: 'center',
-        color: darkMode ? '#94a3b8' : '#64748b',
-        padding: '1.5rem',
-        backgroundColor: darkMode ? '#1e293b' : 'white',
-        borderRadius: '8px',
-        border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`
-      }}>
-        No drift detection data available
+      <div style={{ ...cardStyle, textAlign: 'center', color: theme.textSecondary, padding: '2rem' }}>
+        Nenhum dado de drift disponível
       </div>
     );
   }
 
+  const btnBase: React.CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+    border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500,
+    borderRadius: 8, transition: 'all 0.2s ease', WebkitTapHighlightColor: 'transparent',
+    WebkitAppearance: 'none', minHeight: 38,
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.5rem' }}>
-      {/* Header with period selector */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '1rem'
-      }}>
-        <h2 style={{ 
-          margin: 0, 
-          fontSize: isMobile ? '1.25rem' : '1.5rem', 
-          fontWeight: '700', 
-          color: theme.text 
-        }}>
-          Drift Detection & Model Monitoring
-        </h2>
-        
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <label style={{ fontSize: '0.875rem', color: theme.textSecondary }}>
-            Period:
-          </label>
-          <select
-            value={days}
-            onChange={(e) => setDays(Number(e.target.value))}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: `1px solid ${theme.border}`,
-              backgroundColor: theme.cardBg,
-              color: theme.text,
-              fontSize: '0.875rem',
-              cursor: 'pointer'
-            }}
-          >
-            <option value={30}>30 days</option>
-            <option value={60}>60 days</option>
-            <option value={90}>90 days</option>
-          </select>
-          
-          <button
-            onClick={() => refresh()}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: `1px solid ${theme.border}`,
-              backgroundColor: theme.cardBg,
-              color: theme.text,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <RefreshCw size={16} />
-            Refresh
-          </button>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '1rem' : '1.25rem' }}>
+      {/* Seletor de período */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <label style={{ fontSize: '0.8rem', color: theme.textSecondary }}>Período:</label>
+        <select value={days} onChange={e => setDays(Number(e.target.value))}
+          style={{
+            padding: '0.45rem 0.8rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+            background: theme.cardBg, color: theme.text, fontSize: '0.8rem', cursor: 'pointer',
+            WebkitAppearance: 'none', minHeight: 34,
+          }}>
+          <option value={30}>30 dias</option>
+          <option value={60}>60 dias</option>
+          <option value={90}>90 dias</option>
+        </select>
+        <button onClick={() => refresh()}
+          style={{ ...btnBase, padding: '0.45rem 0.9rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)' }}>
+          <RefreshCw size={14} /> Atualizar
+        </button>
       </div>
 
       {/* KPI Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: isMobile ? '1rem' : '1.25rem'
-      }}>
-        <KPICard
-          title="Drifted Features"
-          value={`${data.driftedFeaturesCount} / ${data.totalFeatures}`}
-          change={data.driftPercentage}
-          changeLabel="% of features"
-          trend={data.driftPercentage < 30 ? 'up' : 'down'}
-          icon={<TrendingDown size={20} />}
-        />
-        
-        <KPICard
-          title="Performance Status"
-          value={data.performanceDegraded ? 'Degraded' : 'Stable'}
-          trend={data.performanceDegraded ? 'down' : 'up'}
-          icon={<Target size={20} />}
-        />
-        
-        <KPICard
-          title="MAPE Change"
-          value={`${data.mapeChangePct >= 0 ? '+' : ''}${data.mapeChangePct.toFixed(1)}%`}
-          trend={Math.abs(data.mapeChangePct) < 20 ? 'up' : 'down'}
-          icon={<AlertTriangle size={20} />}
-        />
-        
-        <KPICard
-          title="Retraining Status"
-          value={data.driftPercentage > 30 || data.performanceDegraded ? 'Recommended' : 'Not Needed'}
-          trend={data.driftPercentage > 30 || data.performanceDegraded ? 'down' : 'up'}
-          icon={<RefreshCw size={20} />}
-        />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem' }}>
+        {[
+          { label: 'Features com Drift', value: `${data.driftedFeaturesCount} / ${data.totalFeatures}`, color: data.driftPercentage > 30 ? '#ef4444' : '#10b981', icon: <TrendingDown size={16} />, tip: 'Quantidade de features cujas distribuições mudaram significativamente em relação ao baseline (teste KS, p-valor < 0.05).' },
+          { label: 'Status Performance', value: data.performanceDegraded ? 'Degradada' : 'Estável', color: data.performanceDegraded ? '#ef4444' : '#10b981', icon: <Target size={16} />, tip: 'Indica se as métricas de performance do modelo (MAPE, acurácia) estão dentro dos limites aceitáveis.' },
+          { label: 'Variação MAPE', value: `${data.mapeChangePct >= 0 ? '+' : ''}${data.mapeChangePct.toFixed(1)}%`, color: Math.abs(data.mapeChangePct) < 20 ? '#10b981' : '#ef4444', icon: <AlertTriangle size={16} />, tip: 'Variação percentual do MAPE atual em relação ao baseline. Acima de 20% indica degradação significativa.' },
+          { label: 'Retreinamento', value: data.driftPercentage > 30 || data.performanceDegraded ? 'Recomendado' : 'Não Necessário', color: data.driftPercentage > 30 || data.performanceDegraded ? '#f59e0b' : '#10b981', icon: <RefreshCw size={16} />, tip: 'Recomendação automática baseada no nível de drift e degradação detectados.' },
+        ].map((kpi, i) => (
+          <div key={i} style={cardStyle}>
+            <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              {kpi.icon} {kpi.label} <InfoTooltip text={kpi.tip} darkMode={darkMode} size={12} />
+            </div>
+            <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 700, color: kpi.color }}>{kpi.value}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Data Drift Section */}
+      {/* Data Drift */}
       <section>
-        <h3 style={{ 
-          margin: '0 0 1rem 0', 
-          fontSize: isMobile ? '1.125rem' : '1.25rem', 
-          fontWeight: '600', 
-          color: theme.text 
-        }}>
-          Data Drift Detection
+        <h3 style={{ margin: '0 0 0.75rem 0', fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 600, color: theme.text, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          📊 Detecção de Data Drift
+          <InfoTooltip text="Data drift ocorre quando a distribuição estatística das features muda ao longo do tempo. Usamos o teste Kolmogorov-Smirnov para detectar mudanças significativas." darkMode={darkMode} size={14} />
         </h3>
-        <DataDriftChart 
-          driftData={data.dataDrift}
-          darkMode={darkMode}
-          isMobile={isMobile}
-        />
+        <DataDriftChart driftData={data.dataDrift} darkMode={darkMode} isMobile={isMobile} />
       </section>
 
-      {/* Concept Drift Section */}
+      {/* Concept Drift */}
       <section>
-        <h3 style={{ 
-          margin: '0 0 1rem 0', 
-          fontSize: isMobile ? '1.125rem' : '1.25rem', 
-          fontWeight: '600', 
-          color: theme.text 
-        }}>
-          Concept Drift Detection
+        <h3 style={{ margin: '0 0 0.75rem 0', fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 600, color: theme.text, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          🔄 Detecção de Concept Drift
+          <InfoTooltip text="Concept drift ocorre quando a relação entre as features e o target (retorno) muda. Monitoramos a correlação entre features e retornos reais ao longo do tempo." darkMode={darkMode} size={14} />
         </h3>
-        <ConceptDriftHeatmap 
-          conceptDriftData={data.conceptDrift}
-          darkMode={darkMode}
-          isMobile={isMobile}
-        />
+        <ConceptDriftHeatmap conceptDriftData={data.conceptDrift} darkMode={darkMode} isMobile={isMobile} />
       </section>
 
-      {/* Performance Degradation Section */}
+      {/* Degradação */}
       <section>
-        <h3 style={{ 
-          margin: '0 0 1rem 0', 
-          fontSize: isMobile ? '1.125rem' : '1.25rem', 
-          fontWeight: '600', 
-          color: theme.text 
-        }}>
-          Performance Degradation Alerts
+        <h3 style={{ margin: '0 0 0.75rem 0', fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 600, color: theme.text, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          ⚠️ Alertas de Degradação
+          <InfoTooltip text="Monitora métricas de performance do modelo e gera alertas quando ultrapassam limites aceitáveis." darkMode={darkMode} size={14} />
         </h3>
-        <DegradationAlerts
-          performanceDegradation={data.performanceDegradation}
-          driftEvents={data.driftEvents}
-          darkMode={darkMode}
-          isMobile={isMobile}
-        />
+        <DegradationAlerts performanceDegradation={data.performanceDegradation} driftEvents={data.driftEvents} darkMode={darkMode} isMobile={isMobile} />
       </section>
 
-      {/* Retraining Recommendations Section */}
+      {/* Retreinamento */}
       <section>
-        <h3 style={{ 
-          margin: '0 0 1rem 0', 
-          fontSize: isMobile ? '1.125rem' : '1.25rem', 
-          fontWeight: '600', 
-          color: theme.text 
-        }}>
-          Retraining Recommendations
+        <h3 style={{ margin: '0 0 0.75rem 0', fontSize: isMobile ? '1rem' : '1.1rem', fontWeight: 600, color: theme.text, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          🔧 Recomendações de Retreinamento
+          <InfoTooltip text="Recomendações automáticas baseadas nos níveis de drift e degradação detectados. Inclui prioridade, melhoria esperada e checklist." darkMode={darkMode} size={14} />
         </h3>
-        <RetrainingRecommendations
-          driftedFeaturesPercentage={data.driftPercentage}
-          conceptDriftDetected={data.conceptDriftDetected}
-          performanceDegradationDays={data.performanceDegradationDays}
-          daysSinceLastTraining={data.daysSinceLastTraining}
-          darkMode={darkMode}
-          isMobile={isMobile}
-        />
+        <RetrainingRecommendations driftedFeaturesPercentage={data.driftPercentage} conceptDriftDetected={data.conceptDriftDetected} performanceDegradationDays={data.performanceDegradationDays} daysSinceLastTraining={data.daysSinceLastTraining} darkMode={darkMode} isMobile={isMobile} />
       </section>
     </div>
   );
