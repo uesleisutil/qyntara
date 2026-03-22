@@ -1140,9 +1140,27 @@ export class InfraStack extends cdk.Stack {
       AGENTS_TABLE: agentsTable.tableName,
       USERS_TABLE: usersTable.tableName,
       JWT_SECRET: jwtSecret,
+      BEDROCK_MODEL_ID: "us.anthropic.claude-3-5-haiku-20241022-v1:0",
     });
     agentsTable.grantReadWriteData(agentHubFn);
     usersTable.grantReadData(agentHubFn);
+
+    // Bedrock permissions for AI agents (cross-region inference profiles)
+    agentHubFn.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      effect: cdk.aws_iam.Effect.ALLOW,
+      actions: ["bedrock:InvokeModel"],
+      resources: ["*"],
+    }));
+
+    // Marketplace permissions (needed for first-time Anthropic model activation)
+    agentHubFn.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      effect: cdk.aws_iam.Effect.ALLOW,
+      actions: [
+        "aws-marketplace:ViewSubscriptions",
+        "aws-marketplace:Subscribe",
+      ],
+      resources: ["*"],
+    }));
 
     const agentHubIntegration = new apigateway.LambdaIntegration(agentHubFn, {
       proxy: true,

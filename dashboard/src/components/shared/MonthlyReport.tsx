@@ -123,14 +123,18 @@ ${positions.length > 0 ? `<h2>📋 Minhas Posições</h2>
 
   return (
     <button onClick={generate} disabled={generating} style={{
-      display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-      padding: '0.5rem 0.85rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 600,
-      background: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.1)',
-      border: `1px solid rgba(139,92,246,0.3)`, color: '#8b5cf6',
-      cursor: generating ? 'wait' : 'pointer', transition: 'all 0.2s',
-      WebkitAppearance: 'none' as any,
-    }}>
-      {generating ? <Loader size={14} className="spin" /> : <FileText size={14} />}
+      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+      padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
+      border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
+      background: 'transparent',
+      color: darkMode ? '#94a3b8' : '#64748b',
+      cursor: generating ? 'wait' : 'pointer', transition: 'all 0.15s',
+      WebkitAppearance: 'none' as any, minHeight: 'auto',
+    }}
+      onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; } }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#334155' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#94a3b8' : '#64748b'; }}
+    >
+      {generating ? <Loader size={13} className="spin" /> : <FileText size={13} />}
       {generating ? 'Gerando...' : 'Relatório Mensal'}
     </button>
   );

@@ -54,13 +54,14 @@ const ShareButton: React.FC<ShareButtonProps> = ({ text, darkMode, size = 14 }) 
     <>
       <button onClick={handleToggle} style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-        padding: '0.35rem 0.65rem', borderRadius: 8, fontSize: '0.75rem',
+        padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
         border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
         background: 'transparent', color: darkMode ? '#94a3b8' : '#64748b',
         cursor: 'pointer', WebkitAppearance: 'none' as any, transition: 'all 0.15s',
+        minHeight: 'auto',
       }}
-        onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#334155' : '#f1f5f9'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#334155' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#94a3b8' : '#64748b'; }}
       >
         <Share2 size={size} /> Compartilhar
       </button>

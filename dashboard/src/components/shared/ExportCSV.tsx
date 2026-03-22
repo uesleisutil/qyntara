@@ -39,7 +39,7 @@ const ExportCSV: React.FC<ExportCSVProps> = ({ data, filename, darkMode = true, 
       title={label}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-        padding: '0.4rem 0.7rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 500,
+        padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
         border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
         background: 'transparent',
         color: darkMode ? '#94a3b8' : '#64748b',

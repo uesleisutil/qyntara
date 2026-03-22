@@ -50,12 +50,12 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
     return (
       <button onClick={() => setOpen(true)} style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1rem',
-        borderRadius: 8, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.04)',
-        color: '#8b5cf6', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
+        borderRadius: 8, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
+        color: '#3b82f6', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
         transition: 'all 0.2s', WebkitAppearance: 'none' as any,
       }}
-        onMouseEnter={e => { e.currentTarget.style.background = darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = darkMode ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.04)'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.08)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)'; }}
       >
         <Columns size={16} /> Comparar Ações
       </button>
@@ -89,7 +89,7 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Columns size={18} color="#8b5cf6" />
+          <Columns size={18} color="#3b82f6" />
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: theme.text }}>Comparador de Ações</h3>
           <InfoTooltip text="Compare até 3 ações lado a lado para facilitar sua decisão. O melhor valor de cada métrica é destacado." darkMode={darkMode} size={12} />
         </div>
@@ -105,12 +105,12 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
           <span key={s} style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.3rem 0.6rem', borderRadius: 8, fontSize: '0.82rem', fontWeight: 600,
-            background: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)',
-            color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.3)',
+            background: darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.08)',
+            color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)',
           }}>
             {s}
             <button onClick={() => removeTicker(s)} style={{
-              background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer', padding: 0,
+              background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0,
               display: 'flex', WebkitAppearance: 'none' as any,
             }}><X size={14} /></button>
           </span>
@@ -174,12 +174,12 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
                         <td key={d.ticker} style={{
                           padding: '0.55rem 0.5rem', textAlign: 'center', fontWeight: 600,
                           color: colorFn(val, d),
-                          background: isBest ? (darkMode ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.04)') : 'transparent',
-                          borderLeft: isBest ? '2px solid rgba(139,92,246,0.4)' : 'none',
-                          borderRight: isBest ? '2px solid rgba(139,92,246,0.4)' : 'none',
+                          background: isBest ? (darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)') : 'transparent',
+                          borderLeft: isBest ? '2px solid rgba(59,130,246,0.4)' : 'none',
+                          borderRight: isBest ? '2px solid rgba(59,130,246,0.4)' : 'none',
                         }}>
                           {formatFn(val, d)}
-                          {isBest && <span style={{ marginLeft: 4, fontSize: '0.65rem', color: '#8b5cf6' }}>★</span>}
+                          {isBest && <span style={{ marginLeft: 4, fontSize: '0.65rem', color: '#3b82f6' }}>★</span>}
                         </td>
                       );
                     })}
@@ -196,11 +196,11 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
             return (
               <div style={{
                 marginTop: '0.75rem', padding: '0.75rem', borderRadius: 8,
-                background: darkMode ? 'rgba(139,92,246,0.08)' : 'rgba(139,92,246,0.04)',
-                border: '1px solid rgba(139,92,246,0.2)',
+                background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
+                border: '1px solid rgba(59,130,246,0.2)',
                 fontSize: '0.82rem', color: theme.textSecondary, lineHeight: 1.6,
               }}>
-                🏆 <strong style={{ color: '#8b5cf6' }}>{winner.ticker}</strong> tem o melhor score ({fmt(winner.score, 2)}) com retorno previsto de{' '}
+                🏆 <strong style={{ color: '#3b82f6' }}>{winner.ticker}</strong> tem o melhor score ({fmt(winner.score, 2)}) com retorno previsto de{' '}
                 <strong style={{ color: winner.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
                   {winner.exp_return_20 >= 0 ? '+' : ''}{fmt(winner.exp_return_20 * 100, 1)}%
                 </strong> e volatilidade de {fmt(winner.vol_20d * 100, 1)}%.

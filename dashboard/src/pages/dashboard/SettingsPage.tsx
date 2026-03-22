@@ -133,16 +133,17 @@ const SettingsPage: React.FC = () => {
             }}
             disabled={!isPro || emailNotifSaving}
             style={{
-              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
+              width: 40, height: 22, borderRadius: 11, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
               background: emailNotif && isPro ? '#10b981' : (darkMode ? '#334155' : '#e2e8f0'),
               position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-              opacity: isPro ? 1 : 0.5,
+              opacity: isPro ? 1 : 0.5, padding: 0,
+              WebkitAppearance: 'none' as any,
             }}
           >
             <div style={{
-              width: 18, height: 18, borderRadius: '50%', background: 'white',
+              width: 16, height: 16, borderRadius: '50%', background: 'white',
               position: 'absolute', top: 3,
-              left: emailNotif && isPro ? 23 : 3,
+              left: emailNotif && isPro ? 21 : 3,
               transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
             }} />
           </button>

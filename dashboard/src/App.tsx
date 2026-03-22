@@ -11,6 +11,7 @@ import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import MyDashboardPage from './pages/dashboard/MyDashboardPage';
 import RecommendationsPage from './pages/dashboard/RecommendationsPage';
 import ExplainabilityPage from './pages/dashboard/ExplainabilityPage';
 import BacktestingPage from './pages/dashboard/BacktestingPage';
@@ -102,7 +103,8 @@ const AppRoutes: React.FC = () => {
 
       {/* User dashboard */}
       <Route path="/dashboard" element={<RequireAuth><DashboardLayout /></RequireAuth>}>
-        <Route index element={<RecommendationsPage />} />
+        <Route index element={<MyDashboardPage />} />
+        <Route path="recommendations" element={<RecommendationsPage />} />
         <Route path="explainability" element={<ExplainabilityPage />} />
         <Route path="backtesting" element={<BacktestingPage />} />
         <Route path="tracking" element={<TrackingPage />} />

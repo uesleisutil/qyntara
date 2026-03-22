@@ -11,68 +11,48 @@ interface GuidedTourProps {
 const mainTourSteps: Step[] = [
   {
     target: 'body',
-    content: 'Welcome to the B3 Tactical Ranking MLOps Dashboard! Let\'s take a quick tour of the key features.',
+    content: 'Bem-vindo ao B3 Tactical Ranking! Vamos fazer um tour rápido pelas principais funcionalidades.',
     placement: 'center',
     disableBeacon: true,
   },
   {
-    target: '[data-tour="tabs"]',
-    content: 'Navigate between different sections using these tabs. Each tab provides specific insights into your ML models and recommendations.',
-    placement: 'bottom',
+    target: '[data-tour="nav-mydashboard"]',
+    content: 'Este é o seu Dashboard pessoal. Aqui você vê suas posições, destaque do dia, novidades e pode comparar ações.',
+    placement: 'right',
   },
   {
-    target: '[data-tour="recommendations-tab"]',
-    content: 'The Recommendations tab shows current stock recommendations with expected returns and scores.',
-    placement: 'bottom',
+    target: '[data-tour="nav-recommendations"]',
+    content: 'Na aba Recomendações você encontra todas as ações ranqueadas pelo modelo de ML, com scores, sinais e retornos previstos.',
+    placement: 'right',
   },
   {
-    target: '[data-tour="performance-tab"]',
-    content: 'View model performance metrics, including accuracy, MAPE, and Sharpe ratio in the Performance tab.',
-    placement: 'bottom',
+    target: '[data-tour="nav-explainability"]',
+    content: 'A Explicabilidade mostra por que o modelo recomendou cada ação — quais indicadores mais pesaram na decisão.',
+    placement: 'right',
   },
   {
-    target: '[data-tour="validation-tab"]',
-    content: 'The Validation tab helps you analyze prediction accuracy with scatter plots and temporal analysis.',
-    placement: 'bottom',
+    target: '[data-tour="nav-backtesting"]',
+    content: 'No Backtesting você simula como teria sido o desempenho de uma carteira usando recomendações passadas.',
+    placement: 'right',
   },
   {
-    target: '[data-tour="costs-tab"]',
-    content: 'Monitor AWS costs and optimize spending in the Costs tab.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="data-quality-tab"]',
-    content: 'Track data completeness, anomalies, and freshness in the Data Quality tab.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="drift-tab"]',
-    content: 'Detect data and concept drift to identify when models need retraining.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="explainability-tab"]',
-    content: 'Understand model predictions with SHAP values and feature importance.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="backtesting-tab"]',
-    content: 'Simulate portfolio performance using historical recommendations.',
-    placement: 'bottom',
+    target: '[data-tour="nav-performance"]',
+    content: 'A aba Performance mostra métricas de acurácia do modelo: MAPE, Sharpe, correlação e mais.',
+    placement: 'right',
   },
   {
     target: '[data-tour="notification-center"]',
-    content: 'Check alerts and notifications here. You\'ll receive updates about drift, anomalies, and performance issues.',
+    content: 'Aqui ficam os alertas e notificações. Você recebe avisos sobre mudanças de sinal, drift e anomalias.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="theme-toggle"]',
-    content: 'Toggle between light and dark mode for comfortable viewing.',
+    content: 'Alterne entre modo claro e escuro conforme sua preferência.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="help-menu"]',
-    content: 'Access help resources, FAQ, glossary, and restart this tour anytime from the help menu.',
+    content: 'Acesse ajuda, FAQ, glossário e reinicie este tour a qualquer momento pelo menu de ajuda.',
     placement: 'bottom',
   },
 ];
@@ -80,48 +60,48 @@ const mainTourSteps: Step[] = [
 const advancedTourSteps: Step[] = [
   {
     target: 'body',
-    content: 'Welcome to the advanced features tour! Let\'s explore powerful capabilities for in-depth analysis.',
+    content: 'Vamos explorar as funcionalidades avançadas para análises mais profundas.',
     placement: 'center',
     disableBeacon: true,
   },
   {
     target: '[data-tour="filters"]',
-    content: 'Use filters to narrow down recommendations by sector, return range, and minimum score.',
+    content: 'Use os filtros para refinar as recomendações por setor, retorno esperado e score mínimo.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="export-button"]',
-    content: 'Export data to CSV or Excel for offline analysis and reporting.',
+    content: 'Exporte os dados em CSV para análise offline e relatórios.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="comparison-mode"]',
-    content: 'Enable comparison mode to analyze multiple tickers side-by-side.',
+    content: 'Ative o modo de comparação para analisar múltiplas ações lado a lado.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="temporal-comparison"]',
-    content: 'Toggle temporal comparison to see how metrics have changed over time.',
+    content: 'Ative a comparação temporal para ver como as métricas mudaram ao longo do tempo.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="favorites"]',
-    content: 'Mark tickers as favorites for quick access and monitoring.',
+    content: 'Marque ações como favoritas para acompanhamento rápido.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="keyboard-shortcuts"]',
-    content: 'Use keyboard shortcuts for faster navigation. Press ? to see all available shortcuts.',
+    content: 'Use atalhos de teclado para navegar mais rápido. Pressione ? para ver todos os atalhos.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="drill-down"]',
-    content: 'Click on charts and tables to drill down into detailed views and related data.',
+    content: 'Clique em gráficos e tabelas para ver detalhes e dados relacionados.',
     placement: 'bottom',
   },
   {
     target: '[data-tour="annotations"]',
-    content: 'Add annotations to charts to mark important events and insights.',
+    content: 'Adicione anotações aos gráficos para marcar eventos e insights importantes.',
     placement: 'bottom',
   },
 ];
@@ -203,11 +183,11 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
         },
       }}
       locale={{
-        back: 'Back',
-        close: 'Close',
-        last: 'Finish',
-        next: 'Next',
-        skip: 'Skip Tour',
+        back: 'Voltar',
+        close: 'Fechar',
+        last: 'Finalizar',
+        next: 'Próximo',
+        skip: 'Pular Tour',
       }}
     />
   );

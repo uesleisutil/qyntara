@@ -59,9 +59,10 @@ const DashboardLayout: React.FC = () => {
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === '1') navigate('/dashboard');
-      else if (e.key === '2') navigate('/dashboard/explainability');
-      else if (e.key === '3') navigate('/dashboard/backtesting');
-      else if (e.key === '4') navigate('/dashboard/performance');
+      else if (e.key === '2') navigate('/dashboard/recommendations');
+      else if (e.key === '3') navigate('/dashboard/explainability');
+      else if (e.key === '4') navigate('/dashboard/backtesting');
+      else if (e.key === '5') navigate('/dashboard/performance');
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         const searchInput = document.querySelector('[data-tour="search-bar"] input') as HTMLInputElement;
@@ -73,7 +74,8 @@ const DashboardLayout: React.FC = () => {
   }, [navigate]);
 
   const userMenuItems = [
-    { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} />, tourId: 'nav-recommendations' },
+    { path: '/dashboard', label: 'Meu Dashboard', icon: <TrendingUp size={18} />, tourId: 'nav-mydashboard' },
+    { path: '/dashboard/recommendations', label: 'Recomendações', icon: <BarChart3 size={18} />, tourId: 'nav-recommendations' },
     { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} />, tourId: 'nav-explainability' },
     { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} />, tourId: 'nav-backtesting' },
     { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} />, tourId: 'nav-performance' },

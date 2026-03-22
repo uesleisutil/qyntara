@@ -6,18 +6,12 @@ import InfoTooltip from '../../components/shared/InfoTooltip';
 import ShareButton from '../../components/shared/ShareButton';
 import { useIsPro } from '../../components/shared/ProGate';
 import FollowButton from '../../components/shared/FollowButton';
-import MyPositionsPanel from '../../components/shared/MyPositionsPanel';
-import PriceAlerts from '../../components/shared/PriceAlerts';
-import DailyHighlight from '../../components/shared/DailyHighlight';
 import ActivationChecklist, { markChecklistItem } from '../../components/shared/ActivationChecklist';
 import { WatchlistButton, getWatchlist } from '../../components/shared/Watchlist';
 import ExportCSV from '../../components/shared/ExportCSV';
 import Sparkline from '../../components/shared/Sparkline';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getSignal, getSignalColor, getCurrentMonthPriceKey, PRO_PRICE_LABEL } from '../../constants';
 import { getSector, ALL_SECTORS } from '../../constants/sectors';
-import SignalChangesDropdown from '../../components/shared/SignalChangesDropdown';
-import PersonalPerformance from '../../components/shared/PersonalPerformance';
-import GoalTracker from '../../components/shared/GoalTracker';
 import MonthlyReport from '../../components/shared/MonthlyReport';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
@@ -243,19 +237,6 @@ const RecommendationsPage: React.FC = () => {
       {/* Activation checklist for new users */}
       <ActivationChecklist darkMode={darkMode} theme={theme} />
 
-      {/* Daily Highlight — top ticker of the day */}
-      {recommendations.length > 0 && topTicker && (
-        <DailyHighlight
-          darkMode={darkMode} theme={theme}
-          topTicker={topTicker}
-          totalBuy={totalBuy} totalSell={totalSell} totalNeutral={totalNeutral}
-          date={date}
-        />
-      )}
-
-      {/* Floating "Novidades" button — only shows when there are signal changes */}
-      <SignalChangesDropdown darkMode={darkMode} theme={theme} />
-
       {/* Compact KPI strip — Resumo do Dia inline */}
       {recommendations.length > 0 && (
         <div data-tour="kpi-strip" style={{
@@ -288,27 +269,6 @@ const RecommendationsPage: React.FC = () => {
 
 
 
-
-      {/* #5: Pro panels collapsed by default to reduce noise */}
-      {isPro && (
-        <details style={{ marginBottom: '0.75rem' }}>
-          <summary style={{
-            cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: theme.text,
-            padding: '0.5rem 0.75rem', borderRadius: 8, listStyle: 'none',
-            background: theme.card || (darkMode ? '#1e293b' : '#fff'),
-            border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', gap: '0.4rem',
-          }}>
-            📋 Minhas Posições &amp; Alertas
-            <span style={{ fontSize: '0.7rem', color: theme.textSecondary, marginLeft: 'auto' }}>clique para expandir</span>
-          </summary>
-          <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <PersonalPerformance darkMode={darkMode} theme={theme} />
-            <GoalTracker darkMode={darkMode} theme={theme} />
-            <MyPositionsPanel darkMode={darkMode} theme={theme} />
-            <PriceAlerts darkMode={darkMode} theme={theme} />
-          </div>
-        </details>
-      )}
 
       {/* Search + Filter + Sort bar */}
       <div data-tour="search-bar" style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
