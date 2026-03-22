@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
-  Briefcase, LineChart, Crown, Bell, Phone,
+  Briefcase, LineChart, Crown, Bell, Phone, Bot,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
@@ -60,6 +60,7 @@ const DashboardLayout: React.FC = () => {
     { path: '/admin/drift', label: 'Drift Detection', icon: <Brain size={18} /> },
     { path: '/admin/validation', label: 'Validação', icon: <TestTubes size={18} /> },
     { path: '/admin/notifications', label: 'Notificações', icon: <Bell size={18} /> },
+    { path: '/admin/agents', label: 'Agentes IA', icon: <Bot size={18} /> },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -266,6 +267,7 @@ const DashboardLayout: React.FC = () => {
               if (p.includes('drift')) return '🔒 Admin — Drift';
               if (p.includes('validation')) return '🔒 Admin — Validação';
               if (p.includes('notifications')) return '🔒 Admin — Notificações';
+              if (p.includes('agents')) return '🤖 Admin — Agentes IA';
               return location.pathname.startsWith('/admin') ? '🔒 Admin' : 'Dashboard';
             })()}
           </div>

@@ -1080,6 +1080,40 @@ export class InfraStack extends cdk.Stack {
     const adminWhatsapp = adminResource.addResource("whatsapp");
     adminWhatsapp.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
 
+    // -----------------------
+    // Agent Hub (Multi-Agent Governance)
+    // -----------------------
+    const agentsTable = new cdk.aws_dynamodb.Table(this, "AgentsTable", {
+      tableName: "B3Dashboard-Agents",
+      partitionKey: { name: "agentId", type: cdk.aws_dynamodb.AttributeType.STRING },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: cdk.aws_dynamodb.TableEncryption.AWS_MANAGED,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
+    const agentHubFn = mkPyLambda("AgentHub", "ml.src.lambdas.agent_hub.handler", {
+      AGENTS_TABLE: agentsTable.tableName,
+      USERS_TABLE: usersTable.tableName,
+      JWT_SECRET: jwtSecret,
+    });
+    agentsTable.grantReadWriteData(agentHubFn);
+    usersTable.grantReadData(agentHubFn);
+
+    const agentHubIntegration = new apigateway.LambdaIntegration(agentHubFn, {
+      proxy: true,
+      allowTestInvoke: false,
+    });
+
+    // /admin/agents routes
+    const adminAgents = adminResource.addResource("agents");
+    adminAgents.addMethod("GET", agentHubIntegration, { apiKeyRequired: false });
+    const adminAgentById = adminAgents.addResource("{agentId}");
+    adminAgentById.addMethod("GET", agentHubIntegration, { apiKeyRequired: false });
+    const adminAgentChat = adminAgentById.addResource("chat");
+    adminAgentChat.addMethod("POST", agentHubIntegration, { apiKeyRequired: false });
+    const adminAgentTasks = adminAgentById.addResource("tasks");
+    adminAgentTasks.addMethod("PUT", agentHubIntegration, { apiKeyRequired: false });
+
     // /notifications route (JWT-protected, user-facing)
     const notificationsResource = api.root.addResource("notifications");
     notificationsResource.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
