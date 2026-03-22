@@ -11,6 +11,7 @@ const DashboardLayout: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : true;
@@ -29,7 +30,6 @@ const DashboardLayout: React.FC = () => {
     { path: '/dashboard', label: 'Recomendações', icon: <TrendingUp size={18} /> },
     { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} /> },
     { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} /> },
-    { path: '/dashboard/change-password', label: 'Alterar Senha', icon: <Lock size={18} /> },
   ];
 
   const adminMenuItems = [
@@ -203,11 +203,54 @@ const DashboardLayout: React.FC = () => {
             {location.pathname.startsWith('/admin') ? '🔒 Painel Admin' : 'Dashboard'}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem',
-              borderRadius: 6, background: theme.hover, fontSize: '0.8rem', color: theme.textSecondary,
-            }}>
-              <User size={14} /> {user?.email}
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{
+                display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.75rem',
+                borderRadius: 6, background: theme.hover, fontSize: '0.8rem', color: theme.textSecondary,
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = theme.activeItem || theme.hover}
+                onMouseLeave={e => { if (!userMenuOpen) e.currentTarget.style.background = theme.hover; }}
+              >
+                <User size={14} /> {user?.email}
+              </button>
+              {userMenuOpen && (
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setUserMenuOpen(false)} />
+                  <div style={{
+                    position: 'absolute', right: 0, top: '100%', marginTop: 6, minWidth: 200,
+                    background: theme.sidebar, border: `1px solid ${theme.border}`, borderRadius: 8,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)', zIndex: 50, overflow: 'hidden',
+                  }}>
+                    <div style={{ padding: '0.6rem 0.75rem', borderBottom: `1px solid ${theme.border}` }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.text }}>{user?.name || user?.email}</div>
+                      <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>{user?.role === 'admin' ? 'Administrador' : 'Usuário'}</div>
+                    </div>
+                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/change-password'); }} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                      transition: 'background 0.1s',
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Lock size={14} /> Alterar Senha
+                    </button>
+                    <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                      color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                      borderTop: `1px solid ${theme.border}`, transition: 'background 0.1s',
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <LogOut size={14} /> Sair
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>
