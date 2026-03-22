@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { TrendingUp, DollarSign, AlertTriangle, CheckCircle, Activity, Server, Database, RefreshCw, Shield, Clock, XCircle } from 'lucide-react';
+import { TrendingUp, DollarSign, AlertTriangle, CheckCircle, Activity, Server, Database, RefreshCw, Shield, Clock, XCircle, Loader2 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
+interface HealthStatus { name: string; desc: string; status: 'ok' | 'error' | 'loading'; latency?: number; }
 
 const fmt = (v: any, decimals = 1) => v != null && !isNaN(v) ? Number(v).toFixed(decimals) : null;
 
@@ -15,6 +16,37 @@ const AdminOverviewPage: React.FC = () => {
   const [quality, setQuality] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [healthChecks, setHealthChecks] = useState<HealthStatus[]>([
+    { name: 'API Gateway', desc: 'REST endpoints', status: 'loading' },
+    { name: 'Lambda Auth', desc: 'Autenticação', status: 'loading' },
+    { name: 'S3 Proxy', desc: 'Dados curados', status: 'loading' },
+    { name: 'DynamoDB', desc: 'Users + Notifications', status: 'loading' },
+    { name: 'Recomendações', desc: 'ML pipeline', status: 'loading' },
+  ]);
+
+  const runHealthChecks = async () => {
+    const headers = { 'x-api-key': API_KEY };
+    const token = localStorage.getItem('authToken');
+    const checks: { name: string; desc: string; fn: () => Promise<Response> }[] = [
+      { name: 'API Gateway', desc: 'REST endpoints', fn: () => fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers }) },
+      { name: 'Lambda Auth', desc: 'Autenticação', fn: () => fetch(`${API_BASE_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } }) },
+      { name: 'S3 Proxy', desc: 'Dados curados', fn: () => fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }) },
+      { name: 'DynamoDB', desc: 'Users + Notifications', fn: () => fetch(`${API_BASE_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } }) },
+      { name: 'Recomendações', desc: 'ML pipeline', fn: () => fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }) },
+    ];
+    const results: HealthStatus[] = [];
+    for (const check of checks) {
+      const start = performance.now();
+      try {
+        const res = await check.fn();
+        const latency = Math.round(performance.now() - start);
+        results.push({ name: check.name, desc: check.desc, status: res.ok ? 'ok' : 'error', latency });
+      } catch {
+        results.push({ name: check.name, desc: check.desc, status: 'error', latency: 0 });
+      }
+    }
+    setHealthChecks(results);
+  };
 
   const fetchAll = async () => {
     setLoading(true);
@@ -33,7 +65,7 @@ const AdminOverviewPage: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { fetchAll(); runHealthChecks(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1e293b' : '#fff'),
@@ -128,7 +160,7 @@ const AdminOverviewPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={fetchAll} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={() => { fetchAll(); runHealthChecks(); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -208,23 +240,23 @@ const AdminOverviewPage: React.FC = () => {
 
         <div style={cardStyle}>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Shield size={16} color="#3b82f6" /> Infraestrutura
-            <InfoTooltip text="Status dos serviços AWS. Todos devem estar ativos para operação normal." darkMode={darkMode} size={12} />
+            <Shield size={16} color="#3b82f6" /> Infraestrutura (Health Check)
+            <InfoTooltip text="Status real dos serviços AWS verificado via chamadas HTTP. Latência em ms." darkMode={darkMode} size={12} />
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            {[
-              { name: 'Lambda Functions', desc: 'Auth + S3 Proxy' },
-              { name: 'API Gateway', desc: 'REST endpoints' },
-              { name: 'S3 Buckets', desc: 'Dados curados' },
-              { name: 'DynamoDB', desc: 'Users + Notifications' },
-              { name: 'SES Email', desc: 'Verificação + Reset' },
-            ].map((item, i) => (
+            {healthChecks.map((item, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <span style={{ fontSize: '0.82rem', color: theme.text }}>{item.name}</span>
                   <span style={{ fontSize: '0.68rem', color: theme.textSecondary, marginLeft: '0.4rem' }}>{item.desc}</span>
                 </div>
-                <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><CheckCircle size={12} /> Ativo</span>
+                {item.status === 'loading' ? (
+                  <span style={{ fontSize: '0.75rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Loader2 size={12} className="spin" /> Verificando</span>
+                ) : item.status === 'ok' ? (
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><CheckCircle size={12} /> OK {item.latency != null && <span style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{item.latency}ms</span>}</span>
+                ) : (
+                  <span style={{ fontSize: '0.75rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><XCircle size={12} /> Erro</span>
+                )}
               </div>
             ))}
           </div>

@@ -4,7 +4,7 @@ import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
   Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
-  Settings, Mail, Shield,
+  Settings, Mail, Shield, DollarSign, Database, CheckSquare, Activity,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
@@ -36,19 +36,16 @@ const DashboardLayout: React.FC = () => {
   const isAdmin = user?.role === 'admin';
   const isPro = user?.plan === 'pro';
 
-  // Show onboarding on first visit
   React.useEffect(() => {
     if (shouldShowOnboarding()) {
       const timer = setTimeout(() => setShowOnboarding(true), 600);
       return () => clearTimeout(timer);
     } else if (shouldShowTour()) {
-      // If onboarding was already done but tour wasn't, show tour
       const timer = setTimeout(() => setShowTour(true), 1000);
       return () => clearTimeout(timer);
     }
   }, []);
 
-  // Keyboard shortcuts: 1-4 for tabs, Ctrl+K for search
   React.useEffect(() => {
     const goOnline = () => setIsOffline(false);
     const goOffline = () => setIsOffline(true);
@@ -59,16 +56,12 @@ const DashboardLayout: React.FC = () => {
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-
       if (e.key === '1') navigate('/dashboard');
       else if (e.key === '2') navigate('/dashboard/explainability');
       else if (e.key === '3') navigate('/dashboard/backtesting');
       else if (e.key === '4') navigate('/dashboard/performance');
-
-      // Ctrl+K or Cmd+K: focus search
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         const searchInput = document.querySelector('[data-tour="search-bar"] input') as HTMLInputElement;
@@ -91,16 +84,21 @@ const DashboardLayout: React.FC = () => {
     { path: '/dashboard/portfolio', label: 'Carteira Modelo', icon: <Briefcase size={18} /> },
   ];
 
-  const adminMenuItems = [
+  /* #2 + #3: Admin items grouped with unique icons */
+  const adminModelItems = [
     { path: '/admin', label: 'Visão Geral', icon: <BarChart3 size={18} /> },
-    { path: '/admin/performance', label: 'Performance', icon: <TrendingUp size={18} /> },
-    { path: '/admin/costs', label: 'Custos', icon: <BarChart3 size={18} /> },
-    { path: '/admin/data-quality', label: 'Qualidade de Dados', icon: <TestTubes size={18} /> },
+    { path: '/admin/performance', label: 'Performance', icon: <Activity size={18} /> },
     { path: '/admin/drift', label: 'Drift Detection', icon: <Brain size={18} /> },
-    { path: '/admin/validation', label: 'Validação', icon: <TestTubes size={18} /> },
+    { path: '/admin/validation', label: 'Validação', icon: <CheckSquare size={18} /> },
+  ];
+  const adminInfraItems = [
+    { path: '/admin/costs', label: 'Custos', icon: <DollarSign size={18} /> },
+    { path: '/admin/data-quality', label: 'Qualidade de Dados', icon: <Database size={18} /> },
     { path: '/admin/notifications', label: 'Notificações', icon: <Bell size={18} /> },
-    { path: '/admin/agents', label: 'Agentes IA', icon: <Bot size={18} /> },
+  ];
+  const adminMgmtItems = [
     { path: '/admin/users', label: 'Usuários', icon: <Users size={18} /> },
+    { path: '/admin/agents', label: 'Agentes IA', icon: <Bot size={18} /> },
     { path: '/admin/chat', label: 'Chat', icon: <MessageCircle size={18} /> },
   ];
 
@@ -117,15 +115,8 @@ const DashboardLayout: React.FC = () => {
     activeItem: darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.08)',
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
-  };
-
-  const handleNav = (path: string) => {
-    navigate(path);
-    setSidebarOpen(false);
-  };
+  const handleLogout = async () => { await logout(); navigate('/'); };
+  const handleNav = (path: string) => { navigate(path); setSidebarOpen(false); };
 
   const renderNavButton = (item: { path: string; label: string; icon: React.ReactNode; tourId?: string }) => (
     <button key={item.path} onClick={() => handleNav(item.path)}
@@ -146,6 +137,14 @@ const DashboardLayout: React.FC = () => {
     </button>
   );
 
+  const sectionLabel = (text: string, color?: string) => (
+    <div style={{ padding: '0 0.5rem', marginBottom: '0.35rem' }}>
+      <span style={{ fontSize: '0.65rem', fontWeight: 600, color: color || theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        {text}
+      </span>
+    </div>
+  );
+
   const sidebarContent = (
     <>
       {/* Logo */}
@@ -159,11 +158,7 @@ const DashboardLayout: React.FC = () => {
 
       {/* Navigation */}
       <nav style={{ padding: '1rem 0.5rem', flex: 1, overflowY: 'auto' }}>
-        <div style={{ padding: '0 0.5rem', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Dashboard
-          </span>
-        </div>
+        {sectionLabel('Dashboard')}
         {userMenuItems.map(renderNavButton)}
 
         {/* Pro section */}
@@ -192,14 +187,22 @@ const DashboardLayout: React.FC = () => {
           </button>
         ))}
 
+        {/* #2: Admin grouped sections */}
         {isAdmin && (
           <>
             <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Admin
               </span>
             </div>
-            {adminMenuItems.map(renderNavButton)}
+            {sectionLabel('Modelo')}
+            {adminModelItems.map(renderNavButton)}
+            <div style={{ height: '0.5rem' }} />
+            {sectionLabel('Infraestrutura')}
+            {adminInfraItems.map(renderNavButton)}
+            <div style={{ height: '0.5rem' }} />
+            {sectionLabel('Gestão')}
+            {adminMgmtItems.map(renderNavButton)}
           </>
         )}
       </nav>
@@ -227,16 +230,6 @@ const DashboardLayout: React.FC = () => {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={toggleDarkMode} style={{
-            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            padding: '0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: 'transparent',
-            color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.15s',
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = theme.hover}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            {darkMode ? <Sun size={14} /> : <Moon size={14} />}
-          </button>
           <button onClick={handleLogout} style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
             padding: '0.5rem', borderRadius: 6, border: '1px solid rgba(239,68,68,0.3)', background: 'transparent',
@@ -252,9 +245,44 @@ const DashboardLayout: React.FC = () => {
     </>
   );
 
+  /* #1: Fix breadcrumb priority — admin paths checked FIRST */
+  const getBreadcrumb = () => {
+    const p = location.pathname;
+    // Admin routes first (more specific)
+    if (p === '/admin') return '🔒 Admin — Visão Geral';
+    if (p === '/admin/performance') return '🔒 Admin — Performance';
+    if (p === '/admin/costs') return '🔒 Admin — Custos';
+    if (p === '/admin/data-quality') return '🔒 Admin — Qualidade de Dados';
+    if (p === '/admin/drift') return '🔒 Admin — Drift';
+    if (p === '/admin/validation') return '🔒 Admin — Validação';
+    if (p === '/admin/notifications') return '🔒 Admin — Notificações';
+    if (p === '/admin/agents') return '🤖 Admin — Agentes IA';
+    if (p === '/admin/users') return '👥 Admin — Usuários';
+    if (p === '/admin/chat') return '💬 Admin — Chat';
+    if (p.startsWith('/admin')) return '🔒 Admin';
+    // Client routes
+    if (p === '/dashboard') return '📊 Recomendações';
+    if (p === '/dashboard/tracking') return '🎯 Acompanhamento';
+    if (p === '/dashboard/explainability') return '🧠 Explicabilidade';
+    if (p === '/dashboard/backtesting') return '🧪 Backtesting';
+    if (p === '/dashboard/performance') return '📈 Performance';
+    if (p === '/dashboard/portfolio') return '👑 Carteira Modelo';
+    if (p === '/dashboard/upgrade') return '👑 Upgrade Pro';
+    if (p === '/dashboard/change-password') return '🔒 Alterar Senha';
+    if (p === '/dashboard/change-phone') return '📱 Alertas WhatsApp';
+    if (p === '/dashboard/support') return '💬 Fale Conosco';
+    if (p === '/dashboard/settings') return '⚙️ Configurações';
+    return 'Dashboard';
+  };
+
+  /* #4: Only show upgrade banner on pages where Pro matters */
+  const showUpgradeBanner = user && user.plan !== 'pro' && [
+    '/dashboard', '/dashboard/tracking', '/dashboard/portfolio',
+    '/dashboard/explainability', '/dashboard/backtesting', '/dashboard/performance',
+  ].includes(location.pathname);
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: theme.bg }}>
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40 }}
           onClick={() => setSidebarOpen(false)} />
@@ -278,7 +306,7 @@ const DashboardLayout: React.FC = () => {
       </aside>
 
       {/* Main content */}
-      <main style={{ flex: 1, marginLeft: 240, minHeight: '100vh' }} className="main-content">
+      <main style={{ flex: 1, marginLeft: 240, minHeight: '100vh', paddingBottom: 60 }} className="main-content">
         <header style={{
           padding: '0.75rem clamp(0.75rem, 3vw, 1.5rem)', borderBottom: `1px solid ${theme.border}`,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -291,33 +319,21 @@ const DashboardLayout: React.FC = () => {
             {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
           <div style={{ fontSize: '0.9rem', color: theme.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
-            {(() => {
-              const p = location.pathname;
-              if (p === '/dashboard') return '📊 Recomendações';
-              if (p.includes('tracking')) return '🎯 Acompanhamento';
-              if (p.includes('explainability')) return '🧠 Explicabilidade';
-              if (p.includes('backtesting')) return '🧪 Backtesting';
-              if (p.includes('change-password')) return '🔒 Alterar Senha';
-              if (p.includes('change-phone')) return '📱 Alertas WhatsApp';
-              if (p.includes('support')) return '💬 Fale Conosco';
-              if (p.includes('settings')) return '⚙️ Configurações';
-              if (p.includes('portfolio')) return '👑 Carteira Modelo';
-              if (p.includes('performance')) return '👑 Performance';
-              if (p.includes('upgrade')) return '👑 Upgrade Pro';
-              if (p === '/admin') return '🔒 Admin — Visão Geral';
-              if (p.includes('performance')) return '🔒 Admin — Performance';
-              if (p.includes('costs')) return '🔒 Admin — Custos';
-              if (p.includes('data-quality')) return '🔒 Admin — Qualidade de Dados';
-              if (p.includes('drift')) return '🔒 Admin — Drift';
-              if (p.includes('validation')) return '🔒 Admin — Validação';
-              if (p.includes('notifications')) return '🔒 Admin — Notificações';
-              if (p.includes('agents')) return '🤖 Admin — Agentes IA';
-              if (p.includes('users')) return '👥 Admin — Usuários';
-              if (p.includes('/admin/chat')) return '💬 Admin — Chat';
-              return location.pathname.startsWith('/admin') ? '🔒 Admin' : 'Dashboard';
-            })()}
+            {getBreadcrumb()}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+            {/* #11: Dark mode toggle in header */}
+            <button onClick={toggleDarkMode} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: '0.35rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: 'transparent',
+              color: theme.textSecondary, cursor: 'pointer', transition: 'all 0.15s', minHeight: 'auto',
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              aria-label={darkMode ? 'Modo claro' : 'Modo escuro'}
+            >
+              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <NotificationCenter darkMode={darkMode} />
             <div style={{ position: 'relative' }}>
               <button onClick={() => setUserMenuOpen(!userMenuOpen)} style={{
@@ -347,50 +363,24 @@ const DashboardLayout: React.FC = () => {
                         {isPro && <ProBadge small />}
                       </div>
                     </div>
-                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/change-password'); }} style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
-                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
-                      transition: 'background 0.1s',
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <Lock size={14} /> Alterar Senha
-                    </button>
-                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/change-phone'); }} style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
-                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
-                      transition: 'background 0.1s',
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <Phone size={14} /> Alertas WhatsApp
-                    </button>
-                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/support'); }} style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
-                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
-                      transition: 'background 0.1s',
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <MessageCircle size={14} /> Fale Conosco
-                    </button>
-                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/settings'); }} style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
-                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
-                      transition: 'background 0.1s',
-                    }}
-                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
-                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                    >
-                      <Settings size={14} /> Configurações
-                    </button>
+                    {[
+                      { path: '/dashboard/change-password', icon: <Lock size={14} />, label: 'Alterar Senha', color: theme.textSecondary },
+                      { path: '/dashboard/change-phone', icon: <Phone size={14} />, label: 'Alertas WhatsApp', color: theme.textSecondary },
+                      { path: '/dashboard/support', icon: <MessageCircle size={14} />, label: 'Fale Conosco', color: theme.textSecondary },
+                      { path: '/dashboard/settings', icon: <Settings size={14} />, label: 'Configurações', color: theme.textSecondary },
+                    ].map(item => (
+                      <button key={item.path} onClick={() => { setUserMenuOpen(false); navigate(item.path); }} style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                        color: item.color, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                        transition: 'background 0.1s',
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        {item.icon} {item.label}
+                      </button>
+                    ))}
                     {!isPro && (
                       <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -422,7 +412,6 @@ const DashboardLayout: React.FC = () => {
           </div>
         </header>
         <div style={{ padding: 'clamp(0.75rem, 3vw, 1.5rem)' }}>
-          {/* Offline indicator */}
           {isOffline && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -433,12 +422,11 @@ const DashboardLayout: React.FC = () => {
               📡 Sem conexão com a internet. Dados podem estar desatualizados.
             </div>
           )}
-          {/* Email verification banner */}
           {user && user.emailVerified === false && (
             <EmailVerificationBanner darkMode={darkMode} theme={theme} />
           )}
-          {/* Free user upgrade banner */}
-          {user && user.plan !== 'pro' && !location.pathname.includes('upgrade') && (
+          {/* #4: Upgrade banner only on relevant pages */}
+          {showUpgradeBanner && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
               padding: '0.5rem 0.75rem', marginBottom: '0.75rem', borderRadius: 8,
@@ -460,7 +448,6 @@ const DashboardLayout: React.FC = () => {
             </div>
           )}
           <Outlet context={{ darkMode, theme }} />
-          {/* Dashboard Footer Disclaimer */}
           <div style={{
             marginTop: '2rem', padding: '0.75rem 1rem', borderTop: `1px solid ${theme.border}`,
             textAlign: 'center', fontSize: '0.7rem', color: theme.textSecondary, lineHeight: 1.6,
@@ -473,26 +460,50 @@ const DashboardLayout: React.FC = () => {
             </a>
           </div>
         </div>
+
+        {/* #9: Mobile bottom tab bar */}
+        <nav className="mobile-bottom-tabs" style={{
+          display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40,
+          background: theme.sidebar, borderTop: `1px solid ${theme.border}`,
+          justifyContent: 'space-around', alignItems: 'center', padding: '0.35rem 0',
+          paddingBottom: 'env(safe-area-inset-bottom, 0.35rem)',
+        }}>
+          {[
+            { path: '/dashboard', icon: <TrendingUp size={20} />, label: 'Recs' },
+            { path: '/dashboard/explainability', icon: <Brain size={20} />, label: 'Explica' },
+            { path: '/dashboard/backtesting', icon: <TestTubes size={20} />, label: 'Backtest' },
+            { path: '/dashboard/performance', icon: <LineChart size={20} />, label: 'Perf' },
+          ].map(tab => (
+            <button key={tab.path} onClick={() => navigate(tab.path)} style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.1rem',
+              background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.5rem',
+              color: isActive(tab.path) ? '#3b82f6' : theme.textSecondary,
+              fontWeight: isActive(tab.path) ? 600 : 400, fontSize: '0.6rem',
+              minHeight: 'auto', transition: 'color 0.15s',
+            }}>
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </main>
 
       <style>{`
         @media (max-width: 768px) {
           .sidebar-desktop { display: none !important; }
           .sidebar-mobile { display: flex !important; }
-          .main-content { margin-left: 0 !important; }
+          .main-content { margin-left: 0 !important; padding-bottom: 70px !important; }
           .mobile-menu-btn { display: flex !important; }
+          .mobile-bottom-tabs { display: flex !important; }
         }
       `}</style>
 
-      {/* Onboarding Modal */}
       {showOnboarding && (
         <OnboardingModal darkMode={darkMode} onClose={() => {
           setShowOnboarding(false);
           if (shouldShowTour()) setTimeout(() => setShowTour(true), 500);
         }} />
       )}
-
-      {/* Guided Tour */}
       <GuidedTour darkMode={darkMode} run={showTour} onFinish={() => setShowTour(false)} />
     </div>
   );
@@ -505,7 +516,6 @@ const EmailVerificationBanner: React.FC<{ darkMode: boolean; theme: Record<strin
   const [resending, setResending] = React.useState(false);
   const [sent, setSent] = React.useState(false);
 
-  // Auto-resend after 1h of registration
   React.useEffect(() => {
     const key = 'b3tr_auto_resend_done';
     const regTime = localStorage.getItem('b3tr_register_time');

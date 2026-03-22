@@ -290,7 +290,7 @@ const LandingPage: React.FC = () => {
             {[
               { label: 'Compra', value: '12', color: '#10b981' },
               { label: 'Venda', value: '8', color: '#ef4444' },
-              { label: 'Neutro', value: '26', color: '#f59e0b' },
+              { label: 'Neutro', value: '26', color: '#94a3b8' },
               { label: 'Top Score', value: '3.2', color: '#8b5cf6' },
             ].map((k, i) => (
               <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #334155', borderRadius: 8, padding: '0.5rem' }}>
@@ -345,7 +345,7 @@ const LandingPage: React.FC = () => {
         }}>
           <h2 style={{ fontSize: 'clamp(1.3rem, 3.5vw, 1.75rem)', fontWeight: 700, marginBottom: '0.5rem' }}>Resultados Reais</h2>
           <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.9rem' }}>
-            Performance real dos sinais de Compra do modelo nos últimos {trackRecord.days} pregões
+            Performance real dos sinais de Compra do modelo acumulada em {trackRecord.days} pregões (fev–mar 2026)
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             {[

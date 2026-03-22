@@ -91,7 +91,8 @@ const RecommendationsPage: React.FC = () => {
   const getSignalColor = (signal: string) => {
     if (signal === 'Compra') return { bg: 'rgba(16,185,129,0.15)', text: '#10b981', border: 'rgba(16,185,129,0.3)' };
     if (signal === 'Venda') return { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', border: 'rgba(239,68,68,0.3)' };
-    return { bg: 'rgba(245,158,11,0.15)', text: '#f59e0b', border: 'rgba(245,158,11,0.3)' };
+    /* #6: Neutro uses gray instead of amber to avoid confusion with Pro gold */
+    return { bg: 'rgba(148,163,184,0.15)', text: '#94a3b8', border: 'rgba(148,163,184,0.3)' };
   };
 
   const handleSort = useCallback((field: string) => {
@@ -260,7 +261,7 @@ const RecommendationsPage: React.FC = () => {
           {[
             { label: 'Compra', value: `${totalBuy}`, color: '#10b981', icon: <ArrowUpRight size={14} />, tip: 'Ações com score ≥ 1.5 — sinal de compra.' },
             { label: 'Venda', value: `${totalSell}`, color: '#ef4444', icon: <ArrowDownRight size={14} />, tip: 'Ações com score ≤ -1.5 — sinal de venda.' },
-            { label: 'Neutro', value: `${totalNeutral}`, color: '#f59e0b', icon: null, tip: 'Ações com score entre -1.5 e 1.5.' },
+            { label: 'Neutro', value: `${totalNeutral}`, color: '#94a3b8', icon: null, tip: 'Ações com score entre -1.5 e 1.5.' },
             { label: 'Ret. Compra', value: `${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 1)}%`, color: avgBuyReturn >= 0 ? '#10b981' : '#ef4444', icon: null, tip: `Retorno médio previsto (20 pregões) das ${buyRecs.length} ações com sinal de compra.` },
             { label: 'Top Score', value: `${topTicker?.ticker || '—'} ${fmt(topScore, 1)}`, color: '#8b5cf6', icon: null, tip: 'Ação com maior score do dia.' },
             ...(simReturn && simReturn.pct !== 0 ? [{
@@ -313,16 +314,23 @@ const RecommendationsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Pro: My Positions + Price Alerts (collapsible) */}
+      {/* #5: Pro panels collapsed by default to reduce noise */}
       {isPro && (
-        <div style={{ marginBottom: '0.75rem' }}>
-          <MyPositionsPanel darkMode={darkMode} theme={theme} />
-        </div>
-      )}
-      {isPro && (
-        <div style={{ marginBottom: '0.75rem' }}>
-          <PriceAlerts darkMode={darkMode} theme={theme} />
-        </div>
+        <details style={{ marginBottom: '0.75rem' }}>
+          <summary style={{
+            cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, color: theme.text,
+            padding: '0.5rem 0.75rem', borderRadius: 8, listStyle: 'none',
+            background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+            border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', gap: '0.4rem',
+          }}>
+            📋 Minhas Posições &amp; Alertas
+            <span style={{ fontSize: '0.7rem', color: theme.textSecondary, marginLeft: 'auto' }}>clique para expandir</span>
+          </summary>
+          <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <MyPositionsPanel darkMode={darkMode} theme={theme} />
+            <PriceAlerts darkMode={darkMode} theme={theme} />
+          </div>
+        </details>
       )}
 
       {/* Search + Filter + Sort bar */}
@@ -374,14 +382,12 @@ const RecommendationsPage: React.FC = () => {
                 { label: 'Ticker', tip: 'Código da ação na B3. Clique na ★ para favoritar.' },
                 { label: '', tip: '' }, // sparkline column
                 { label: 'Sinal', tip: 'Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
-                { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra.' },
+                { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra. A barra indica confiança.' },
                 { label: 'Preço Atual', tip: 'Último preço de fechamento disponível.' },
                 { label: 'Preço Previsto', tip: 'Preço previsto pelo modelo para daqui 20 pregões.' },
                 { label: 'Retorno Previsto', tip: 'Retorno esperado em 20 pregões: (previsto - atual) / atual.' },
                 { label: 'Volatilidade', tip: 'Volatilidade dos últimos 20 dias. Menor = mais estável.' },
-                { label: 'Confiança', tip: 'Nível de confiança do modelo baseado no score e volatilidade.' },
-                { label: 'Stop-Loss', tip: 'Preço sugerido para limitar perdas (baseado em volatilidade).' },
-                { label: 'Take-Profit', tip: 'Preço-alvo sugerido para realizar lucro.' },
+                { label: 'Faixa', tip: 'Stop-Loss → Take-Profit. Faixa de preço sugerida baseada em volatilidade.' },
               ].map((h, i) => (
                 <th key={i} style={{
                   padding: '0.6rem 0.5rem', textAlign: i === 0 ? 'left' : 'right', color: theme.textSecondary,
@@ -400,7 +406,7 @@ const RecommendationsPage: React.FC = () => {
                     {h.label}
                     {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={10} />}
                   </span>
-                  {i >= (isPro ? 10 : 9) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
+                  {i >= (isPro ? 9 : 8) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}
             </tr>
@@ -446,28 +452,26 @@ const RecommendationsPage: React.FC = () => {
                       {signal}
                     </span>
                   </td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: r.score >= 1.5 ? '#10b981' : r.score <= -1.5 ? '#ef4444' : '#f59e0b' }}>{fmt(r.score, 2)}</td>
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: r.score >= 1.5 ? '#10b981' : r.score <= -1.5 ? '#ef4444' : '#94a3b8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
+                      {fmt(r.score, 2)}
+                      <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#334155' : '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{ height: '100%', borderRadius: 2, width: `${confidence}%`, background: confidence >= 70 ? '#10b981' : confidence >= 40 ? '#f59e0b' : '#ef4444' }} />
+                      </div>
+                    </div>
+                  </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.text }}>R$ {fmt(r.last_close, 2)}</td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
                     {r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</td>
+                  {/* #12: Merged Faixa column (Stop-Loss → Take-Profit) */}
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
-                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: confidence >= 70 ? '#10b981' : confidence >= 40 ? '#f59e0b' : '#ef4444' }}>
-                      {confidence}%
-                    </span>
-                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
-                  </td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
-                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.text }}>
-                      R$ {fmt(stopLoss, 2)}
-                    </span>
-                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
-                  </td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
-                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.text }}>
-                      R$ {fmt(takeProfit, 2)}
+                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.text, fontSize: '0.75rem' }}>
+                      <span style={{ color: '#ef4444' }}>{fmt(stopLoss, 2)}</span>
+                      <span style={{ color: theme.textSecondary, margin: '0 0.15rem' }}>→</span>
+                      <span style={{ color: '#10b981' }}>{fmt(takeProfit, 2)}</span>
                     </span>
                     {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
                   </td>
@@ -506,14 +510,14 @@ const RecommendationsPage: React.FC = () => {
                 </span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
-                <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: r.score >= 1.5 ? '#10b981' : r.score <= -1.5 ? '#ef4444' : '#f59e0b' }}>{fmt(r.score, 2)}</strong></div>
+                <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: r.score >= 1.5 ? '#10b981' : r.score <= -1.5 ? '#ef4444' : '#94a3b8' }}>{fmt(r.score, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.last_close, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <strong style={{ color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Vol:</span> <strong style={{ color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</strong></div>
                 <div style={{ position: 'relative' }}>
                   <span style={{ color: theme.textSecondary }}>Confiança:</span>{' '}
-                  <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: confidence >= 70 ? '#10b981' : '#f59e0b' }}>{confidence}%</strong>
+                  <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: confidence >= 70 ? '#10b981' : '#94a3b8' }}>{confidence}%</strong>
                   {!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}
                 </div>
               </div>
