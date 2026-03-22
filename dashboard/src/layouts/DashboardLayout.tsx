@@ -200,7 +200,20 @@ const DashboardLayout: React.FC = () => {
             {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
           <div style={{ fontSize: '0.9rem', color: theme.textSecondary, whiteSpace: 'nowrap' }}>
-            {location.pathname.startsWith('/admin') ? '🔒 Admin' : 'Dashboard'}
+            {(() => {
+              const p = location.pathname;
+              if (p === '/dashboard') return '📊 Recomendações';
+              if (p.includes('explainability')) return '🧠 Explicabilidade';
+              if (p.includes('backtesting')) return '🧪 Backtesting';
+              if (p.includes('change-password')) return '🔒 Alterar Senha';
+              if (p === '/admin') return '🔒 Admin — Visão Geral';
+              if (p.includes('performance')) return '🔒 Admin — Performance';
+              if (p.includes('costs')) return '🔒 Admin — Custos';
+              if (p.includes('data-quality')) return '🔒 Admin — Qualidade de Dados';
+              if (p.includes('drift')) return '🔒 Admin — Drift';
+              if (p.includes('validation')) return '🔒 Admin — Validação';
+              return location.pathname.startsWith('/admin') ? '🔒 Admin' : 'Dashboard';
+            })()}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
             <div style={{ position: 'relative' }}>
@@ -258,6 +271,14 @@ const DashboardLayout: React.FC = () => {
         </header>
         <div style={{ padding: 'clamp(0.75rem, 3vw, 1.5rem)' }}>
           <Outlet context={{ darkMode, theme }} />
+          {/* Dashboard Footer Disclaimer */}
+          <div style={{
+            marginTop: '2rem', padding: '0.75rem 1rem', borderTop: `1px solid ${theme.border}`,
+            textAlign: 'center', fontSize: '0.7rem', color: theme.textSecondary, lineHeight: 1.6,
+          }}>
+            ⚠️ Este sistema é uma ferramenta de apoio à decisão. Não constitui recomendação de investimento.
+            Resultados passados não garantem resultados futuros. Consulte um profissional antes de investir.
+          </div>
         </div>
       </main>
 

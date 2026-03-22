@@ -48,7 +48,7 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
   const [sortColumn, setSortColumn] = useState<'feature' | 'currentCorrelation' | 'baselineCorrelation' | 'change'>('change');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
-  const theme = {
+  const theme = React.useMemo(() => ({
     bg: darkMode ? '#0f172a' : '#f8fafc',
     cardBg: darkMode ? '#1e293b' : 'white',
     text: darkMode ? '#f1f5f9' : '#0f172a',
@@ -57,7 +57,7 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
     success: '#10b981',
     warning: '#f59e0b',
     error: '#ef4444',
-  };
+  }), [darkMode]);
 
   // Calculate overall concept drift score (Req 26.7)
   const overallDriftScore = conceptDriftData.length > 0

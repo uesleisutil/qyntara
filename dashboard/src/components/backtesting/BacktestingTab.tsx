@@ -266,6 +266,33 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       {/* Portfolio Tab */}
       {activeTab === 'portfolio' && result && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Verdict Card */}
+          {(() => {
+            const beatIbov = result.metrics.totalReturn > result.benchmarks.ibovespa.totalReturn;
+            const beatCDI = result.metrics.totalReturn > result.benchmarks.cdi.totalReturn;
+            const verdictColor = beatIbov ? '#10b981' : '#f59e0b';
+            const verdictBg = beatIbov ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)';
+            const verdictBorder = beatIbov ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)';
+            const diff = ((result.metrics.totalReturn - result.benchmarks.ibovespa.totalReturn) * 100).toFixed(1);
+            return (
+              <div style={{
+                ...cardStyle, padding: '1.1rem 1.25rem',
+                background: verdictBg, borderColor: verdictBorder,
+                borderLeft: `4px solid ${verdictColor}`,
+              }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: verdictColor, marginBottom: '0.3rem' }}>
+                  {beatIbov ? '🏆 Sua estratégia bateu o Ibovespa!' : '⚠️ Sua estratégia ficou abaixo do Ibovespa'}
+                </div>
+                <div style={{ fontSize: '0.82rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+                  Retorno da carteira: <strong style={{ color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444' }}>{fmtPct(result.metrics.totalReturn)}</strong>
+                  {' vs Ibovespa: '}<strong style={{ color: '#f59e0b' }}>{fmtPct(result.benchmarks.ibovespa.totalReturn)}</strong>
+                  {' '}({beatIbov ? '+' : ''}{diff} p.p.)
+                  {beatCDI ? '' : `. Também ficou abaixo do CDI (${fmtPct(result.benchmarks.cdi.totalReturn)}).`}
+                  {beatIbov && beatCDI && ` Também superou o CDI (${fmtPct(result.benchmarks.cdi.totalReturn)}).`}
+                </div>
+              </div>
+            );
+          })()}
           {/* Summary KPIs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.6rem' }}>
             {[

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
 
@@ -33,6 +33,7 @@ const RecommendationsPage: React.FC = () => {
       const data = await res.json();
       setRecommendations(data.recommendations || []);
       setDate(data.date || '');
+      setLastUpdated(new Date());
     } catch (err: any) { setError(err.message); }
     finally { setLoading(false); }
   };
@@ -61,11 +62,23 @@ const RecommendationsPage: React.FC = () => {
       return (b.score - a.score);
     });
 
-  const totalBuy = recommendations.filter(r => r.score >= 1.5).length;
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const buyRecs = recommendations.filter(r => r.score >= 1.5);
+  const totalBuy = buyRecs.length;
   const totalSell = recommendations.filter(r => r.score <= -1.5).length;
   const totalNeutral = recommendations.length - totalBuy - totalSell;
   const avgReturn = recommendations.length ? recommendations.reduce((s, r) => s + (r.exp_return_20 || 0), 0) / recommendations.length : 0;
+  const avgBuyReturn = buyRecs.length ? buyRecs.reduce((s, r) => s + (r.exp_return_20 || 0), 0) / buyRecs.length : 0;
   const topScore = recommendations.length ? Math.max(...recommendations.map(r => r.score)) : 0;
+
+  const getRelativeTime = (d: Date) => {
+    const diff = Math.round((Date.now() - d.getTime()) / 1000);
+    if (diff < 60) return 'agora mesmo';
+    if (diff < 3600) return `há ${Math.floor(diff / 60)} min`;
+    if (diff < 86400) return `há ${Math.floor(diff / 3600)}h`;
+    return `há ${Math.floor(diff / 86400)}d`;
+  };
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1e293b' : '#fff'),
@@ -80,10 +93,29 @@ const RecommendationsPage: React.FC = () => {
   };
 
   if (loading) {
+    const skeletonPulse: React.CSSProperties = {
+      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
+    };
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, color: theme.textSecondary }}>
-        <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} />
-        Carregando recomendações...
+      <div>
+        <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ ...skeletonPulse, height: 28, width: 200, marginBottom: 8 }} />
+          <div style={{ ...skeletonPulse, height: 16, width: 280 }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} style={{ ...cardStyle, padding: '1rem' }}>
+              <div style={{ ...skeletonPulse, height: 14, width: 60, marginBottom: 8 }} />
+              <div style={{ ...skeletonPulse, height: 28, width: 80 }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ ...skeletonPulse, height: 44, marginBottom: '0.75rem' }} />
+        {[1,2,3,4,5].map(i => (
+          <div key={i} style={{ ...skeletonPulse, height: 48, marginBottom: 4 }} />
+        ))}
       </div>
     );
   }
@@ -93,8 +125,13 @@ const RecommendationsPage: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ minWidth: 0 }}>
           <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Recomendações</h1>
-          <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0 }}>
+          <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             Top ações ranqueadas por ML{date && <span> — {date}</span>}
+            {lastUpdated && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '0.15rem 0.5rem', borderRadius: 10 }}>
+                <Clock size={10} /> {getRelativeTime(lastUpdated)}
+              </span>
+            )}
           </p>
         </div>
         <button onClick={fetchRecommendations}
@@ -127,14 +164,48 @@ const RecommendationsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Big Number: Buy Signal Avg Return */}
+      {buyRecs.length > 0 && (
+        <div style={{
+          ...cardStyle, marginBottom: '1rem', padding: '1.1rem 1.25rem',
+          background: darkMode
+            ? 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02))'
+            : 'linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.01))',
+          border: '1px solid rgba(16,185,129,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem',
+        }}>
+          <div>
+            <div style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              Retorno Médio — Sinais de Compra
+              <InfoTooltip text={`Média do retorno esperado (20 pregões) apenas das ${buyRecs.length} ações com sinal de COMPRA (score ≥ 1.5). Indica o potencial médio de ganho das melhores oportunidades identificadas pelo modelo.`} darkMode={darkMode} />
+            </div>
+            <div style={{ fontSize: 'clamp(1.8rem, 5vw, 2.4rem)', fontWeight: 800, color: '#10b981', lineHeight: 1.1 }}>
+              {avgBuyReturn >= 0 ? '+' : ''}{fmt(avgBuyReturn * 100, 2)}%
+            </div>
+            <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: '0.2rem' }}>
+              Baseado em {buyRecs.length} ação{buyRecs.length !== 1 ? 'ões' : ''} com sinal de compra
+            </div>
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem',
+            padding: '0.4rem 0.8rem', borderRadius: 20,
+            background: 'rgba(16,185,129,0.15)', color: '#10b981',
+            fontSize: '0.8rem', fontWeight: 600,
+          }}>
+            <ArrowUpRight size={16} /> COMPRA
+          </div>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         {[
           { label: 'Total', value: `${recommendations.length}`, color: '#3b82f6', tip: 'Número total de ações analisadas pelo modelo hoje.' },
           { label: 'Compra', value: `${totalBuy}`, color: '#10b981', tip: 'Ações com score ≥ 1.5 — o modelo indica potencial de valorização nos próximos 20 pregões.' },
           { label: 'Venda', value: `${totalSell}`, color: '#ef4444', tip: 'Ações com score ≤ -1.5 — o modelo indica potencial de desvalorização nos próximos 20 pregões.' },
-          { label: 'Ret. Médio', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno médio esperado de todas as ações para os próximos 20 pregões (~1 mês).' },
-          { label: 'Top Score', value: fmt(topScore, 2), color: '#f59e0b', tip: 'Maior score entre todas as ações — indica a recomendação mais forte do modelo hoje.' },
+          { label: 'Neutro', value: `${totalNeutral}`, color: '#f59e0b', tip: 'Ações sem sinal claro — o modelo não tem convicção forte para compra ou venda.' },
+          { label: 'Ret. Médio Geral', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno médio esperado de todas as ações para os próximos 20 pregões (~1 mês).' },
+          { label: 'Top Score', value: fmt(topScore, 2), color: '#3b82f6', tip: 'Maior score entre todas as ações — indica a recomendação mais forte do modelo hoje.' },
         ].map((kpi, i) => (
           <div key={i} style={cardStyle}>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>

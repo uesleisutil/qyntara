@@ -99,6 +99,48 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Social Proof */}
+      <section style={{
+        maxWidth: 1200, margin: '0 auto', padding: '0 clamp(1rem, 4vw, 2rem) 2rem',
+        display: 'flex', justifyContent: 'center', gap: 'clamp(1.5rem, 4vw, 3rem)', flexWrap: 'wrap',
+      }}>
+        {[
+          { value: '46', label: 'Ações analisadas diariamente' },
+          { value: '20+', label: 'Indicadores por ação' },
+          { value: '100%', label: 'Automatizado por ML' },
+        ].map((s, i) => (
+          <div key={i} style={{ textAlign: 'center', minWidth: 120 }}>
+            <div style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: '#3b82f6' }}>{s.value}</div>
+            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{s.label}</div>
+          </div>
+        ))}
+      </section>
+
+      {/* How it works */}
+      <section style={{
+        maxWidth: 900, margin: '0 auto', padding: '3rem clamp(1rem, 4vw, 2rem)', textAlign: 'center',
+      }}>
+        <h2 style={{ fontSize: 'clamp(1.3rem, 3.5vw, 1.75rem)', fontWeight: 700, marginBottom: '0.5rem' }}>Como funciona?</h2>
+        <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.9rem' }}>Em 3 passos simples</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: '1.5rem' }}>
+          {[
+            { step: '1', title: 'Coleta de Dados', desc: 'Todos os dias, coletamos preços, volumes e indicadores de todas as ações da B3.' },
+            { step: '2', title: 'Modelo de ML', desc: 'Nosso modelo DeepAR processa os dados e gera previsões de preço para os próximos 20 pregões.' },
+            { step: '3', title: 'Ranking & Sinal', desc: 'As ações são ranqueadas por score e você recebe sinais claros de Compra, Venda ou Neutro.' },
+          ].map((s, i) => (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white',
+                fontSize: '1.1rem', fontWeight: 700,
+              }}>{s.step}</div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#f1f5f9' }}>{s.title}</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Features */}
       <section style={{
         maxWidth: 1200, margin: '0 auto', padding: '3rem clamp(1rem, 4vw, 2rem)',

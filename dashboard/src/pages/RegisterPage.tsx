@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { TrendingUp, Eye, EyeOff, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const RegisterPage: React.FC = () => {
@@ -124,7 +124,9 @@ const RegisterPage: React.FC = () => {
               width: '100%', padding: '0.8rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
               border: 'none', color: 'white', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
               fontWeight: 600, fontSize: '0.95rem', opacity: loading ? 0.7 : 1, transition: 'all 0.2s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
             }}>
+              {loading && <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />}
               {loading ? 'Criando conta...' : 'Criar Conta'}
             </button>
           </form>
@@ -135,6 +137,7 @@ const RegisterPage: React.FC = () => {
           <Link to="/login" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>Entrar</Link>
         </p>
       </div>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };

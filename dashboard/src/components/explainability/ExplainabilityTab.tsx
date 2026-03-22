@@ -44,7 +44,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           const recs: TickerData[] = data.recommendations || [];
           recs.sort((a, b) => b.score - a.score);
           setTickers(recs);
-          if (recs.length > 0 && !selectedTicker) setSelectedTicker(recs[0].ticker);
+          if (recs.length > 0) setSelectedTicker(prev => prev || recs[0].ticker);
         }
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
@@ -156,6 +156,32 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
 
       {currentTicker && (
         <>
+          {/* Quick Summary Card */}
+          <div style={{
+            backgroundColor: darkMode ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.03)',
+            border: `1px solid ${darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)'}`,
+            borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1rem)', marginBottom: '1.25rem',
+            borderLeft: `4px solid ${currentTicker.score >= 1.5 ? '#10b981' : currentTicker.score <= -1.5 ? '#ef4444' : '#f59e0b'}`,
+          }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text, marginBottom: '0.3rem' }}>
+              📊 Resumo Rápido — {currentTicker.ticker}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7 }}>
+              O modelo prevê que <strong style={{ color: theme.text }}>{currentTicker.ticker}</strong> vá de{' '}
+              <strong style={{ color: theme.text }}>R$ {currentTicker.last_close.toFixed(2)}</strong> para{' '}
+              <strong style={{ color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
+                R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}
+              </strong>{' '}
+              nos próximos 20 pregões ({(currentTicker.exp_return_20 >= 0 ? '+' : '')}{(currentTicker.exp_return_20 * 100).toFixed(1)}%).
+              {' '}Com volatilidade de {(currentTicker.vol_20d * 100).toFixed(1)}% e score de{' '}
+              <strong style={{ color: '#3b82f6' }}>{currentTicker.score.toFixed(2)}</strong>, o sinal é{' '}
+              <strong style={{ color: currentTicker.score >= 1.5 ? '#10b981' : currentTicker.score <= -1.5 ? '#ef4444' : '#f59e0b' }}>
+                {currentTicker.score >= 1.5 ? 'COMPRA' : currentTicker.score <= -1.5 ? 'VENDA' : 'NEUTRO'}
+              </strong>.
+              {' '}Veja abaixo quais fatores mais influenciaram essa previsão.
+            </div>
+          </div>
+
           <div style={{ marginBottom: '1.5rem' }}>
             <SHAPWaterfallChart ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} />
           </div>
