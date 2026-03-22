@@ -543,7 +543,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             }
 
             return (
-              <div style={{ ...cardStyle, padding: '1.1rem 1.25rem', background: verdictBg, borderColor: verdictBorder, borderLeft: `4px solid ${verdictColor}` }}>
+              <div style={{ ...cardStyle, padding: '1.1rem 1.25rem', background: verdictBg, borderColor: verdictBorder, borderLeft: `4px solid ${verdictColor}`, overflow: 'hidden' }}>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: verdictColor, marginBottom: '0.3rem' }}>
                   {verdictIcon} {verdictTitle}
                 </div>

@@ -159,6 +159,27 @@ input[type="text"], input[type="email"], input[type="password"], input[type="num
     overflow-wrap: break-word;
   }
 
+  /* ===== PAGE-LEVEL OVERFLOW CONTAINMENT ===== */
+  /* Every page root must clip horizontal overflow */
+  .main-content,
+  .main-content > div,
+  .main-content > div > div {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* ===== EXPLAINABILITY TAB ===== */
+  /* Ticker selector row: stack vertically */
+  /* Badge row: allow wrapping and shrink */
+
+  /* ===== TRACKING TAB ===== */
+  /* Safra header: stack metrics below date on small screens */
+  /* Expanded table: allow horizontal scroll */
+
+  /* ===== BACKTESTING TAB ===== */
+  /* Config grid: single column */
+  /* KPI grid: 2 columns max */
+
   /* Fix main content padding for mobile */
   .main-content > div:last-child {
     padding: 0.75rem !important;

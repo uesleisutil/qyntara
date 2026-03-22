@@ -402,6 +402,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
                 padding: 'clamp(0.65rem, 2vw, 0.85rem) clamp(0.75rem, 3vw, 1.25rem)',
                 background: 'transparent', border: 'none', cursor: 'pointer', color: theme.text,
                 textAlign: 'left', transition: 'background 0.15s', WebkitAppearance: 'none', appearance: 'none',
+                flexWrap: 'wrap',
               }}
                 onMouseEnter={e => e.currentTarget.style.background = theme.hover}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -420,26 +421,26 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
                 </div>
 
                 {/* Quick metrics */}
-                <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 0, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                  <div style={{ textAlign: 'right', minWidth: 55 }}>
+                <div style={{ display: 'flex', gap: '0.6rem', flexShrink: 1, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end', minWidth: 0 }}>
+                  <div style={{ textAlign: 'right', minWidth: 0 }}>
                     <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Previsto</div>
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: safraAvgPredicted >= 0 ? theme.green : theme.red }}>
                       {safraAvgPredicted >= 0 ? '+' : ''}{fmt(safraAvgPredicted * 100, 1)}%
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', minWidth: 55 }}>
+                  <div style={{ textAlign: 'right', minWidth: 0 }}>
                     <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Parcial</div>
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: safraAvgPartial >= 0 ? theme.green : theme.red }}>
                       {safraAvgPartial >= 0 ? '+' : ''}{fmt(safraAvgPartial * 100, 1)}%
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', minWidth: 45 }}>
+                  <div style={{ textAlign: 'right', minWidth: 0 }}>
                     <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Acerto</div>
                     <div style={{ fontSize: '0.82rem', fontWeight: 700, color: safraTrackingRate >= 0.55 ? theme.green : theme.yellow }}>
                       {fmt(safraTrackingRate * 100, 0)}%
                     </div>
                   </div>
-                  <div style={{ textAlign: 'center', minWidth: 30 }}>
+                  <div style={{ textAlign: 'center', minWidth: 0 }}>
                     <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Qtd</div>
                     <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>
                       {displayTickers.length}
@@ -452,7 +453,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
               {isExpanded && (
                 <div style={{ borderTop: `1px solid ${theme.border}` }}>
                   <div className="tracking-table-wrap" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 650 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 580 }}>
                       <thead>
                         <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                           {[
@@ -526,7 +527,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
                   <div style={{
                     padding: '0.6rem 1rem', borderTop: `1px solid ${theme.border}`,
                     background: darkMode ? '#0f172a' : '#f8fafc',
-                    display: 'flex', gap: '1rem', flexWrap: 'wrap', fontSize: '0.72rem', color: theme.textSecondary,
+                    display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontSize: '0.72rem', color: theme.textSecondary,
                   }}>
                     <span>Compra: <strong style={{ color: theme.green }}>{safra.buyTickers.length}</strong></span>
                     <span>Venda: <strong style={{ color: theme.red }}>{safra.sellTickers.length}</strong></span>

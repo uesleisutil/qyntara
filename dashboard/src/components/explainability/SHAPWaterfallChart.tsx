@@ -100,13 +100,13 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
       </div>
 
       <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
-        <div style={{ minWidth: 400 }}>
+        <div style={{ minWidth: 360 }}>
           <ResponsiveContainer width="100%" height={380}>
-            <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+            <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 20, left: 80, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
               <XAxis type="number" stroke={theme.textSecondary} style={{ fontSize: 10 }}
                 label={{ value: 'Impacto (R$)', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
-              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 10 }} width={95} />
+              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 9 }} width={75} />
               <Tooltip
                 contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }}
                 formatter={(val: number) => [`R$ ${val > 0 ? '+' : ''}${val.toFixed(3)}`, 'Impacto']}

@@ -11,7 +11,7 @@ const ExplainabilityPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
 
   return (
-    <div>
+    <div style={{ overflow: 'hidden' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Explicabilidade</h1>
         <p style={{ color: theme.textSecondary, fontSize: '0.875rem', margin: 0 }}>

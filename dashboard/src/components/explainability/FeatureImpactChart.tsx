@@ -112,13 +112,13 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
       </p>
 
       <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
-        <div style={{ minWidth: 400 }}>
+        <div style={{ minWidth: 360 }}>
           <ResponsiveContainer width="100%" height={Math.max(300, showTop * 35)}>
-            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 110, bottom: 5 }}>
+            <BarChart data={data} layout="vertical" margin={{ top: 5, right: 20, left: 80, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
               <XAxis type="number" stroke={theme.textSecondary} style={{ fontSize: 10 }}
                 label={{ value: 'Impacto Médio', position: 'insideBottom', offset: -5, fill: theme.textSecondary }} />
-              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 10 }} width={105} />
+              <YAxis type="category" dataKey="feature" stroke={theme.textSecondary} style={{ fontSize: 9 }} width={75} />
               <Tooltip
                 content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;

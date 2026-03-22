@@ -9,7 +9,9 @@ const TrackingPage: React.FC = () => {
   const { darkMode } = useOutletContext<DashboardContext>();
   return (
     <ProGate feature="O Acompanhamento por Safra" darkMode={darkMode}>
-      <TrackingTab darkMode={darkMode} />
+      <div style={{ overflow: 'hidden' }}>
+        <TrackingTab darkMode={darkMode} />
+      </div>
     </ProGate>
   );
 };

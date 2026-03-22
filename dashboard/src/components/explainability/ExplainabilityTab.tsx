@@ -81,7 +81,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>Ação:</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: '1 1 180px', maxWidth: 340 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: '1 1 180px', maxWidth: '100%', minWidth: 0 }}>
             <button onClick={() => {
               const idx = tickers.findIndex(t => t.ticker === selectedTicker);
               if (idx > 0) setSelectedTicker(tickers[idx - 1].ticker);
@@ -129,7 +129,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             >›</button>
           </div>
           {currentTicker && (
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', width: '100%' }}>
               <span style={{
                 padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
                 background: darkMode ? '#0f172a' : '#f0f9ff', color: '#3b82f6',
