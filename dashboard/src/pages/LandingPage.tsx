@@ -1,10 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Shield, BarChart3, Zap, ArrowRight, CheckCircle, Menu, X } from 'lucide-react';
+import { TrendingUp, Shield, BarChart3, Zap, ArrowRight, CheckCircle, Menu, X, Award, Target } from 'lucide-react';
+import { API_BASE_URL, API_KEY } from '../config';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [trackRecord, setTrackRecord] = useState<{ totalReturn: number; alpha: number; winRate: number; days: number } | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const headers = { 'x-api-key': API_KEY };
+        const [histRes, marRes, febRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
+          fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=03/daily.csv`, { headers }),
+          fetch(`${API_BASE_URL}/s3-proxy?key=curated/daily_monthly/year=2026/month=02/daily.csv`, { headers }),
+        ]);
+        if (!histRes.ok) return;
+        const hd = await histRes.json();
+        const history: Record<string, { date: string; score: number }[]> = hd.data || {};
+        const priceMap: Record<string, Record<string, number>> = {};
+        for (const res of [febRes, marRes]) {
+          if (res.ok) {
+            const rows: { date: string; ticker: string; close: string }[] = await res.json();
+            rows.forEach(r => {
+              if (!priceMap[r.ticker]) priceMap[r.ticker] = {};
+              priceMap[r.ticker][r.date] = parseFloat(r.close);
+            });
+          }
+        }
+        if (!Object.keys(history).length || !Object.keys(priceMap).length) return;
+        const allDates = new Set<string>();
+        Object.values(history).forEach(entries => entries.forEach(e => allDates.add(e.date)));
+        const sortedDates = Array.from(allDates).sort();
+        const dailyReturns: { buyReturn: number; ibovReturn: number }[] = [];
+        for (let i = 0; i < sortedDates.length - 1; i++) {
+          const predDate = sortedDates[i];
+          const nextDate = sortedDates[i + 1];
+          const buyReturns: number[] = [];
+          const allReturns: number[] = [];
+          Object.entries(history).forEach(([ticker, entries]) => {
+            const entry = entries.find(e => e.date === predDate);
+            if (!entry) return;
+            const tp = priceMap[ticker];
+            if (!tp || !tp[predDate] || !tp[nextDate]) return;
+            const dayReturn = (tp[nextDate] - tp[predDate]) / tp[predDate];
+            if (entry.score >= 1.5) buyReturns.push(dayReturn);
+          });
+          Object.values(priceMap).forEach(tp => {
+            if (tp[predDate] && tp[nextDate]) allReturns.push((tp[nextDate] - tp[predDate]) / tp[predDate]);
+          });
+          dailyReturns.push({
+            buyReturn: buyReturns.length ? buyReturns.reduce((s, r) => s + r, 0) / buyReturns.length : 0,
+            ibovReturn: allReturns.length ? allReturns.reduce((s, r) => s + r, 0) / allReturns.length : 0,
+          });
+        }
+        let cumBuy = 1, cumIbov = 1;
+        dailyReturns.forEach(d => { cumBuy *= (1 + d.buyReturn); cumIbov *= (1 + d.ibovReturn); });
+        const totalReturn = (cumBuy - 1) * 100;
+        const ibovReturn = (cumIbov - 1) * 100;
+        const buyWins = dailyReturns.filter(d => d.buyReturn > 0).length;
+        setTrackRecord({
+          totalReturn, alpha: totalReturn - ibovReturn,
+          winRate: dailyReturns.length > 0 ? (buyWins / dailyReturns.length) * 100 : 0,
+          days: dailyReturns.length,
+        });
+      } catch {}
+    })();
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: '#f1f5f9' }}>
@@ -164,6 +228,37 @@ const LandingPage: React.FC = () => {
           </div>
         ))}
       </section>
+
+      {/* Strategy C: Track Record — Resultados Reais */}
+      {trackRecord && trackRecord.days >= 3 && (
+        <section style={{
+          maxWidth: 900, margin: '0 auto', padding: '3rem clamp(1rem, 4vw, 2rem)', textAlign: 'center',
+        }}>
+          <h2 style={{ fontSize: 'clamp(1.3rem, 3.5vw, 1.75rem)', fontWeight: 700, marginBottom: '0.5rem' }}>Resultados Reais</h2>
+          <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.9rem' }}>
+            Performance real dos sinais de Compra do modelo nos últimos {trackRecord.days} pregões
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            {[
+              { icon: <TrendingUp size={22} />, label: 'Retorno Realizado', value: `${trackRecord.totalReturn >= 0 ? '+' : ''}${trackRecord.totalReturn.toFixed(2)}%`, color: trackRecord.totalReturn >= 0 ? '#10b981' : '#ef4444' },
+              { icon: <Award size={22} />, label: 'Alpha vs Mercado', value: `${trackRecord.alpha >= 0 ? '+' : ''}${trackRecord.alpha.toFixed(2)}pp`, color: trackRecord.alpha >= 0 ? '#10b981' : '#ef4444' },
+              { icon: <Target size={22} />, label: 'Win Rate', value: `${trackRecord.winRate.toFixed(0)}%`, color: trackRecord.winRate >= 55 ? '#10b981' : '#f59e0b' },
+            ].map((m, i) => (
+              <div key={i} style={{
+                background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 12, padding: '1.25rem',
+              }}>
+                <div style={{ color: m.color, marginBottom: '0.5rem', opacity: 0.8 }}>{m.icon}</div>
+                <div style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: m.color, marginBottom: '0.25rem' }}>{m.value}</div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{m.label}</div>
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: '0.72rem', color: '#475569', lineHeight: 1.5 }}>
+            Dados calculados com preços reais da B3. Retorno acumulado comprando igualmente todas as ações com sinal de Compra.
+            Resultados passados não garantem resultados futuros.
+          </p>
+        </section>
+      )}
 
       {/* Pricing */}
       <section style={{ maxWidth: 900, margin: '0 auto', padding: '4rem clamp(1rem, 4vw, 2rem)', textAlign: 'center' }}>
