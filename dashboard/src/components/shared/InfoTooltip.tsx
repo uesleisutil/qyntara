@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import ReactDOM from 'react-dom';
 import { HelpCircle } from 'lucide-react';
 
 interface InfoTooltipProps {
@@ -9,7 +10,7 @@ interface InfoTooltipProps {
 
 const InfoTooltip: React.FC<InfoTooltipProps> = ({ text, darkMode = false, size = 14 }) => {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<'above' | 'below'>('above');
+  const [coords, setCoords] = useState<{ top: number; left: number; position: 'above' | 'below' }>({ top: 0, left: 0, position: 'above' });
   const ref = useRef<HTMLDivElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
 
@@ -26,38 +27,60 @@ const InfoTooltip: React.FC<InfoTooltipProps> = ({ text, darkMode = false, size 
     };
   }, [open]);
 
-  const adjustPosition = useCallback(() => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    // If less than 80px above the button, show below instead
-    setPosition(rect.top < 80 ? 'below' : 'above');
-  }, []);
-
-  // Adjust horizontal overflow
+  // Adjust horizontal overflow after portal renders
   useEffect(() => {
     if (!open || !tipRef.current) return;
     const tip = tipRef.current;
-    // Reset first
-    tip.style.left = '50%';
-    tip.style.right = 'auto';
-    tip.style.transform = 'translateX(-50%)';
-
     const tipRect = tip.getBoundingClientRect();
     if (tipRect.right > window.innerWidth - 12) {
-      tip.style.left = 'auto';
-      tip.style.right = '-8px';
-      tip.style.transform = 'none';
+      tip.style.left = `${coords.left - (tipRect.right - window.innerWidth + 16)}px`;
     } else if (tipRect.left < 12) {
-      tip.style.left = '-8px';
-      tip.style.right = 'auto';
-      tip.style.transform = 'none';
+      tip.style.left = '12px';
     }
-  }, [open, position]);
+  }, [open, coords]);
 
-  const show = () => { adjustPosition(); setOpen(true); };
+  const calcCoords = useCallback(() => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const pos = rect.top < 100 ? 'below' : 'above';
+    setCoords({
+      top: pos === 'above' ? rect.top - 8 : rect.bottom + 8,
+      left: rect.left + rect.width / 2,
+      position: pos,
+    });
+  }, []);
+
+  const show = () => { calcCoords(); setOpen(true); };
   const hide = () => setOpen(false);
 
   const bgColor = darkMode ? '#334155' : '#1e293b';
+
+  const tooltip = open ? ReactDOM.createPortal(
+    <div ref={tipRef} style={{
+      position: 'fixed',
+      top: coords.position === 'above' ? undefined : coords.top,
+      bottom: coords.position === 'above' ? `${window.innerHeight - coords.top}px` : undefined,
+      left: coords.left,
+      transform: 'translateX(-50%)',
+      padding: '0.6rem 0.75rem', borderRadius: 8,
+      background: bgColor, color: '#f1f5f9',
+      fontSize: '0.75rem', lineHeight: 1.5, maxWidth: 260, minWidth: 180,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.25)', zIndex: 99999, whiteSpace: 'normal',
+      pointerEvents: 'none', wordBreak: 'break-word',
+    }}>
+      {text}
+      <div style={{
+        position: 'absolute',
+        ...(coords.position === 'above'
+          ? { top: '100%', borderTop: `6px solid ${bgColor}`, borderBottom: 'none' }
+          : { bottom: '100%', borderBottom: `6px solid ${bgColor}`, borderTop: 'none' }),
+        left: '50%', transform: 'translateX(-50%)',
+        width: 0, height: 0,
+        borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
+      }} />
+    </div>,
+    document.body
+  ) : null;
 
   return (
     <div ref={ref} style={{ display: 'inline-flex', position: 'relative', verticalAlign: 'middle' }}>
@@ -77,32 +100,7 @@ const InfoTooltip: React.FC<InfoTooltipProps> = ({ text, darkMode = false, size 
       >
         <HelpCircle size={size} />
       </button>
-      {open && (
-        <div ref={tipRef} style={{
-          position: 'absolute',
-          ...(position === 'above'
-            ? { bottom: '100%', marginBottom: 6 }
-            : { top: '100%', marginTop: 6 }),
-          left: '50%', transform: 'translateX(-50%)',
-          padding: '0.6rem 0.75rem', borderRadius: 8,
-          background: bgColor, color: '#f1f5f9',
-          fontSize: '0.75rem', lineHeight: 1.5, maxWidth: 260, minWidth: 180,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.25)', zIndex: 9999, whiteSpace: 'normal',
-          pointerEvents: 'none', wordBreak: 'break-word',
-        }}>
-          {text}
-          {/* Arrow */}
-          <div style={{
-            position: 'absolute',
-            ...(position === 'above'
-              ? { top: '100%', borderTop: `6px solid ${bgColor}`, borderBottom: 'none' }
-              : { bottom: '100%', borderBottom: `6px solid ${bgColor}`, borderTop: 'none' }),
-            left: '50%', transform: 'translateX(-50%)',
-            width: 0, height: 0,
-            borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
-          }} />
-        </div>
-      )}
+      {tooltip}
     </div>
   );
 };

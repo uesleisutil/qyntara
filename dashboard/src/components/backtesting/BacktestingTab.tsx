@@ -411,7 +411,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               { label: 'Turnover', value: fmtPct(result.metrics.turnoverRate), color: theme.textSecondary, tip: 'Percentual da carteira que é trocado a cada rebalanceamento. Maior turnover = mais custos de corretagem.' },
             ].map((m, i) => (
               <div key={i} style={cardStyle}>
-                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.03em', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.3rem', letterSpacing: '0.03em', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                   {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={10} />
                 </div>
                 <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 700, color: m.color }}>{m.value}</div>

@@ -176,7 +176,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               {' '}Com volatilidade de {(currentTicker.vol_20d * 100).toFixed(1)}% e score de{' '}
               <strong style={{ color: '#3b82f6' }}>{currentTicker.score.toFixed(2)}</strong>, o sinal é{' '}
               <strong style={{ color: currentTicker.score >= 1.5 ? '#10b981' : currentTicker.score <= -1.5 ? '#ef4444' : '#f59e0b' }}>
-                {currentTicker.score >= 1.5 ? 'COMPRA' : currentTicker.score <= -1.5 ? 'VENDA' : 'NEUTRO'}
+                {currentTicker.score >= 1.5 ? 'Compra' : currentTicker.score <= -1.5 ? 'Venda' : 'Neutro'}
               </strong>.
               {' '}Veja abaixo quais fatores mais influenciaram essa previsão.
             </div>

@@ -72,7 +72,7 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
   const { confidence, posFeats, negFeats } = explanation;
   const confColor = confidence >= 0.7 ? '#10b981' : confidence >= 0.5 ? '#f59e0b' : '#ef4444';
   const confLabel = confidence >= 0.7 ? 'alta' : confidence >= 0.5 ? 'moderada' : 'baixa';
-  const signal = tickerData.score >= 1.5 ? 'COMPRA' : tickerData.score <= -1.5 ? 'VENDA' : 'NEUTRO';
+  const signal = tickerData.score >= 1.5 ? 'Compra' : tickerData.score <= -1.5 ? 'Venda' : 'Neutro';
 
   return (
     <div style={{

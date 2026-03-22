@@ -21,7 +21,7 @@ const RecommendationsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('score');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-  const [signalFilter, setSignalFilter] = useState<'ALL' | 'COMPRA' | 'VENDA' | 'NEUTRO'>('ALL');
+  const [signalFilter, setSignalFilter] = useState<'ALL' | 'Compra' | 'Venda' | 'Neutro'>('ALL');
 
   useEffect(() => { fetchRecommendations(); }, []);
 
@@ -38,10 +38,10 @@ const RecommendationsPage: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  const getSignal = (score: number) => score >= 1.5 ? 'COMPRA' : score <= -1.5 ? 'VENDA' : 'NEUTRO';
+  const getSignal = (score: number) => score >= 1.5 ? 'Compra' : score <= -1.5 ? 'Venda' : 'Neutro';
   const getSignalColor = (signal: string) => {
-    if (signal === 'COMPRA') return { bg: 'rgba(16,185,129,0.15)', text: '#10b981', border: 'rgba(16,185,129,0.3)' };
-    if (signal === 'VENDA') return { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', border: 'rgba(239,68,68,0.3)' };
+    if (signal === 'Compra') return { bg: 'rgba(16,185,129,0.15)', text: '#10b981', border: 'rgba(16,185,129,0.3)' };
+    if (signal === 'Venda') return { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', border: 'rgba(239,68,68,0.3)' };
     return { bg: 'rgba(245,158,11,0.15)', text: '#f59e0b', border: 'rgba(245,158,11,0.3)' };
   };
 
@@ -177,7 +177,7 @@ const RecommendationsPage: React.FC = () => {
           <div>
             <div style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               Retorno Médio — Sinais de Compra
-              <InfoTooltip text={`Média do retorno esperado (20 pregões) apenas das ${buyRecs.length} ações com sinal de COMPRA (score ≥ 1.5). Indica o potencial médio de ganho das melhores oportunidades identificadas pelo modelo.`} darkMode={darkMode} />
+              <InfoTooltip text={`Média do retorno esperado (20 pregões) apenas das ${buyRecs.length} ações com sinal de Compra (score ≥ 1.5). Indica o potencial médio de ganho das melhores oportunidades identificadas pelo modelo.`} darkMode={darkMode} />
             </div>
             <div style={{ fontSize: 'clamp(1.8rem, 5vw, 2.4rem)', fontWeight: 800, color: '#10b981', lineHeight: 1.1 }}>
               {avgBuyReturn >= 0 ? '+' : ''}{fmt(avgBuyReturn * 100, 2)}%
@@ -192,7 +192,7 @@ const RecommendationsPage: React.FC = () => {
             background: 'rgba(16,185,129,0.15)', color: '#10b981',
             fontSize: '0.8rem', fontWeight: 600,
           }}>
-            <ArrowUpRight size={16} /> COMPRA
+            <ArrowUpRight size={16} /> Compra
           </div>
         </div>
       )}
@@ -235,9 +235,9 @@ const RecommendationsPage: React.FC = () => {
         <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
           {([
             { key: 'ALL', label: 'Todos', count: recommendations.length, color: '#3b82f6' },
-            { key: 'COMPRA', label: 'Compra', count: totalBuy, color: '#10b981' },
-            { key: 'NEUTRO', label: 'Neutro', count: totalNeutral, color: '#f59e0b' },
-            { key: 'VENDA', label: 'Venda', count: totalSell, color: '#ef4444' },
+            { key: 'Compra', label: 'Compra', count: totalBuy, color: '#10b981' },
+            { key: 'Neutro', label: 'Neutro', count: totalNeutral, color: '#f59e0b' },
+            { key: 'Venda', label: 'Venda', count: totalSell, color: '#ef4444' },
           ] as const).map(chip => {
             const active = signalFilter === chip.key;
             return (
