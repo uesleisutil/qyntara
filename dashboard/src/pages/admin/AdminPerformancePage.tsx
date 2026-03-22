@@ -138,9 +138,27 @@ const AdminPerformancePage: React.FC = () => {
   const accHistory = monitorData?.time_series?.directional_accuracy || [];
 
   if (loading) {
+    const sk: React.CSSProperties = {
+      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
+    };
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, color: theme.textSecondary }}>
-        <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} /> Carregando dados de performance...
+      <div>
+        <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ ...sk, height: 28, width: 220, marginBottom: 8 }} />
+          <div style={{ ...sk, height: 16, width: 340 }} />
+        </div>
+        <div style={{ ...sk, height: 52, marginBottom: '1rem', borderRadius: 12 }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          {[1,2,3,4,5,6,7,8].map(i => (
+            <div key={i} style={{ ...cardStyle, padding: '1rem' }}>
+              <div style={{ ...sk, height: 12, width: 70, marginBottom: 8 }} />
+              <div style={{ ...sk, height: 24, width: 50 }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ ...sk, height: 200, borderRadius: 12 }} />
       </div>
     );
   }

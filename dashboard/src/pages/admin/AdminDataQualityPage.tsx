@@ -42,9 +42,27 @@ const AdminDataQualityPage: React.FC = () => {
   const getStatusColor = (value: number) => value >= 0.95 ? '#10b981' : value >= 0.8 ? '#f59e0b' : '#ef4444';
 
   if (loading) {
+    const sk: React.CSSProperties = {
+      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
+    };
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300, color: theme.textSecondary }}>
-        <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite', marginRight: 8 }} /> Carregando dados de qualidade...
+      <div>
+        <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+        <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ ...sk, height: 28, width: 200, marginBottom: 8 }} />
+          <div style={{ ...sk, height: 16, width: 320 }} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} style={{ ...cardStyle, padding: '1rem' }}>
+              <div style={{ ...sk, height: 12, width: 80, marginBottom: 8 }} />
+              <div style={{ ...sk, height: 24, width: 60 }} />
+            </div>
+          ))}
+        </div>
+        <div style={{ ...sk, height: 100, marginBottom: '1rem', borderRadius: 12 }} />
+        <div style={{ ...sk, height: 200, borderRadius: 12 }} />
       </div>
     );
   }
@@ -98,6 +116,17 @@ const AdminDataQualityPage: React.FC = () => {
         <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
+      </div>
+
+      {/* How it works */}
+      <div style={{
+        ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem',
+        background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
+        borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)',
+      }}>
+        <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+          💡 <strong style={{ color: theme.text }}>Como funciona:</strong> O sistema monitora 4 dimensões de qualidade: <strong style={{ color: theme.text }}>Completude</strong> (dados presentes vs esperados), <strong style={{ color: theme.text }}>Freshness</strong> (fontes atualizadas no prazo), <strong style={{ color: theme.text }}>Cobertura</strong> (tickers cobertos pelo modelo) e <strong style={{ color: theme.text }}>Anomalias</strong> (gaps, outliers e inconsistências).
+        </div>
       </div>
 
       {/* KPI Cards */}
