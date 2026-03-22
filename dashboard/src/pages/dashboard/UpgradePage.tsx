@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate, useSearchParams } from 'react-router-dom';
-import { Crown, CheckCircle, Briefcase, LineChart, Shield, Target, Zap, ArrowLeft, CreditCard, Loader2, Settings, Clock, Star, MessageCircle } from 'lucide-react';
+import { Crown, CheckCircle, Briefcase, LineChart, Shield, Target, Zap, ArrowLeft, CreditCard, Loader2, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_BASE_URL } from '../../config';
 
@@ -231,66 +231,16 @@ const UpgradePage: React.FC = () => {
         <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginTop: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
           <Shield size={10} /> Pagamento seguro via Stripe · Cancele quando quiser
         </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0.75rem 0', color: theme.textSecondary, fontSize: '0.75rem' }}>
-          <div style={{ flex: 1, height: 1, background: theme.border }} />
-          ou pague via Pix
-          <div style={{ flex: 1, height: 1, background: theme.border }} />
-        </div>
-
-        {/* WhatsApp CTA — secondary */}
-        <a href="https://wa.me/5548999999999?text=Ol%C3%A1!%20Quero%20assinar%20o%20plano%20Pro%20do%20B3%20Tactical%20Ranking."
-          target="_blank" rel="noopener noreferrer"
-          style={{
-            ...btnBase, background: 'linear-gradient(135deg, #25d366, #128c7e)', color: 'white',
-            boxShadow: '0 2px 10px rgba(37,211,102,0.2)', marginBottom: '0.5rem',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
-        >
-          <MessageCircle size={18} /> Assinar via WhatsApp (Pix)
-        </a>
-      </div>
-
-      {/* Pix payment info */}
-      <div style={{ ...cardStyle, padding: '1.25rem', marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Star size={16} color="#f59e0b" />
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text }}>Pagamento via Pix</span>
-        </div>
-        <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7 }}>
-          <div style={{ marginBottom: '0.5rem' }}>
-            1. Envie <strong style={{ color: theme.text }}>R$ 49,00</strong> via Pix para:
-          </div>
-          <div style={{
-            padding: '0.6rem 0.75rem', borderRadius: 8, marginBottom: '0.5rem',
-            background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
-            border: `1px solid ${darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)'}`,
-            fontFamily: 'monospace', fontSize: '0.82rem', color: theme.text, wordBreak: 'break-all',
-          }}>
-            ueslei@outlook.com
-          </div>
-          <div>2. Envie o comprovante pelo WhatsApp ou e-mail</div>
-          <div>3. Seu plano será ativado em até 1h</div>
-        </div>
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.75rem',
-          padding: '0.4rem 0.6rem', borderRadius: 8,
-          background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.15)',
-          fontSize: '0.72rem', color: '#f59e0b',
-        }}>
-          <Clock size={12} /> Ative em até 1h após pagamento
-        </div>
       </div>
 
       {/* FAQ */}
       <div style={{ ...cardStyle, padding: '1.25rem' }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text, marginBottom: '0.75rem' }}>Perguntas Frequentes</div>
         {[
-          { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem fidelidade. Cancele direto pelo portal de pagamento ou avise pelo WhatsApp.' },
+          { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem fidelidade. Cancele direto pelo portal de pagamento a qualquer momento.' },
           { q: 'E se eu não gostar?', a: 'Você tem 7 dias de garantia. Se não ficar satisfeito, devolvemos 100% do valor.' },
-          { q: 'Como funciona a ativação?', a: 'Pagamento por cartão: ativação instantânea. Pix: até 1 hora após envio do comprovante.' },
-          { q: 'Quais formas de pagamento?', a: 'Cartão de crédito (via Stripe) ou Pix. Ambos com total segurança.' },
+          { q: 'Como funciona a ativação?', a: 'Ativação instantânea após a confirmação do pagamento.' },
+          { q: 'Quais formas de pagamento?', a: 'Cartão de crédito ou débito, processado com segurança via Stripe.' },
         ].map((faq, i) => (
           <div key={i} style={{ marginBottom: i < 3 ? '0.75rem' : 0, paddingBottom: i < 3 ? '0.75rem' : 0, borderBottom: i < 3 ? `1px solid ${theme.border}` : 'none' }}>
             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.text, marginBottom: '0.2rem' }}>{faq.q}</div>
