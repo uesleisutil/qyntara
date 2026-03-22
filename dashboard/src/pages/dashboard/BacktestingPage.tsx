@@ -14,8 +14,8 @@ const BacktestingPage: React.FC = () => {
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Backtesting</h1>
-        <p style={{ color: theme.textSecondary, fontSize: '0.875rem' }}>
-          Simule estratégias com dados históricos, walk-forward analysis e métricas de risco.
+        <p style={{ color: theme.textSecondary, fontSize: '0.875rem', margin: 0 }}>
+          Teste a estratégia do modelo com dados passados — veja quanto você teria ganho (ou perdido) e compare com o Ibovespa e CDI.
         </p>
       </div>
       <BacktestingTab darkMode={darkMode} />

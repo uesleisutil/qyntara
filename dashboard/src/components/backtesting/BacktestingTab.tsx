@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Play, Settings, TrendingUp, BarChart3, AlertTriangle, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { API_BASE_URL, API_KEY } from '../../config';
+import InfoTooltip from '../shared/InfoTooltip';
 
 interface BacktestingTabProps { darkMode?: boolean; }
 
@@ -207,26 +208,29 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       {/* Config Tab */}
       {activeTab === 'config' && (
         <div style={cardStyle}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <Settings size={18} color="#3b82f6" />
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: theme.text }}>Configuração do Backtest</h3>
           </div>
+          <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+            💡 O backtest simula como sua carteira teria se comportado no passado usando a estratégia do modelo. Defina o período, capital e quantas ações incluir. Isso ajuda a entender o potencial de retorno e risco antes de investir de verdade.
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
-            <div><label style={labelStyle}>Data Início</label><input type="date" value={config.startDate} onChange={e => handleChange('startDate', e.target.value)} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Data Fim</label><input type="date" value={config.endDate} onChange={e => handleChange('endDate', e.target.value)} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Capital Inicial (R$)</label><input type="number" value={config.initialCapital} onChange={e => handleChange('initialCapital', +e.target.value)} min={1000} step={1000} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Alocação</label>
+            <div><label style={labelStyle}>Data Início <InfoTooltip text="Início do período de simulação. Quanto mais longo, mais confiável o resultado." darkMode={darkMode} size={12} /></label><input type="date" value={config.startDate} onChange={e => handleChange('startDate', e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Data Fim <InfoTooltip text="Fim do período de simulação." darkMode={darkMode} size={12} /></label><input type="date" value={config.endDate} onChange={e => handleChange('endDate', e.target.value)} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Capital Inicial (R$) <InfoTooltip text="Quanto dinheiro você investiria no início. Não afeta os percentuais de retorno, apenas os valores em reais." darkMode={darkMode} size={12} /></label><input type="number" value={config.initialCapital} onChange={e => handleChange('initialCapital', +e.target.value)} min={1000} step={1000} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Alocação <InfoTooltip text="'Peso Igual' divide o capital igualmente entre as ações. 'Ponderado por Score' investe mais nas ações com score mais alto." darkMode={darkMode} size={12} /></label>
               <select value={config.positionSize} onChange={e => handleChange('positionSize', e.target.value)} style={inputStyle}>
                 <option value="equal">Peso Igual</option><option value="weighted">Ponderado por Score</option>
               </select>
             </div>
-            <div><label style={labelStyle}>Top N Ações</label><input type="number" value={config.topN} onChange={e => handleChange('topN', +e.target.value)} min={1} max={46} style={inputStyle} /></div>
-            <div><label style={labelStyle}>Rebalanceamento</label>
+            <div><label style={labelStyle}>Top N Ações <InfoTooltip text="Quantas das melhores ações (por score) incluir na carteira. Ex: Top 10 = as 10 ações com maior score." darkMode={darkMode} size={12} /></label><input type="number" value={config.topN} onChange={e => handleChange('topN', +e.target.value)} min={1} max={46} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Rebalanceamento <InfoTooltip text="Com que frequência a carteira é ajustada. Mensal é o mais comum — a cada mês, vende as que saíram do top e compra as novas." darkMode={darkMode} size={12} /></label>
               <select value={config.rebalanceFrequency} onChange={e => handleChange('rebalanceFrequency', e.target.value as any)} style={inputStyle}>
                 <option value="daily">Diário</option><option value="weekly">Semanal</option><option value="monthly">Mensal</option>
               </select>
             </div>
-            <div><label style={labelStyle}>Comissão (%)</label><input type="number" value={config.commissionRate * 100} onChange={e => handleChange('commissionRate', +e.target.value / 100)} min={0} max={1} step={0.01} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Comissão (%) <InfoTooltip text="Taxa de corretagem por operação. Corretoras modernas cobram entre 0% e 0.03%. Isso é descontado a cada compra/venda." darkMode={darkMode} size={12} /></label><input type="number" value={config.commissionRate * 100} onChange={e => handleChange('commissionRate', +e.target.value / 100)} min={0} max={1} step={0.01} style={inputStyle} /></div>
           </div>
 
           {error && (
@@ -253,14 +257,16 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           {/* Summary KPIs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.6rem' }}>
             {[
-              { label: 'Capital Inicial', value: fmtBRL(config.initialCapital), color: theme.text },
-              { label: 'Valor Final', value: fmtBRL(result.portfolioValue[result.portfolioValue.length - 1].value), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444' },
-              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444' },
-              { label: 'Sharpe', value: fmt(result.metrics.sharpeRatio), color: '#3b82f6' },
-              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444' },
+              { label: 'Capital Inicial', value: fmtBRL(config.initialCapital), color: theme.text, tip: 'Valor investido no início da simulação.' },
+              { label: 'Valor Final', value: fmtBRL(result.portfolioValue[result.portfolioValue.length - 1].value), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Quanto sua carteira valeria ao final do período simulado.' },
+              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Ganho ou perda total em % no período inteiro.' },
+              { label: 'Sharpe', value: fmt(result.metrics.sharpeRatio), color: '#3b82f6', tip: 'Mede o retorno ajustado ao risco. Acima de 1.0 é bom, acima de 2.0 é excelente. Compara com o CDI (taxa livre de risco).' },
+              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444', tip: 'Maior queda do pico ao vale — o pior momento da carteira. Ex: -15% significa que em algum momento você teria perdido 15% do valor máximo.' },
             ].map((kpi, i) => (
               <div key={i} style={cardStyle}>
-                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>{kpi.label}</div>
+                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                  {kpi.label} <InfoTooltip text={kpi.tip} darkMode={darkMode} size={11} />
+                </div>
                 <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 700, color: kpi.color }}>{kpi.value}</div>
               </div>
             ))}
@@ -295,13 +301,15 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(120px, 100%), 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
               {[
-                { label: 'Alpha', value: fmtPct(result.benchmarks.alpha), color: result.benchmarks.alpha >= 0 ? '#10b981' : '#ef4444' },
-                { label: 'Beta', value: fmt(result.benchmarks.beta), color: theme.text },
-                { label: 'Info Ratio', value: fmt(result.benchmarks.informationRatio), color: '#8b5cf6' },
-                { label: 'Tracking Error', value: fmtPct(result.benchmarks.trackingError), color: '#f59e0b' },
+                { label: 'Alpha', value: fmtPct(result.benchmarks.alpha), color: result.benchmarks.alpha >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno extra acima do mercado (Ibovespa). Alpha positivo = você bateu o mercado.' },
+                { label: 'Beta', value: fmt(result.benchmarks.beta), color: theme.text, tip: 'Sensibilidade ao mercado. Beta 1.0 = acompanha o Ibovespa. Acima de 1.0 = mais volátil que o mercado.' },
+                { label: 'Info Ratio', value: fmt(result.benchmarks.informationRatio), color: '#8b5cf6', tip: 'Retorno extra por unidade de risco adicional em relação ao benchmark. Acima de 0.5 é bom.' },
+                { label: 'Tracking Error', value: fmtPct(result.benchmarks.trackingError), color: '#f59e0b', tip: 'Quanto sua carteira desvia do Ibovespa. Maior = mais diferente do mercado (pode ser bom ou ruim).' },
               ].map((m, i) => (
                 <div key={i} style={{ padding: '0.5rem', backgroundColor: theme.bg, borderRadius: 6 }}>
-                  <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{m.label}</div>
+                  <div style={{ fontSize: '0.65rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={10} />
+                  </div>
                   <div style={{ fontSize: '1rem', fontWeight: 700, color: m.color }}>{m.value}</div>
                 </div>
               ))}
@@ -351,20 +359,22 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: '0.6rem' }}>
             {[
-              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444' },
-              { label: 'Retorno Anualizado', value: fmtPct(result.metrics.annualizedReturn), color: result.metrics.annualizedReturn >= 0 ? '#10b981' : '#ef4444' },
-              { label: 'Volatilidade Anual', value: fmtPct(result.metrics.volatility), color: '#f59e0b' },
-              { label: 'Sharpe Ratio', value: fmt(result.metrics.sharpeRatio), color: '#3b82f6' },
-              { label: 'Sortino Ratio', value: fmt(result.metrics.sortinoRatio), color: '#8b5cf6' },
-              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444' },
-              { label: 'Duração Média DD', value: `${result.metrics.averageDrawdownDuration}d`, color: theme.text },
-              { label: 'Win Rate', value: fmtPct(result.metrics.winRate), color: '#10b981' },
-              { label: 'Ganho Médio', value: fmtPct(result.metrics.averageGain), color: '#10b981' },
-              { label: 'Perda Média', value: fmtPct(result.metrics.averageLoss), color: '#ef4444' },
-              { label: 'Turnover', value: fmtPct(result.metrics.turnoverRate), color: theme.textSecondary },
+              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Ganho ou perda total no período simulado.' },
+              { label: 'Retorno Anualizado', value: fmtPct(result.metrics.annualizedReturn), color: result.metrics.annualizedReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno convertido para base anual, permitindo comparar períodos diferentes.' },
+              { label: 'Volatilidade Anual', value: fmtPct(result.metrics.volatility), color: '#f59e0b', tip: 'Mede o quanto o valor da carteira oscila. Menor = mais estável. Acima de 25% é considerado alto.' },
+              { label: 'Sharpe Ratio', value: fmt(result.metrics.sharpeRatio), color: '#3b82f6', tip: 'Retorno por unidade de risco. Acima de 1.0 é bom, acima de 2.0 é excelente. Usa CDI como referência.' },
+              { label: 'Sortino Ratio', value: fmt(result.metrics.sortinoRatio), color: '#8b5cf6', tip: 'Similar ao Sharpe, mas só penaliza quedas (não subidas). Mais justo para estratégias com retornos assimétricos.' },
+              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444', tip: 'Maior queda do pico ao vale. Indica o pior cenário que você teria enfrentado.' },
+              { label: 'Duração Média DD', value: `${result.metrics.averageDrawdownDuration}d`, color: theme.text, tip: 'Tempo médio (em dias) que a carteira leva para se recuperar de uma queda.' },
+              { label: 'Win Rate', value: fmtPct(result.metrics.winRate), color: '#10b981', tip: 'Percentual de dias com retorno positivo. Acima de 52% já é bom para renda variável.' },
+              { label: 'Ganho Médio', value: fmtPct(result.metrics.averageGain), color: '#10b981', tip: 'Retorno médio nos dias positivos.' },
+              { label: 'Perda Média', value: fmtPct(result.metrics.averageLoss), color: '#ef4444', tip: 'Retorno médio nos dias negativos.' },
+              { label: 'Turnover', value: fmtPct(result.metrics.turnoverRate), color: theme.textSecondary, tip: 'Percentual da carteira que é trocado a cada rebalanceamento. Maior turnover = mais custos de corretagem.' },
             ].map((m, i) => (
               <div key={i} style={cardStyle}>
-                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{m.label}</div>
+                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.03em', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                  {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={10} />
+                </div>
                 <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 700, color: m.color }}>{m.value}</div>
               </div>
             ))}
@@ -407,15 +417,17 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.6rem' }}>
             {[
-              { label: 'VaR 95%', value: fmtPct(result.riskMetrics.var95), color: '#ef4444' },
-              { label: 'VaR 99%', value: fmtPct(result.riskMetrics.var99), color: '#ef4444' },
-              { label: 'CVaR 95%', value: fmtPct(result.riskMetrics.cvar95), color: '#dc2626' },
-              { label: 'CVaR 99%', value: fmtPct(result.riskMetrics.cvar99), color: '#dc2626' },
-              { label: 'Desvio Downside', value: fmtPct(result.riskMetrics.downsideDeviation), color: '#f59e0b' },
-              { label: 'Perdas Consecutivas', value: `${result.riskMetrics.maxConsecutiveLosses} dias`, color: theme.text },
+              { label: 'VaR 95%', value: fmtPct(result.riskMetrics.var95), color: '#ef4444', tip: 'Value at Risk — em 95% dos dias, a perda diária não deve ultrapassar este valor. Ex: -2% significa que só em 5% dos dias a perda seria maior.' },
+              { label: 'VaR 99%', value: fmtPct(result.riskMetrics.var99), color: '#ef4444', tip: 'VaR mais conservador — em 99% dos dias a perda não ultrapassa este valor. Cenário quase extremo.' },
+              { label: 'CVaR 95%', value: fmtPct(result.riskMetrics.cvar95), color: '#dc2626', tip: 'Perda média esperada nos piores 5% dos dias. Mostra "quando dá ruim, quão ruim fica".' },
+              { label: 'CVaR 99%', value: fmtPct(result.riskMetrics.cvar99), color: '#dc2626', tip: 'Perda média nos piores 1% dos dias — cenário de crise extrema.' },
+              { label: 'Desvio Downside', value: fmtPct(result.riskMetrics.downsideDeviation), color: '#f59e0b', tip: 'Volatilidade apenas dos retornos negativos. Mede o risco de queda sem penalizar ganhos.' },
+              { label: 'Perdas Consecutivas', value: `${result.riskMetrics.maxConsecutiveLosses} dias`, color: theme.text, tip: 'Maior sequência de dias seguidos com perda. Indica a pior "maré de azar" da simulação.' },
             ].map((m, i) => (
               <div key={i} style={cardStyle}>
-                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.3rem' }}>{m.label}</div>
+                <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                  {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={10} />
+                </div>
                 <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 700, color: m.color }}>{m.value}</div>
               </div>
             ))}
@@ -424,7 +436,10 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           {/* Worst Drawdown */}
           {result.drawdowns?.[0] && (
             <div style={{ ...cardStyle, borderLeft: '3px solid #ef4444' }}>
-              <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', fontWeight: 600, color: theme.text }}>Pior Drawdown</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: theme.text }}>Pior Drawdown</h3>
+                <InfoTooltip text="O drawdown é a queda do valor máximo até o ponto mais baixo. Este card mostra o pior momento da simulação — quando a carteira mais perdeu valor antes de se recuperar." darkMode={darkMode} size={13} />
+              </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(120px, 100%), 1fr))', gap: '0.5rem' }}>
                 <div><div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Início</div><div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>{result.drawdowns[0].start}</div></div>
                 <div><div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Fim</div><div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>{result.drawdowns[0].end}</div></div>
@@ -437,7 +452,13 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           {/* Rolling Volatility */}
           {result.riskMetrics.rollingVolatility?.length > 0 && (
             <div style={cardStyle}>
-              <h3 style={{ margin: '0 0 0.75rem', fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Volatilidade Rolante (30d)</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+                <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Volatilidade Rolante (30d)</h3>
+                <InfoTooltip text="Mostra como o risco da carteira variou ao longo do tempo. Picos indicam momentos de maior incerteza no mercado. Ideal é que fique estável e baixa." darkMode={darkMode} size={13} />
+              </div>
+              <p style={{ margin: '0 0 0.5rem', fontSize: '0.75rem', color: theme.textSecondary }}>
+                Quanto mais alto o gráfico, mais a carteira estava oscilando naquele período.
+              </p>
               <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                 <div style={{ minWidth: 350 }}>
                   <ResponsiveContainer width="100%" height={250}>
@@ -460,7 +481,10 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       {!result && !loading && activeTab === 'config' && (
         <div style={{ ...cardStyle, marginTop: '1rem', textAlign: 'center', padding: '2.5rem 1rem', color: theme.textSecondary }}>
           <Play size={32} style={{ marginBottom: '0.75rem', opacity: 0.4 }} />
-          <p style={{ margin: 0, fontSize: '0.9rem' }}>Configure os parâmetros acima e clique em "Executar Backtest" para ver os resultados.</p>
+          <p style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', fontWeight: 500, color: theme.text }}>Pronto para simular?</p>
+          <p style={{ margin: 0, fontSize: '0.8rem', maxWidth: 400, marginInline: 'auto', lineHeight: 1.6 }}>
+            Configure os parâmetros acima e clique em "Executar Backtest". A simulação usa os dados reais das recomendações do modelo para mostrar como sua carteira teria se comportado.
+          </p>
         </div>
       )}
     </div>

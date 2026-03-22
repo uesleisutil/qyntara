@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
+import InfoTooltip from '../../components/shared/InfoTooltip';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -115,17 +116,30 @@ const RecommendationsPage: React.FC = () => {
         </div>
       )}
 
+      {/* How it works banner */}
+      <div style={{
+        ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem',
+        background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
+        borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)',
+      }}>
+        <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+          💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Nosso modelo de Machine Learning analisa dezenas de indicadores técnicos e fundamentalistas de cada ação da B3 diariamente. O <strong>Score</strong> resume a atratividade: quanto maior, mais favorável. Ações com score ≥ 1.5 recebem sinal de <strong style={{ color: '#10b981' }}>Compra</strong>, ≤ -1.5 de <strong style={{ color: '#ef4444' }}>Venda</strong>, e o restante fica <strong style={{ color: '#f59e0b' }}>Neutro</strong>.
+        </div>
+      </div>
+
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         {[
-          { label: 'Total', value: `${recommendations.length}`, color: '#3b82f6' },
-          { label: 'Compra', value: `${totalBuy}`, color: '#10b981' },
-          { label: 'Venda', value: `${totalSell}`, color: '#ef4444' },
-          { label: 'Ret. Médio', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444' },
-          { label: 'Top Score', value: fmt(topScore, 2), color: '#f59e0b' },
+          { label: 'Total', value: `${recommendations.length}`, color: '#3b82f6', tip: 'Número total de ações analisadas pelo modelo hoje.' },
+          { label: 'Compra', value: `${totalBuy}`, color: '#10b981', tip: 'Ações com score ≥ 1.5 — o modelo indica potencial de valorização nos próximos 20 pregões.' },
+          { label: 'Venda', value: `${totalSell}`, color: '#ef4444', tip: 'Ações com score ≤ -1.5 — o modelo indica potencial de desvalorização nos próximos 20 pregões.' },
+          { label: 'Ret. Médio', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno médio esperado de todas as ações para os próximos 20 pregões (~1 mês).' },
+          { label: 'Top Score', value: fmt(topScore, 2), color: '#f59e0b', tip: 'Maior score entre todas as ações — indica a recomendação mais forte do modelo hoje.' },
         ].map((kpi, i) => (
           <div key={i} style={cardStyle}>
-            <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.3rem' }}>{kpi.label}</div>
+            <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              {kpi.label} <InfoTooltip text={kpi.tip} darkMode={darkMode} />
+            </div>
             <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.35rem)', fontWeight: 700, color: kpi.color }}>{kpi.value}</div>
           </div>
         ))}
@@ -210,14 +224,14 @@ const RecommendationsPage: React.FC = () => {
             <thead>
               <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                 {[
-                  { key: '', label: '#', sortable: false },
-                  { key: 'ticker', label: 'Ticker', sortable: true },
-                  { key: '', label: 'Preço', sortable: false },
-                  { key: '', label: 'Previsto', sortable: false },
-                  { key: 'return', label: 'Retorno', sortable: true },
-                  { key: 'vol', label: 'Vol', sortable: true },
-                  { key: 'score', label: 'Score', sortable: true },
-                  { key: '', label: 'Sinal', sortable: false },
+                  { key: '', label: '#', sortable: false, tip: '' },
+                  { key: 'ticker', label: 'Ticker', sortable: true, tip: 'Código da ação na B3 (ex: PETR4 = Petrobras PN).' },
+                  { key: '', label: 'Preço', sortable: false, tip: 'Último preço de fechamento da ação.' },
+                  { key: '', label: 'Previsto', sortable: false, tip: 'Preço que o modelo prevê para daqui a 20 pregões (~1 mês).' },
+                  { key: 'return', label: 'Retorno', sortable: true, tip: 'Retorno esperado em % — diferença entre preço previsto e atual.' },
+                  { key: 'vol', label: 'Vol', sortable: true, tip: 'Volatilidade dos últimos 20 dias — mede o risco. Quanto maior, mais a ação oscila.' },
+                  { key: 'score', label: 'Score', sortable: true, tip: 'Pontuação do modelo de ML. Combina retorno esperado, risco e indicadores. Quanto maior, mais atrativa.' },
+                  { key: '', label: 'Sinal', sortable: false, tip: 'Recomendação simplificada: Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
                 ].map((h, idx) => (
                   <th key={idx}
                     onClick={() => h.sortable && handleSort(h.key)}
@@ -228,7 +242,10 @@ const RecommendationsPage: React.FC = () => {
                       cursor: h.sortable ? 'pointer' : 'default', userSelect: 'none',
                       transition: 'color 0.15s',
                     }}>
-                    {h.label}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                      {h.label}
+                      {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={12} />}
+                    </span>
                     {h.sortable && sortBy === h.key && (
                       <span style={{ marginLeft: 3, fontSize: '0.7rem' }}>{sortDir === 'asc' ? '↑' : '↓'}</span>
                     )}

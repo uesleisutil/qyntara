@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Activity } from 'lucide-react';
+import InfoTooltip from '../shared/InfoTooltip';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -81,14 +82,15 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
       backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
         <Activity size={18} color="#3b82f6" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
-          Sensibilidade — {ticker}
+          Análise de Sensibilidade — {ticker}
         </h3>
+        <InfoTooltip text="Mostra como a previsão de preço muda quando cada indicador varia. Linhas mais inclinadas = o modelo é mais sensível a esse indicador." darkMode={darkMode} />
       </div>
-      <p style={{ margin: '0 0 0.75rem', fontSize: '0.8rem', color: theme.textSecondary }}>
-        Como a previsão muda por feature. Selecione até 5.
+      <p style={{ margin: '0 0 0.75rem', fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.5 }}>
+        Selecione até 5 indicadores para comparar. O valor de <strong style={{ color: theme.text }}>sensibilidade (%)</strong> indica quanto a previsão muda quando o indicador varia — valores altos significam que o modelo presta muita atenção nesse indicador para esta ação.
       </p>
 
       <div style={{

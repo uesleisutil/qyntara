@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Info, RefreshCw } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
+import InfoTooltip from '../shared/InfoTooltip';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
@@ -69,12 +70,15 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
         backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.25rem)', borderRadius: 12, marginBottom: '1.25rem',
         boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <Info size={20} color="#3b82f6" />
           <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 700, color: theme.text }}>
             Explicabilidade do Modelo
           </h2>
         </div>
+        <p style={{ margin: '0 0 0.75rem', fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+          💡 Esta seção mostra <strong style={{ color: theme.text }}>por que</strong> o modelo recomendou cada ação. Você verá quais indicadores mais influenciaram a previsão, como a previsão muda se os indicadores mudarem, e uma explicação em linguagem natural. Selecione uma ação abaixo para explorar.
+        </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <label style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>Ação:</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: '1 1 180px', maxWidth: 340 }}>

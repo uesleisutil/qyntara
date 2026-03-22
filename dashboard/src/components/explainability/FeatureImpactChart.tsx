@@ -8,6 +8,7 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { BarChart3 } from 'lucide-react';
+import InfoTooltip from '../shared/InfoTooltip';
 
 interface TickerData {
   ticker: string;
@@ -113,6 +114,7 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
           <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: theme.text }}>
             Impacto Agregado das Features
           </h3>
+          <InfoTooltip text="Visão geral de quais indicadores mais influenciam as previsões do modelo considerando TODAS as ações, não apenas uma. Indicadores no topo são os que o modelo mais usa para tomar decisões." darkMode={darkMode} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <label style={{ fontSize: '0.8rem', color: theme.textSecondary }}>Exibir top:</label>
@@ -129,8 +131,8 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
         </div>
       </div>
 
-      <p style={{ margin: '0 0 1rem', fontSize: '0.85rem', color: theme.textSecondary }}>
-        Média do impacto absoluto (SHAP) por feature em {tickers.length} ações
+      <p style={{ margin: '0 0 1rem', fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.5 }}>
+        Ranking dos indicadores mais importantes para o modelo em {tickers.length} ações. Barras maiores = maior influência nas previsões. Cores indicam se o indicador está mais ou menos relevante que o histórico.
       </p>
 
       <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -0.5rem', padding: '0 0.5rem' }}>
@@ -188,10 +190,9 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
 
       <div style={{
         marginTop: '1rem', padding: '0.75rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
-        borderRadius: 8, fontSize: '0.8rem', color: theme.textSecondary,
+        borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6,
       }}>
-        Features ranqueadas pela média do valor absoluto SHAP em todas as predições.
-        Valores maiores indicam maior impacto nas predições. Cores indicam variação em relação à média histórica.
+        <strong style={{ color: theme.text }}>Como ler este gráfico:</strong> Cada barra representa um indicador usado pelo modelo. Quanto maior a barra, mais esse indicador influencia as previsões. <span style={{ color: '#10b981' }}>Verde</span> = o indicador está mais relevante que o normal, <span style={{ color: '#3b82f6' }}>azul</span> = estável, <span style={{ color: '#ef4444' }}>vermelho</span> = menos relevante que o histórico.
       </div>
     </div>
   );

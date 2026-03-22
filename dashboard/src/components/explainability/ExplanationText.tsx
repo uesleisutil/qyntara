@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
+import InfoTooltip from '../shared/InfoTooltip';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -78,11 +79,12 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
       backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
         <MessageSquare size={18} color="#3b82f6" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
-          Explicação — {ticker}
+          Explicação em Linguagem Natural — {ticker}
         </h3>
+        <InfoTooltip text="Resumo em português de por que o modelo fez esta previsão. Mostra os principais fatores a favor e contra, e o nível de confiança." darkMode={darkMode} />
       </div>
 
       <div style={{
@@ -133,14 +135,14 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
 
       <div style={{
         padding: '0.75rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
-        borderRadius: 8, borderLeft: `4px solid ${confColor}`, fontSize: '0.8rem', color: theme.textSecondary,
+        borderRadius: 8, borderLeft: `4px solid ${confColor}`, fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.6,
       }}>
-        <strong>Sobre a confiança:</strong>{' '}
+        <strong style={{ color: theme.text }}>O que significa a confiança?</strong>{' '}
         {confidence >= 0.7
-          ? 'O modelo tem alta confiança pois os indicadores estão consistentes e alinhados com padrões históricos de sucesso.'
+          ? 'O modelo está seguro desta previsão — os indicadores técnicos e fundamentalistas apontam na mesma direção, e o padrão é consistente com o histórico.'
           : confidence >= 0.5
-          ? 'Confiança moderada — alguns indicadores são positivos mas há sinais mistos que introduzem incerteza.'
-          : 'Confiança baixa devido a sinais conflitantes ou condições atípicas de mercado. Use com cautela.'}
+          ? 'O modelo tem confiança moderada — alguns indicadores são favoráveis, mas há sinais mistos. A previsão pode se concretizar, mas há incerteza.'
+          : 'O modelo tem baixa confiança — os indicadores estão conflitantes ou as condições de mercado são atípicas. Considere esta previsão com cautela extra.'}
       </div>
     </div>
   );

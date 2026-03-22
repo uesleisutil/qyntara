@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import { TrendingUp } from 'lucide-react';
+import InfoTooltip from '../shared/InfoTooltip';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -60,29 +61,33 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
       backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
         <TrendingUp size={18} color="#3b82f6" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Contribuição SHAP — {ticker}
         </h3>
+        <InfoTooltip text="SHAP (SHapley Additive exPlanations) mostra quanto cada indicador contribuiu para a previsão de preço. Barras verdes empurraram o preço para cima, vermelhas para baixo." darkMode={darkMode} />
       </div>
+      <p style={{ margin: '0 0 0.75rem', fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>
+        Cada barra mostra o impacto em reais (R$) de um indicador na previsão. Indicadores no topo têm maior influência.
+      </p>
 
       <div style={{
         display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', padding: '0.6rem',
         backgroundColor: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8, flexWrap: 'wrap', gap: '0.5rem',
       }}>
         <div>
-          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Base</div>
+          <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>Base <InfoTooltip text="Preço atual de fechamento da ação." darkMode={darkMode} size={10} /></div>
           <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: theme.text }}>R$ {baseValue.toFixed(2)}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Previsão</div>
+          <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.2rem' }}>Previsão <InfoTooltip text="Preço que o modelo prevê para daqui a 20 pregões (~1 mês)." darkMode={darkMode} size={10} /></div>
           <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
             R$ {prediction.toFixed(2)}
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Diferença</div>
+          <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.2rem' }}>Diferença <InfoTooltip text="Soma de todos os impactos SHAP — é a diferença entre previsão e preço atual." darkMode={darkMode} size={10} /></div>
           <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
             {prediction >= baseValue ? '+' : ''}{(prediction - baseValue).toFixed(2)}
           </div>
