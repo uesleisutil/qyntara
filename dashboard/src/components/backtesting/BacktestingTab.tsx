@@ -502,23 +502,57 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           </div>
           {/* Verdict Card */}
           {(() => {
-            const beatBench = result.metrics.totalReturn > result.benchmarks.ibovespa.totalReturn;
-            const beatCDI = result.metrics.totalReturn > result.benchmarks.cdi.totalReturn;
-            const verdictColor = beatBench ? '#10b981' : '#f59e0b';
-            const verdictBg = beatBench ? 'rgba(16,185,129,0.08)' : 'rgba(245,158,11,0.08)';
-            const verdictBorder = beatBench ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)';
-            const diff = ((result.metrics.totalReturn - result.benchmarks.ibovespa.totalReturn) * 100).toFixed(1);
+            const ret = result.metrics.totalReturn;
+            const benchRet = result.benchmarks.ibovespa.totalReturn;
+            const cdiRet = result.benchmarks.cdi.totalReturn;
+            const isPositive = ret > 0;
+            const beatBench = ret > benchRet;
+            const beatCDI = ret > cdiRet;
+            const diff = ((ret - benchRet) * 100).toFixed(1);
+
+            // 4-tier verdict logic
+            let verdictIcon: string, verdictTitle: string, verdictColor: string, verdictBg: string, verdictBorder: string;
+            if (!isPositive) {
+              // Red: negative return — losing money is never "beating the market"
+              verdictIcon = '📉';
+              verdictTitle = 'Retorno negativo no período';
+              verdictColor = '#ef4444';
+              verdictBg = 'rgba(239,68,68,0.08)';
+              verdictBorder = 'rgba(239,68,68,0.25)';
+            } else if (!beatCDI) {
+              // Yellow: positive but below CDI (risk-free rate)
+              verdictIcon = '⚠️';
+              verdictTitle = 'Retorno positivo, mas abaixo do CDI';
+              verdictColor = '#f59e0b';
+              verdictBg = 'rgba(245,158,11,0.08)';
+              verdictBorder = 'rgba(245,158,11,0.25)';
+            } else if (!beatBench) {
+              // Yellow-green: beat CDI but not the universe average
+              verdictIcon = '📊';
+              verdictTitle = 'Superou o CDI, mas ficou abaixo da média do universo';
+              verdictColor = '#f59e0b';
+              verdictBg = 'rgba(245,158,11,0.08)';
+              verdictBorder = 'rgba(245,158,11,0.25)';
+            } else {
+              // Green: positive, beat CDI AND beat universe average
+              verdictIcon = '🏆';
+              verdictTitle = 'Sua estratégia superou a média do mercado!';
+              verdictColor = '#10b981';
+              verdictBg = 'rgba(16,185,129,0.08)';
+              verdictBorder = 'rgba(16,185,129,0.25)';
+            }
+
             return (
               <div style={{ ...cardStyle, padding: '1.1rem 1.25rem', background: verdictBg, borderColor: verdictBorder, borderLeft: `4px solid ${verdictColor}` }}>
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: verdictColor, marginBottom: '0.3rem' }}>
-                  {beatBench ? '🏆 Sua estratégia bateu o mercado!' : '⚠️ Sua estratégia ficou abaixo do mercado'}
+                  {verdictIcon} {verdictTitle}
                 </div>
                 <div style={{ fontSize: '0.82rem', color: theme.textSecondary, lineHeight: 1.6 }}>
-                  Retorno da carteira: <strong style={{ color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444' }}>{fmtPct(result.metrics.totalReturn)}</strong>
-                  {' vs Média do universo: '}<strong style={{ color: '#f59e0b' }}>{fmtPct(result.benchmarks.ibovespa.totalReturn)}</strong>
+                  Retorno da carteira: <strong style={{ color: ret >= 0 ? '#10b981' : '#ef4444' }}>{fmtPct(ret)}</strong>
+                  {' · Média do universo: '}<strong style={{ color: '#f59e0b' }}>{fmtPct(benchRet)}</strong>
                   {' '}({beatBench ? '+' : ''}{diff} p.p.)
-                  {beatCDI ? '' : `. Também ficou abaixo do CDI (${fmtPct(result.benchmarks.cdi.totalReturn)}).`}
-                  {beatBench && beatCDI && ` Também superou o CDI (${fmtPct(result.benchmarks.cdi.totalReturn)}).`}
+                  {' · CDI: '}<strong style={{ color: '#10b981' }}>{fmtPct(cdiRet)}</strong>
+                  {beatCDI ? ' ✓' : ' ✗'}
                 </div>
               </div>
             );

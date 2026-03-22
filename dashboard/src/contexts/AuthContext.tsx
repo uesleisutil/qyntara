@@ -84,6 +84,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => clearInterval(interval);
   }, [user, lastActivity]);
 
+  // Periodic plan sync — polls /auth/me every 60s to catch admin plan changes
+  useEffect(() => {
+    if (!user) return;
+    const planInterval = setInterval(async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+      try {
+        const res = await fetch(`${AUTH_URL}/me`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const freshPlan = data.plan || 'free';
+          const freshRole = data.role || 'viewer';
+          setUser(prev => {
+            if (!prev) return prev;
+            if (prev.plan !== freshPlan || prev.role !== freshRole) {
+              const updated = { ...prev, plan: freshPlan as 'free' | 'pro', role: freshRole as 'admin' | 'analyst' | 'viewer', planExpiresAt: data.planExpiresAt || '' };
+              localStorage.setItem('user', JSON.stringify(updated));
+              return updated;
+            }
+            return prev;
+          });
+        }
+      } catch { /* silent — don't break UX on network blip */ }
+    }, 60000);
+    return () => clearInterval(planInterval);
+  }, [user]);
+
   const clearStorage = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
@@ -211,17 +240,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const refreshPlan = useCallback(async () => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('No token');
-    const res = await fetch(`${AUTH_URL}/check-session`, { headers: { 'Authorization': `Bearer ${token}` } });
+    const res = await fetch(`${AUTH_URL}/me`, { headers: { 'Authorization': `Bearer ${token}` } });
     if (!res.ok) throw new Error('Failed to check plan');
     const data = await res.json();
-    if (data.accessToken) {
-      const currentUser = user;
-      if (currentUser) {
-        const updated = { ...currentUser, plan: data.plan as 'free' | 'pro' };
-        saveSession(data.accessToken, updated);
-      }
-    }
-  }, [user]);
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, plan: (data.plan || 'free') as 'free' | 'pro', planExpiresAt: data.planExpiresAt || '' };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   return (
     <AuthContext.Provider value={{
