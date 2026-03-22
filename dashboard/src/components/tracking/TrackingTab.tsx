@@ -460,7 +460,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
                             { label: 'Sinal', tip: 'Sinal gerado pelo modelo: Compra (score ≥ 1.5), Venda (score ≤ -1.5) ou Neutro' },
                             { label: 'Preço base', tip: 'Preço de fechamento no dia da previsão' },
                             { label: 'Preço atual', tip: 'Último preço de fechamento disponível' },
-                            { label: 'Ret. previsto', tip: 'Retorno esperado pelo modelo para 20 pregões' },
+                            { label: 'Ret. previsto', tip: 'Retorno previsto pelo modelo para 20 pregões a partir da data da safra' },
                             { label: 'Ret. parcial', tip: 'Retorno acumulado desde o dia da previsão até agora' },
                             { label: 'Evolução', tip: 'Gráfico da evolução diária. Linha tracejada azul = meta (retorno previsto)' },
                             { label: 'Status', tip: 'Se o retorno parcial está caminhando na mesma direção da previsão' },

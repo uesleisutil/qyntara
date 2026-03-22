@@ -97,6 +97,7 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
     if (needsRebalance) {
       // Sell all current holdings
       if (invested) {
+        // eslint-disable-next-line no-loop-func
         Object.entries(holdings).forEach(([ticker, shares]) => {
           const price = priceMap[ticker]?.[date];
           if (price && shares > 0) {
@@ -121,6 +122,7 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
           availableTickers.forEach(t => { availWeights[t.ticker] = 1 / availableTickers.length; });
         }
 
+        // eslint-disable-next-line no-loop-func
         availableTickers.forEach(t => {
           const price = priceMap[t.ticker][date];
           const allocation = cash * availWeights[t.ticker];
@@ -196,6 +198,7 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
     const date = allDates[i];
     if (!benchInvested && allTickersWithPrices.length > 0) {
       const w = 1 / allTickersWithPrices.length;
+      // eslint-disable-next-line no-loop-func
       allTickersWithPrices.forEach(t => {
         const price = priceMap[t]?.[date];
         if (price) {

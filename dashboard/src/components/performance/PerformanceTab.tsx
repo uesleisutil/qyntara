@@ -226,20 +226,31 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
         </h1>
       </div>
       <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: '0 0 1rem' }}>
-        Retorno acumulado seguindo os sinais do modelo vs mercado · {perfData.totalDays} pregões analisados
+        Retorno real acumulado seguindo os sinais do modelo vs média do universo · {perfData.totalDays} pregões analisados
       </p>
+
+      {/* How it works */}
+      <div style={{
+        ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem',
+        background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
+        borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)',
+      }}>
+        <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+          💡 <strong style={{ color: theme.text }}>Como funciona:</strong> A cada atualização do modelo, compramos igualmente todas as ações com sinal de <strong style={{ color: theme.green }}>Compra</strong> e medimos o retorno real até a próxima atualização. O resultado é acumulado dia a dia. Diferente do <em>retorno previsto</em> em Recomendações (horizonte de 20 pregões), aqui mostramos o <strong style={{ color: theme.text }}>retorno que realmente aconteceu</strong>.
+        </div>
+      </div>
 
       {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         {[
-          { label: 'Retorno acumulado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%`, color: perfData.totalReturn >= 0 ? theme.green : theme.red, icon: <TrendingUp size={16} />,
-            tip: 'Retorno acumulado se você tivesse comprado igualmente todas as ações com sinal de Compra a cada dia.' },
+          { label: 'Retorno realizado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%`, color: perfData.totalReturn >= 0 ? theme.green : theme.red, icon: <TrendingUp size={16} />,
+            tip: 'Retorno real acumulado comprando igualmente todas as ações com sinal de Compra entre cada atualização do modelo. Diferente do retorno previsto em Recomendações — aqui é o que realmente aconteceu.' },
           { label: 'Média do universo', value: `${perfData.ibovReturn >= 0 ? '+' : ''}${fmt(perfData.ibovReturn, 2)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />,
             tip: 'Retorno acumulado de uma carteira com peso igual em todas as 46 ações do universo.' },
           { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha, 2)}pp`, color: perfData.alpha >= 0 ? theme.green : theme.red, icon: <Award size={16} />,
-            tip: 'Diferença entre o retorno da estratégia e o Ibovespa. Positivo = modelo superou o mercado.' },
+            tip: 'Diferença entre o retorno realizado da estratégia e a média do universo. Positivo = modelo superou o mercado.' },
           { label: 'Win rate (Compra)', value: `${fmt(perfData.buyWinRate * 100, 0)}%`, color: perfData.buyWinRate >= 0.55 ? theme.green : theme.yellow, icon: <Target size={16} />,
-            tip: 'Percentual de dias em que os sinais de Compra tiveram retorno positivo no dia seguinte.' },
+            tip: 'Percentual de períodos em que os sinais de Compra tiveram retorno positivo até a próxima atualização do modelo.' },
           { label: 'Pregões', value: `${perfData.totalDays}`, color: theme.purple, icon: <Calendar size={16} />,
             tip: 'Número de pregões analisados no período.' },
         ].map((kpi, i) => (
@@ -279,7 +290,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
       {/* Chart */}
       <div style={{ ...cardStyle, marginBottom: '1rem' }}>
         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.75rem' }}>
-          Retorno acumulado — Sinais de Compra vs Média do Universo
+          Retorno realizado — Sinais de Compra vs Média do Universo
         </div>
         <CumulativeChart data={perfData.cumulative} />
       </div>

@@ -178,8 +178,8 @@ const RecommendationsPage: React.FC = () => {
         }}>
           <div>
             <div style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              Retorno Médio — Sinais de Compra
-              <InfoTooltip text={`Média do retorno esperado (20 pregões) apenas das ${buyRecs.length} ações com sinal de Compra (score ≥ 1.5). Indica o potencial médio de ganho das melhores oportunidades identificadas pelo modelo.`} darkMode={darkMode} />
+              Retorno Médio Previsto — Sinais de Compra
+              <InfoTooltip text={`Média do retorno previsto pelo modelo (horizonte de 20 pregões) apenas das ${buyRecs.length} ações com sinal de Compra (score ≥ 1.5). Este é um valor estimado, não realizado. Acompanhe a evolução real na aba Tracking.`} darkMode={darkMode} />
             </div>
             <div style={{ fontSize: 'clamp(1.8rem, 5vw, 2.4rem)', fontWeight: 800, color: '#10b981', lineHeight: 1.1 }}>
               {avgBuyReturn >= 0 ? '+' : ''}{fmt(avgBuyReturn * 100, 2)}%
@@ -206,7 +206,7 @@ const RecommendationsPage: React.FC = () => {
           { label: 'Compra', value: `${totalBuy}`, color: '#10b981', tip: 'Ações com score ≥ 1.5 — o modelo indica potencial de valorização nos próximos 20 pregões.' },
           { label: 'Venda', value: `${totalSell}`, color: '#ef4444', tip: 'Ações com score ≤ -1.5 — o modelo indica potencial de desvalorização nos próximos 20 pregões.' },
           { label: 'Neutro', value: `${totalNeutral}`, color: '#f59e0b', tip: 'Ações sem sinal claro — o modelo não tem convicção forte para compra ou venda.' },
-          { label: 'Ret. Médio Geral', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno médio esperado de todas as ações para os próximos 20 pregões (~1 mês).' },
+          { label: 'Ret. Médio Previsto', value: `${fmt(avgReturn * 100, 1)}%`, color: avgReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno médio previsto pelo modelo para todas as ações (horizonte de 20 pregões). Valor estimado, não realizado.' },
           { label: 'Top Score', value: fmt(topScore, 2), color: '#3b82f6', tip: 'Maior score entre todas as ações — indica a recomendação mais forte do modelo hoje.' },
         ].map((kpi, i) => (
           <div key={i} style={cardStyle}>
@@ -309,8 +309,8 @@ const RecommendationsPage: React.FC = () => {
                   { key: '', label: '#', sortable: false, tip: '' },
                   { key: 'ticker', label: 'Ticker', sortable: true, tip: 'Código da ação na B3 (ex: PETR4 = Petrobras PN).' },
                   { key: '', label: 'Preço', sortable: false, tip: 'Último preço de fechamento da ação.' },
-                  { key: '', label: 'Previsto', sortable: false, tip: 'Preço que o modelo prevê para daqui a 20 pregões (~1 mês).' },
-                  { key: 'return', label: 'Retorno', sortable: true, tip: 'Retorno esperado em % — diferença entre preço previsto e atual.' },
+                  { key: '', label: 'Previsto (20d)', sortable: false, tip: 'Preço que o modelo prevê para daqui a 20 pregões (~1 mês).' },
+                  { key: 'return', label: 'Ret. previsto', sortable: true, tip: 'Retorno previsto pelo modelo em % para 20 pregões — diferença entre preço previsto e atual.' },
                   { key: 'vol', label: 'Vol', sortable: true, tip: 'Volatilidade dos últimos 20 dias — mede o risco. Quanto maior, mais a ação oscila.' },
                   { key: 'score', label: 'Score', sortable: true, tip: 'Pontuação do modelo de ML. Combina retorno esperado, risco e indicadores. Quanto maior, mais atrativa.' },
                   { key: '', label: 'Sinal', sortable: false, tip: 'Recomendação simplificada: Compra (score ≥ 1.5), Venda (≤ -1.5) ou Neutro.' },
@@ -460,9 +460,9 @@ const RecommendationsPage: React.FC = () => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem 1rem', fontSize: '0.8rem' }}>
                 <div><span style={{ color: theme.textSecondary }}>Preço: </span><span style={{ color: theme.text }}>R$ {fmt(rec.last_close)}</span></div>
-                <div><span style={{ color: theme.textSecondary }}>Previsto: </span><span style={{ color: ret >= 0 ? '#10b981' : '#ef4444' }}>R$ {fmt(rec.pred_price_t_plus_20)}</span></div>
+                <div><span style={{ color: theme.textSecondary }}>Previsto (20d): </span><span style={{ color: ret >= 0 ? '#10b981' : '#ef4444' }}>R$ {fmt(rec.pred_price_t_plus_20)}</span></div>
                 <div>
-                  <span style={{ color: theme.textSecondary }}>Retorno: </span>
+                  <span style={{ color: theme.textSecondary }}>Ret. previsto: </span>
                   <span style={{ color: ret >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}>{fmt(ret * 100, 1)}%</span>
                 </div>
                 <div><span style={{ color: theme.textSecondary }}>Score: </span><span style={{ color: '#3b82f6', fontWeight: 700 }}>{fmt(rec.score, 3)}</span></div>

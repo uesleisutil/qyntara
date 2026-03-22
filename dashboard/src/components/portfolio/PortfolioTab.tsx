@@ -120,8 +120,8 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
       {/* Portfolio KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         {[
-          { label: 'Retorno esperado', value: `${portfolioReturn >= 0 ? '+' : ''}${fmt(portfolioReturn * 100, 2)}%`, color: portfolioReturn >= 0 ? theme.green : theme.red, icon: <TrendingUp size={16} />,
-            tip: 'Retorno esperado ponderado da carteira para os próximos 20 pregões.' },
+          { label: 'Retorno previsto', value: `${portfolioReturn >= 0 ? '+' : ''}${fmt(portfolioReturn * 100, 2)}%`, color: portfolioReturn >= 0 ? theme.green : theme.red, icon: <TrendingUp size={16} />,
+            tip: 'Retorno previsto ponderado da carteira (top 5 ações, peso por volatilidade inversa) para os próximos 20 pregões. Difere da média de Compra em Recomendações pois usa apenas 5 ações e pesos diferentes.' },
           { label: 'Volatilidade', value: `${fmt(portfolioVol * 100, 2)}%`, color: theme.yellow, icon: <Shield size={16} />,
             tip: 'Volatilidade estimada da carteira (desvio padrão ponderado dos retornos diários).' },
           { label: 'Sharpe (proxy)', value: fmt(sharpeProxy, 2), color: sharpeProxy >= 1 ? theme.green : theme.yellow, icon: <Target size={16} />,
@@ -184,7 +184,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
                   { label: 'Preço atual', tip: 'Último preço de fechamento' },
                   { label: 'Stop-loss', tip: 'Preço sugerido para limitar perdas (2× volatilidade abaixo do preço atual)' },
                   { label: 'Take-profit', tip: 'Preço-alvo do modelo para 20 pregões' },
-                  { label: 'Ret. esperado', tip: 'Retorno esperado pelo modelo para 20 pregões' },
+                  { label: 'Ret. previsto', tip: 'Retorno previsto pelo modelo para 20 pregões' },
                   { label: 'Confiança', tip: 'Nível de confiança baseado no score do modelo. Quanto maior o score, maior a confiança.' },
                   { label: 'Risco/Retorno', tip: 'Relação entre retorno esperado e volatilidade. Verde = favorável.' },
                 ].map(h => (
