@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
-  Briefcase, LineChart, Crown, Bell,
+  Briefcase, LineChart, Crown, Bell, Phone,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
@@ -255,6 +255,7 @@ const DashboardLayout: React.FC = () => {
               if (p.includes('explainability')) return '🧠 Explicabilidade';
               if (p.includes('backtesting')) return '🧪 Backtesting';
               if (p.includes('change-password')) return '🔒 Alterar Senha';
+              if (p.includes('change-phone')) return '📱 Alertas WhatsApp';
               if (p.includes('portfolio')) return '👑 Carteira Modelo';
               if (p.includes('performance')) return '👑 Performance';
               if (p.includes('upgrade')) return '👑 Upgrade Pro';
@@ -308,6 +309,17 @@ const DashboardLayout: React.FC = () => {
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <Lock size={14} /> Alterar Senha
+                    </button>
+                    <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/change-phone'); }} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                      color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                      transition: 'background 0.1s',
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <Phone size={14} /> Alertas WhatsApp
                     </button>
                     {!isPro && (
                       <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{

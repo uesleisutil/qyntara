@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Trash2, ToggleLeft, ToggleRight, Send, Settings, Users, RefreshCw, Edit2, X } from 'lucide-react';
+import { Plus, Trash2, ToggleLeft, ToggleRight, Send, Settings, Users, RefreshCw, Edit2, X, MessageCircle, Phone, ExternalLink } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
 
@@ -31,6 +31,10 @@ const AdminNotificationsPage: React.FC = () => {
   const [form, setForm] = useState({ title: '', message: '', type: 'manual', target: 'all', enabled: true });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [whatsappMsg, setWhatsappMsg] = useState('');
+  const [whatsappTarget, setWhatsappTarget] = useState('pro');
+  const [whatsappSending, setWhatsappSending] = useState(false);
+  const [whatsappResult, setWhatsappResult] = useState<{ phones: string[]; message: string } | null>(null);
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1e293b' : '#fff'),
@@ -326,6 +330,113 @@ const AdminNotificationsPage: React.FC = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {manualNotifs.map(renderNotifCard)}
+          </div>
+        )}
+      </div>
+
+      {/* WhatsApp Alerts */}
+      <div style={{ ...cardStyle, marginTop: '1.25rem', borderLeft: '4px solid #25d366' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <MessageCircle size={18} color="#25d366" />
+          <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: theme.text }}>Alertas WhatsApp</h2>
+          <InfoTooltip text="Envie mensagens via WhatsApp para usuários Pro que ativaram alertas. O sistema gera links de envio para cada destinatário." darkMode={darkMode} size={12} />
+        </div>
+
+        <div style={{
+          padding: '0.75rem 1rem', marginBottom: '1rem', borderRadius: 8,
+          background: darkMode ? 'rgba(37,211,102,0.08)' : 'rgba(37,211,102,0.04)',
+          border: `1px solid ${darkMode ? 'rgba(37,211,102,0.2)' : 'rgba(37,211,102,0.15)'}`,
+        }}>
+          <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+            💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Escreva a mensagem, selecione o público e clique em "Buscar Destinatários". O sistema retorna os números dos usuários que ativaram alertas WhatsApp. Clique no link de cada número para enviar via WhatsApp Web.
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: theme.text, marginBottom: '0.3rem' }}>
+              Público-alvo
+            </label>
+            <select value={whatsappTarget} onChange={e => setWhatsappTarget(e.target.value)} style={{ ...inputStyle, WebkitAppearance: 'none' as any, cursor: 'pointer' }}>
+              <option value="pro">👑 Apenas Pro</option>
+              <option value="all">👥 Todos com WhatsApp ativo</option>
+              <option value="free">🆓 Apenas Free</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: theme.text, marginBottom: '0.3rem' }}>
+            Mensagem
+          </label>
+          <textarea
+            value={whatsappMsg} onChange={e => setWhatsappMsg(e.target.value)}
+            placeholder="Ex: 🚀 Novas recomendações disponíveis! Acesse o dashboard para ver os sinais de hoje."
+            rows={3} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
+          />
+        </div>
+
+        <button
+          onClick={async () => {
+            if (!whatsappMsg.trim()) return;
+            setWhatsappSending(true); setWhatsappResult(null);
+            try {
+              const res = await fetch(`${API_BASE_URL}/admin/whatsapp`, {
+                method: 'POST', headers: headers(),
+                body: JSON.stringify({ message: whatsappMsg, target: whatsappTarget }),
+              });
+              if (res.ok) {
+                const data = await res.json();
+                setWhatsappResult({ phones: data.phones || [], message: data.whatsappMessage || whatsappMsg });
+              }
+            } catch { /* silent */ }
+            finally { setWhatsappSending(false); }
+          }}
+          disabled={whatsappSending || !whatsappMsg.trim()}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.6rem 1.25rem',
+            borderRadius: 8, border: 'none',
+            background: whatsappMsg.trim() && !whatsappSending ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#334155' : '#e2e8f0'),
+            color: whatsappMsg.trim() && !whatsappSending ? 'white' : theme.textSecondary,
+            cursor: whatsappMsg.trim() && !whatsappSending ? 'pointer' : 'not-allowed',
+            fontSize: '0.85rem', fontWeight: 600, WebkitAppearance: 'none' as any,
+          }}
+        >
+          <Phone size={14} /> {whatsappSending ? 'Buscando...' : 'Buscar Destinatários'}
+        </button>
+
+        {whatsappResult && (
+          <div style={{ marginTop: '1rem' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem' }}>
+              {whatsappResult.phones.length > 0
+                ? `✅ ${whatsappResult.phones.length} destinatário(s) encontrado(s):`
+                : '⚠️ Nenhum usuário com WhatsApp ativo encontrado para este público.'}
+            </div>
+            {whatsappResult.phones.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                {whatsappResult.phones.map((ph, i) => {
+                  const cleanNum = ph.replace(/\D/g, '');
+                  const waUrl = `https://wa.me/${cleanNum}?text=${encodeURIComponent(whatsappResult.message)}`;
+                  return (
+                    <a key={i} href={waUrl} target="_blank" rel="noopener noreferrer" style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem',
+                      borderRadius: 8, border: `1px solid ${theme.border}`, textDecoration: 'none',
+                      color: theme.text, fontSize: '0.82rem', transition: 'background 0.15s',
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.background = darkMode ? 'rgba(37,211,102,0.1)' : 'rgba(37,211,102,0.05)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <MessageCircle size={16} color="#25d366" />
+                      <span style={{ fontFamily: 'monospace' }}>{ph}</span>
+                      <ExternalLink size={12} color={theme.textSecondary} style={{ marginLeft: 'auto' }} />
+                    </a>
+                  );
+                })}
+                <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: '0.3rem' }}>
+                  Clique em cada número para abrir o WhatsApp Web com a mensagem pré-preenchida.
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

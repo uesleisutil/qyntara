@@ -1249,6 +1249,142 @@ def _handle_get_user_notifications(event: dict) -> dict:
         return _cors_response(200, {"notifications": []})
 
 
+def _handle_update_phone(event: dict) -> dict:
+    """Update phone number for authenticated user (for WhatsApp alerts)."""
+    ip = _get_ip(event)
+    ua = _get_user_agent(event)
+
+    if _check_rate_limit(ip):
+        return _cors_response(429, {"message": "Muitas tentativas. Aguarde 15 minutos."})
+    _increment_rate_limit(ip)
+
+    # Verify JWT
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token não fornecido"})
+
+    token = auth[7:].strip()
+    payload = _verify_jwt(token)
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido ou expirado"})
+
+    email = payload.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    phone = _sanitize_string(body.get("phone", ""), 20)
+    # Strip non-digit except leading +
+    phone_clean = ""
+    if phone:
+        phone_clean = re.sub(r"[^\d+]", "", phone)
+        # Validate: must be +55XXXXXXXXXXX (Brazilian) or similar international
+        if not re.match(r"^\+?\d{10,15}$", phone_clean):
+            return _cors_response(400, {"message": "Número inválido. Use formato: +5511999999999"})
+
+    whatsapp_enabled = body.get("whatsappEnabled", False)
+
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET phone = :p, whatsappEnabled = :w, updatedAt = :now",
+            ExpressionAttributeValues={
+                ":p": phone_clean,
+                ":w": bool(whatsapp_enabled),
+                ":now": datetime.now(UTC).isoformat(),
+            },
+        )
+    except ClientError as e:
+        logger.error(f"DynamoDB error updating phone: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+    _log_auth(email, "update_phone", True, ip, ua)
+    return _cors_response(200, {"message": "Telefone atualizado com sucesso.", "phone": phone_clean, "whatsappEnabled": whatsapp_enabled})
+
+
+def _handle_get_phone(event: dict) -> dict:
+    """Get phone number for authenticated user."""
+    headers = event.get("headers", {}) or {}
+    auth = headers.get("Authorization", headers.get("authorization", ""))
+    if not auth.startswith("Bearer "):
+        return _cors_response(401, {"message": "Token não fornecido"})
+
+    token = auth[7:].strip()
+    payload = _verify_jwt(token)
+    if not payload:
+        return _cors_response(401, {"message": "Token inválido ou expirado"})
+
+    email = payload.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="phone, whatsappEnabled")
+        item = result.get("Item", {})
+        return _cors_response(200, {
+            "phone": item.get("phone", ""),
+            "whatsappEnabled": bool(item.get("whatsappEnabled", False)),
+        })
+    except ClientError as e:
+        logger.error(f"DynamoDB error: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+
+def _handle_send_whatsapp_notification(event: dict) -> dict:
+    """Admin: send WhatsApp notification to eligible users via WhatsApp API link generation."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    message = _sanitize_string(body.get("message", ""), 1000)
+    target = body.get("target", "pro")  # default to pro users
+
+    if not message:
+        return _cors_response(400, {"message": "Mensagem é obrigatória"})
+
+    # Scan users with whatsappEnabled=true and phone set
+    table = dynamodb.Table(USERS_TABLE)
+    try:
+        result = table.scan(
+            FilterExpression="whatsappEnabled = :w AND attribute_exists(phone) AND phone <> :empty",
+            ExpressionAttributeValues={":w": True, ":empty": ""},
+        )
+        users = result.get("Items", [])
+
+        # Filter by target plan
+        if target != "all":
+            users = [u for u in users if u.get("plan", "free") == target]
+
+        phones = [u.get("phone", "") for u in users if u.get("phone")]
+
+        logger.info(f"WhatsApp notification: {len(phones)} recipients, target={target}")
+
+        return _cors_response(200, {
+            "message": f"Lista de {len(phones)} destinatários gerada.",
+            "recipientCount": len(phones),
+            "phones": phones,
+            "whatsappMessage": message,
+        })
+    except Exception as e:
+        logger.error(f"Error fetching WhatsApp recipients: {e}")
+        return _cors_response(500, {"message": "Erro ao buscar destinatários"})
+
+
 def _handle_stats(event: dict) -> dict:
     """Public endpoint: return user count and last recommendation date."""
     try:
@@ -1286,6 +1422,10 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_reset_password(event)
     elif path.endswith("/auth/change-password") and method == "POST":
         return _handle_change_password(event)
+    elif path.endswith("/auth/phone") and method == "POST":
+        return _handle_update_phone(event)
+    elif path.endswith("/auth/phone") and method == "GET":
+        return _handle_get_phone(event)
     elif path.endswith("/admin/notifications") and method == "GET":
         return _handle_get_notifications(event)
     elif path.endswith("/admin/notifications") and method == "POST":
@@ -1294,6 +1434,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_update_notification(event)
     elif path.endswith("/admin/notifications") and method == "DELETE":
         return _handle_delete_notification(event)
+    elif path.endswith("/admin/whatsapp") and method == "POST":
+        return _handle_send_whatsapp_notification(event)
     elif path.endswith("/notifications") and method == "GET" and not path.endswith("/admin/notifications"):
         return _handle_get_user_notifications(event)
     elif path.endswith("/auth/stats") and method == "GET":
