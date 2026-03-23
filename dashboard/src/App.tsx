@@ -31,6 +31,7 @@ import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 import AdminAgentsPage from './pages/admin/AdminAgentsPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminChatPage from './pages/admin/AdminChatPage';
+import AdminModelsPage from './pages/admin/AdminModelsPage';
 import SupportChatPage from './pages/dashboard/SupportChatPage';
 
 // Layout
@@ -124,6 +125,7 @@ const AppRoutes: React.FC = () => {
         <Route path="costs" element={<AdminCostsPage />} />
         <Route path="data-quality" element={<AdminDataQualityPage />} />
         <Route path="drift" element={<AdminDriftPage />} />
+        <Route path="models" element={<AdminModelsPage />} />
         <Route path="validation" element={<AdminValidationPage />} />
         <Route path="notifications" element={<AdminNotificationsPage />} />
         <Route path="agents" element={<AdminAgentsPage />} />

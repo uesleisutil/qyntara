@@ -4,7 +4,7 @@ import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
   Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
-  Settings, Mail, Shield, DollarSign, Database, CheckSquare, Activity,
+  Settings, Mail, Shield, DollarSign, Database, CheckSquare, Activity, Layers,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
@@ -90,6 +90,7 @@ const DashboardLayout: React.FC = () => {
   const adminModelItems = [
     { path: '/admin', label: 'Visão Geral', icon: <BarChart3 size={18} /> },
     { path: '/admin/performance', label: 'Performance', icon: <Activity size={18} /> },
+    { path: '/admin/models', label: 'Modelos & Features', icon: <Layers size={18} /> },
     { path: '/admin/drift', label: 'Drift Detection', icon: <Brain size={18} /> },
     { path: '/admin/validation', label: 'Validação', icon: <CheckSquare size={18} /> },
   ];
@@ -253,6 +254,7 @@ const DashboardLayout: React.FC = () => {
     // Admin routes first (more specific)
     if (p === '/admin') return '🔒 Admin — Visão Geral';
     if (p === '/admin/performance') return '🔒 Admin — Performance';
+    if (p === '/admin/models') return '🔒 Admin — Modelos & Features';
     if (p === '/admin/costs') return '🔒 Admin — Custos';
     if (p === '/admin/data-quality') return '🔒 Admin — Qualidade de Dados';
     if (p === '/admin/drift') return '🔒 Admin — Drift';
