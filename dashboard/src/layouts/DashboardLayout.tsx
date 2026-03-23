@@ -433,23 +433,18 @@ const DashboardLayout: React.FC = () => {
           {/* #4: Upgrade banner only on relevant pages */}
           {showUpgradeBanner && (
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
-              padding: '0.5rem 0.75rem', marginBottom: '0.75rem', borderRadius: 8,
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.4rem 0.75rem', marginBottom: '0.75rem', borderRadius: 8,
               background: darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
-              border: '1px solid rgba(245,158,11,0.15)', fontSize: '0.78rem',
+              border: '1px solid rgba(245,158,11,0.15)', fontSize: '0.75rem',
             }}>
-              <Crown size={14} color="#f59e0b" />
+              <Crown size={13} color="#f59e0b" />
               <span style={{ color: theme.textSecondary, flex: 1 }}>
-                Assine o plano Pro para desbloquear todas as funcionalidades.
+                Alguns valores estão ocultos.{' '}
+                <a href="#/dashboard/upgrade" style={{ color: '#f59e0b', fontWeight: 600, textDecoration: 'none' }}>
+                  Assine o Pro
+                </a>
               </span>
-              <button onClick={() => navigate('/dashboard/upgrade')} style={{
-                padding: '0.25rem 0.6rem', borderRadius: 6, border: 'none',
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white',
-                cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600,
-                WebkitAppearance: 'none' as any,
-              }}>
-                Upgrade Pro →
-              </button>
               <button onClick={() => { setBannerDismissed(true); try { localStorage.setItem('b3tr_upgrade_banner_dismissed', 'true'); } catch {} }} style={{
                 background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer', padding: 2, opacity: 0.5,
               }} aria-label="Fechar">
