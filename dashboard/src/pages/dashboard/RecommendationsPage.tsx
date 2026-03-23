@@ -244,22 +244,23 @@ const RecommendationsPage: React.FC = () => {
           gap: '0.5rem', marginBottom: '0.75rem',
         }}>
           {[
-            { label: 'Compra', value: `${totalBuy}`, color: '#10b981', icon: <ArrowUpRight size={14} />, tip: `Ações com score ≥ ${SCORE_BUY_THRESHOLD} — sinal de compra.` },
-            { label: 'Venda', value: `${totalSell}`, color: '#ef4444', icon: <ArrowDownRight size={14} />, tip: `Ações com score ≤ ${SCORE_SELL_THRESHOLD} — sinal de venda.` },
-            { label: 'Neutro', value: `${totalNeutral}`, color: '#94a3b8', icon: null, tip: `Ações com score entre ${SCORE_SELL_THRESHOLD} e ${SCORE_BUY_THRESHOLD}.` },
-            { label: 'Ret. Compra', value: `${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 1)}%`, color: avgBuyReturn >= 0 ? '#10b981' : '#ef4444', icon: null, tip: `Retorno médio previsto (20 pregões) das ${buyRecs.length} ações com sinal de compra.` },
-            { label: 'Top Score', value: `${topTicker?.ticker || '—'} ${fmt(topScore, 1)}`, color: '#8b5cf6', icon: null, tip: 'Ação com maior score do dia.' },
+            { label: 'Compra', value: `${totalBuy}`, color: '#10b981', icon: <ArrowUpRight size={14} />, tip: `Ações com score ≥ ${SCORE_BUY_THRESHOLD} — sinal de compra.`, blur: false },
+            { label: 'Venda', value: `${totalSell}`, color: '#ef4444', icon: <ArrowDownRight size={14} />, tip: `Ações com score ≤ ${SCORE_SELL_THRESHOLD} — sinal de venda.`, blur: false },
+            { label: 'Neutro', value: `${totalNeutral}`, color: '#94a3b8', icon: null, tip: `Ações com score entre ${SCORE_SELL_THRESHOLD} e ${SCORE_BUY_THRESHOLD}.`, blur: false },
+            { label: 'Ret. Compra', value: `${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 1)}%`, color: avgBuyReturn >= 0 ? '#10b981' : '#ef4444', icon: null, tip: `Retorno médio previsto (20 pregões) das ${buyRecs.length} ações com sinal de compra.`, blur: true },
+            { label: 'Top Score', value: `${topTicker?.ticker || '—'} ${fmt(topScore, 1)}`, color: '#8b5cf6', icon: null, tip: 'Ação com maior score do dia.', blur: false },
             ...(simReturn && simReturn.pct !== 0 ? [{
               label: 'Sim. R$10k', value: `R$ ${Math.round(simReturn.final).toLocaleString('pt-BR')}`,
               color: simReturn.gain >= 0 ? '#10b981' : '#ef4444', icon: null,
               tip: `Se investisse R$ 10k nas ${buyRecs.length} ações de compra, retorno previsto: ${simReturn.pct >= 0 ? '+' : ''}${fmt(simReturn.pct, 1)}%. Simulação, não garantia.`,
+              blur: true,
             }] : []),
           ].map((kpi, i) => (
             <div key={i} style={{ ...cardStyle, padding: '0.6rem 0.75rem' }}>
               <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 {kpi.label} <InfoTooltip text={kpi.tip} darkMode={darkMode} size={10} />
               </div>
-              <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.15rem)', fontWeight: 700, color: kpi.color, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.15rem)', fontWeight: 700, color: kpi.color, display: 'flex', alignItems: 'center', gap: '0.25rem', filter: kpi.blur && !isPro ? 'blur(6px)' : 'none', userSelect: kpi.blur && !isPro ? 'none' : 'auto' }}>
                 {kpi.icon}{kpi.value}
               </div>
             </div>
