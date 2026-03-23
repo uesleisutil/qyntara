@@ -13,6 +13,7 @@ import Sparkline from '../../components/shared/Sparkline';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getSignal, getSignalColor, getCurrentMonthPriceKey, PRO_PRICE_LABEL } from '../../constants';
 import { getSector, ALL_SECTORS } from '../../constants/sectors';
 import MonthlyReport from '../../components/shared/MonthlyReport';
+import ProValue from '../../components/shared/ProValue';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -260,8 +261,8 @@ const RecommendationsPage: React.FC = () => {
               <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginBottom: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 {kpi.label} <InfoTooltip text={kpi.tip} darkMode={darkMode} size={10} />
               </div>
-              <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.15rem)', fontWeight: 700, color: kpi.color, display: 'flex', alignItems: 'center', gap: '0.25rem', filter: kpi.blur && !isPro ? 'blur(6px)' : 'none', userSelect: kpi.blur && !isPro ? 'none' : 'auto' }}>
-                {kpi.icon}{kpi.value}
+              <div style={{ fontSize: 'clamp(1rem, 2.5vw, 1.15rem)', fontWeight: 700, color: kpi.color, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                {kpi.icon}{kpi.blur && !isPro ? <ProValue isPro={false} style={{ color: kpi.color }} placeholder="•••••">{kpi.value}</ProValue> : kpi.value}
               </div>
             </div>
           ))}
@@ -408,28 +409,24 @@ const RecommendationsPage: React.FC = () => {
                     </div>
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.text }}>R$ {fmt(r.last_close, 2)}</td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
-                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</span>
-                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
+                    <ProValue isPro={isPro} style={{ color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue>
                   </td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
-                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
+                    <ProValue isPro={isPro} style={{ fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••••%">
                       {r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%
-                    </span>
-                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
+                    </ProValue>
                   </td>
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
-                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</span>
-                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
+                    <ProValue isPro={isPro} style={{ color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue>
                   </td>
                   {/* #12: Merged Faixa column (Stop-Loss → Take-Profit) */}
-                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', position: 'relative' }}>
-                    <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none', color: theme.text, fontSize: '0.75rem' }}>
+                  <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
+                    <ProValue isPro={isPro} style={{ color: theme.text, fontSize: '0.75rem' }} placeholder="••• → •••">
                       <span style={{ color: '#ef4444' }}>{fmt(stopLoss, 2)}</span>
                       <span style={{ color: theme.textSecondary, margin: '0 0.15rem' }}>→</span>
                       <span style={{ color: '#10b981' }}>{fmt(takeProfit, 2)}</span>
-                    </span>
-                    {!isPro && <Lock size={10} style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', color: '#f59e0b', opacity: 0.7 }} />}
+                    </ProValue>
                   </td>
                 </tr>
               );
@@ -468,25 +465,22 @@ const RecommendationsPage: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
                 <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: getSignalColor(getSignal(r.score)).text }}>{fmt(r.score, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.last_close, 2)}</strong></div>
-                <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: theme.text }}>R$ {fmt(r.pred_price_t_plus_20, 2)}</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
-                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
-                <div><span style={{ color: theme.textSecondary }}>Vol:</span> <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: theme.textSecondary }}>{fmt(r.vol_20d * 100, 1)}%</strong>{!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}</div>
-                <div style={{ position: 'relative' }}>
+                <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue></div>
+                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••%">{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</ProValue></div>
+                <div><span style={{ color: theme.textSecondary }}>Vol:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue></div>
+                <div>
                   <span style={{ color: theme.textSecondary }}>Confiança:</span>{' '}
-                  <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: confidence >= 70 ? '#10b981' : '#94a3b8' }}>{confidence}%</strong>
-                  {!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}
+                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: confidence >= 70 ? '#10b981' : '#94a3b8' }} placeholder="••%">{confidence}%</ProValue>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem', marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: `1px solid ${theme.border}` }}>
-                <div style={{ position: 'relative' }}>
+                <div>
                   <span style={{ color: theme.textSecondary }}>Stop-Loss:</span>{' '}
-                  <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: theme.text }}>R$ {fmt(stopLoss, 2)}</strong>
-                  {!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}
+                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(stopLoss, 2)}</ProValue>
                 </div>
-                <div style={{ position: 'relative' }}>
+                <div>
                   <span style={{ color: theme.textSecondary }}>Take-Profit:</span>{' '}
-                  <strong style={{ filter: isPro ? 'none' : 'blur(5px)', color: theme.text }}>R$ {fmt(takeProfit, 2)}</strong>
-                  {!isPro && <Lock size={9} style={{ marginLeft: 3, color: '#f59e0b', verticalAlign: 'middle' }} />}
+                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(takeProfit, 2)}</ProValue>
                 </div>
               </div>
             </div>

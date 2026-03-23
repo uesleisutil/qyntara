@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Activity } from 'lucide-react';
 import InfoTooltip from '../shared/InfoTooltip';
+import ProValue from '../shared/ProValue';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -135,8 +136,8 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
             borderRadius: 8, borderLeft: `4px solid ${COLORS[i]}`,
           }}>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{f}</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: sensitivities[f] >= 0 ? '#10b981' : '#ef4444', filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>
-              {sensitivities[f] > 0 ? '+' : ''}{sensitivities[f]}%
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: sensitivities[f] >= 0 ? '#10b981' : '#ef4444' }}>
+              <ProValue isPro={isPro} placeholder="±••%">{sensitivities[f] > 0 ? '+' : ''}{sensitivities[f]}%</ProValue>
             </div>
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>sensibilidade</div>
           </div>

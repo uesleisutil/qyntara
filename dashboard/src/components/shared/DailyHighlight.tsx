@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
+import ProValue from './ProValue';
 
 interface Props {
   darkMode: boolean;
@@ -44,11 +45,11 @@ const DailyHighlight: React.FC<Props> = ({ theme, topTicker, isPro = false }) =>
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <div style={{ fontSize: '1.1rem', fontWeight: 700, color, filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none' }}>
+        <ProValue isPro={isPro} style={{ fontSize: '1.1rem', fontWeight: 700, color }} placeholder="+0.0%">
           {retPct >= 0 ? '+' : ''}{fmt(retPct, 1)}%
-        </div>
+        </ProValue>
         <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>
-          R$ {fmt(topTicker.last_close)} → <span style={{ filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none' }}>R$ {fmt(topTicker.pred_price_t_plus_20)}</span>
+          R$ {fmt(topTicker.last_close)} → <ProValue isPro={isPro} placeholder="R$ ••••">R$ {fmt(topTicker.pred_price_t_plus_20)}</ProValue>
         </div>
       </div>
     </div>

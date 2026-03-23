@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
 import InfoTooltip from '../shared/InfoTooltip';
+import ProValue from '../shared/ProValue';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 
 interface TickerData {
@@ -109,11 +110,11 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
       }}>
         <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: theme.text }}>
           O modelo prevê que <strong>{ticker}</strong> atingirá{' '}
-          <strong style={{ color: '#3b82f6', filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>R$ {tickerData.pred_price_t_plus_20.toFixed(2)}</strong>{' '}
+          <ProValue isPro={isPro} style={{ color: '#3b82f6', fontWeight: 700 }} placeholder="R$ ••••">R$ {tickerData.pred_price_t_plus_20.toFixed(2)}</ProValue>{' '}
           nos próximos 20 pregões (retorno de{' '}
-          <strong style={{ color: tickerData.exp_return_20 >= 0 ? '#10b981' : '#ef4444', filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>
+          <ProValue isPro={isPro} style={{ color: tickerData.exp_return_20 >= 0 ? '#10b981' : '#ef4444', fontWeight: 700 }} placeholder="±••%">
             {(tickerData.exp_return_20 * 100).toFixed(1)}%
-          </strong>).
+          </ProValue>).
           Sinal: <strong>{signal}</strong> (score {tickerData.score.toFixed(2)}).
           Confiança: <strong style={{ color: confColor }}>{confLabel}</strong> ({(confidence * 100).toFixed(0)}%).
         </p>
