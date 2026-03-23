@@ -35,7 +35,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
             }))
             .catch(() => ({
               ticker: ticker.ticker,
-              data: generateMockHistory(ticker.ticker)
+              data: []
             }))
         );
 
@@ -69,8 +69,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
         setHistoricalData(chartData);
       } catch (error) {
         console.error('Error fetching historical data:', error);
-        // Use mock data as fallback
-        setHistoricalData(generateMockComparisonHistory(tickers));
+        setHistoricalData([]);
       } finally {
         setLoadingHistory(false);
       }
@@ -260,6 +259,17 @@ const ComparisonModal = ({ tickers, onClose }) => {
               }}>
                 <Loader size={24} className="animate-spin" style={{ color: '#3b82f6' }} />
                 <span style={{ marginLeft: '0.5rem', color: '#64748b' }}>Carregando histórico...</span>
+              </div>
+            ) : historicalData.length === 0 ? (
+              <div style={{
+                padding: '2rem',
+                textAlign: 'center',
+                backgroundColor: '#f8fafc',
+                borderRadius: '8px',
+                color: '#94a3b8',
+                fontSize: '0.85rem'
+              }}>
+                Histórico de desempenho não disponível via API.
               </div>
             ) : (
               <div style={{
@@ -465,43 +475,6 @@ const ComparisonModal = ({ tickers, onClose }) => {
       </div>
     </div>
   );
-};
-
-// Mock data generators for historical performance
-const generateMockHistory = (ticker) => {
-  const history = [];
-  const today = new Date();
-  for (let i = 9; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i * 9); // 90 days / 10 points
-    history.push({
-      date: date.toLocaleDateString('pt-BR'),
-      return: (Math.random() - 0.3) * 0.15 // Random return between -15% and +15%
-    });
-  }
-  return history;
-};
-
-const generateMockComparisonHistory = (tickers) => {
-  const chartData = [];
-  const today = new Date();
-  
-  for (let i = 9; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i * 9);
-    const dataPoint = {
-      date: date.toLocaleDateString('pt-BR')
-    };
-    
-    // Add return for each ticker
-    tickers.forEach(ticker => {
-      dataPoint[ticker.ticker] = (Math.random() - 0.3) * 15; // -15% to +15%
-    });
-    
-    chartData.push(dataPoint);
-  }
-  
-  return chartData;
 };
 
 export default ComparisonModal;

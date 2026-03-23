@@ -42,16 +42,23 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
     const driftedFeatureNames: string[] = latest.drifted_features || [];
     const allFeatureNames = Object.keys(featuresDrift);
 
-    const dataDrift = allFeatureNames.map(feature => {
+    const dataDrift = allFeatureNames.map((feature, fi) => {
       const score = featuresDrift[feature] || 0;
       const isDrifted = driftedFeatureNames.includes(feature);
       const ksStatistic = Math.abs(score);
-      const pValue = isDrifted ? Math.max(0.001, 0.05 - ksStatistic * 0.05) : 0.05 + Math.random() * 0.45;
+      const pValue = isDrifted ? Math.max(0.001, 0.05 - ksStatistic * 0.05) : 0.05 + (1 - ksStatistic) * 0.45;
       const bins = 10;
-      const baselineDist = Array.from({ length: bins }, () => Math.random() * 0.3 + 0.05);
-      const currentDist = baselineDist.map(v => {
-        const shift = isDrifted ? (Math.random() * 0.3 + 0.1) * (Math.random() > 0.5 ? 1 : -1) : (Math.random() * 0.05);
-        return Math.max(0, v + shift);
+      // Deterministic pseudo-distributions derived from feature index and score
+      const seed = (fi + 1) * 7;
+      const baselineDist = Array.from({ length: bins }, (_, i) => {
+        const x = (i + 1) / bins;
+        return Math.round((0.15 + 0.1 * Math.sin(seed * x * 3.14)) * 10000) / 10000;
+      });
+      const currentDist = baselineDist.map((v, i) => {
+        const shift = isDrifted
+          ? (ksStatistic * 0.3) * (i % 2 === 0 ? 1 : -1)
+          : ksStatistic * 0.02 * (i % 3 === 0 ? 1 : -1);
+        return Math.round(Math.max(0, v + shift) * 10000) / 10000;
       });
       return {
         feature, ksStatistic: Math.round(ksStatistic * 10000) / 10000,
@@ -62,11 +69,12 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
       };
     });
 
-    const conceptDrift = allFeatureNames.map(feature => {
+    const conceptDrift = allFeatureNames.map((feature, fi) => {
       const score = featuresDrift[feature] || 0;
       const isDrifted = driftedFeatureNames.includes(feature);
-      const baselineCorr = 0.5 + Math.random() * 0.4;
-      const change = isDrifted ? (score > 0.5 ? -0.3 : -0.15) : (Math.random() * 0.1 - 0.05);
+      // Deterministic baseline correlation derived from feature index
+      const baselineCorr = Math.round((0.5 + ((fi * 7 + 3) % 10) * 0.04) * 10000) / 10000;
+      const change = isDrifted ? (score > 0.5 ? -0.3 : -0.15) : ((fi % 5 - 2) * 0.02);
       const currentCorr = Math.max(-1, Math.min(1, baselineCorr + change));
       return {
         feature, currentCorrelation: Math.round(currentCorr * 10000) / 10000,

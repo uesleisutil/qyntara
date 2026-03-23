@@ -140,6 +140,10 @@ const api = {
     getNews: (ticker, limit = 5) => api.get(`/api/ticker/${ticker}/news`, { limit })
   },
   
+  macro: {
+    getIndicators: () => api.get('/api/macro')
+  },
+  
   monitoring: {
     getDataQuality: (days = 30) => api.get('/api/monitoring/data-quality', { days }),
     getModelPerformance: (days = 30) => api.get('/api/monitoring/model-performance', { days }),

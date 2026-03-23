@@ -320,15 +320,55 @@ const FUNDAMENTAL_FIELDS = [
   { label: 'Lucro Líquido', key: 'net_income', fmt: (v: number) => `R$ ${(v / 1e6).toFixed(0)}M`, category: 'Resultado' },
 ];
 
-/* Sample fundamentals for display — in production these come from Feature Store */
+/* Sample fundamentals for display — fallback when API is unavailable */
 const SAMPLE_FUNDAMENTALS: Record<string, Record<string, number>> = {
   PETR4: { roe: 0.265, pl: 5.34, pvp: 1.41, dy: 0.064, net_margin: 0.222, debt_equity: 1.62, ebitda: 68e9, ebitda_margin: 0.42, free_cash_flow: 32e9, roa: 0.12, net_revenue: 162e9, net_income: 36e9 },
   VALE3: { roe: 0.22, pl: 6.1, pvp: 1.55, dy: 0.085, net_margin: 0.28, debt_equity: 0.45, ebitda: 82e9, ebitda_margin: 0.48, free_cash_flow: 28e9, roa: 0.14, net_revenue: 170e9, net_income: 48e9 },
   ITUB4: { roe: 0.20, pl: 8.2, pvp: 1.8, dy: 0.045, net_margin: 0.25, debt_equity: 8.5, ebitda: 0, ebitda_margin: 0, free_cash_flow: 0, roa: 0.015, net_revenue: 95e9, net_income: 24e9 },
 };
 
+/** Maps API field names to our display keys */
+const API_TO_DISPLAY_MAP: Record<string, string> = {
+  roe: 'roe', pe_ratio: 'pl', pb_ratio: 'pvp', dividend_yield: 'dy',
+  profit_margin: 'net_margin', debt_to_equity: 'debt_equity', ebitda: 'ebitda',
+  ebitda_margin: 'ebitda_margin', free_cash_flow: 'free_cash_flow', roa: 'roa',
+  total_revenue: 'net_revenue', net_income: 'net_income',
+};
+
 const FundamentalsSnapshot: React.FC<SnapshotProps> = ({ ticker = '', darkMode, theme }) => {
-  const data = SAMPLE_FUNDAMENTALS[ticker] || SAMPLE_FUNDAMENTALS['PETR4'];
+  const [data, setData] = React.useState<Record<string, number>>(SAMPLE_FUNDAMENTALS[ticker] || SAMPLE_FUNDAMENTALS['PETR4']);
+  const [source, setSource] = React.useState<'api' | 'fallback'>('fallback');
+  const [dataDate, setDataDate] = React.useState<string>('');
+
+  React.useEffect(() => {
+    if (!ticker) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/ticker/${ticker}/fundamentals`, {
+          headers: { 'x-api-key': API_KEY },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (cancelled) return;
+        const f = json.fundamentals || {};
+        const mapped: Record<string, number> = {};
+        for (const [apiKey, displayKey] of Object.entries(API_TO_DISPLAY_MAP)) {
+          if (f[apiKey] != null) mapped[displayKey as string] = f[apiKey];
+        }
+        if (Object.keys(mapped).length > 0) {
+          setData(mapped);
+          setSource('api');
+          setDataDate(json.date || '');
+        }
+      } catch {
+        // Keep fallback data
+        setData(SAMPLE_FUNDAMENTALS[ticker] || SAMPLE_FUNDAMENTALS['PETR4']);
+        setSource('fallback');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [ticker]);
   const categories = [...new Set(FUNDAMENTAL_FIELDS.map(f => f.category))];
 
   return (
@@ -381,14 +421,16 @@ const FundamentalsSnapshot: React.FC<SnapshotProps> = ({ ticker = '', darkMode, 
         background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.04)',
         fontSize: '0.7rem', color: theme.textSecondary, lineHeight: 1.5,
       }}>
-        💡 O modelo calcula features derivadas como variações trimestrais, z-scores setoriais e rankings relativos a partir destes dados brutos.
+        {source === 'api'
+          ? `✅ Dados reais do Feature Store (BRAPI Pro) — atualizado em ${dataDate}. O modelo calcula features derivadas como variações trimestrais, z-scores setoriais e rankings relativos.`
+          : '⚠️ Dados de referência (API indisponível). O modelo calcula features derivadas como variações trimestrais, z-scores setoriais e rankings relativos a partir destes dados brutos.'}
       </div>
     </div>
   );
 };
 
 /* ── Macro Snapshot (inline component) ── */
-const MACRO_INDICATORS = [
+const MACRO_FALLBACK = [
   { label: 'Selic', value: '14.25%', trend: 'estável', color: '#3b82f6', desc: 'Taxa básica de juros' },
   { label: 'IPCA 12m', value: '4.87%', trend: '↑', color: '#ef4444', desc: 'Inflação acumulada' },
   { label: 'USD/BRL', value: 'R$ 5.72', trend: '↓', color: '#10b981', desc: 'Câmbio dólar' },
@@ -397,7 +439,66 @@ const MACRO_INDICATORS = [
   { label: 'Δ Câmbio 1m', value: '-1.2%', trend: '↓', color: '#10b981', desc: 'Variação mensal' },
 ];
 
-const MacroSnapshot: React.FC<Omit<SnapshotProps, 'ticker'>> = ({ darkMode, theme }) => (
+function parseMacroSeries(data: Record<string, any>): typeof MACRO_FALLBACK {
+  const latest = (series: any[]): number | null => {
+    if (!Array.isArray(series) || !series.length) return null;
+    const last = series[series.length - 1];
+    const v = parseFloat(String(last?.valor ?? last?.value ?? '').replace(',', '.'));
+    return isNaN(v) ? null : v;
+  };
+  const change = (series: any[], n: number): number | null => {
+    if (!Array.isArray(series) || series.length < n + 1) return null;
+    const vals = series.slice(-n - 1).map((s: any) => parseFloat(String(s?.valor ?? s?.value ?? '').replace(',', '.')));
+    if (vals.some(isNaN) || vals[0] === 0) return null;
+    return (vals[vals.length - 1] / vals[0]) - 1;
+  };
+
+  const selic = latest(data.selic_meta);
+  const ipca = latest(data.ipca_mensal);
+  const cambio = latest(data.cambio_usd_brl);
+  const cdi = latest(data.cdi_diario);
+  const selicChange = change(data.selic_meta, 60); // ~3 months
+  const cambioChange = change(data.cambio_usd_brl, 20); // ~1 month
+
+  const trendOf = (v: number | null) => v == null ? 'estável' : v > 0.001 ? '↑' : v < -0.001 ? '↓' : 'estável';
+
+  return [
+    { label: 'Selic', value: selic != null ? `${selic.toFixed(2)}%` : '—', trend: trendOf(selicChange), color: '#3b82f6', desc: 'Taxa básica de juros' },
+    { label: 'IPCA 12m', value: ipca != null ? `${(ipca * 12).toFixed(2)}%` : '—', trend: trendOf(ipca != null ? ipca - 0.4 : null), color: '#ef4444', desc: 'Inflação acumulada' },
+    { label: 'USD/BRL', value: cambio != null ? `R$ ${cambio.toFixed(2)}` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#10b981' : '#ef4444', desc: 'Câmbio dólar' },
+    { label: 'CDI', value: cdi != null ? `${cdi.toFixed(2)}%` : '—', trend: 'estável', color: '#8b5cf6', desc: 'Taxa interbancária' },
+    { label: 'Δ Selic 3m', value: selicChange != null ? `${selicChange > 0 ? '+' : ''}${(selicChange * 100).toFixed(2)}pp` : '—', trend: trendOf(selicChange), color: '#f59e0b', desc: 'Variação trimestral' },
+    { label: 'Δ Câmbio 1m', value: cambioChange != null ? `${(cambioChange * 100).toFixed(1)}%` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#10b981' : '#ef4444', desc: 'Variação mensal' },
+  ];
+}
+
+const MacroSnapshot: React.FC<Omit<SnapshotProps, 'ticker'>> = ({ darkMode, theme }) => {
+  const [indicators, setIndicators] = React.useState(MACRO_FALLBACK);
+  const [source, setSource] = React.useState<'api' | 'fallback'>('fallback');
+  const [dataDate, setDataDate] = React.useState<string>('');
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/macro`, {
+          headers: { 'x-api-key': API_KEY },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (cancelled) return;
+        const parsed = parseMacroSeries(json.macro || {});
+        setIndicators(parsed);
+        setSource('api');
+        setDataDate(json.date || '');
+      } catch {
+        // Keep fallback
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
   <div style={{
     backgroundColor: theme.cardBg, padding: 'clamp(0.75rem, 3vw, 1.5rem)', borderRadius: 12,
     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
@@ -419,7 +520,7 @@ const MacroSnapshot: React.FC<Omit<SnapshotProps, 'ticker'>> = ({ darkMode, them
       display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(150px, 100%), 1fr))',
       gap: '0.6rem',
     }}>
-      {MACRO_INDICATORS.map(ind => (
+      {indicators.map(ind => (
         <div key={ind.label} style={{
           padding: '0.75rem', borderRadius: 10, backgroundColor: theme.subtle,
           border: `1px solid ${theme.border}`, borderLeft: `3px solid ${ind.color}`,
@@ -440,9 +541,12 @@ const MacroSnapshot: React.FC<Omit<SnapshotProps, 'ticker'>> = ({ darkMode, them
       background: darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
       fontSize: '0.7rem', color: theme.textSecondary, lineHeight: 1.5,
     }}>
-      💡 O modelo gera 10 features macro: valores absolutos, variações de 1m/3m, e indicadores de tendência para cada série.
+      💡 {source === 'api'
+        ? `Dados reais do BCB (SGS) — atualizado em ${dataDate}. O modelo gera 10 features macro: valores absolutos, variações de 1m/3m, e indicadores de tendência.`
+        : 'Dados de referência (API indisponível). O modelo gera 10 features macro: valores absolutos, variações de 1m/3m, e indicadores de tendência para cada série.'}
     </div>
   </div>
-);
+  );
+};
 
 export default ExplainabilityTab;

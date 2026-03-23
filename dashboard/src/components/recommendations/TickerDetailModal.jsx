@@ -57,18 +57,18 @@ const TickerDetailModal = ({ ticker, onClose }) => {
             news: newsData.reason
           });
         } else {
-          // Process results - use real data if available, fallback to mock data
+          // Process results - use real data if available, empty fallback otherwise
           const history = historyData.status === 'fulfilled' && Array.isArray(historyData.value?.data)
             ? historyData.value.data
-            : generateMockHistory(ticker.ticker);
+            : [];
 
           const fundamentals = fundamentalsData.status === 'fulfilled' && fundamentalsData.value?.data && typeof fundamentalsData.value.data === 'object'
             ? fundamentalsData.value.data
-            : generateMockFundamentals();
+            : {};
 
           const news = newsData.status === 'fulfilled' && Array.isArray(newsData.value?.data)
             ? newsData.value.data
-            : generateMockNews(ticker.ticker);
+            : [];
 
           setDetailData({
             history,
@@ -78,13 +78,13 @@ const TickerDetailModal = ({ ticker, onClose }) => {
 
           // Log if any API calls failed (for debugging)
           if (historyData.status === 'rejected') {
-            console.warn('Failed to fetch ticker history, using mock data:', historyData.reason);
+            console.warn('Failed to fetch ticker history:', historyData.reason);
           }
           if (fundamentalsData.status === 'rejected') {
-            console.warn('Failed to fetch fundamentals, using mock data:', fundamentalsData.reason);
+            console.warn('Failed to fetch fundamentals:', fundamentalsData.reason);
           }
           if (newsData.status === 'rejected') {
-            console.warn('Failed to fetch news, using mock data:', newsData.reason);
+            console.warn('Failed to fetch news:', newsData.reason);
           }
         }
       } catch (err) {
@@ -265,6 +265,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                 <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1e293b' }}>
                   Histórico de Recomendações
                 </h3>
+                {detailData.history.length > 0 ? (
                 <div style={{ 
                   maxHeight: '200px', 
                   overflowY: 'auto',
@@ -298,6 +299,11 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                     </tbody>
                   </table>
                 </div>
+                ) : (
+                  <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
+                    Histórico não disponível via API.
+                  </div>
+                )}
               </div>
 
               {/* Fundamentals (Req 3.3) */}
@@ -305,6 +311,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                 <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1e293b' }}>
                   Métricas Fundamentalistas
                 </h3>
+                {Object.keys(detailData.fundamentals).length > 0 ? (
                 <div style={{ 
                   display: 'grid', 
                   gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
@@ -320,11 +327,16 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                         {key}
                       </p>
                       <p style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0, color: '#1e293b' }}>
-                        {value}
+                        {value != null ? value : '—'}
                       </p>
                     </div>
                   ))}
                 </div>
+                ) : (
+                  <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
+                    Dados fundamentalistas não disponíveis via API.
+                  </div>
+                )}
               </div>
 
               {/* News (Req 3.4) */}
@@ -333,6 +345,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                   <Newspaper size={20} />
                   Notícias Recentes
                 </h3>
+                {detailData.news.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   {detailData.news.map((article, idx) => (
                     <div key={idx} style={{
@@ -353,6 +366,11 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                     </div>
                   ))}
                 </div>
+                ) : (
+                  <div style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
+                    Notícias não disponíveis via API.
+                  </div>
+                )}
               </div>
 
               {/* Contribuição dos modelos */}
@@ -416,47 +434,5 @@ const TickerDetailModal = ({ ticker, onClose }) => {
     </div>
   );
 };
-
-// Mock data generators (to be replaced with real API calls)
-const generateMockHistory = (ticker) => {
-  const history = [];
-  const today = new Date();
-  for (let i = 0; i < 10; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i * 7);
-    history.push({
-      date: date.toLocaleDateString('pt-BR'),
-      score: 70 + Math.random() * 20,
-      return: (Math.random() - 0.3) * 0.15
-    });
-  }
-  return history;
-};
-
-const generateMockFundamentals = () => ({
-  'P/L': (15 + Math.random() * 10).toFixed(2),
-  'P/VP': (1.5 + Math.random() * 2).toFixed(2),
-  'Div. Yield': ((Math.random() * 8).toFixed(2) + '%'),
-  'ROE': ((10 + Math.random() * 15).toFixed(2) + '%'),
-  'Dív/PL': (0.5 + Math.random() * 1.5).toFixed(2)
-});
-
-const generateMockNews = (ticker) => [
-  {
-    title: `${ticker} anuncia resultados do trimestre`,
-    source: 'InfoMoney',
-    date: 'Há 2 dias'
-  },
-  {
-    title: `Analistas recomendam ${ticker} para carteira`,
-    source: 'Valor Econômico',
-    date: 'Há 5 dias'
-  },
-  {
-    title: `${ticker} expande operações no setor`,
-    source: 'Bloomberg',
-    date: 'Há 1 semana'
-  }
-];
 
 export default TickerDetailModal;

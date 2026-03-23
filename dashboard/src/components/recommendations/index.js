@@ -13,4 +13,4 @@ export { default as ComparisonModal } from './ComparisonModal';
 export { default as ComparisonControls, useComparison } from './ComparisonControls';
 export { default as AlertConfigModal } from './AlertConfigModal';
 export { default as AlertsPanel } from './AlertsPanel';
-export { default as RecommendationsPage } from './RecommendationsPage';
+

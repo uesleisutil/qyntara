@@ -1834,6 +1834,81 @@ def get_drift_retraining(days: int = 90) -> Dict:
         }
 
 
+def get_ticker_fundamentals(ticker: str) -> Dict:
+    """
+    Retorna dados fundamentalistas reais do Feature Store (S3) para um ticker.
+    Busca o JSON salvo pela pipeline de ingestão (BRAPI Pro).
+    """
+    try:
+        today = datetime.now(UTC).date().isoformat()
+        # Tenta hoje e até 7 dias atrás (fundamentals não mudam diariamente)
+        for i in range(7):
+            date_str = (datetime.now(UTC).date() - timedelta(days=i)).isoformat()
+            key = f"feature_store/fundamentals/dt={date_str}/{ticker}.json"
+            try:
+                obj = s3.get_object(Bucket=BUCKET, Key=key)
+                data = json.loads(obj["Body"].read().decode("utf-8"))
+                return {
+                    "statusCode": 200,
+                    "body": json.dumps({
+                        "ticker": ticker,
+                        "date": date_str,
+                        "fundamentals": data,
+                    }),
+                }
+            except s3.exceptions.NoSuchKey:
+                continue
+            except Exception:
+                continue
+
+        return {
+            "statusCode": 404,
+            "body": json.dumps({"error": f"No fundamentals found for {ticker}"}),
+        }
+    except Exception as e:
+        logger.error(f"Error getting fundamentals for {ticker}: {e}", exc_info=True)
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": "Internal server error", "message": str(e)}),
+        }
+
+
+def get_macro_indicators() -> Dict:
+    """
+    Retorna dados macroeconômicos reais do Feature Store (S3).
+    Busca o JSON salvo pela pipeline de ingestão (BCB API).
+    """
+    try:
+        for i in range(7):
+            date_str = (datetime.now(UTC).date() - timedelta(days=i)).isoformat()
+            key = f"feature_store/macro/dt={date_str}/macro.json"
+            try:
+                obj = s3.get_object(Bucket=BUCKET, Key=key)
+                data = json.loads(obj["Body"].read().decode("utf-8"))
+                return {
+                    "statusCode": 200,
+                    "body": json.dumps({
+                        "date": date_str,
+                        "macro": data,
+                    }),
+                }
+            except s3.exceptions.NoSuchKey:
+                continue
+            except Exception:
+                continue
+
+        return {
+            "statusCode": 404,
+            "body": json.dumps({"error": "No macro data found"}),
+        }
+    except Exception as e:
+        logger.error(f"Error getting macro indicators: {e}", exc_info=True)
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": "Internal server error", "message": str(e)}),
+        }
+
+
 def handler(event, context):
     """
     Handler principal da Dashboard API.
@@ -1916,6 +1991,13 @@ def handler(event, context):
         elif path == "/api/feedback/summary" or path.endswith("/feedback/summary"):
             from feedback_handler import get_feedback_summary
             response = get_feedback_summary(event, context)
+        elif path.startswith("/api/ticker/") and path.endswith("/fundamentals"):
+            # GET /api/ticker/{ticker}/fundamentals
+            ticker = path.split("/")[3]
+            response = get_ticker_fundamentals(ticker)
+        elif path == "/api/macro" or path.endswith("/macro"):
+            # GET /api/macro
+            response = get_macro_indicators()
         else:
             response = {
                 "statusCode": 404,
