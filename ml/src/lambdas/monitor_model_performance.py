@@ -324,6 +324,37 @@ def handler(event, context):
     errors = [abs(pred - actual) for pred, actual in zip(valid_predictions, valid_actuals)]
     mae = np.mean(errors)
     
+    # --- Per-ticker accuracy ---
+    per_ticker_metrics = {}
+    for ticker, pred, actual, baseline in zip(valid_tickers, valid_predictions, valid_actuals, valid_baselines):
+        error_pct = abs((actual - pred) / actual) * 100 if actual != 0 else 0
+        direction_correct = (pred > baseline) == (actual > baseline)
+        per_ticker_metrics[ticker] = {
+            'predicted': float(pred),
+            'actual': float(actual),
+            'error_pct': float(error_pct),
+            'direction_correct': direction_correct,
+        }
+    
+    # --- Per-sector accuracy ---
+    from ml.src.features.sector_features import get_sector
+    sector_metrics: Dict[str, List[float]] = {}
+    for ticker, pred, actual in zip(valid_tickers, valid_predictions, valid_actuals):
+        sector = get_sector(ticker)
+        if sector not in sector_metrics:
+            sector_metrics[sector] = {'errors': [], 'count': 0}
+        if actual != 0:
+            sector_metrics[sector]['errors'].append(abs((actual - pred) / actual) * 100)
+            sector_metrics[sector]['count'] += 1
+    
+    per_sector_mape = {}
+    for sector, data in sector_metrics.items():
+        if data['errors']:
+            per_sector_mape[sector] = {
+                'mape': float(np.mean(data['errors'])),
+                'count': data['count'],
+            }
+    
     # Carregar metadados do modelo
     model_metadata = load_model_metadata(bucket)
     
@@ -336,6 +367,8 @@ def handler(event, context):
         'mae': float(mae),
         'directional_accuracy': float(directional_accuracy) if directional_accuracy is not None else None,
         'method': predictions_data.get('method', 'unknown'),
+        'per_ticker': per_ticker_metrics,
+        'per_sector': per_sector_mape,
         'model_metadata': {
             'model_date': model_metadata.get('model_date') if model_metadata else None,
             'train_mape': model_metadata.get('xgboost', {}).get('mape') if model_metadata else None,

@@ -1,8 +1,11 @@
 """
 Script de treinamento para SageMaker - Ensemble de Modelos
 
-Treina XGBoost com features avançadas, walk-forward validation e feature selection.
-Pode rodar em qualquer instância SageMaker (ml.m5.xlarge, ml.c5.2xlarge, etc)
+Treina ensemble real: XGBoost + LSTM + Prophet com:
+- SHAP-based feature selection adaptativa (substitui SelectKBest k=30 fixo)
+- Walk-forward validation temporal
+- Pesos adaptativos baseados em performance recente
+- Multi-target: retorno + volatilidade
 
 Salva modelo em model.tar.gz pronto para inferência in-memory.
 """
@@ -22,6 +25,14 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.feature_selection import SelectKBest, f_regression
+
+# SHAP
+try:
+    import shap
+    HAS_SHAP = True
+except ImportError:
+    HAS_SHAP = False
+    logging.warning("SHAP não disponível, usando SelectKBest como fallback")
 
 # Prophet
 try:
@@ -45,13 +56,69 @@ logger = logging.getLogger(__name__)
 
 
 def select_best_features(X, y, k=30):
-    """Seleciona as k melhores features usando F-statistic."""
-    logger.info(f"Selecionando top {k} features de {X.shape[1]} disponíveis...")
+    """
+    Seleciona features usando SHAP (adaptativo) com fallback para F-statistic.
+    
+    SHAP-based selection se adapta a cada retreino, ao contrário de k=30 fixo.
+    """
+    if HAS_SHAP and len(X) > 100:
+        return _shap_feature_selection(X, y, k)
+    else:
+        return _fstat_feature_selection(X, y, k)
+
+
+def _shap_feature_selection(X, y, k=30):
+    """Feature selection via SHAP values — se adapta a cada retreino."""
+    logger.info(f"Selecionando features via SHAP de {X.shape[1]} disponíveis...")
+    
+    # Treinar modelo rápido para calcular SHAP
+    dtrain = xgb.DMatrix(X, label=y)
+    params = {
+        'objective': 'reg:squarederror',
+        'max_depth': 4,
+        'learning_rate': 0.1,
+        'subsample': 0.8,
+        'eval_metric': 'rmse',
+        'tree_method': 'hist',
+    }
+    quick_model = xgb.train(params, dtrain, num_boost_round=50, verbose_eval=False)
+    
+    # Calcular SHAP values
+    explainer = shap.TreeExplainer(quick_model)
+    shap_values = explainer.shap_values(X)
+    
+    # Importância = média do |SHAP| por feature
+    shap_importance = np.abs(shap_values).mean(axis=0)
+    
+    scores = pd.DataFrame({
+        'feature': X.columns,
+        'score': shap_importance
+    }).sort_values('score', ascending=False)
+    
+    # Selecionar features com SHAP > threshold (adaptativo)
+    # Mínimo k features, mas pode selecionar mais se forem relevantes
+    threshold = scores['score'].mean() * 0.5
+    adaptive_features = scores[scores['score'] > threshold]['feature'].tolist()
+    
+    # Garantir pelo menos k features
+    if len(adaptive_features) < k:
+        selected_features = scores.head(k)['feature'].tolist()
+    else:
+        selected_features = adaptive_features[:min(len(adaptive_features), k * 2)]
+    
+    logger.info(f"SHAP selecionou {len(selected_features)} features (threshold={threshold:.6f})")
+    logger.info(f"Top 10 features: {scores.head(10)['feature'].tolist()}")
+    
+    return selected_features, scores
+
+
+def _fstat_feature_selection(X, y, k=30):
+    """Fallback: seleciona as k melhores features usando F-statistic."""
+    logger.info(f"Selecionando top {k} features via F-statistic de {X.shape[1]} disponíveis...")
     
     selector = SelectKBest(score_func=f_regression, k=min(k, X.shape[1]))
     selector.fit(X, y)
     
-    # Obter scores das features
     scores = pd.DataFrame({
         'feature': X.columns,
         'score': selector.scores_
@@ -368,10 +435,13 @@ def train_prophet(df_train, df_val, target_col='target'):
     }
 
 
-def calculate_ensemble_weights(metrics_dict):
+def calculate_ensemble_weights(metrics_dict, recent_performance=None):
     """
-    Calcula pesos do ensemble baseado em performance (inverse RMSE).
-    Modelos com menor RMSE recebem maior peso.
+    Calcula pesos adaptativos do ensemble baseado em performance.
+    
+    Se recent_performance disponível, usa performance recente de cada modelo
+    para ajustar pesos (modelos que performaram melhor recentemente ganham mais peso).
+    Caso contrário, usa inverse RMSE do validation set.
     """
     weights = {}
     total_inverse_rmse = 0
@@ -388,55 +458,26 @@ def calculate_ensemble_weights(metrics_dict):
         for model_name in weights:
             weights[model_name] = weights[model_name] / total_inverse_rmse
     
+    # Ajuste adaptativo: se temos performance recente, dar mais peso a modelos
+    # que performaram melhor nos últimos N dias
+    if recent_performance and len(recent_performance) > 0:
+        logger.info("Ajustando pesos com performance recente (adaptativo)...")
+        for model_name in weights:
+            if model_name in recent_performance:
+                recent_rmse = recent_performance[model_name]
+                # Boost para modelos com RMSE recente baixo
+                boost = 1.0 / (recent_rmse + 1e-10)
+                weights[model_name] *= boost
+        
+        # Re-normalizar
+        total = sum(weights.values())
+        if total > 0:
+            for model_name in weights:
+                weights[model_name] /= total
+    
     logger.info(f"Pesos do ensemble: {weights}")
     
     return weights
-
-
-def train_xgboost(X_train, y_train, X_val, y_val, hyperparameters):
-    """Treina modelo XGBoost"""
-    logger.info("Treinando XGBoost final...")
-    
-    dtrain = xgb.DMatrix(X_train, label=y_train)
-    dval = xgb.DMatrix(X_val, label=y_val)
-    
-    params = {
-        'objective': 'reg:squarederror',
-        'max_depth': hyperparameters.get('max_depth', 6),
-        'learning_rate': hyperparameters.get('learning_rate', 0.1),
-        'subsample': hyperparameters.get('subsample', 0.8),
-        'colsample_bytree': hyperparameters.get('colsample_bytree', 0.8),
-        'eval_metric': 'rmse',
-        'tree_method': 'hist'  # Mais rápido
-    }
-    
-    evals = [(dtrain, 'train'), (dval, 'val')]
-    evals_result = {}
-    
-    model = xgb.train(
-        params,
-        dtrain,
-        num_boost_round=hyperparameters.get('n_estimators', 100),
-        evals=evals,
-        early_stopping_rounds=20,
-        evals_result=evals_result,
-        verbose_eval=10
-    )
-    
-    # Calcular métricas
-    train_pred = model.predict(dtrain)
-    val_pred = model.predict(dval)
-    
-    train_rmse = np.sqrt(np.mean((y_train - train_pred) ** 2))
-    val_rmse = np.sqrt(np.mean((y_val - val_pred) ** 2))
-    
-    logger.info(f"XGBoost - Train RMSE: {train_rmse:.6f}, Val RMSE: {val_rmse:.6f}")
-    
-    return model, {
-        'train_rmse': float(train_rmse),
-        'val_rmse': float(val_rmse),
-        'best_iteration': model.best_iteration
-    }
 
 
 def calculate_mape(y_true, y_pred):
@@ -477,13 +518,18 @@ def main():
     logger.info(f"Dados carregados: {len(df)} linhas, {len(df.columns)} colunas")
     
     # Separar features e target
-    exclude_cols = ['target', 'ticker', 'date', 'date_index']
+    exclude_cols = ['target', 'target_volatility', 'ticker', 'date', 'date_index']
     feature_cols = [col for col in df.columns if col not in exclude_cols]
     X = df[feature_cols]
     y = df['target']
     
+    # Multi-target: volatilidade (se disponível)
+    y_vol = df['target_volatility'] if 'target_volatility' in df.columns else None
+    
     logger.info(f"Features iniciais: {len(feature_cols)}")
     logger.info(f"Target: {y.name}")
+    if y_vol is not None:
+        logger.info(f"Target secundário: target_volatility ({y_vol.notna().sum()} valores)")
     
     # Feature selection
     selected_features, feature_scores = select_best_features(X, y, k=args.n_features)
@@ -597,6 +643,41 @@ def main():
     
     logger.info(f"\nEnsemble - Val RMSE: {ensemble_rmse:.6f}, Val MAE: {ensemble_mae:.6f}")
     
+    # ========================================
+    # MODELO DE VOLATILIDADE (multi-target)
+    # ========================================
+    vol_model = None
+    vol_metrics = {}
+    if y_vol is not None and y_vol.notna().sum() > 100:
+        logger.info("\n" + "=" * 60)
+        logger.info("TREINANDO MODELO DE VOLATILIDADE (multi-target)")
+        logger.info("=" * 60)
+        
+        y_vol_train = y_vol.iloc[:split_idx]
+        y_vol_val = y_vol.iloc[split_idx:]
+        
+        dtrain_vol = xgb.DMatrix(X_train, label=y_vol_train)
+        dval_vol = xgb.DMatrix(X_val, label=y_vol_val)
+        
+        vol_params = {
+            'objective': 'reg:squarederror',
+            'max_depth': 4,
+            'learning_rate': 0.05,
+            'subsample': 0.8,
+            'eval_metric': 'rmse',
+            'tree_method': 'hist',
+        }
+        
+        vol_model = xgb.train(
+            vol_params, dtrain_vol, num_boost_round=100,
+            evals=[(dval_vol, 'val')], early_stopping_rounds=20, verbose_eval=False
+        )
+        
+        vol_pred = vol_model.predict(dval_vol)
+        vol_rmse = np.sqrt(np.mean((y_vol_val.values - vol_pred) ** 2))
+        vol_metrics = {'val_rmse': float(vol_rmse)}
+        logger.info(f"Volatility Model - Val RMSE: {vol_rmse:.6f}")
+    
     # Salvar modelos
     model_path = Path(args.model_dir)
     model_path.mkdir(parents=True, exist_ok=True)
@@ -605,6 +686,11 @@ def main():
     if 'xgboost' in models:
         models['xgboost'].save_model(str(model_path / 'xgboost_model.json'))
         logger.info(f"XGBoost salvo em {model_path / 'xgboost_model.json'}")
+    
+    # Salvar modelo de volatilidade
+    if vol_model is not None:
+        vol_model.save_model(str(model_path / 'volatility_model.json'))
+        logger.info(f"Volatility model salvo em {model_path / 'volatility_model.json'}")
     
     # Salvar LSTM
     if 'lstm' in models:
@@ -625,6 +711,7 @@ def main():
             'weights': ensemble_weights,
             'models_used': list(models.keys())
         },
+        'volatility_model': vol_metrics,
         'individual_models': metrics,
         'walk_forward_cv': {
             'avg_rmse': float(cv_rmse),
@@ -632,6 +719,7 @@ def main():
             'folds': cv_metrics
         },
         'feature_selection': {
+            'method': 'shap' if HAS_SHAP else 'f_statistic',
             'n_features_selected': len(selected_features),
             'selected_features': selected_features
         },
@@ -691,6 +779,8 @@ def main():
         # Adicionar todos os arquivos de modelo
         if (model_path / 'xgboost_model.json').exists():
             tar.add(model_path / 'xgboost_model.json', arcname='xgboost_model.json')
+        if (model_path / 'volatility_model.json').exists():
+            tar.add(model_path / 'volatility_model.json', arcname='volatility_model.json')
         if (model_path / 'lstm_model.h5').exists():
             tar.add(model_path / 'lstm_model.h5', arcname='lstm_model.h5')
         if (model_path / 'prophet_model.pkl').exists():

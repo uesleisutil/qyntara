@@ -1,18 +1,27 @@
 """
 Feature Engineering Avançado para Previsão de Retornos
 
-Implementa features técnicas sofisticadas baseadas em:
+Implementa features sofisticadas baseadas em:
 - Análise técnica (RSI, MACD, Bollinger Bands, ATR)
 - Momentum e reversão à média
 - Volatilidade e risco
-- Padrões de volume
+- Volume (OBV, VWAP, volume-price divergence)
+- Dados fundamentalistas (P/L, P/VP, DY, ROE)
+- Dados macroeconômicos (Selic, IPCA, câmbio)
+- Correlação setorial
+- Sentimento de notícias
 - Features de regime de mercado
 """
 
 import numpy as np
 import pandas as pd
-from typing import List, Dict
+from typing import List, Dict, Optional
 from statistics import pstdev
+
+from ml.src.features.volume_features import calculate_volume_features
+from ml.src.features.fundamental_features import calculate_fundamental_features
+from ml.src.features.macro_features import calculate_macro_features
+from ml.src.features.sector_features import calculate_sector_features
 
 
 class AdvancedFeatureEngineer:
@@ -285,13 +294,27 @@ class AdvancedFeatureEngineer:
         
         return features
     
-    def generate_all_features(self, prices: np.ndarray, ticker: str = None) -> Dict[str, float]:
+    def generate_all_features(
+        self,
+        prices: np.ndarray,
+        ticker: str = None,
+        volumes: Optional[np.ndarray] = None,
+        fundamentals: Optional[Dict] = None,
+        macro_features: Optional[Dict[str, float]] = None,
+        all_series: Optional[Dict[str, List[float]]] = None,
+        sentiment_score: Optional[float] = None,
+    ) -> Dict[str, float]:
         """
         Gera todas as features para uma série de preços.
         
         Args:
             prices: Array de preços históricos
             ticker: Nome do ticker (opcional)
+            volumes: Array de volumes históricos (opcional)
+            fundamentals: Dict com dados fundamentalistas (opcional)
+            macro_features: Dict com features macro pré-calculadas (opcional)
+            all_series: Dict {ticker: [prices]} para features setoriais (opcional)
+            sentiment_score: Score de sentimento -1 a +1 (opcional)
         
         Returns:
             Dict com todas as features
@@ -337,13 +360,40 @@ class AdvancedFeatureEngineer:
             else:
                 features[f'ma_{period}'] = float(prices[-1])
         
+        # --- Volume features ---
+        if volumes is not None and len(volumes) > 0:
+            features.update(calculate_volume_features(np.array(volumes), prices))
+        
+        # --- Fundamental features ---
+        if fundamentals:
+            features.update(calculate_fundamental_features(fundamentals))
+        
+        # --- Macro features ---
+        if macro_features:
+            features.update(macro_features)
+        
+        # --- Sector features ---
+        if ticker and all_series:
+            features.update(calculate_sector_features(ticker, all_series))
+        
+        # --- Sentiment features ---
+        if sentiment_score is not None:
+            features['sentiment_score'] = float(sentiment_score)
+            # Interação sentimento x momentum
+            ret_20 = features.get('return_20d', 0.0)
+            features['sentiment_x_momentum'] = float(sentiment_score * ret_20)
+        
         return features
 
 
 def create_training_dataset(
     series_dict: Dict[str, List[float]],
     target_horizon: int = 20,
-    min_history: int = 120
+    min_history: int = 120,
+    volumes_dict: Optional[Dict[str, List[float]]] = None,
+    fundamentals_dict: Optional[Dict[str, Dict]] = None,
+    macro_features: Optional[Dict[str, float]] = None,
+    sentiment_dict: Optional[Dict[str, float]] = None,
 ) -> pd.DataFrame:
     """
     Cria dataset de treino com features avançadas.
@@ -352,6 +402,10 @@ def create_training_dataset(
         series_dict: Dict {ticker: [prices]}
         target_horizon: Horizonte de previsão (dias)
         min_history: Mínimo de histórico necessário
+        volumes_dict: Dict {ticker: [volumes]} (opcional)
+        fundamentals_dict: Dict {ticker: {fundamentals}} (opcional)
+        macro_features: Dict com features macro pré-calculadas (opcional)
+        sentiment_dict: Dict {ticker: sentiment_score} (opcional)
     
     Returns:
         DataFrame com features e target
@@ -364,19 +418,50 @@ def create_training_dataset(
         if len(prices) < min_history + target_horizon:
             continue
         
+        volumes = None
+        if volumes_dict and ticker in volumes_dict:
+            volumes = volumes_dict[ticker]
+        
+        fundamentals = None
+        if fundamentals_dict and ticker in fundamentals_dict:
+            fundamentals = fundamentals_dict[ticker]
+        
+        sentiment = None
+        if sentiment_dict and ticker in sentiment_dict:
+            sentiment = sentiment_dict[ticker]
+        
         # Criar múltiplas janelas de treino (walk-forward)
         for i in range(min_history, len(prices) - target_horizon):
             window = prices[:i]
+            vol_window = volumes[:i] if volumes and len(volumes) >= i else None
             
-            # Gerar features
-            features = engineer.generate_all_features(np.array(window), ticker)
+            # Gerar features (incluindo volume, fundamentals, macro, setor, sentimento)
+            features = engineer.generate_all_features(
+                np.array(window),
+                ticker,
+                volumes=np.array(vol_window) if vol_window else None,
+                fundamentals=fundamentals,
+                macro_features=macro_features,
+                all_series=series_dict,
+                sentiment_score=sentiment,
+            )
             
             # Target: retorno futuro
             future_price = prices[i + target_horizon - 1]
             current_price = prices[i - 1]
             target = (future_price / current_price) - 1.0
             
+            # Multi-target: retorno E volatilidade
+            if i + target_horizon <= len(prices):
+                future_window = prices[i:i + target_horizon]
+                future_returns = [(future_window[j] / future_window[j-1]) - 1.0
+                                  for j in range(1, len(future_window))]
+                target_volatility = float(np.std(future_returns)) if len(future_returns) > 1 else 0.0
+            else:
+                target_volatility = 0.0
+            
             features['target'] = target
+            features['target_volatility'] = target_volatility
             features['date_index'] = i
             
             data_list.append(features)

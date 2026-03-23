@@ -64,8 +64,8 @@ def should_skip_today(now_utc: datetime, holidays: set[str]) -> bool:
     return now_utc.date().isoformat() in holidays
 
 
-def load_monthly_data_for_ranking(bucket: str, days: int) -> dict[str, list[float]]:
-    """Carrega dados históricos mensais."""
+def load_monthly_data_for_ranking(bucket: str, days: int) -> tuple[dict[str, list[float]], dict[str, list[float]]]:
+    """Carrega dados históricos mensais (preços e volumes)."""
     paginator = s3.get_paginator("list_objects_v2")
     all_data = []
 
@@ -80,9 +80,20 @@ def load_monthly_data_for_ranking(bucket: str, days: int) -> dict[str, list[floa
             reader = csv.DictReader(lines)
 
             for row in reader:
-                all_data.append(
-                    {"date": row["date"], "ticker": row["ticker"], "close": float(row["close"])}
-                )
+                entry = {
+                    "date": row["date"],
+                    "ticker": row["ticker"],
+                    "close": float(row["close"]),
+                }
+                # Volume pode não existir em dados antigos
+                if "volume" in row and row["volume"]:
+                    try:
+                        entry["volume"] = float(row["volume"])
+                    except (ValueError, TypeError):
+                        entry["volume"] = 0.0
+                else:
+                    entry["volume"] = 0.0
+                all_data.append(entry)
 
     all_data.sort(key=lambda x: x["date"])
 
@@ -96,20 +107,31 @@ def load_monthly_data_for_ranking(bucket: str, days: int) -> dict[str, list[floa
         recent_data = []
 
     series = {}
+    volumes = {}
     for row in recent_data:
         ticker = row["ticker"]
         if ticker not in series:
             series[ticker] = []
+            volumes[ticker] = []
         series[ticker].append(row["close"])
+        volumes[ticker].append(row["volume"])
 
     min_points = 120
-    series = {t: v for t, v in series.items() if len(v) >= min_points}
+    valid_tickers = {t for t, v in series.items() if len(v) >= min_points}
+    series = {t: v for t, v in series.items() if t in valid_tickers}
+    volumes = {t: v for t, v in volumes.items() if t in valid_tickers}
 
-    return series
+    return series, volumes
 
 
-def prepare_features(series: dict[str, list[float]]) -> pd.DataFrame:
-    """Prepara features avançadas para inferência."""
+def prepare_features(
+    series: dict[str, list[float]],
+    volumes: dict[str, list[float]] = None,
+    macro_features: dict[str, float] = None,
+    fundamentals_dict: dict[str, dict] = None,
+    sentiment_dict: dict[str, float] = None,
+) -> pd.DataFrame:
+    """Prepara features avançadas para inferência (incluindo volume, macro, setor, fundamentals, sentimento)."""
     logger.info("Gerando features avançadas para inferência...")
     
     engineer = AdvancedFeatureEngineer()
@@ -119,8 +141,28 @@ def prepare_features(series: dict[str, list[float]]) -> pd.DataFrame:
         if len(values) < 120:
             continue
         
-        # Gerar todas as features avançadas
-        features = engineer.generate_all_features(np.array(values), ticker)
+        vol_array = None
+        if volumes and ticker in volumes:
+            vol_array = np.array(volumes[ticker])
+        
+        fundamentals = None
+        if fundamentals_dict and ticker in fundamentals_dict:
+            fundamentals = fundamentals_dict[ticker]
+        
+        sentiment = None
+        if sentiment_dict and ticker in sentiment_dict:
+            sentiment = sentiment_dict[ticker]
+        
+        # Gerar todas as features avançadas (volume, macro, setor, fundamentals, sentimento)
+        features = engineer.generate_all_features(
+            np.array(values),
+            ticker,
+            volumes=vol_array,
+            fundamentals=fundamentals,
+            macro_features=macro_features,
+            all_series=series,
+            sentiment_score=sentiment,
+        )
         features['last_close'] = values[-1]
         features_list.append(features)
     
@@ -334,14 +376,60 @@ def handler(event, context):
     tickers = load_universe(bucket, cfg.universe_s3_key)
     logger.info(f"Universe: {len(tickers)} tickers")
 
-    series = load_monthly_data_for_ranking(bucket, cfg.rank_lookback_days)
+    series, volumes = load_monthly_data_for_ranking(bucket, cfg.rank_lookback_days)
     logger.info(f"Séries carregadas: {len(series)} tickers")
 
     if not series:
         raise RuntimeError("Sem séries suficientes nos dados mensais.")
 
-    # Preparar features
-    features_df = prepare_features(series)
+    # Carregar dados macro do BCB
+    macro_features = None
+    try:
+        from ml.src.features.macro_features import fetch_all_macro_data, calculate_macro_features as calc_macro
+        macro_data = fetch_all_macro_data(days=90)
+        macro_features = calc_macro(macro_data)
+        logger.info(f"Macro features carregadas: {len(macro_features)} features")
+    except Exception as e:
+        logger.warning(f"Não foi possível carregar dados macro: {e}")
+
+    # Carregar dados fundamentalistas (do Feature Store ou BRAPI)
+    fundamentals_dict = None
+    try:
+        from ml.src.features.feature_store import FeatureStore
+        store = FeatureStore(bucket)
+        fundamentals_dict = {}
+        for ticker in series.keys():
+            fund = store.load_features_with_fallback("fundamentals", ticker, dt, fallback_days=30)
+            if fund:
+                fundamentals_dict[ticker] = fund
+        if fundamentals_dict:
+            logger.info(f"Fundamentals carregados: {len(fundamentals_dict)} tickers")
+    except Exception as e:
+        logger.warning(f"Não foi possível carregar fundamentals: {e}")
+
+    # Carregar sentimento (do Feature Store)
+    sentiment_dict = None
+    try:
+        from ml.src.features.feature_store import FeatureStore as FS2
+        store2 = FS2(bucket)
+        sentiment_dict = {}
+        for ticker in series.keys():
+            sent = store2.load_features_with_fallback("sentiment", ticker, dt, fallback_days=3)
+            if sent and "sentiment_score" in sent:
+                sentiment_dict[ticker] = sent["sentiment_score"]
+        if sentiment_dict:
+            logger.info(f"Sentimento carregado: {len(sentiment_dict)} tickers")
+    except Exception as e:
+        logger.warning(f"Não foi possível carregar sentimento: {e}")
+
+    # Preparar features (com volume, macro, fundamentals, setor, sentimento)
+    features_df = prepare_features(
+        series,
+        volumes=volumes,
+        macro_features=macro_features,
+        fundamentals_dict=fundamentals_dict,
+        sentiment_dict=sentiment_dict,
+    )
     logger.info(f"Features preparadas: {len(features_df)} tickers")
 
     if features_df.empty:

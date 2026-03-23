@@ -127,19 +127,20 @@ def _brapi_history(ticker: str, token: str, range_: str) -> dict[str, Any]:
     return json.loads(r.data.decode("utf-8"))
 
 
-def _iter_rows(payload: dict[str, Any], ticker: str) -> list[tuple[str, str, float]]:
+def _iter_rows(payload: dict[str, Any], ticker: str) -> list[tuple[str, str, float, float]]:
     results = payload.get("results") or []
     if not results:
         return []
     hist = results[0].get("historicalDataPrice") or []
-    rows: list[tuple[str, str, float]] = []
+    rows: list[tuple[str, str, float, float]] = []
     for p in hist:
         close = p.get("close")
         dt_epoch = p.get("date")
         if close is None or dt_epoch is None:
             continue
         dt = datetime.fromtimestamp(int(dt_epoch), tz=UTC).strftime("%Y-%m-%d")
-        rows.append((dt, ticker, float(close)))
+        volume = float(p.get("volume", 0) or 0)
+        rows.append((dt, ticker, float(close), volume))
     return rows
 
 
@@ -153,9 +154,16 @@ def _upsert_month_csv(bucket: str, year: int, month: int, df_new: pd.DataFrame) 
     if _s3_exists(bucket, key):
         obj = s3.get_object(Bucket=bucket, Key=key)
         df_old = pd.read_csv(obj["Body"])
+        # Backward compat: CSVs antigos podem não ter coluna volume
+        if "volume" not in df_old.columns:
+            df_old["volume"] = 0.0
         df = pd.concat([df_old, df_new], ignore_index=True)
     else:
         df = df_new
+
+    # Garantir coluna volume
+    if "volume" not in df.columns:
+        df["volume"] = 0.0
 
     # dedup (date,ticker)
     df["date"] = pd.to_datetime(df["date"])
@@ -219,10 +227,10 @@ def _incremental_update(cfg: BootstrapCfg, base_prefix: str) -> dict[str, Any]:
                 continue
 
             tickers_updated += 1
-            for dt, ticker, close in rows:
+            for dt, ticker, close, volume in rows:
                 y = int(dt[0:4])
                 m = int(dt[5:7])
-                month_rows[(y, m)].append((dt, ticker, close))
+                month_rows[(y, m)].append((dt, ticker, close, volume))
 
             logger.info("Incremental %s: %d rows", t, len(rows))
             time.sleep(cfg.sleep_s)
@@ -233,7 +241,7 @@ def _incremental_update(cfg: BootstrapCfg, base_prefix: str) -> dict[str, Any]:
     # Upsert mensal
     months_written = 0
     for (y, m), rows in month_rows.items():
-        df_new = pd.DataFrame(rows, columns=["date", "ticker", "close"])
+        df_new = pd.DataFrame(rows, columns=["date", "ticker", "close", "volume"])
         _upsert_month_csv(cfg.bucket, y, m, df_new)
         months_written += 1
 
@@ -324,10 +332,10 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
 
             kept += 1
 
-            for dt, ticker, close in rows:
+            for dt, ticker, close, volume in rows:
                 y = int(dt[0:4])
                 m = int(dt[5:7])
-                month_rows[(y, m)].append((dt, ticker, close))
+                month_rows[(y, m)].append((dt, ticker, close, volume))
 
             logger.info("Fetched %s rows=%d", t, len(rows))
             time.sleep(bcfg.sleep_s)
@@ -339,7 +347,7 @@ def handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     # Upsert mensal
     months_written = 0
     for (y, m), rows in month_rows.items():
-        df_new = pd.DataFrame(rows, columns=["date", "ticker", "close"])
+        df_new = pd.DataFrame(rows, columns=["date", "ticker", "close", "volume"])
         _upsert_month_csv(bcfg.bucket, y, m, df_new)
         months_written += 1
 

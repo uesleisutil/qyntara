@@ -1308,6 +1308,51 @@ export class InfraStack extends cdk.Stack {
       value: storageOptimizerFn.functionName,
       description: "Storage Optimizer Lambda Function"
     });
+
+    // -----------------------
+    // Feature Store Ingestion Lambda (fundamentals, macro, sentiment)
+    // -----------------------
+    const ingestFeaturesFn = mkPyLambda(
+      "IngestFeatures",
+      "ml.src.lambdas.ingest_features.handler",
+      { BRAPI_SECRET_ID: brapiSecretId }
+    );
+    ingestFeaturesFn.addToRolePolicy(secretsPolicy);
+
+    // Feature Store ingestion: roda diariamente após mercado fechar (18:00 BRT = 21:00 UTC)
+    const ingestFeaturesRule = new events.Rule(this, "IngestFeaturesDaily", {
+      schedule: events.Schedule.expression("cron(0 21 ? * MON-FRI *)"),
+    });
+    ingestFeaturesRule.addTarget(new targets.LambdaFunction(ingestFeaturesFn));
+
+    // -----------------------
+    // Weekly Retrain Lambda
+    // -----------------------
+    const weeklyRetrainFn = mkPyLambda(
+      "WeeklyRetrain",
+      "ml.src.lambdas.weekly_retrain.handler",
+      { TRAIN_FUNCTION_NAME: trainSageMakerFn.functionName }
+    );
+    // Permissão para invocar a Lambda de treino
+    weeklyRetrainFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ["lambda:InvokeFunction"],
+      resources: [trainSageMakerFn.functionArn],
+    }));
+
+    // Retreino semanal: domingo 22:00 UTC (19:00 BRT)
+    const weeklyRetrainRule = new events.Rule(this, "WeeklyRetrainSchedule", {
+      schedule: events.Schedule.expression("cron(0 22 ? * SUN *)"),
+    });
+    weeklyRetrainRule.addTarget(new targets.LambdaFunction(weeklyRetrainFn));
+
+    new cdk.CfnOutput(this, "IngestFeaturesLambda", {
+      value: ingestFeaturesFn.functionName,
+      description: "Feature Store Ingestion Lambda"
+    });
+    new cdk.CfnOutput(this, "WeeklyRetrainLambda", {
+      value: weeklyRetrainFn.functionName,
+      description: "Weekly Retrain Lambda"
+    });
     new cdk.CfnOutput(this, "DashboardApiUrl", {
       value: api.url,
       description: "Dashboard API Gateway URL"
