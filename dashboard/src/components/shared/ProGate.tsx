@@ -1,5 +1,5 @@
-import React from 'react';
-import { Crown, Lock, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { Crown, Lock, ArrowRight, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { PRO_PRICE_LABEL } from '../../constants';
 
@@ -7,7 +7,8 @@ interface ProGateProps {
   children: React.ReactNode;
   feature?: string;
   darkMode?: boolean;
-  inline?: boolean; // If true, shows a small lock badge instead of full overlay
+  inline?: boolean;
+  storageKey?: string;
 }
 
 export const useIsPro = () => {
@@ -15,10 +16,19 @@ export const useIsPro = () => {
   return user?.plan === 'pro';
 };
 
-const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', darkMode = true, inline = false }) => {
+const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', darkMode = true, inline = false, storageKey }) => {
   const isPro = useIsPro();
+  const dismissKey = storageKey || `b3tr_progate_dismissed_${feature.replace(/\s+/g, '_')}`;
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem(dismissKey) === 'true'; } catch { return false; }
+  });
 
-  if (isPro) return <>{children}</>;
+  if (isPro || dismissed) return <>{children}</>;
+
+  const close = () => {
+    setDismissed(true);
+    try { localStorage.setItem(dismissKey, 'true'); } catch {}
+  };
 
   if (inline) {
     return (
@@ -46,7 +56,14 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
       border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
       borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)',
       textAlign: 'center', maxWidth: 480, margin: '2rem auto',
+      position: 'relative',
     }}>
+      <button onClick={close} style={{
+        position: 'absolute', top: 12, right: 12, background: 'none', border: 'none',
+        color: darkMode ? '#64748b' : '#94a3b8', cursor: 'pointer', padding: 4,
+      }} aria-label="Fechar">
+        <X size={18} />
+      </button>
       <div style={{
         width: 56, height: 56, borderRadius: '50%',
         background: 'linear-gradient(135deg, #f59e0b, #d97706)',

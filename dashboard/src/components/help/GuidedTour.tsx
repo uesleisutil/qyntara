@@ -17,32 +17,37 @@ const mainTourSteps: Step[] = [
   },
   {
     target: '[data-tour="nav-mydashboard"]',
-    content: 'Este é o seu Dashboard pessoal. Aqui você vê suas posições, destaque do dia, novidades e pode comparar ações.',
+    content: 'Seu painel pessoal com destaque do dia, posições, novidades, alertas de preço e comparador de ações. Personalize os widgets como quiser.',
     placement: 'right',
   },
   {
     target: '[data-tour="nav-recommendations"]',
-    content: 'Na aba Recomendações você encontra todas as ações ranqueadas pelo modelo de ML, com scores, sinais e retornos previstos.',
+    content: 'Todas as ações da B3 ranqueadas pelo modelo de ML. Veja scores, sinais de compra/venda, retorno esperado e volatilidade.',
     placement: 'right',
   },
   {
     target: '[data-tour="nav-explainability"]',
-    content: 'A Explicabilidade mostra por que o modelo recomendou cada ação — quais indicadores mais pesaram na decisão.',
+    content: 'Entenda por que o modelo recomendou cada ação — gráficos de contribuição dos fatores, análise de sensibilidade e explicação em texto.',
     placement: 'right',
   },
   {
     target: '[data-tour="nav-backtesting"]',
-    content: 'No Backtesting você simula como teria sido o desempenho de uma carteira usando recomendações passadas.',
+    content: 'Simule como uma carteira teria performado usando recomendações passadas. Configure capital, número de ações e período.',
     placement: 'right',
   },
   {
     target: '[data-tour="nav-performance"]',
-    content: 'A aba Performance mostra métricas de acurácia do modelo: MAPE, Sharpe, correlação e mais.',
+    content: 'Métricas de acurácia do modelo: MAPE, Sharpe, correlação, taxa de acerto e comparação com benchmarks.',
+    placement: 'right',
+  },
+  {
+    target: '[data-tour="nav-pro"]',
+    content: 'Recursos exclusivos Pro: Acompanhamento por Safra, Carteira Modelo otimizada, stop-loss e take-profit.',
     placement: 'right',
   },
   {
     target: '[data-tour="notification-center"]',
-    content: 'Aqui ficam os alertas e notificações. Você recebe avisos sobre mudanças de sinal, drift e anomalias.',
+    content: 'Alertas sobre mudanças de sinal, drift do modelo e anomalias nos dados.',
     placement: 'bottom',
   },
   {
@@ -52,7 +57,7 @@ const mainTourSteps: Step[] = [
   },
   {
     target: '[data-tour="help-menu"]',
-    content: 'Acesse ajuda, FAQ, glossário e reinicie este tour a qualquer momento pelo menu de ajuda.',
+    content: 'Acesse ajuda, FAQ, glossário e reinicie este tour a qualquer momento.',
     placement: 'bottom',
   },
 ];
@@ -65,8 +70,18 @@ const advancedTourSteps: Step[] = [
     disableBeacon: true,
   },
   {
+    target: '[data-tour="kpi-strip"]',
+    content: 'Resumo do dia: quantas ações com sinal de Compra, Venda, retorno médio e o top score.',
+    placement: 'bottom',
+  },
+  {
+    target: '[data-tour="search-bar"]',
+    content: 'Use a busca para encontrar um ticker específico, filtrar por sinal ou ordenar por diferentes critérios.',
+    placement: 'bottom',
+  },
+  {
     target: '[data-tour="filters"]',
-    content: 'Use os filtros para refinar as recomendações por setor, retorno esperado e score mínimo.',
+    content: 'Refine as recomendações por setor, retorno esperado e score mínimo.',
     placement: 'bottom',
   },
   {
@@ -80,11 +95,6 @@ const advancedTourSteps: Step[] = [
     placement: 'bottom',
   },
   {
-    target: '[data-tour="temporal-comparison"]',
-    content: 'Ative a comparação temporal para ver como as métricas mudaram ao longo do tempo.',
-    placement: 'bottom',
-  },
-  {
     target: '[data-tour="favorites"]',
     content: 'Marque ações como favoritas para acompanhamento rápido.',
     placement: 'bottom',
@@ -92,16 +102,6 @@ const advancedTourSteps: Step[] = [
   {
     target: '[data-tour="keyboard-shortcuts"]',
     content: 'Use atalhos de teclado para navegar mais rápido. Pressione ? para ver todos os atalhos.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="drill-down"]',
-    content: 'Clique em gráficos e tabelas para ver detalhes e dados relacionados.',
-    placement: 'bottom',
-  },
-  {
-    target: '[data-tour="annotations"]',
-    content: 'Adicione anotações aos gráficos para marcar eventos e insights importantes.',
     placement: 'bottom',
   },
 ];
@@ -115,22 +115,15 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
   const [runTour, setRunTour] = useState(run);
   const [stepIndex, setStepIndex] = useState(0);
 
-  useEffect(() => {
-    setRunTour(run);
-  }, [run]);
+  useEffect(() => { setRunTour(run); }, [run]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status, action, index, type } = data;
-
     if (([STATUS.FINISHED, STATUS.SKIPPED] as string[]).includes(status)) {
       setRunTour(false);
       setStepIndex(0);
-      
-      if (status === STATUS.FINISHED && onComplete) {
-        onComplete();
-      } else if (status === STATUS.SKIPPED && onSkip) {
-        onSkip();
-      }
+      if (status === STATUS.FINISHED && onComplete) onComplete();
+      else if (status === STATUS.SKIPPED && onSkip) onSkip();
     } else if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
       setStepIndex(index + (action === ACTIONS.PREV ? -1 : 1));
     }
@@ -152,43 +145,14 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
       disableCloseOnEsc={false}
       callback={handleJoyrideCallback}
       styles={{
-        options: {
-          primaryColor: '#3b82f6',
-          zIndex: 10000,
-        },
-        tooltip: {
-          borderRadius: '12px',
-          fontSize: '14px',
-        },
-        tooltipContainer: {
-          textAlign: 'left',
-        },
-        buttonNext: {
-          borderRadius: '8px',
-          padding: '8px 16px',
-          fontSize: '14px',
-          fontWeight: '600',
-        },
-        buttonBack: {
-          borderRadius: '8px',
-          padding: '8px 16px',
-          fontSize: '14px',
-          marginRight: '8px',
-        },
-        buttonSkip: {
-          borderRadius: '8px',
-          padding: '8px 16px',
-          fontSize: '14px',
-          color: '#64748b',
-        },
+        options: { primaryColor: '#3b82f6', zIndex: 10000 },
+        tooltip: { borderRadius: '12px', fontSize: '14px' },
+        tooltipContainer: { textAlign: 'left' as const },
+        buttonNext: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', fontWeight: '600' },
+        buttonBack: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', marginRight: '8px' },
+        buttonSkip: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', color: '#64748b' },
       }}
-      locale={{
-        back: 'Voltar',
-        close: 'Fechar',
-        last: 'Finalizar',
-        next: 'Próximo',
-        skip: 'Pular Tour',
-      }}
+      locale={{ back: 'Voltar', close: 'Fechar', last: 'Finalizar', next: 'Próximo', skip: 'Pular Tour' }}
     />
   );
 };

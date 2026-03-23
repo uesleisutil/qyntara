@@ -10,6 +10,7 @@ const CHECKLIST_KEY = 'b3tr_checklist';
 const CHECKLIST_DISMISSED_KEY = 'b3tr_checklist_dismissed';
 
 interface ChecklistState {
+  viewedDashboard: boolean;
   viewedRecommendations: boolean;
   viewedExplainability: boolean;
   ranBacktest: boolean;
@@ -17,6 +18,7 @@ interface ChecklistState {
 }
 
 const defaultState: ChecklistState = {
+  viewedDashboard: false,
   viewedRecommendations: false,
   viewedExplainability: false,
   ranBacktest: false,
@@ -39,10 +41,11 @@ export const markChecklistItem = (key: keyof ChecklistState) => {
 export const isChecklistDismissed = (): boolean => !!localStorage.getItem(CHECKLIST_DISMISSED_KEY);
 
 const items: { key: keyof ChecklistState; label: string; emoji: string }[] = [
+  { key: 'viewedDashboard', label: 'Personalize seu dashboard', emoji: '🏠' },
   { key: 'viewedRecommendations', label: 'Veja as recomendações do dia', emoji: '📊' },
   { key: 'viewedExplainability', label: 'Explore a explicabilidade de uma ação', emoji: '🧠' },
   { key: 'ranBacktest', label: 'Rode seu primeiro backtest', emoji: '🧪' },
-  { key: 'viewedPerformance', label: 'Confira a performance acumulada', emoji: '📈' },
+  { key: 'viewedPerformance', label: 'Confira a performance do modelo', emoji: '📈' },
 ];
 
 const ActivationChecklist: React.FC<ActivationChecklistProps> = ({ darkMode, theme }) => {

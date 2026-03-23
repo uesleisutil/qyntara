@@ -17,6 +17,7 @@ import StockComparator from '../../components/explainability/StockComparator';
 import WidgetCard from '../../components/shared/WidgetCard';
 import WidgetPreferences, { WidgetConfig } from '../../components/shared/WidgetPreferences';
 import { useIsPro } from '../../components/shared/ProGate';
+import { markChecklistItem } from '../../components/shared/ActivationChecklist';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Rec { ticker: string; last_close: number; pred_price_t_plus_20: number; exp_return_20: number; vol_20d: number; score: number; }
@@ -95,6 +96,8 @@ const MyDashboardPage: React.FC = () => {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => { markChecklistItem('viewedDashboard'); }, []);
 
   const topTicker = recs.length ? recs.reduce((a, b) => a.score > b.score ? a : b) : null;
   const totalBuy = recs.filter(r => r.score >= SCORE_BUY_THRESHOLD).length;
