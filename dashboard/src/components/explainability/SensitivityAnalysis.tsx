@@ -9,7 +9,7 @@ interface TickerData {
 }
 
 interface SensitivityAnalysisProps {
-  ticker: string; tickerData: TickerData; darkMode?: boolean;
+  ticker: string; tickerData: TickerData; darkMode?: boolean; isPro?: boolean;
 }
 
 /**
@@ -30,7 +30,7 @@ const FACTORS = [
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, tickerData, darkMode = false }) => {
+const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {
   const [selected, setSelected] = useState<string[]>(['Score']);
 
   const theme = {
@@ -135,7 +135,7 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
             borderRadius: 8, borderLeft: `4px solid ${COLORS[i]}`,
           }}>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{f}</div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: sensitivities[f] >= 0 ? '#10b981' : '#ef4444' }}>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: sensitivities[f] >= 0 ? '#10b981' : '#ef4444', filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>
               {sensitivities[f] > 0 ? '+' : ''}{sensitivities[f]}%
             </div>
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>sensibilidade</div>

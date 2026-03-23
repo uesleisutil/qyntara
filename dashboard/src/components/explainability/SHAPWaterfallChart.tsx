@@ -9,7 +9,7 @@ interface TickerData {
 }
 
 interface SHAPWaterfallChartProps {
-  ticker: string; tickerData: TickerData; darkMode?: boolean;
+  ticker: string; tickerData: TickerData; darkMode?: boolean; isPro?: boolean;
 }
 
 /**
@@ -47,7 +47,7 @@ function deriveContributions(td: TickerData) {
     .sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
 }
 
-const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerData, darkMode = false }) => {
+const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {
   const theme = useMemo(() => ({
     cardBg: darkMode ? '#1e293b' : 'white',
     text: darkMode ? '#f1f5f9' : '#0f172a',
@@ -87,13 +87,13 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
         </div>
         <div style={{ textAlign: 'center', minWidth: 0, flex: '1 1 auto' }}>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Previsão</div>
-          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444', whiteSpace: 'nowrap', filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none' }}>
             R$ {prediction.toFixed(2)}
           </div>
         </div>
         <div style={{ textAlign: 'right', minWidth: 0, flex: '1 1 auto' }}>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Diferença</div>
-          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: 'clamp(0.9rem, 2.5vw, 1.15rem)', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444', whiteSpace: 'nowrap', filter: isPro ? 'none' : 'blur(6px)', userSelect: isPro ? 'auto' : 'none' }}>
             {prediction >= baseValue ? '+' : ''}{(prediction - baseValue).toFixed(2)}
           </div>
         </div>
@@ -126,7 +126,7 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
         marginTop: '0.75rem', padding: '0.6rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
         borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.5,
       }}>
-        ℹ️ Contribuições estimadas a partir dos dados reais do modelo (score: {tickerData.score.toFixed(2)}, retorno esperado: {(tickerData.exp_return_20 * 100).toFixed(1)}%, volatilidade: {(tickerData.vol_20d * 100).toFixed(1)}%).
+        ℹ️ Contribuições estimadas a partir dos dados reais do modelo (score: {tickerData.score.toFixed(2)}, retorno esperado: <span style={{ filter: isPro ? 'none' : 'blur(5px)' }}>{(tickerData.exp_return_20 * 100).toFixed(1)}%</span>, volatilidade: <span style={{ filter: isPro ? 'none' : 'blur(5px)' }}>{(tickerData.vol_20d * 100).toFixed(1)}%</span>).
       </div>
     </div>
   );

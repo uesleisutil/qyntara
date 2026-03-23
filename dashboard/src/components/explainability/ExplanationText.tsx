@@ -9,7 +9,7 @@ interface TickerData {
 }
 
 interface ExplanationTextProps {
-  ticker: string; tickerData: TickerData; darkMode?: boolean;
+  ticker: string; tickerData: TickerData; darkMode?: boolean; isPro?: boolean;
 }
 
 /**
@@ -76,7 +76,7 @@ function deriveExplanation(td: TickerData) {
   return { confidence, posFactors, negFactors };
 }
 
-const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, darkMode = false }) => {
+const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {
   const theme = {
     cardBg: darkMode ? '#1e293b' : 'white',
     text: darkMode ? '#f1f5f9' : '#0f172a',
@@ -109,9 +109,9 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
       }}>
         <p style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: theme.text }}>
           O modelo prevê que <strong>{ticker}</strong> atingirá{' '}
-          <strong style={{ color: '#3b82f6' }}>R$ {tickerData.pred_price_t_plus_20.toFixed(2)}</strong>{' '}
+          <strong style={{ color: '#3b82f6', filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>R$ {tickerData.pred_price_t_plus_20.toFixed(2)}</strong>{' '}
           nos próximos 20 pregões (retorno de{' '}
-          <strong style={{ color: tickerData.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
+          <strong style={{ color: tickerData.exp_return_20 >= 0 ? '#10b981' : '#ef4444', filter: isPro ? 'none' : 'blur(5px)', userSelect: isPro ? 'auto' : 'none' }}>
             {(tickerData.exp_return_20 * 100).toFixed(1)}%
           </strong>).
           Sinal: <strong>{signal}</strong> (score {tickerData.score.toFixed(2)}).

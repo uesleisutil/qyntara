@@ -124,7 +124,7 @@ const MyDashboardPage: React.FC = () => {
 
   const renderWidget = (id: string) => {
     switch (id) {
-      case 'highlight': return topTicker ? <DailyHighlight darkMode={darkMode} theme={theme} topTicker={topTicker} totalBuy={totalBuy} totalSell={totalSell} totalNeutral={totalNeutral} date={date} /> : null;
+      case 'highlight': return topTicker ? <DailyHighlight darkMode={darkMode} theme={theme} topTicker={topTicker} totalBuy={totalBuy} totalSell={totalSell} totalNeutral={totalNeutral} date={date} isPro={isPro} /> : null;
       case 'signals': return <SignalChangesDropdown darkMode={darkMode} theme={theme} />;
       case 'positions': return <MyPositionsPanel darkMode={darkMode} theme={theme} />;
       case 'performance': return <PersonalPerformance darkMode={darkMode} theme={theme} />;

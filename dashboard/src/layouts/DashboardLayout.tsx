@@ -278,8 +278,12 @@ const DashboardLayout: React.FC = () => {
   };
 
   /* #4: Only show upgrade banner on pages where Pro matters */
-  const showUpgradeBanner = user && user.plan !== 'pro' && [
-    '/dashboard', '/dashboard/tracking', '/dashboard/portfolio',
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try { return localStorage.getItem('b3tr_upgrade_banner_dismissed') === 'true'; } catch { return false; }
+  });
+  const showUpgradeBanner = !bannerDismissed && user && user.plan !== 'pro' && [
+    '/dashboard', '/dashboard/recommendations', '/dashboard/explainability',
+    '/dashboard/tracking', '/dashboard/portfolio',
   ].includes(location.pathname);
 
   return (
@@ -436,7 +440,7 @@ const DashboardLayout: React.FC = () => {
             }}>
               <Crown size={14} color="#f59e0b" />
               <span style={{ color: theme.textSecondary, flex: 1 }}>
-                Plano Free — colunas Pro bloqueadas.
+                Assine o plano Pro para desbloquear todas as funcionalidades.
               </span>
               <button onClick={() => navigate('/dashboard/upgrade')} style={{
                 padding: '0.25rem 0.6rem', borderRadius: 6, border: 'none',
@@ -445,6 +449,11 @@ const DashboardLayout: React.FC = () => {
                 WebkitAppearance: 'none' as any,
               }}>
                 Upgrade Pro →
+              </button>
+              <button onClick={() => { setBannerDismissed(true); try { localStorage.setItem('b3tr_upgrade_banner_dismissed', 'true'); } catch {} }} style={{
+                background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer', padding: 2, opacity: 0.5,
+              }} aria-label="Fechar">
+                <X size={14} />
               </button>
             </div>
           )}
