@@ -53,17 +53,38 @@ def fetch_fundamentals_brapi(ticker: str, token: str) -> Dict[str, Any]:
             return {}
 
         r = results[0]
-        financial = r.get("financialData", {}) or {}
-        default_key = r.get("defaultKeyStatistics", {}) or {}
-        summary = r.get("summaryProfile", {}) or {}
+
+        def _as_dict(val):
+            """Garante que o valor é um dict (BRAPI pode retornar list em alguns modules)."""
+            if isinstance(val, dict):
+                return val
+            if isinstance(val, list) and val and isinstance(val[0], dict):
+                return val[0]
+            return {}
+
+        financial = _as_dict(r.get("financialData"))
+        default_key = _as_dict(r.get("defaultKeyStatistics"))
+        summary = _as_dict(r.get("summaryProfile"))
 
         # Balanço patrimonial (mais recente)
-        balance_sheets = r.get("balanceSheetHistory", {}).get("balanceSheetStatements", [])
-        bs = balance_sheets[0] if balance_sheets else {}
+        bs_raw = r.get("balanceSheetHistory")
+        if isinstance(bs_raw, dict):
+            balance_sheets = bs_raw.get("balanceSheetStatements", [])
+        elif isinstance(bs_raw, list):
+            balance_sheets = bs_raw
+        else:
+            balance_sheets = []
+        bs = balance_sheets[0] if balance_sheets and isinstance(balance_sheets[0], dict) else {}
 
         # DRE (mais recente)
-        income_stmts = r.get("incomeStatementHistory", {}).get("incomeStatementHistory", [])
-        inc = income_stmts[0] if income_stmts else {}
+        inc_raw = r.get("incomeStatementHistory")
+        if isinstance(inc_raw, dict):
+            income_stmts = inc_raw.get("incomeStatementHistory", [])
+        elif isinstance(inc_raw, list):
+            income_stmts = inc_raw
+        else:
+            income_stmts = []
+        inc = income_stmts[0] if income_stmts and isinstance(income_stmts[0], dict) else {}
 
         # EBITDA e dívida para calcular debt/EBITDA real
         ebitda = _safe_float(financial.get("ebitda"))
