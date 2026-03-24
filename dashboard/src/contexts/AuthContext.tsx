@@ -9,6 +9,8 @@ interface User {
   plan?: 'free' | 'pro';
   planExpiresAt?: string;
   emailVerified?: boolean;
+  canViewCosts?: boolean;
+  freeTicker?: string;
 }
 
 interface AuthContextType {
@@ -25,6 +27,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   refreshPlan: () => Promise<void>;
+  setFreeTicker: (ticker: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,6 +58,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 role: data.role || 'viewer', plan: data.plan || 'free',
                 planExpiresAt: data.planExpiresAt || '',
                 emailVerified: data.emailVerified ?? true,
+                canViewCosts: data.canViewCosts ?? false,
+                freeTicker: data.freeTicker || '',
               };
               setUser(freshUser);
               // Keep localStorage in sync so fallback is never stale
@@ -109,10 +114,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const data = await res.json();
           const freshPlan = data.plan || 'free';
           const freshRole = data.role || 'viewer';
+          const freshCanViewCosts = data.canViewCosts ?? false;
+          const freshFreeTicker = data.freeTicker || '';
           setUser(prev => {
             if (!prev) return prev;
-            if (prev.plan !== freshPlan || prev.role !== freshRole) {
-              const updated = { ...prev, plan: freshPlan as 'free' | 'pro', role: freshRole as 'admin' | 'analyst' | 'viewer', planExpiresAt: data.planExpiresAt || '' };
+            if (prev.plan !== freshPlan || prev.role !== freshRole || prev.canViewCosts !== freshCanViewCosts || prev.freeTicker !== freshFreeTicker) {
+              const updated = { ...prev, plan: freshPlan as 'free' | 'pro', role: freshRole as 'admin' | 'analyst' | 'viewer', planExpiresAt: data.planExpiresAt || '', canViewCosts: freshCanViewCosts, freeTicker: freshFreeTicker };
               localStorage.setItem('user', JSON.stringify(updated));
               return updated;
             }
@@ -165,6 +172,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       id: data.userId, email: data.email, name: data.name,
       role: data.role || 'viewer', plan: data.plan || 'free',
       emailVerified: data.emailVerified ?? true,
+      canViewCosts: data.canViewCosts ?? false,
+      freeTicker: data.freeTicker || '',
     });
   }, []);
 
@@ -182,6 +191,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       id: data.userId, email: data.email, name: data.name,
       role: data.role || 'viewer', plan: data.plan || 'free',
       emailVerified: data.emailVerified ?? false,
+      canViewCosts: data.canViewCosts ?? false,
+      freeTicker: data.freeTicker || '',
     });
   }, []);
 
@@ -268,7 +279,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const data = await res.json();
     setUser(prev => {
       if (!prev) return prev;
-      const updated = { ...prev, plan: (data.plan || 'free') as 'free' | 'pro', planExpiresAt: data.planExpiresAt || '' };
+      const updated = { ...prev, plan: (data.plan || 'free') as 'free' | 'pro', planExpiresAt: data.planExpiresAt || '', freeTicker: data.freeTicker || '' };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const setFreeTicker = useCallback(async (ticker: string) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('Não autenticado');
+    const res = await fetch(`${AUTH_URL}/free-ticker`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ ticker }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao salvar ticker');
+    }
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, freeTicker: ticker };
       localStorage.setItem('user', JSON.stringify(updated));
       return updated;
     });
@@ -277,7 +308,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider value={{
       user, isAuthenticated: !!user, isLoading,
-      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession, refreshPlan,
+      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession, refreshPlan, setFreeTicker,
     }}>
       {children}
     </AuthContext.Provider>

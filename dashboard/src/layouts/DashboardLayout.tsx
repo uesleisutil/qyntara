@@ -45,11 +45,15 @@ const DashboardLayout: React.FC = () => {
     if (shouldShowOnboarding()) {
       const timer = setTimeout(() => setShowOnboarding(true), 600);
       return () => clearTimeout(timer);
+    } else if (!isPro && !user?.freeTicker) {
+      // Free user who skipped onboarding without choosing a ticker — show it again
+      const timer = setTimeout(() => setShowOnboarding(true), 600);
+      return () => clearTimeout(timer);
     } else if (shouldShowTour()) {
       const timer = setTimeout(() => setShowTour(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isPro, user?.freeTicker]);
 
   React.useEffect(() => {
     const goOnline = () => setIsOffline(false);
@@ -80,15 +84,13 @@ const DashboardLayout: React.FC = () => {
 
   /* ── Navigation items ── */
   const userMenuItems = [
-    { path: '/dashboard', label: 'Meu Dashboard', icon: <TrendingUp size={18} />, tourId: 'nav-mydashboard' },
-    { path: '/dashboard/recommendations', label: 'Recomendações', icon: <BarChart3 size={18} />, tourId: 'nav-recommendations' },
-    { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} />, tourId: 'nav-explainability' },
-    { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} />, tourId: 'nav-backtesting' },
-    { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} />, tourId: 'nav-performance' },
-    { path: '/dashboard/carteiras', label: 'Carteiras', icon: <Briefcase size={18} />, tourId: 'nav-carteiras' },
+    { path: '/dashboard', label: 'Meu Dashboard', icon: <TrendingUp size={18} />, tourId: 'nav-mydashboard', pro: false },
+    { path: '/dashboard/recommendations', label: 'Recomendações', icon: <BarChart3 size={18} />, tourId: 'nav-recommendations', pro: false },
+    { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} />, tourId: 'nav-explainability', pro: false },
+    { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} />, tourId: 'nav-backtesting', pro: false },
+    { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} />, tourId: 'nav-performance', pro: false },
+    { path: '/dashboard/carteiras', label: 'Carteiras', icon: <Briefcase size={18} />, tourId: 'nav-carteiras', pro: false },
   ];
-
-  const proMenuItems: typeof userMenuItems = [];
 
   const adminModelItems = [
     { path: '/admin', label: 'Visão Geral', icon: <BarChart3 size={18} /> },
@@ -127,24 +129,29 @@ const DashboardLayout: React.FC = () => {
   const handleLogout = async () => { await logout(); navigate('/'); };
   const handleNav = (path: string) => { navigate(path); setSidebarOpen(false); };
 
-  const renderNavButton = (item: { path: string; label: string; icon: React.ReactNode; tourId?: string }) => (
-    <button key={item.path} onClick={() => handleNav(item.path)}
-      data-tour={item.tourId || undefined}
-      style={{
-        width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
-        padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-        background: isActive(item.path) ? theme.activeItem : 'transparent',
-        color: isActive(item.path) ? theme.accentColor : theme.textSecondary,
-        fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
-        transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
-      }}
-      onMouseEnter={e => { if (!isActive(item.path)) e.currentTarget.style.background = theme.hover; }}
-      onMouseLeave={e => { if (!isActive(item.path)) e.currentTarget.style.background = 'transparent'; }}
-    >
-      {item.icon} {item.label}
-      {isActive(item.path) && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
-    </button>
-  );
+  const renderNavButton = (item: { path: string; label: string; icon: React.ReactNode; tourId?: string; pro?: boolean }) => {
+    const isProItem = item.pro && !isPro;
+    return (
+      <button key={item.path} onClick={() => handleNav(isProItem ? '/dashboard/upgrade' : item.path)}
+        data-tour={item.tourId || undefined}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
+          padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
+          background: isActive(item.path) ? theme.activeItem : 'transparent',
+          color: isActive(item.path) ? theme.accentColor : theme.textSecondary,
+          fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
+          transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
+          opacity: isProItem ? 0.6 : 1,
+        }}
+        onMouseEnter={e => { if (!isActive(item.path)) e.currentTarget.style.background = theme.hover; }}
+        onMouseLeave={e => { if (!isActive(item.path)) e.currentTarget.style.background = 'transparent'; }}
+      >
+        {item.icon} {item.label}
+        {isProItem && <Lock size={12} style={{ marginLeft: 'auto', opacity: 0.5 }} />}
+        {isActive(item.path) && !isProItem && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
+      </button>
+    );
+  };
 
   const sectionLabel = (text: string, color?: string) => (
     <div style={{ padding: '0 0.5rem', marginBottom: '0.35rem' }}>
@@ -171,32 +178,6 @@ const DashboardLayout: React.FC = () => {
       <nav style={{ padding: '1rem 0.5rem', flex: 1, overflowY: 'auto' }}>
         {sectionLabel('Principal')}
         {userMenuItems.map(renderNavButton)}
-
-        {/* Pro section */}
-        <div data-tour="nav-pro" style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Crown size={10} color="#f59e0b" /> Pro
-          </span>
-        </div>
-        {proMenuItems.map(item => (
-          <button key={item.path} onClick={() => handleNav(isPro ? item.path : '/dashboard/upgrade')}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
-              padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: isActive(item.path) ? 'rgba(245,158,11,0.12)' : 'transparent',
-              color: isActive(item.path) ? '#f59e0b' : theme.textSecondary,
-              fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
-              transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
-              opacity: isPro ? 1 : 0.6,
-            }}
-            onMouseEnter={e => { if (!isActive(item.path)) e.currentTarget.style.background = theme.hover; }}
-            onMouseLeave={e => { if (!isActive(item.path)) e.currentTarget.style.background = 'transparent'; }}
-          >
-            {item.icon} {item.label}
-            {!isPro && <Lock size={12} style={{ marginLeft: 'auto', opacity: 0.5 }} />}
-            {isActive(item.path) && isPro && <ChevronRight size={14} style={{ marginLeft: 'auto' }} />}
-          </button>
-        ))}
 
         {/* Investor Deck */}
         <div style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>

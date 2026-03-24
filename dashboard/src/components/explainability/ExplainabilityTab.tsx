@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Info, RefreshCw, Brain, TrendingUp, BarChart3,
-  DollarSign, Globe, Building2, Newspaper, Layers,
+  DollarSign, Globe, Building2, Newspaper, Layers, Lock,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { getSignal, getSignalColor } from '../../constants';
-import { useIsPro } from '../shared/pro/ProGate';
+import { useIsPro, useFreeTicker } from '../shared/pro/ProGate';
 import ProValue from '../shared/pro/ProValue';
 import ProBlur from '../shared/pro/ProBlur';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
@@ -42,6 +42,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const [tickers, setTickers] = useState<TickerData[]>([]);
   const [loading, setLoading] = useState(true);
   const isPro = useIsPro();
+  const freeTicker = useFreeTicker();
 
   const theme = useMemo(() => ({
     bg: darkMode ? '#0c0a1a' : '#f8fafc',
@@ -64,18 +65,27 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           const recs: TickerData[] = data.recommendations || [];
           recs.sort((a, b) => b.score - a.score);
           setTickers(recs);
-          if (recs.length > 0) setSelectedTicker(prev => prev || recs[0].ticker);
+          if (recs.length > 0) {
+            // For free users with a freeTicker, auto-select it
+            if (freeTicker && recs.some(r => r.ticker.toUpperCase() === freeTicker.toUpperCase())) {
+              setSelectedTicker(prev => prev || freeTicker.toUpperCase());
+            } else {
+              setSelectedTicker(prev => prev || recs[0].ticker);
+            }
+          }
           markChecklistItem('viewedExplainability');
         }
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
     };
     fetchTickers();
-  }, []);
+  }, [freeTicker]);
 
   const currentTicker = tickers.find(t => t.ticker === selectedTicker) || null;
   const signal = currentTicker ? getSignal(currentTicker.score) : 'Neutro';
   const signalColor = getSignalColor(signal);
+  // Free users have full access only to their selected free ticker
+  const hasTickerAccess = isPro || (!!freeTicker && selectedTicker.toUpperCase() === freeTicker.toUpperCase());
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: theme.cardBg, borderRadius: 12, marginBottom: '1.25rem',
@@ -184,9 +194,10 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}>
             {tickers.map(t => {
               const s = getSignal(t.score);
+              const locked = !isPro && !!freeTicker && t.ticker.toUpperCase() !== freeTicker.toUpperCase();
               return (
                 <option key={t.ticker} value={t.ticker}>
-                  {t.ticker} — {s} (Score: {t.score.toFixed(2)})
+                  {locked ? '🔒 ' : ''}{t.ticker} — {s} (Score: {t.score.toFixed(2)})
                 </option>
               );
             })}
@@ -204,6 +215,27 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             }} aria-label="Próxima ação">›</button>
         </div>
       </div>
+
+      {/* Locked ticker banner for free users */}
+      {!hasTickerAccess && selectedTicker && (
+        <div style={{
+          ...cardStyle, padding: '0.75rem 1rem',
+          background: darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
+          border: '1px solid rgba(245,158,11,0.2)',
+          display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+        }}>
+          <Lock size={14} color="#f59e0b" />
+          <span style={{ fontSize: '0.8rem', color: theme.textSecondary, flex: 1 }}>
+            {freeTicker
+              ? <>Conteúdo bloqueado. Sua ação gratuita é <strong style={{ color: '#8b5cf6' }}>{freeTicker}</strong>. </>
+              : <>Selecione sua ação gratuita nas <a href="#/dashboard/settings" style={{ color: '#8b5cf6' }}>Configurações</a>. </>
+            }
+            <a href="#/dashboard/upgrade" style={{ color: '#f59e0b', fontWeight: 600, textDecoration: 'none' }}>
+              Assine o Pro para desbloquear todas.
+            </a>
+          </span>
+        </div>
+      )}
 
       {currentTicker && (
         <>
@@ -237,14 +269,14 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               <div style={{ padding: '0.75rem', borderRadius: 8, backgroundColor: theme.subtle }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Previsão 20d</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
-                  <ProValue isPro={isPro} placeholder="R$ ••••">R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}</ProValue>
+                  <ProValue isPro={hasTickerAccess} placeholder="R$ ••••">R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}</ProValue>
                 </div>
               </div>
               {/* Retorno — Pro */}
               <div style={{ padding: '0.75rem', borderRadius: 8, backgroundColor: theme.subtle }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Retorno Esperado</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
-                  <ProValue isPro={isPro} placeholder="±••%">
+                  <ProValue isPro={hasTickerAccess} placeholder="±••%">
                     {currentTicker.exp_return_20 >= 0 ? '+' : ''}{(currentTicker.exp_return_20 * 100).toFixed(1)}%
                   </ProValue>
                 </div>
@@ -253,7 +285,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               <div style={{ padding: '0.75rem', borderRadius: 8, backgroundColor: theme.subtle }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Volatilidade 20d</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b' }}>
-                  <ProValue isPro={isPro} placeholder="••%">{(currentTicker.vol_20d * 100).toFixed(1)}%</ProValue>
+                  <ProValue isPro={hasTickerAccess} placeholder="••%">{(currentTicker.vol_20d * 100).toFixed(1)}%</ProValue>
                 </div>
               </div>
             </div>
@@ -261,34 +293,34 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
 
           {/* ═══ 4. SHAP WATERFALL — Pro gated ═══ */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <ProBlur isPro={isPro} darkMode={darkMode} label="Contribuição dos Fatores (SHAP)" storageKey="b3tr_blur_shap">
-              <SHAPWaterfallChart ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} isPro={isPro} />
+            <ProBlur isPro={hasTickerAccess} darkMode={darkMode} label="Contribuição dos Fatores (SHAP)" storageKey="b3tr_blur_shap">
+              <SHAPWaterfallChart ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} isPro={hasTickerAccess} />
             </ProBlur>
           </div>
 
           {/* ═══ 5. EXPLANATION TEXT — partial free ═══ */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <ExplanationText ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} isPro={isPro} />
+            <ExplanationText ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} isPro={hasTickerAccess} />
           </div>
 
           {/* ═══ 6. FUNDAMENTALS SNAPSHOT — Pro gated ═══ */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <ProBlur isPro={isPro} darkMode={darkMode} label="Dados Fundamentalistas (BRAPI Pro)" storageKey="b3tr_blur_fundamentals">
+            <ProBlur isPro={hasTickerAccess} darkMode={darkMode} label="Dados Fundamentalistas (BRAPI Pro)" storageKey="b3tr_blur_fundamentals">
               <FundamentalsSnapshot ticker={selectedTicker} darkMode={darkMode} theme={theme} />
             </ProBlur>
           </div>
 
           {/* ═══ 7. MACRO SNAPSHOT — Pro gated ═══ */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <ProBlur isPro={isPro} darkMode={darkMode} label="Fatores Macroeconômicos" storageKey="b3tr_blur_macro">
+            <ProBlur isPro={hasTickerAccess} darkMode={darkMode} label="Fatores Macroeconômicos" storageKey="b3tr_blur_macro">
               <MacroSnapshot darkMode={darkMode} theme={theme} />
             </ProBlur>
           </div>
 
           {/* ═══ 8. SENSITIVITY — Pro gated ═══ */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <ProBlur isPro={isPro} darkMode={darkMode} label="Análise de Sensibilidade" storageKey="b3tr_blur_sensitivity">
-              <SensitivityAnalysis ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} isPro={isPro} />
+            <ProBlur isPro={hasTickerAccess} darkMode={darkMode} label="Análise de Sensibilidade" storageKey="b3tr_blur_sensitivity">
+              <SensitivityAnalysis ticker={selectedTicker} tickerData={currentTicker} darkMode={darkMode} isPro={hasTickerAccess} />
             </ProBlur>
           </div>
 

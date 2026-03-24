@@ -16,6 +16,26 @@ export const useIsPro = () => {
   return user?.plan === 'pro';
 };
 
+/** Returns the free-tier selected ticker (empty string if none or if user is Pro). */
+export const useFreeTicker = () => {
+  const { user } = useAuth();
+  if (user?.plan === 'pro') return '';
+  return user?.freeTicker || '';
+};
+
+/** Returns true if the user has full access to a given ticker (Pro or it's their free ticker). */
+export const useHasTickerAccess = (ticker: string) => {
+  const { user } = useAuth();
+  if (user?.plan === 'pro') return true;
+  if (!ticker || !user?.freeTicker) return false;
+  return ticker.toUpperCase() === user.freeTicker.toUpperCase();
+};
+
+export const useCanViewCosts = () => {
+  const { user } = useAuth();
+  return user?.role === 'admin' || user?.canViewCosts === true;
+};
+
 const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', darkMode = true, inline = false, storageKey }) => {
   const isPro = useIsPro();
   const dismissKey = storageKey || `b3tr_progate_dismissed_${feature.replace(/\s+/g, '_')}`;

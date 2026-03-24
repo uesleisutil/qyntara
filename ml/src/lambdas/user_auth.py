@@ -791,6 +791,7 @@ def _handle_login(event: dict) -> dict:
         "role": item.get("role", "viewer"),
         "plan": item.get("plan", "free"),
         "emailVerified": item.get("emailVerified", True),
+        "freeTicker": item.get("freeTicker", ""),
     })
 
 
@@ -843,6 +844,7 @@ def _handle_me(event: dict) -> dict:
             "role": item.get("role", payload.get("role")),
             "plan": plan,
             "planExpiresAt": plan_expires if plan == "pro" else "",
+            "freeTicker": item.get("freeTicker", ""),
         })
     except Exception:
         # Fallback to JWT data
@@ -852,6 +854,7 @@ def _handle_me(event: dict) -> dict:
             "name": payload.get("name"),
             "role": payload.get("role"),
             "plan": payload.get("plan", "free"),
+            "freeTicker": "",
         })
 
 
@@ -2692,6 +2695,43 @@ def _handle_carteiras_delete(event: dict) -> dict:
         return _cors_response(500, {"message": "Erro ao excluir carteira"})
 
 
+def _handle_set_free_ticker(event: dict) -> dict:
+    """POST /auth/free-ticker — save the free-tier ticker preference for a user."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    email = user.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    ticker = _sanitize_string(body.get("ticker", ""), 10).upper()
+    if not ticker:
+        return _cors_response(400, {"message": "Ticker é obrigatório"})
+
+    table = dynamodb.Table(USERS_TABLE)
+    now = datetime.now(UTC).isoformat()
+
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET freeTicker = :t, updatedAt = :now",
+            ExpressionAttributeValues={":t": ticker, ":now": now},
+        )
+        return _cors_response(200, {"message": "Ticker salvo", "freeTicker": ticker})
+    except ClientError as e:
+        logger.error(f"Error saving free ticker for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao salvar ticker"})
+
+
 def handler(event: dict, context: Any = None) -> dict:
     """Lambda handler — routes to register/login/me/verify/reset/change-password/notifications."""
     method = event.get("httpMethod", "")
@@ -2762,6 +2802,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_check_session(event)
     elif path.endswith("/auth/manage-billing") and method == "POST":
         return _handle_manage_billing(event)
+    elif path.endswith("/auth/free-ticker") and method == "POST":
+        return _handle_set_free_ticker(event)
     elif path.endswith("/carteiras") and method == "GET":
         return _handle_carteiras_list(event)
     elif path.endswith("/carteiras") and method == "POST":

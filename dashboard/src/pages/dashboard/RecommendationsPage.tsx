@@ -4,7 +4,7 @@ import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock, Lo
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import ShareButton from '../../components/shared/features/ShareButton';
-import { useIsPro } from '../../components/shared/pro/ProGate';
+import { useIsPro, useFreeTicker } from '../../components/shared/pro/ProGate';
 import ActivationChecklist, { markChecklistItem } from '../../components/shared/features/ActivationChecklist';
 import { WatchlistButton, getWatchlist } from '../../components/shared/features/Watchlist';
 import ExportCSV from '../../components/shared/ui/ExportCSV';
@@ -24,6 +24,7 @@ interface Recommendation {
 const RecommendationsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
   const isPro = useIsPro();
+  const freeTicker = useFreeTicker();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [date, setDate] = useState('');
   const [loading, setLoading] = useState(true);
@@ -362,6 +363,7 @@ const RecommendationsPage: React.FC = () => {
               const confidence = Math.min(99, Math.max(10, Math.round(50 + r.score * 10 + (1 - r.vol_20d) * 20)));
               const stopLoss = r.last_close * (1 - Math.max(0.03, r.vol_20d * 1.5));
               const takeProfit = r.pred_price_t_plus_20 * (1 + r.vol_20d * 0.3);
+              const hasAccess = isPro || (!!freeTicker && r.ticker.toUpperCase() === freeTicker.toUpperCase());
               return (
                 <tr key={r.ticker} style={{
                   borderBottom: `1px solid ${theme.border}`,
@@ -404,19 +406,19 @@ const RecommendationsPage: React.FC = () => {
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', color: theme.text }}>R$ {fmt(r.last_close, 2)}</td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
-                    <ProValue isPro={isPro} style={{ color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue>
+                    <ProValue isPro={hasAccess} style={{ color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue>
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
-                    <ProValue isPro={isPro} style={{ fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••••%">
+                    <ProValue isPro={hasAccess} style={{ fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••••%">
                       {r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%
                     </ProValue>
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
-                    <ProValue isPro={isPro} style={{ color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue>
+                    <ProValue isPro={hasAccess} style={{ color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue>
                   </td>
                   {/* #12: Merged Faixa column (Stop-Loss → Take-Profit) */}
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
-                    <ProValue isPro={isPro} style={{ color: theme.text, fontSize: '0.75rem' }} placeholder="••• → •••">
+                    <ProValue isPro={hasAccess} style={{ color: theme.text, fontSize: '0.75rem' }} placeholder="••• → •••">
                       <span style={{ color: '#ef4444' }}>{fmt(stopLoss, 2)}</span>
                       <span style={{ color: theme.textSecondary, margin: '0 0.15rem' }}>→</span>
                       <span style={{ color: '#10b981' }}>{fmt(takeProfit, 2)}</span>
@@ -437,6 +439,7 @@ const RecommendationsPage: React.FC = () => {
           const confidence = Math.min(99, Math.max(10, Math.round(50 + r.score * 10 + (1 - r.vol_20d) * 20)));
           const stopLoss = r.last_close * (1 - Math.max(0.03, r.vol_20d * 1.5));
           const takeProfit = r.pred_price_t_plus_20 * (1 + r.vol_20d * 0.3);
+          const hasAccess = isPro || (!!freeTicker && r.ticker.toUpperCase() === freeTicker.toUpperCase());
           return (
             <div key={r.ticker} style={{ ...cardStyle, marginBottom: '0.5rem', padding: '0.85rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -458,22 +461,22 @@ const RecommendationsPage: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem' }}>
                 <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: getSignalColor(getSignal(r.score)).text }}>{fmt(r.score, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.last_close, 2)}</strong></div>
-                <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue></div>
-                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••%">{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</ProValue></div>
-                <div><span style={{ color: theme.textSecondary }}>Vol:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue></div>
+                <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <ProValue isPro={hasAccess} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue></div>
+                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <ProValue isPro={hasAccess} style={{ fontWeight: 700, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••%">{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</ProValue></div>
+                <div><span style={{ color: theme.textSecondary }}>Vol:</span> <ProValue isPro={hasAccess} style={{ fontWeight: 700, color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue></div>
                 <div>
                   <span style={{ color: theme.textSecondary }}>Confiança:</span>{' '}
-                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: confidence >= 70 ? '#10b981' : '#9895b0' }} placeholder="••%">{confidence}%</ProValue>
+                  <ProValue isPro={hasAccess} style={{ fontWeight: 700, color: confidence >= 70 ? '#10b981' : '#9895b0' }} placeholder="••%">{confidence}%</ProValue>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem', marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: `1px solid ${theme.border}` }}>
                 <div>
                   <span style={{ color: theme.textSecondary }}>Stop-Loss:</span>{' '}
-                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(stopLoss, 2)}</ProValue>
+                  <ProValue isPro={hasAccess} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(stopLoss, 2)}</ProValue>
                 </div>
                 <div>
                   <span style={{ color: theme.textSecondary }}>Take-Profit:</span>{' '}
-                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(takeProfit, 2)}</ProValue>
+                  <ProValue isPro={hasAccess} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(takeProfit, 2)}</ProValue>
                 </div>
               </div>
             </div>
