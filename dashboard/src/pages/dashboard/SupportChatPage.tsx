@@ -65,7 +65,6 @@ const SupportChatPage: React.FC = () => {
   const handleSend = async () => {
     if (!message.trim()) return;
     const catLabel = !activeTicket && category ? CATEGORIES.find(c => c.key === category)?.label || category : '';
-    const catIcon = !activeTicket && category ? CATEGORIES.find(c => c.key === category)?.icon || '' : '';
     const fullMessage = message.trim();
     const subject = catLabel ? `[${catLabel}] ${fullMessage.slice(0, 80)}` : fullMessage.slice(0, 80);
     setSending(true); setError('');
