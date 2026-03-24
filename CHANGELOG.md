@@ -3,6 +3,41 @@
 Todas as mudanças notáveis do projeto Qyntara são documentadas aqui.
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 
+## [3.1.0] — 2026-03-24
+
+Hardening de segurança, correção de workflows e limpeza do repositório.
+
+### Security
+- Corrigido path traversal no `s3_proxy.py` (acesso arbitrário ao S3)
+- Substituído CORS wildcard (`*`) por allowlist de origens em todas as Lambdas
+- Adicionados security headers (X-Content-Type-Options, X-Frame-Options, HSTS) em todas as Lambdas
+- Removido vazamento de stack trace em respostas 500 da `dashboard_api`
+- Removidas credenciais hardcoded dos `.env` locais (Stripe live keys, JWT secret, SMTP password)
+- Pinado `trivy-action` em `v0.35.0` (mitigação do supply chain attack de março 2026)
+- Substituído `semgrep-action@v1` (descontinuado) por instalação direta via pip
+- Melhorado `.gitleaks.toml` com regras custom para Stripe e JWT
+- Adicionado script de rotação de secrets (`scripts/rotate-secrets.sh`)
+
+### Fixed
+- Corrigido erro de build: imports não utilizados (`Eye`, `EyeOff`) em `AdminUsersPage.tsx`
+- Corrigido caminho do `requirements.txt` no `pip-audit` (era `/` → agora `ml/`)
+- Corrigido diretório do Dependabot para pip (era `/` → agora `/ml`)
+- Corrigido falso positivo no secrets-scan (exemplo AWS no `validate-no-secrets.sh`)
+- Corrigida variável sem aspas no `deploy.yml` (shell word splitting)
+
+### Changed
+- Repositório renomeado de `b3-tactical-ranking` para `qyntara`
+- Descrição do repositório atualizada para refletir o produto completo
+- Homepage configurada para `https://qyntara.tech`
+- Atualizadas todas as referências ao nome antigo em scripts e docs
+
+### Removed
+- Environments GitHub desnecessários: `staging`, `env`
+- 6 scripts de staging (deploy, benchmark, smoke-test, etc.)
+- Arquivos `.env.staging` locais
+
+---
+
 ## [3.0.0] — 2026-03-24
 
 Rebranding para Qyntara e reorganização completa do repositório.
