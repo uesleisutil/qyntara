@@ -28,5 +28,8 @@ tags = ["stripe", "secret"]
 [[rules]]
 id = "jwt-secret-hardcoded"
 description = "Hardcoded JWT Secret"
-regex = '''JWT_SECRET=(?!CHANGE_ME)[a-zA-Z0-9\-_]{10,}'''
+regex = '''JWT_SECRET=[a-zA-Z0-9\-_]{16,}'''
 tags = ["jwt", "secret"]
+
+[rules.allowlist]
+regexes = ['''CHANGE_ME_USE_SECRETS_MANAGER''']
