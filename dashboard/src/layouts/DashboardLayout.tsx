@@ -24,13 +24,17 @@ const DashboardLayout: React.FC = () => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : true;
+    const isDark = saved ? JSON.parse(saved) : true;
+    document.documentElement.classList.toggle('dark', isDark);
+    return isDark;
   });
 
   const toggleDarkMode = () => {
     setDarkMode((prev: boolean) => {
-      localStorage.setItem('darkMode', JSON.stringify(!prev));
-      return !prev;
+      const next = !prev;
+      localStorage.setItem('darkMode', JSON.stringify(next));
+      document.documentElement.classList.toggle('dark', next);
+      return next;
     });
   };
 

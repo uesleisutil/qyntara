@@ -2,11 +2,25 @@
   --font-size-scale: 1;
   --focus-color: #fbbf24;
   --primary-color: #8b5cf6;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --border-color: #e5e7eb;
+  --text-primary: #0c0a1a;
+  --text-secondary: #64618b;
+  --bg-primary: #f8f7fc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --border-color: #e8e5f0;
+  --bg-subtle: #f8fafc;
+  --bg-hover: #f3f1fa;
+}
+
+html.dark {
+  --text-primary: #f1f0f9;
+  --text-secondary: #9895b0;
+  --bg-primary: #0c0a1a;
+  --bg-secondary: #13112a;
+  --bg-card: #1a1836;
+  --border-color: #2a2745;
+  --bg-subtle: #1a1836;
+  --bg-hover: #1f1d3a;
 }
 
 * {
@@ -21,8 +35,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc;
-  color: #0c0a1a;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   font-size: calc(16px * var(--font-size-scale, 1));
   line-height: 1.5;
 }
@@ -120,18 +134,18 @@ body {
 }
 
 .card {
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .card h3 {
   font-size: calc(1.25rem * var(--font-size-scale, 1));
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #0c0a1a;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -159,7 +173,7 @@ body {
 .metric {
   text-align: center;
   padding: 1rem;
-  background: #f8fafc;
+  background: var(--bg-subtle);
   border-radius: 8px;
 }
 
@@ -171,14 +185,14 @@ body {
 
 .metric-label {
   font-size: calc(0.875rem * var(--font-size-scale, 1));
-  color: #64748b;
+  color: var(--text-secondary);
   margin-top: 0.25rem;
 }
 
 .loading {
   text-align: center;
   padding: 2rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .error {
@@ -256,17 +270,17 @@ body {
 .recommendations-table td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .recommendations-table th {
-  background: #f8fafc;
+  background: var(--bg-subtle);
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .recommendations-table tr:hover {
-  background: #f8fafc;
+  background: var(--bg-hover);
 }
 
 .rank-badge {
@@ -289,13 +303,13 @@ body {
 
 .last-updated {
   text-align: center;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: calc(0.875rem * var(--font-size-scale, 1));
   margin-top: 2rem;
   padding: 1rem;
-  background: white;
+  background: var(--bg-card);
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 /* Tabs Navigation */
@@ -303,7 +317,7 @@ body {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-color);
   padding: 0 1rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -314,7 +328,7 @@ body {
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: normal;
   cursor: pointer;
   display: flex;
@@ -377,7 +391,7 @@ body {
 }
 
 .skeleton {
-  background-color: #e2e8f0;
+  background-color: var(--border-color);
   position: relative;
   overflow: hidden;
 }
@@ -389,9 +403,9 @@ body {
 .skeleton-wave {
   background: linear-gradient(
     90deg,
-    #e2e8f0 0%,
-    #f1f5f9 50%,
-    #e2e8f0 100%
+    var(--border-color) 0%,
+    var(--bg-hover) 50%,
+    var(--border-color) 100%
   );
   background-size: 200% 100%;
   animation: skeleton-wave 1.5s ease-in-out infinite;
