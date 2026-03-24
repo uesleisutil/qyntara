@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { Settings, Trash2, Shield, Lock, CreditCard, AlertTriangle, CheckCircle, ExternalLink, Bell, Keyboard, Star, Search, Check } from 'lucide-react';
+import { Settings, Trash2, Shield, Lock, CreditCard, AlertTriangle, CheckCircle, ExternalLink, Bell, Keyboard } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { API_BASE_URL, API_KEY } from '../../config';
+import { API_BASE_URL } from '../../config';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
 const SettingsPage: React.FC = () => {
   const { darkMode } = useOutletContext<DashboardContext>();
-  const { user, logout, setFreeTicker } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
@@ -18,24 +18,6 @@ const SettingsPage: React.FC = () => {
   const [emailNotif, setEmailNotif] = useState(() => localStorage.getItem('b3tr_email_notif') === 'true');
   const [emailNotifSaving, setEmailNotifSaving] = useState(false);
   const isPro = user?.plan === 'pro';
-  const [availableTickers, setAvailableTickers] = useState<string[]>([]);
-  const [tickerSearch, setTickerSearch] = useState('');
-  const [newTicker, setNewTicker] = useState(user?.freeTicker || '');
-  const [savingTicker, setSavingTicker] = useState(false);
-  const [tickerSaved, setTickerSaved] = useState(false);
-
-  useEffect(() => {
-    if (isPro) return;
-    (async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers: { 'x-api-key': API_KEY } });
-        if (res.ok) {
-          const data = await res.json();
-          setAvailableTickers((data.recommendations || []).map((r: any) => r.ticker).sort());
-        }
-      } catch { /* silent */ }
-    })();
-  }, [isPro]);
 
   const theme = {
     bg: darkMode ? '#0f1117' : '#f8f9fb',
@@ -98,60 +80,6 @@ const SettingsPage: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* Free Ticker Selection */}
-      {!isPro && (
-        <div style={cardStyle}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Star size={16} color="#f59e0b" /> Minha Ação Gratuita
-          </h3>
-          <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.75rem', lineHeight: 1.5 }}>
-            No plano Free, você tem acesso completo a 1 ação. Atualmente: <strong style={{ color: '#3b82f6' }}>{user?.freeTicker || 'Nenhuma selecionada'}</strong>
-          </p>
-          <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
-            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
-            <input type="text" placeholder="Buscar ticker..." value={tickerSearch}
-              onChange={e => setTickerSearch(e.target.value)}
-              style={{
-                width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8,
-                border: `1px solid ${theme.border}`, background: theme.bg,
-                color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box',
-              }}
-            />
-          </div>
-          <div style={{ maxHeight: 160, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.3rem', marginBottom: '0.75rem' }}>
-            {availableTickers.filter(t => !tickerSearch || t.toLowerCase().includes(tickerSearch.toLowerCase())).map(t => (
-              <button key={t} onClick={() => setNewTicker(t)} style={{
-                padding: '0.4rem', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600,
-                border: newTicker === t ? '2px solid #3b82f6' : `1px solid ${theme.border}`,
-                background: newTicker === t ? (darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)') : 'transparent',
-                color: newTicker === t ? '#3b82f6' : theme.text,
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
-              }}>
-                {newTicker === t && <Check size={10} />} {t}
-              </button>
-            ))}
-          </div>
-          <button
-            disabled={!newTicker || newTicker === user?.freeTicker || savingTicker}
-            onClick={async () => {
-              setSavingTicker(true); setTickerSaved(false);
-              try { await setFreeTicker(newTicker); setTickerSaved(true); setTimeout(() => setTickerSaved(false), 3000); }
-              catch { /* silent */ }
-              finally { setSavingTicker(false); }
-            }}
-            style={{
-              padding: '0.5rem 1.25rem', borderRadius: 8, border: 'none', fontSize: '0.82rem', fontWeight: 600,
-              background: (!newTicker || newTicker === user?.freeTicker) ? (darkMode ? '#2a2e3a' : '#e0e2e8') : 'linear-gradient(135deg, #2563eb, #3b82f6)',
-              color: (!newTicker || newTicker === user?.freeTicker) ? theme.textSecondary : 'white',
-              cursor: (!newTicker || newTicker === user?.freeTicker) ? 'not-allowed' : 'pointer',
-              opacity: savingTicker ? 0.6 : 1,
-            }}
-          >
-            {savingTicker ? 'Salvando...' : tickerSaved ? '✓ Salvo' : 'Salvar ação'}
-          </button>
-        </div>
-      )}
 
       {/* Quick links */}
       <div style={cardStyle}>

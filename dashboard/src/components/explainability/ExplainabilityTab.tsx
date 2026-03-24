@@ -246,11 +246,9 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               >
                 {tickers.map(t => {
                   const s = getSignal(t.score);
-                  const isFree = !isPro && !!freeTicker && t.ticker.toUpperCase() === freeTicker.toUpperCase();
-                  const locked = !isPro && !!freeTicker && !isFree;
                   return (
                     <option key={t.ticker} value={t.ticker}>
-                      {isFree ? '✦ ' : locked ? '🔒 ' : ''}{t.ticker} — {s} ({t.score.toFixed(2)})
+                      {t.ticker} — {s} ({t.score.toFixed(2)})
                     </option>
                   );
                 })}
