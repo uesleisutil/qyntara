@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { MessageCircle, Send, Loader2, RefreshCw, XCircle, CheckCircle, Clock, ChevronLeft, User } from 'lucide-react';
+import { MessageCircle, Send, Loader2, RefreshCw, XCircle, CheckCircle, Clock, ChevronLeft, User, Trash2 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
@@ -84,6 +84,20 @@ const AdminChatPage: React.FC = () => {
     } catch { /* silent */ }
   };
 
+  const handleDelete = async (ticketId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir este chamado? Esta ação é irreversível.')) return;
+    try {
+      const token = localStorage.getItem('authToken');
+      await fetch(`${API_BASE_URL}/admin/chat/delete`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId }),
+      });
+      if (activeTicket?.ticketId === ticketId) setActiveTicket(null);
+      await fetchTickets();
+    } catch { /* silent */ }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReply(); }
   };
@@ -137,6 +151,10 @@ const AdminChatPage: React.FC = () => {
               <XCircle size={12} /> Encerrar
             </button>
           )}
+          <button onClick={() => handleDelete(activeTicket.ticketId)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.35rem 0.7rem', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, WebkitAppearance: 'none' as any }}>
+            <Trash2 size={12} /> Excluir
+          </button>
         </div>
 
         <div style={{ ...cardStyle, flex: 1, overflow: 'auto', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -277,7 +295,16 @@ const AdminChatPage: React.FC = () => {
                   <div style={{ fontSize: '0.72rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                     <User size={10} /> {t.userName || t.userEmail}
                   </div>
-                  <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{fmtTime(t.updatedAt)}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{fmtTime(t.updatedAt)}</span>
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(t.ticketId); }}
+                      style={{ display: 'inline-flex', alignItems: 'center', padding: '0.2rem', borderRadius: 4, border: 'none', background: 'transparent', color: theme.textSecondary, cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.15s', WebkitAppearance: 'none' as any }}
+                      onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
+                      onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = theme.textSecondary; }}
+                      title="Excluir chamado">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
                 </div>
                 {lastMsg && (
                   <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

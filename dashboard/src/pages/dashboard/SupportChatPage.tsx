@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { MessageCircle, Send, Loader2, CheckCircle, Clock, Plus, ChevronLeft } from 'lucide-react';
+import { MessageCircle, Send, Loader2, CheckCircle, Clock, Plus, ChevronLeft, Tag } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -14,6 +14,7 @@ const SupportChatPage: React.FC = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
   const [message, setMessage] = useState('');
+  const [category, setCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -51,22 +52,33 @@ const SupportChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [activeTicket?.messages]);
 
+  const CATEGORIES = [
+    { key: 'bug', label: 'Bug / Erro', icon: '🐛' },
+    { key: 'duvida', label: 'Dúvida', icon: '❓' },
+    { key: 'sugestao', label: 'Sugestão', icon: '💡' },
+    { key: 'conta', label: 'Minha Conta', icon: '👤' },
+    { key: 'assinatura', label: 'Assinatura / Pro', icon: '💳' },
+    { key: 'dados', label: 'Dados / Modelo', icon: '📊' },
+    { key: 'outro', label: 'Outro', icon: '📝' },
+  ];
+
   const handleSend = async () => {
     if (!message.trim()) return;
+    const prefix = !activeTicket && category ? `[${CATEGORIES.find(c => c.key === category)?.label || category}] ` : '';
+    const fullMessage = prefix + message.trim();
     setSending(true); setError('');
     try {
       const token = localStorage.getItem('authToken');
       const res = await fetch(`${API_BASE_URL}/chat/messages`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message.trim(), ticketId: activeTicket?.ticketId || '' }),
+        body: JSON.stringify({ message: fullMessage, ticketId: activeTicket?.ticketId || '' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Erro');
-      setMessage('');
-      // If new ticket was created, set it active
+      setMessage(''); setCategory('');
       if (data.ticketId && !activeTicket) {
-        setActiveTicket({ ticketId: data.ticketId, subject: message.trim().slice(0, 80), status: 'open', messages: [{ id: '1', sender: 'user', senderName: user?.name || '', message: message.trim(), timestamp: new Date().toISOString() }], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        setActiveTicket({ ticketId: data.ticketId, subject: fullMessage.slice(0, 80), status: 'open', messages: [{ id: '1', sender: 'user', senderName: user?.name || '', message: fullMessage, timestamp: new Date().toISOString() }], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       }
       await fetchTickets();
     } catch (err: any) { setError(err.message); }
@@ -200,6 +212,28 @@ const SupportChatPage: React.FC = () => {
         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <Plus size={14} /> Nova mensagem
         </div>
+
+        {/* Category selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
+          <Tag size={13} color={theme.textSecondary} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Categoria:</span>
+          {CATEGORIES.map(cat => (
+            <button key={cat.key} onClick={() => setCategory(category === cat.key ? '' : cat.key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                padding: '0.25rem 0.5rem', borderRadius: 6, fontSize: '0.72rem',
+                fontWeight: category === cat.key ? 600 : 400,
+                border: `1px solid ${category === cat.key ? '#3b82f6' : theme.border}`,
+                background: category === cat.key ? 'rgba(59,130,246,0.1)' : 'transparent',
+                color: category === cat.key ? '#3b82f6' : theme.textSecondary,
+                cursor: 'pointer', transition: 'all 0.15s',
+                WebkitAppearance: 'none' as any,
+              }}>
+              {cat.icon} {cat.label}
+            </button>
+          ))}
+        </div>
+
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <textarea value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown}
             placeholder="Descreva sua dúvida ou sugestão..."
