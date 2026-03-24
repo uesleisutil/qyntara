@@ -3,7 +3,8 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import {
   RefreshCw, Clock, Settings2,
   Trophy, Sparkles, Briefcase, BarChart3, Target,
-  Bell, ArrowUpRight, ArrowDownRight, Minus, AlertCircle,
+  Bell, ArrowUpRight, ArrowDownRight, AlertCircle,
+  TrendingUp, TrendingDown, Layers, Crown,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
@@ -16,6 +17,8 @@ import PriceAlerts from '../../components/shared/PriceAlerts';
 import WidgetCard from '../../components/shared/WidgetCard';
 import WidgetPreferences, { WidgetConfig } from '../../components/shared/WidgetPreferences';
 import { useIsPro } from '../../components/shared/ProGate';
+import ProValue from '../../components/shared/ProValue';
+import Sparkline from '../../components/shared/Sparkline';
 import { markChecklistItem } from '../../components/shared/ActivationChecklist';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
@@ -23,40 +26,54 @@ interface Rec {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
   exp_return_20: number; vol_20d: number; score: number;
 }
+interface Carteira {
+  carteiraId: string; name: string; color: string; icon: string;
+  tickers: string[]; createdAt: string;
+}
 
-const PREFS_KEY = 'b3tr_dashboard_widgets_v2';
+const PREFS_KEY = 'b3tr_dashboard_widgets_v3';
 const COLLAPSED_KEY = 'b3tr_dashboard_collapsed';
 
 const WIDGETS = [
   { id: 'highlight', label: 'Destaque do Dia', proOnly: false },
+  { id: 'marketPulse', label: 'Pulso do Mercado', proOnly: false },
+  { id: 'topPicks', label: 'Top Recomendações', proOnly: false },
   { id: 'positions', label: 'Minhas Posições', proOnly: false },
   { id: 'signals', label: 'Novidades', proOnly: false },
   { id: 'performance', label: 'Performance', proOnly: true },
+  { id: 'carteiras', label: 'Minhas Carteiras', proOnly: true },
   { id: 'goal', label: 'Meta', proOnly: true },
   { id: 'alerts', label: 'Alertas de Preço', proOnly: true },
 ];
 
 const TOOLTIPS: Record<string, string> = {
   highlight: 'Ação com maior score do dia e previsão de retorno em 20 dias.',
+  marketPulse: 'Visão geral do mercado: sinais, retorno médio e volatilidade.',
+  topPicks: 'As 5 ações com maior score de compra do dia.',
   positions: 'Ações que você segue com retorno individual.',
   signals: 'Mudanças recentes de sinal e variações no ranking.',
   performance: 'P&L acumulado, taxa de acerto e posições.',
+  carteiras: 'Resumo das suas carteiras personalizadas.',
   goal: 'Defina e acompanhe sua meta de rentabilidade.',
   alerts: 'Alertas de preço para suas ações.',
 };
 
 const ICONS: Record<string, (c: string) => React.ReactNode> = {
   highlight: c => <Trophy size={13} color={c} />,
+  marketPulse: c => <BarChart3 size={13} color={c} />,
+  topPicks: c => <TrendingUp size={13} color={c} />,
   positions: c => <Briefcase size={13} color={c} />,
   signals: c => <Sparkles size={13} color={c} />,
   performance: c => <BarChart3 size={13} color={c} />,
+  carteiras: c => <Layers size={13} color={c} />,
   goal: c => <Target size={13} color={c} />,
   alerts: c => <Bell size={13} color={c} />,
 };
 
 const COLORS: Record<string, string> = {
-  highlight: '#f59e0b', positions: '#3b82f6', signals: '#8b5cf6',
-  performance: '#10b981', goal: '#f59e0b', alerts: '#ef4444',
+  highlight: '#f59e0b', marketPulse: '#3b82f6', topPicks: '#10b981',
+  positions: '#3b82f6', signals: '#8b5cf6',
+  performance: '#10b981', carteiras: '#8b5cf6', goal: '#f59e0b', alerts: '#ef4444',
 };
 
 const GRID = new Set(['performance', 'goal']);
@@ -72,6 +89,265 @@ const getGreeting = (): string => {
   return 'Boa noite';
 };
 
+const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
+
+const authHeaders = () => {
+  const token = localStorage.getItem('authToken');
+  return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+};
+
+/* ─── Market Pulse Widget ─── */
+const MarketPulse: React.FC<{
+  recs: Rec[]; darkMode: boolean; theme: Record<string, string>; isPro: boolean;
+}> = ({ recs, theme, isPro }) => {
+  const buys = recs.filter(r => r.score >= SCORE_BUY_THRESHOLD);
+  const sells = recs.filter(r => r.score <= SCORE_SELL_THRESHOLD);
+  const neutrals = recs.length - buys.length - sells.length;
+  const avgBuyReturn = buys.length
+    ? (buys.reduce((s, r) => s + r.exp_return_20, 0) / buys.length) * 100 : 0;
+  const avgVol = recs.length
+    ? recs.reduce((s, r) => s + r.vol_20d, 0) / recs.length * 100 : 0;
+  const avgScore = buys.length
+    ? buys.reduce((s, r) => s + r.score, 0) / buys.length : 0;
+
+  const stat = (label: string, value: string, sub: string, color: string) => (
+    <div style={{ flex: '1 1 0', minWidth: 70, textAlign: 'center' }}>
+      <div style={{ fontSize: '1.15rem', fontWeight: 700, color, letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+        {value}
+      </div>
+      <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: '0.6rem', color: theme.textSecondary, opacity: 0.7, marginTop: 1 }}>{sub}</div>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* Signal bars */}
+      <div style={{ display: 'flex', gap: 2, height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: '0.75rem' }}>
+        {buys.length > 0 && <div style={{ flex: buys.length, background: '#10b981', borderRadius: 3 }} />}
+        {neutrals > 0 && <div style={{ flex: neutrals, background: '#94a3b8', borderRadius: 3 }} />}
+        {sells.length > 0 && <div style={{ flex: sells.length, background: '#ef4444', borderRadius: 3 }} />}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.68rem' }}>
+        <span style={{ color: '#10b981', fontWeight: 600 }}>
+          <ArrowUpRight size={10} style={{ verticalAlign: 'middle' }} /> {buys.length} Compra
+        </span>
+        <span style={{ color: '#94a3b8' }}>{neutrals} Neutro</span>
+        <span style={{ color: '#ef4444', fontWeight: 600 }}>
+          <ArrowDownRight size={10} style={{ verticalAlign: 'middle' }} /> {sells.length} Venda
+        </span>
+      </div>
+      {/* Key metrics */}
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        {stat('Ret. Médio (Compra)', <ProValue isPro={isPro} placeholder="+0.0%">{`${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn, 1)}%`}</ProValue> as any, '20 dias', avgBuyReturn >= 0 ? '#10b981' : '#ef4444')}
+        {stat('Score Médio', fmt(avgScore, 1), 'sinais compra', '#3b82f6')}
+        {stat('Vol. Média', <ProValue isPro={isPro} placeholder="0.0%">{`${fmt(avgVol, 1)}%`}</ProValue> as any, '20 dias', '#f59e0b')}
+      </div>
+    </div>
+  );
+};
+
+/* ─── Top Picks Widget ─── */
+const TopPicks: React.FC<{
+  recs: Rec[]; darkMode: boolean; theme: Record<string, string>; isPro: boolean;
+  sparklines: Record<string, number[]>;
+  onNavigate: () => void;
+}> = ({ recs, darkMode, theme, isPro, sparklines, onNavigate }) => {
+  const topBuys = useMemo(() =>
+    recs.filter(r => r.score >= SCORE_BUY_THRESHOLD)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5),
+  [recs]);
+
+  if (!topBuys.length) {
+    return (
+      <div style={{ textAlign: 'center', padding: '1rem', color: theme.textSecondary, fontSize: '0.78rem' }}>
+        Nenhum sinal de compra hoje.
+      </div>
+    );
+  }
+
+  const thS: React.CSSProperties = {
+    padding: '0.35rem 0.4rem', fontSize: '0.65rem', fontWeight: 600,
+    color: theme.textSecondary, textAlign: 'left',
+    borderBottom: `1px solid ${theme.border}`,
+  };
+  const tdS: React.CSSProperties = {
+    padding: '0.4rem 0.4rem', fontSize: '0.78rem',
+    borderBottom: `1px solid ${darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}`,
+  };
+
+  return (
+    <div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={thS}>Ação</th>
+              <th style={{ ...thS, textAlign: 'center' }}>Gráfico</th>
+              <th style={{ ...thS, textAlign: 'right' }}>Score</th>
+              <th style={{ ...thS, textAlign: 'right' }}>Ret. Esp.</th>
+              <th style={{ ...thS, textAlign: 'right' }}>Preço</th>
+            </tr>
+          </thead>
+          <tbody>
+            {topBuys.map(r => {
+              const retPct = r.exp_return_20 * 100;
+              return (
+                <tr key={r.ticker}>
+                  <td style={{ ...tdS, fontWeight: 700, color: theme.text }}>{r.ticker}</td>
+                  <td style={{ ...tdS, textAlign: 'center' }}>
+                    {sparklines[r.ticker]?.length > 1
+                      ? <Sparkline data={sparklines[r.ticker]} width={50} height={16} />
+                      : <span style={{ color: theme.textSecondary, fontSize: '0.65rem' }}>—</span>
+                    }
+                  </td>
+                  <td style={{ ...tdS, textAlign: 'right', fontWeight: 600, color: '#3b82f6' }}>
+                    {fmt(r.score, 1)}
+                  </td>
+                  <td style={{ ...tdS, textAlign: 'right' }}>
+                    <ProValue isPro={isPro} style={{ fontWeight: 600, color: retPct >= 0 ? '#10b981' : '#ef4444', fontSize: '0.78rem' }} placeholder="+0.0%">
+                      {retPct >= 0 ? '+' : ''}{fmt(retPct, 1)}%
+                    </ProValue>
+                  </td>
+                  <td style={{ ...tdS, textAlign: 'right', color: theme.textSecondary, fontSize: '0.75rem' }}>
+                    R$ {fmt(r.last_close)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <button onClick={onNavigate} style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+        width: '100%', padding: '0.45rem', marginTop: '0.5rem', borderRadius: 8,
+        border: `1px solid ${theme.border}`, background: 'transparent',
+        color: theme.textSecondary, fontSize: '0.72rem', cursor: 'pointer',
+        transition: 'all 0.15s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSecondary; }}
+      >
+        Ver todas as recomendações <ArrowUpRight size={12} />
+      </button>
+    </div>
+  );
+};
+
+/* ─── Carteiras Summary Widget ─── */
+const CarteirasSummary: React.FC<{
+  darkMode: boolean; theme: Record<string, string>;
+  onNavigate: () => void;
+}> = ({ darkMode, theme, onNavigate }) => {
+  const [carteiras, setCarteiras] = useState<Carteira[]>([]);
+  const [tickerData, setTickerData] = useState<Record<string, { exp_return_20: number; score: number }>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [recsRes, cartRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers: { 'x-api-key': API_KEY } }),
+          fetch(`${API_BASE_URL}/carteiras`, { headers: authHeaders() }),
+        ]);
+        if (recsRes.ok) {
+          const data = await recsRes.json();
+          const map: Record<string, { exp_return_20: number; score: number }> = {};
+          (data.recommendations || []).forEach((r: any) => {
+            map[r.ticker] = { exp_return_20: r.exp_return_20 || 0, score: r.score || 0 };
+          });
+          setTickerData(map);
+        }
+        if (cartRes.ok) {
+          const data = await cartRes.json();
+          setCarteiras(data.carteiras || []);
+        }
+      } catch {} finally { setLoading(false); }
+    })();
+  }, []);
+
+  if (loading) {
+    return <div style={{ padding: '0.75rem', textAlign: 'center', color: theme.textSecondary, fontSize: '0.78rem' }}>Carregando...</div>;
+  }
+
+  if (!carteiras.length) {
+    return (
+      <div style={{ textAlign: 'center', padding: '1rem' }}>
+        <div style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.5rem' }}>
+          Nenhuma carteira criada ainda.
+        </div>
+        <button onClick={onNavigate} style={{
+          padding: '0.35rem 0.75rem', borderRadius: 6, border: `1px solid ${theme.border}`,
+          background: 'transparent', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+        }}>
+          Criar Carteira
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+      {carteiras.slice(0, 4).map(c => {
+        const tds = c.tickers.map(t => tickerData[t]).filter(Boolean);
+        const avgRet = tds.length ? (tds.reduce((s, q) => s + q.exp_return_20, 0) / tds.length) * 100 : 0;
+        const buys = tds.filter(q => q.score >= SCORE_BUY_THRESHOLD).length;
+        const isUp = avgRet >= 0;
+        return (
+          <div key={c.carteiraId} style={{
+            display: 'flex', alignItems: 'center', gap: '0.5rem',
+            padding: '0.45rem 0.35rem', borderRadius: 8,
+            borderLeft: `3px solid ${c.color}`,
+            transition: 'background 0.15s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {c.name}
+              </div>
+              <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>
+                {c.tickers.length} {c.tickers.length === 1 ? 'ação' : 'ações'}
+                {buys > 0 && <span style={{ color: '#10b981', marginLeft: '0.3rem' }}>· {buys} compra</span>}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{
+                fontSize: '0.85rem', fontWeight: 700,
+                color: tds.length ? (isUp ? '#10b981' : '#ef4444') : theme.textSecondary,
+                display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end',
+              }}>
+                {tds.length > 0 && (isUp ? <TrendingUp size={11} /> : <TrendingDown size={11} />)}
+                {tds.length ? `${isUp ? '+' : ''}${fmt(avgRet, 1)}%` : '—'}
+              </div>
+              <div style={{ fontSize: '0.6rem', color: theme.textSecondary }}>ret. esperado</div>
+            </div>
+          </div>
+        );
+      })}
+      {carteiras.length > 4 && (
+        <div style={{ fontSize: '0.7rem', color: theme.textSecondary, textAlign: 'center', padding: '0.25rem' }}>
+          +{carteiras.length - 4} carteira{carteiras.length - 4 > 1 ? 's' : ''}
+        </div>
+      )}
+      <button onClick={onNavigate} style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+        width: '100%', padding: '0.4rem', marginTop: '0.25rem', borderRadius: 8,
+        border: `1px solid ${theme.border}`, background: 'transparent',
+        color: theme.textSecondary, fontSize: '0.72rem', cursor: 'pointer',
+        transition: 'all 0.15s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSecondary; }}
+      >
+        Gerenciar carteiras <ArrowUpRight size={12} />
+      </button>
+    </div>
+  );
+};
+
 /* ─── Main Component ─── */
 const MyDashboardPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
@@ -83,6 +359,7 @@ const MyDashboardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [prefsOpen, setPrefsOpen] = useState(false);
+  const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => load(COLLAPSED_KEY, {}));
   const [order, setOrder] = useState<string[]>(() =>
     load<{ order: string[] } | null>(PREFS_KEY, null)?.order || WIDGETS.map(w => w.id),
@@ -95,6 +372,7 @@ const MyDashboardPage: React.FC = () => {
     return d;
   });
 
+  // Sync new widgets into order
   useEffect(() => {
     const allIds = WIDGETS.map(w => w.id);
     const missing = allIds.filter(id => !order.includes(id));
@@ -117,6 +395,30 @@ const MyDashboardPage: React.FC = () => {
     } catch (err: any) {
       setError(err.message || 'Falha ao carregar dados');
     } finally { setLoading(false); }
+  }, []);
+
+  // Fetch sparkline data
+  useEffect(() => {
+    (async () => {
+      try {
+        const now = new Date();
+        const key = `prices/year=${now.getFullYear()}/month=${String(now.getMonth() + 1).padStart(2, '0')}/daily_prices.json`;
+        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${key}`, { headers: { 'x-api-key': API_KEY } });
+        if (!res.ok) return;
+        const rows: { date: string; ticker: string; close: string }[] = await res.json();
+        const map: Record<string, { date: string; close: number }[]> = {};
+        rows.forEach(r => {
+          if (!map[r.ticker]) map[r.ticker] = [];
+          map[r.ticker].push({ date: r.date, close: parseFloat(r.close) });
+        });
+        const sp: Record<string, number[]> = {};
+        Object.entries(map).forEach(([ticker, entries]) => {
+          entries.sort((a, b) => a.date.localeCompare(b.date));
+          sp[ticker] = entries.slice(-20).map(e => e.close);
+        });
+        setSparklines(sp);
+      } catch { /* silent */ }
+    })();
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -148,12 +450,24 @@ const MyDashboardPage: React.FC = () => {
 
   const renderWidget = (id: string) => {
     switch (id) {
-      case 'highlight': return topTicker ? <DailyHighlight darkMode={darkMode} theme={theme} topTicker={topTicker} totalBuy={totalBuy} totalSell={totalSell} totalNeutral={totalNeutral} date={date} isPro={isPro} /> : null;
-      case 'positions': return <MyPositionsPanel darkMode={darkMode} theme={theme} />;
-      case 'signals': return <SignalChangesDropdown darkMode={darkMode} theme={theme} />;
-      case 'performance': return <PersonalPerformance darkMode={darkMode} theme={theme} />;
-      case 'goal': return <GoalTracker darkMode={darkMode} theme={theme} />;
-      case 'alerts': return <PriceAlerts darkMode={darkMode} theme={theme} />;
+      case 'highlight':
+        return topTicker ? <DailyHighlight darkMode={darkMode} theme={theme} topTicker={topTicker} totalBuy={totalBuy} totalSell={totalSell} totalNeutral={totalNeutral} date={date} isPro={isPro} /> : null;
+      case 'marketPulse':
+        return recs.length ? <MarketPulse recs={recs} darkMode={darkMode} theme={theme} isPro={isPro} /> : null;
+      case 'topPicks':
+        return recs.length ? <TopPicks recs={recs} darkMode={darkMode} theme={theme} isPro={isPro} sparklines={sparklines} onNavigate={() => navigate('/dashboard/recommendations')} /> : null;
+      case 'positions':
+        return <MyPositionsPanel darkMode={darkMode} theme={theme} />;
+      case 'signals':
+        return <SignalChangesDropdown darkMode={darkMode} theme={theme} />;
+      case 'performance':
+        return <PersonalPerformance darkMode={darkMode} theme={theme} />;
+      case 'carteiras':
+        return <CarteirasSummary darkMode={darkMode} theme={theme} onNavigate={() => navigate('/dashboard/carteiras')} />;
+      case 'goal':
+        return <GoalTracker darkMode={darkMode} theme={theme} />;
+      case 'alerts':
+        return <PriceAlerts darkMode={darkMode} theme={theme} />;
       default: return null;
     }
   };
@@ -211,29 +525,6 @@ const MyDashboardPage: React.FC = () => {
   });
   if (batch.length) blocks.push({ type: 'grid', ids: batch });
 
-  /* ─── Signal summary chips ─── */
-  const signalChip = (label: string, count: number, color: string, icon: React.ReactNode) => (
-    <div key={label} style={{
-      flex: '1 1 0', minWidth: 80, padding: '0.5rem 0.6rem',
-      borderRadius: 10, background: theme.card || (darkMode ? '#1e293b' : '#ffffff'),
-      border: `1px solid ${theme.border}`, display: 'flex', alignItems: 'center', gap: '0.4rem',
-      cursor: 'pointer', transition: 'border-color 0.15s',
-    }}
-      onClick={() => navigate('/dashboard/recommendations')}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = color; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; }}
-    >
-      <div style={{
-        width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: `${color}12`, color, flexShrink: 0,
-      }}>{icon}</div>
-      <div>
-        <div style={{ fontSize: '1.05rem', fontWeight: 700, color, lineHeight: 1.1 }}>{count}</div>
-        <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>{label}</div>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       {/* ─── Header ─── */}
@@ -247,6 +538,16 @@ const MyDashboardPage: React.FC = () => {
             {lastUpdated && (
               <span style={{ fontSize: '0.65rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Clock size={9} /> {relTime(lastUpdated)}
+              </span>
+            )}
+            {isPro && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 3,
+                padding: '0.1rem 0.4rem', borderRadius: 10,
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                color: 'white', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.03em',
+              }}>
+                <Crown size={9} /> PRO
               </span>
             )}
           </div>
@@ -270,15 +571,6 @@ const MyDashboardPage: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {/* ─── Signal Summary (the only top-level overview) ─── */}
-      {recs.length > 0 && (
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          {signalChip('Compra', totalBuy, '#10b981', <ArrowUpRight size={14} />)}
-          {signalChip('Neutro', totalNeutral, '#94a3b8', <Minus size={14} />)}
-          {signalChip('Venda', totalSell, '#ef4444', <ArrowDownRight size={14} />)}
-        </div>
-      )}
 
       {/* ─── Widgets ─── */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>

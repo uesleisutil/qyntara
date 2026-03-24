@@ -4,7 +4,7 @@ import {
   Shield, BarChart3, ArrowRight, CheckCircle, Menu, X,
   Award, Target, Brain, TestTubes, LineChart, Lock, Crown,
   ArrowUpRight, ArrowDownRight, Eye, Briefcase, RefreshCw, Zap,
-  TrendingUp, Layers,
+  TrendingUp, Layers, Rocket, Landmark,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../config';
 import { SCORE_BUY_THRESHOLD, getPriceDataKeys, PRO_PRICE, UNIVERSE_SIZE_FALLBACK, getSignal, getSignalColor } from '../constants';
@@ -76,6 +76,13 @@ const LandingPage: React.FC = () => {
   const [userCount, setUserCount] = useState(0);
   const [navSolid, setNavSolid] = useState(false);
   const [heroScale, setHeroScale] = useState(1);
+  const [liveDataTimedOut, setLiveDataTimedOut] = useState(false);
+
+  // Timeout for live data loading (don't show spinner forever)
+  useEffect(() => {
+    const t = setTimeout(() => setLiveDataTimedOut(true), 5000);
+    return () => clearTimeout(t);
+  }, []);
 
   // Parallax on hero
   useEffect(() => {
@@ -377,9 +384,64 @@ const LandingPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '4rem', color: brand.textDim }}>
-                <RefreshCw size={24} style={{ animation: 'lp-spin 1s linear infinite', marginBottom: '0.5rem' }} />
-                <div>Carregando dados ao vivo...</div>
+              <div style={{ background: 'rgba(255,255,255,0.02)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, overflow: 'hidden' }}>
+                {liveDataTimedOut ? (
+                  <>
+                    <div style={{ padding: '1.25rem 1.5rem', borderBottom: `0.5px solid ${brand.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.82rem', color: brand.textMuted }}>Exemplo de recomendações do modelo</span>
+                    </div>
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                        <thead>
+                          <tr>
+                            {['Ticker', 'Sinal', 'Score', 'Preço', 'Previsto', 'Retorno'].map((h, i) => (
+                              <th key={i} style={{ padding: '0.75rem 1rem', textAlign: i === 0 ? 'left' : 'right', color: brand.textDim, fontWeight: 500, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: `0.5px solid ${brand.borderSubtle}` }}>
+                                {h}{i >= 4 && <Lock size={9} style={{ marginLeft: 3, verticalAlign: 'middle', color: brand.pro }} />}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { ticker: 'PETR4', signal: 'Compra', score: 2.34, price: 38.52 },
+                            { ticker: 'VALE3', signal: 'Compra', score: 1.87, price: 58.90 },
+                            { ticker: 'ITUB4', signal: 'Neutro', score: 0.45, price: 32.15 },
+                            { ticker: 'BBDC4', signal: 'Venda', score: -1.92, price: 12.80 },
+                            { ticker: 'WEGE3', signal: 'Compra', score: 2.10, price: 41.25 },
+                            { ticker: 'RENT3', signal: 'Neutro', score: -0.33, price: 65.40 },
+                          ].map(r => {
+                            const sc = getSignalColor(r.signal);
+                            return (
+                              <tr key={r.ticker} style={{ borderBottom: '0.5px solid rgba(255,255,255,0.03)' }}>
+                                <td style={{ padding: '0.7rem 1rem', fontWeight: 600 }}>{r.ticker}</td>
+                                <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}>
+                                  <span style={{ padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, background: sc.bg, color: sc.text, display: 'inline-flex', alignItems: 'center', gap: '0.15rem' }}>
+                                    {r.signal === 'Compra' ? <ArrowUpRight size={10} /> : r.signal === 'Venda' ? <ArrowDownRight size={10} /> : null}{r.signal}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '0.7rem 1rem', textAlign: 'right', fontWeight: 600, color: sc.text }}>{fmt(r.score)}</td>
+                                <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}>R$ {fmt(r.price)}</td>
+                                <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}><span style={{ filter: 'blur(5px)', userSelect: 'none' }}>R$ --</span></td>
+                                <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}><span style={{ filter: 'blur(5px)', userSelect: 'none' }}>+--.--%</span></td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div style={{ padding: '1rem 1.5rem', borderTop: `0.5px solid ${brand.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: brand.textDim }}>Dados ilustrativos · Crie sua conta para ver dados reais</span>
+                      <button onClick={() => navigate('/register')} style={{ padding: '0.4rem 1rem', borderRadius: 980, border: 'none', fontSize: '0.78rem', fontWeight: 600, background: brand.gradient, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        Ver dados reais <ArrowRight size={13} />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '4rem', color: brand.textDim }}>
+                    <RefreshCw size={24} style={{ animation: 'lp-spin 1s linear infinite', marginBottom: '0.5rem' }} />
+                    <div>Carregando dados ao vivo...</div>
+                  </div>
+                )}
               </div>
             )}
           </RevealSection>
@@ -405,16 +467,20 @@ const LandingPage: React.FC = () => {
           <RevealSection delay={0.15}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', maxWidth: 700, margin: '0 auto' }}>
               {[
-                { icon: '🚀', name: 'Tech Brasil', color: '#7c3aed', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
-                { icon: '🏦', name: 'Bancos', color: '#3b82f6', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
-                { icon: '⚡', name: 'Energia', color: '#10b981', tickers: ['ELET3', 'ENGI11', 'CPFE3'] },
+                { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#7c3aed', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
+                { icon: <Landmark size={20} />, name: 'Bancos', color: '#3b82f6', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
+                { icon: <Zap size={20} />, name: 'Energia', color: '#10b981', tickers: ['ELET3', 'ENGI11', 'CPFE3'] },
               ].map((c, i) => (
                 <div key={i} style={{
                   background: 'rgba(255,255,255,0.03)', border: `0.5px solid ${brand.borderSubtle}`,
                   borderRadius: 16, padding: '1.5rem', position: 'relative', overflow: 'hidden',
                 }}>
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: c.color }} />
-                  <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>{c.icon}</div>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 10, background: `${c.color}18`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: c.color, marginBottom: '0.75rem',
+                  }}>{c.icon}</div>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.5rem' }}>{c.name}</div>
                   <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
                     {c.tickers.map(t => (
@@ -485,6 +551,84 @@ const LandingPage: React.FC = () => {
                 { icon: <TestTubes size={24} />, title: 'Backtesting', desc: 'Validação com dados históricos reais' },
                 { icon: <Layers size={24} />, title: 'Multi-feature', desc: 'Preço, volume, indicadores técnicos e fundamentalistas' },
                 { icon: <Shield size={24} />, title: 'Análise de risco', desc: 'Volatilidade, drawdown e métricas de risco' },
+              ].map((f, i) => (
+                <div key={i} style={{
+                  background: 'rgba(255,255,255,0.02)', border: `0.5px solid ${brand.borderSubtle}`,
+                  borderRadius: 16, padding: '1.5rem',
+                }}>
+                  <div style={{ color: brand.accent, marginBottom: '0.75rem' }}>{f.icon}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.35rem' }}>{f.title}</div>
+                  <div style={{ fontSize: '0.82rem', color: brand.textMuted, lineHeight: 1.5 }}>{f.desc}</div>
+                </div>
+              ))}
+            </div>
+          </RevealSection>
+        </div>
+      </section>
+
+      {/* ─── Feature 5: Explicabilidade (SHAP) ─── */}
+      <section style={{ background: brand.surface }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(5rem, 12vw, 8rem) clamp(1rem, 4vw, 2rem)' }}>
+          <RevealSection style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div style={{ fontSize: '0.78rem', color: brand.accent, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Explicabilidade</div>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '1rem' }}>
+              Entenda cada previsão.<br />
+              <span style={{ color: brand.textDim }}>Sem caixa preta.</span>
+            </h2>
+            <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)', color: brand.textMuted, maxWidth: 580, margin: '0 auto', lineHeight: 1.6 }}>
+              Com SHAP values, você vê exatamente quais fatores influenciaram cada recomendação. Transparência total nas decisões do modelo.
+            </p>
+          </RevealSection>
+
+          <RevealSection delay={0.15}>
+            {/* SHAP waterfall mock */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, padding: '2rem', maxWidth: 700, margin: '0 auto' }}>
+              <div style={{ fontSize: '0.78rem', color: brand.textMuted, marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Exemplo: Por que PETR4 é Compra?</span>
+                <span style={{ padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
+                  <ArrowUpRight size={10} /> Compra
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                {[
+                  { feature: 'Momentum 20d', impact: 0.82, positive: true },
+                  { feature: 'Volume relativo', impact: 0.54, positive: true },
+                  { feature: 'RSI (14)', impact: 0.31, positive: true },
+                  { feature: 'Volatilidade 20d', impact: -0.18, positive: false },
+                  { feature: 'Distância da média', impact: -0.12, positive: false },
+                  { feature: 'Beta setorial', impact: 0.15, positive: true },
+                ].map((s, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '0.78rem', color: brand.textMuted, width: 130, flexShrink: 0, textAlign: 'right' }}>{s.feature}</span>
+                    <div style={{ flex: 1, height: 20, background: 'rgba(255,255,255,0.03)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                      <div style={{
+                        position: 'absolute', top: 0, bottom: 0,
+                        left: s.positive ? '50%' : undefined,
+                        right: s.positive ? undefined : '50%',
+                        width: `${Math.abs(s.impact) * 40}%`,
+                        background: s.positive ? 'rgba(48,209,88,0.4)' : 'rgba(255,69,58,0.4)',
+                        borderRadius: 4,
+                      }} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, width: 50, color: s.positive ? brand.buy : brand.sell }}>
+                      {s.positive ? '+' : ''}{s.impact.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: `0.5px solid ${brand.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.72rem', color: brand.textDim }}>SHAP Waterfall · Disponível para cada ação no plano Pro</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.72rem', color: brand.pro }}><Crown size={11} /> Pro</span>
+              </div>
+            </div>
+          </RevealSection>
+
+          <RevealSection delay={0.3}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginTop: '2.5rem' }}>
+              {[
+                { icon: <Zap size={24} />, title: 'SHAP Values', desc: 'Contribuição de cada feature para o score final' },
+                { icon: <BarChart3 size={24} />, title: 'Feature Importance', desc: 'Ranking das variáveis mais relevantes do modelo' },
+                { icon: <Eye size={24} />, title: 'Análise de sensibilidade', desc: 'Como variações nos inputs afetam a previsão' },
               ].map((f, i) => (
                 <div key={i} style={{
                   background: 'rgba(255,255,255,0.02)', border: `0.5px solid ${brand.borderSubtle}`,
@@ -700,9 +844,9 @@ const LandingPage: React.FC = () => {
             <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Qyntara</span>
           </div>
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.78rem', color: brand.textDim }}>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/terms')}>Termos</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/privacy')}>Privacidade</span>
-            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/lgpd')}>LGPD</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/privacidade')}>Termos</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/privacidade')}>Privacidade</span>
+            <span style={{ cursor: 'pointer' }} onClick={() => navigate('/privacidade')}>LGPD</span>
           </div>
           <div style={{ fontSize: '0.72rem', color: brand.textDim }}>
             © {new Date().getFullYear()} Qyntara. Todos os direitos reservados.

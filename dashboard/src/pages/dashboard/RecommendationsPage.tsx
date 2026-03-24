@@ -5,7 +5,6 @@ import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
 import ShareButton from '../../components/shared/ShareButton';
 import { useIsPro } from '../../components/shared/ProGate';
-import FollowButton from '../../components/shared/FollowButton';
 import ActivationChecklist, { markChecklistItem } from '../../components/shared/ActivationChecklist';
 import { WatchlistButton, getWatchlist } from '../../components/shared/Watchlist';
 import ExportCSV from '../../components/shared/ExportCSV';
@@ -324,36 +323,35 @@ const RecommendationsPage: React.FC = () => {
           <thead>
             <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
               {[
-                { label: '#', tip: '' },
-                ...(isPro ? [{ label: '⊕', tip: 'Clique para seguir/deixar de seguir a ação.' }] : []),
-                { label: 'Ticker', tip: 'Código da ação na B3. Clique na ★ para favoritar.' },
-                { label: '', tip: '' }, // sparkline column
-                { label: 'Sinal', tip: `Compra (score ≥ ${SCORE_BUY_THRESHOLD}), Venda (≤ ${SCORE_SELL_THRESHOLD}) ou Neutro.` },
-                { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra. A barra indica confiança.' },
-                { label: 'Preço Atual', tip: 'Último preço de fechamento disponível.' },
-                { label: 'Preço Previsto', tip: 'Preço previsto pelo modelo para daqui 20 pregões.' },
-                { label: 'Retorno Previsto', tip: 'Retorno esperado em 20 pregões: (previsto - atual) / atual.' },
-                { label: 'Volatilidade', tip: 'Volatilidade dos últimos 20 dias. Menor = mais estável.' },
-                { label: 'Faixa', tip: 'Stop-Loss → Take-Profit. Faixa de preço sugerida baseada em volatilidade.' },
+                { label: '#', tip: '', align: 'center' as const },
+                { label: '', tip: '', align: 'center' as const }, // watchlist star
+                { label: 'Ticker', tip: 'Código da ação na B3. Clique na ★ para favoritar.', align: 'left' as const },
+                { label: '', tip: '', align: 'center' as const }, // sparkline column
+                { label: 'Sinal', tip: `Compra (score ≥ ${SCORE_BUY_THRESHOLD}), Venda (≤ ${SCORE_SELL_THRESHOLD}) ou Neutro.`, align: 'right' as const },
+                { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra. A barra indica confiança.', align: 'right' as const },
+                { label: 'Preço Atual', tip: 'Último preço de fechamento disponível.', align: 'right' as const },
+                { label: 'Preço Previsto', tip: 'Preço previsto pelo modelo para daqui 20 pregões.', align: 'right' as const },
+                { label: 'Retorno Previsto', tip: 'Retorno esperado em 20 pregões: (previsto - atual) / atual.', align: 'right' as const },
+                { label: 'Volatilidade', tip: 'Volatilidade dos últimos 20 dias. Menor = mais estável.', align: 'right' as const },
+                { label: 'Faixa', tip: 'Stop-Loss → Take-Profit. Faixa de preço sugerida baseada em volatilidade.', align: 'right' as const },
               ].map((h, i) => (
                 <th key={i} style={{
-                  padding: '0.6rem 0.5rem', textAlign: i === 0 ? 'left' : 'right', color: theme.textSecondary,
+                  padding: '0.6rem 0.5rem', textAlign: h.align, color: theme.textSecondary,
                   fontWeight: 600, fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.03em',
                   whiteSpace: 'nowrap', cursor: 'pointer',
                 }}
                   onClick={() => {
-                    const offset = isPro ? 1 : 0;
-                    if (i === 1 + offset) handleSort('ticker');
-                    else if (i === 3 + offset) handleSort('score');
-                    else if (i === 6 + offset) handleSort('return');
-                    else if (i === 7 + offset) handleSort('vol');
+                    if (i === 2) handleSort('ticker');
+                    else if (i === 5) handleSort('score');
+                    else if (i === 8) handleSort('return');
+                    else if (i === 9) handleSort('vol');
                   }}
                 >
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                     {h.label}
                     {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={10} />}
                   </span>
-                  {i >= (isPro ? 7 : 6) && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
+                  {i >= 8 && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}
             </tr>
@@ -374,15 +372,12 @@ const RecommendationsPage: React.FC = () => {
                   onMouseEnter={e => { e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.04)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)'); }}
                 >
-                  <td style={{ padding: '0.55rem 0.5rem', color: theme.textSecondary, fontSize: '0.72rem' }}>{idx + 1}</td>
-                  {isPro && (
-                    <td style={{ padding: '0.55rem 0.3rem', textAlign: 'center' }}>
-                      <FollowButton ticker={r.ticker} entryPrice={r.last_close} predPrice={r.pred_price_t_plus_20} score={r.score} darkMode={darkMode} compact />
-                    </td>
-                  )}
+                  <td style={{ padding: '0.55rem 0.5rem', color: theme.textSecondary, fontSize: '0.72rem', textAlign: 'center' }}>{idx + 1}</td>
+                  <td style={{ padding: '0.55rem 0.3rem', textAlign: 'center', width: 28 }}>
+                    <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
+                  </td>
                   <td style={{ padding: '0.55rem 0.5rem', fontWeight: 700, color: theme.text }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
                       {r.ticker}
                       <span style={{ fontSize: '0.6rem', opacity: 0.7 }} title={getSector(r.ticker).sector}>{getSector(r.ticker).icon}</span>
                     </span>
@@ -451,7 +446,6 @@ const RecommendationsPage: React.FC = () => {
                   <WatchlistButton ticker={r.ticker} darkMode={darkMode} size={14} />
                   <span style={{ fontWeight: 700, color: theme.text, fontSize: '0.95rem' }}>{r.ticker}</span>
                   {sparklineData[r.ticker] && <Sparkline data={sparklineData[r.ticker]} width={44} height={16} />}
-                  {isPro && <FollowButton ticker={r.ticker} entryPrice={r.last_close} predPrice={r.pred_price_t_plus_20} score={r.score} darkMode={darkMode} compact />}
                 </div>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
