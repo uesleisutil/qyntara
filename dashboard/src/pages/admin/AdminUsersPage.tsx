@@ -264,35 +264,35 @@ const AdminUsersPage: React.FC = () => {
                       <td style={{ padding: '0.5rem 0.4rem', textAlign: 'center' }}>
                         <div
                           role="switch"
-                          aria-checked={u.role === 'admin' || !!u.canViewCosts}
-                          aria-label={u.role === 'admin' ? 'Admins sempre veem dados sensíveis' : u.canViewCosts ? 'Revogar acesso a dados sensíveis' : 'Liberar acesso a dados sensíveis'}
-                          title={u.role === 'admin' ? 'Admins sempre veem dados sensíveis' : u.canViewCosts ? 'Revogar acesso a dados sensíveis' : 'Liberar acesso a dados sensíveis'}
-                          tabIndex={u.role === 'admin' ? -1 : 0}
+                          aria-checked={!!u.canViewCosts}
+                          aria-label={u.canViewCosts ? 'Revogar acesso a dados sensíveis' : 'Liberar acesso a dados sensíveis'}
+                          title={u.canViewCosts ? 'Revogar acesso a dados sensíveis' : 'Liberar acesso a dados sensíveis'}
+                          tabIndex={0}
                           onClick={() => {
-                            if (u.role !== 'admin' && costsToggleLoading !== u.email) {
+                            if (costsToggleLoading !== u.email) {
                               handleToggleCosts(u.email, !!u.canViewCosts);
                             }
                           }}
                           onKeyDown={(e) => {
-                            if ((e.key === 'Enter' || e.key === ' ') && u.role !== 'admin' && costsToggleLoading !== u.email) {
+                            if ((e.key === 'Enter' || e.key === ' ') && costsToggleLoading !== u.email) {
                               e.preventDefault();
                               handleToggleCosts(u.email, !!u.canViewCosts);
                             }
                           }}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                            cursor: u.role === 'admin' ? 'default' : 'pointer',
+                            cursor: 'pointer',
                             opacity: costsToggleLoading === u.email ? 0.5 : 1,
                           }}
                         >
                           <span style={{ position: 'relative', display: 'inline-block', width: 34, height: 18 }}>
                             <span style={{
                               position: 'absolute', inset: 0, borderRadius: 9,
-                              background: (u.role === 'admin' || u.canViewCosts) ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
+                              background: u.canViewCosts ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
                               transition: 'background 0.2s',
                             }} />
                             <span style={{
-                              position: 'absolute', top: 2, left: (u.role === 'admin' || u.canViewCosts) ? 18 : 2,
+                              position: 'absolute', top: 2, left: u.canViewCosts ? 18 : 2,
                               width: 14, height: 14, borderRadius: '50%', background: 'white',
                               transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                             }} />
@@ -362,26 +362,26 @@ const AdminUsersPage: React.FC = () => {
                       <span style={{ color: theme.textSecondary }}>Sensíveis:</span>
                       <div
                         role="switch"
-                        aria-checked={u.role === 'admin' || !!u.canViewCosts}
+                        aria-checked={!!u.canViewCosts}
                         onClick={() => {
-                          if (u.role !== 'admin' && costsToggleLoading !== u.email) {
+                          if (costsToggleLoading !== u.email) {
                             handleToggleCosts(u.email, !!u.canViewCosts);
                           }
                         }}
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
-                          cursor: u.role === 'admin' ? 'default' : 'pointer',
+                          cursor: 'pointer',
                           opacity: costsToggleLoading === u.email ? 0.5 : 1,
                         }}
                       >
                         <span style={{ position: 'relative', display: 'inline-block', width: 30, height: 16 }}>
                           <span style={{
                             position: 'absolute', inset: 0, borderRadius: 8,
-                            background: (u.role === 'admin' || u.canViewCosts) ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
+                            background: u.canViewCosts ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
                             transition: 'background 0.2s',
                           }} />
                           <span style={{
-                            position: 'absolute', top: 2, left: (u.role === 'admin' || u.canViewCosts) ? 16 : 2,
+                            position: 'absolute', top: 2, left: u.canViewCosts ? 16 : 2,
                             width: 12, height: 12, borderRadius: '50%', background: 'white',
                             transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                           }} />
