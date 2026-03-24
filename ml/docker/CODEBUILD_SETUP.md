@@ -29,7 +29,7 @@ aws iam attach-role-policy \
 # Criar projeto CodeBuild
 aws codebuild create-project \
   --name b3tr-ensemble-docker-build \
-  --source type=GITHUB,location=https://github.com/uesleisutil/b3-tactical-ranking.git,buildspec=ml/docker/buildspec.yml \
+  --source type=GITHUB,location=https://github.com/uesleisutil/qyntara.git,buildspec=ml/docker/buildspec.yml \
   --artifacts type=NO_ARTIFACTS \
   --environment type=LINUX_CONTAINER,image=aws/codebuild/standard:7.0,computeType=BUILD_GENERAL1_SMALL,privilegedMode=true \
   --service-role arn:aws:iam::200093399689:role/B3TRCodeBuildRole

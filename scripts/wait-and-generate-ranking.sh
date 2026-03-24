@@ -63,4 +63,4 @@ cat /tmp/rank-finalize.json | jq .
 
 echo ""
 echo "🎉 Pipeline completo! Dados disponíveis no dashboard:"
-echo "   https://uesleisutil.github.io/b3-tactical-ranking"
+echo "   https://qyntara.tech"

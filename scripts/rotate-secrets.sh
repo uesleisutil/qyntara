@@ -28,10 +28,10 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-REPO="uesleisutil/b3-tactical-ranking"
+REPO="uesleisutil/qyntara"
 
 echo "============================================="
-echo " Secret Rotation - Qyntara (b3-tactical-ranking)"
+echo " Secret Rotation - Qyntara"
 echo "============================================="
 echo ""
 

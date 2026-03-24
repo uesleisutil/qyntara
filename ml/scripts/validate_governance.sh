@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 # Configuração
 ACCOUNT_ID=${1:-$(aws sts get-caller-identity --query Account --output text)}
 REGION=${2:-us-east-1}
-BUCKET="b3-tactical-ranking-${ACCOUNT_ID}-${REGION}"
+BUCKET="qyntara-${ACCOUNT_ID}-${REGION}"
 TODAY=$(date +%Y-%m-%d)
 
 echo "=========================================="
