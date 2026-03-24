@@ -36,6 +36,7 @@ const RegisterPage: React.FC = () => {
     { label: 'Uma letra maiúscula', valid: /[A-Z]/.test(password) },
     { label: 'Uma letra minúscula', valid: /[a-z]/.test(password) },
     { label: 'Um número', valid: /\d/.test(password) },
+    { label: 'Um caractere especial (!@#$%...)', valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?~`]/.test(password) },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +53,7 @@ const RegisterPage: React.FC = () => {
     setLoading(true);
     try {
       await register(name, email, password);
-      navigate('/dashboard');
+      navigate('/verify-email');
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
     } finally {
@@ -157,6 +158,9 @@ const RegisterPage: React.FC = () => {
         <p style={{ textAlign: 'center', marginTop: '1.5rem', color: t.textSecondary, fontSize: '0.9rem' }}>
           Já tem conta?{' '}
           <Link to="/login" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>Entrar</Link>
+        </p>
+        <p style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+          <Link to="/" style={{ color: t.textSecondary, textDecoration: 'none', fontSize: '0.85rem' }}>← Voltar para a página inicial</Link>
         </p>
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

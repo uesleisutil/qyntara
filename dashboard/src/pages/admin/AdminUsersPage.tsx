@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Users, Crown, RefreshCw, Search, Shield, Clock, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Users, Crown, RefreshCw, Search, Shield, Clock, CheckCircle, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import InfoTooltip from '../../components/shared/InfoTooltip';
 
@@ -27,6 +27,7 @@ const AdminUsersPage: React.FC = () => {
   const [modalLoading, setModalLoading] = useState(false);
   const [modalMsg, setModalMsg] = useState('');
   const [roleLoading, setRoleLoading] = useState<string>(''); // email of user being toggled
+  const [deleteLoading, setDeleteLoading] = useState<string>('');
 
   const fetchUsers = useCallback(async () => {
     setLoading(true); setError('');
@@ -84,6 +85,24 @@ const AdminUsersPage: React.FC = () => {
     } catch (err: any) {
       setError(err.message);
     } finally { setRoleLoading(''); }
+  };
+
+  const handleDeleteUser = async (email: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o usuário ${email}? Esta ação é irreversível.`)) return;
+    setDeleteLoading(email);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API_BASE_URL}/admin/users/delete`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro');
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    } finally { setDeleteLoading(''); }
   };
 
   const filtered = users
@@ -236,6 +255,12 @@ const AdminUsersPage: React.FC = () => {
                             {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
                             {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
                           </button>
+                          <button onClick={() => handleDeleteUser(u.email)}
+                            disabled={deleteLoading === u.email}
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', opacity: deleteLoading === u.email ? 0.5 : 1 }}>
+                            {deleteLoading === u.email ? <Loader2 size={11} className="spin" /> : <Trash2 size={11} />}
+                            Excluir
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -285,6 +310,11 @@ const AdminUsersPage: React.FC = () => {
                       style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#3b82f6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
                       {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
                       {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
+                    </button>
+                    <button onClick={() => handleDeleteUser(u.email)}
+                      disabled={deleteLoading === u.email}
+                      style={{ ...btnBase, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', opacity: deleteLoading === u.email ? 0.5 : 1 }}>
+                      {deleteLoading === u.email ? <Loader2 size={11} className="spin" /> : <Trash2 size={11} />}
                     </button>
                   </div>
                 </div>

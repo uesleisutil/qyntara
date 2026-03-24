@@ -353,6 +353,8 @@ def _validate_password(password: str) -> Optional[str]:
         return "Senha deve conter pelo menos uma letra minúscula"
     if not re.search(r"\d", password):
         return "Senha deve conter pelo menos um número"
+    if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?~`]", password):
+        return "Senha deve conter pelo menos um caractere especial (!@#$%...)"
     # Check common passwords
     common = {"password", "12345678", "qwerty123", "abc12345", "password1"}
     if password.lower() in common:
@@ -500,6 +502,8 @@ def _send_smtp_email(to: str, subject: str, body_html: str, body_text: str) -> b
         logger.error("SMTP not configured (SMTP_HOST, SMTP_USER, SMTP_FROM_EMAIL required)")
         return False
 
+    logger.info(f"SMTP: sending to={to} from={sender} host={SMTP_HOST}:{SMTP_PORT}")
+
     msg = MIMEMultipart("alternative")
     msg["From"] = sender
     msg["To"] = to
@@ -508,13 +512,20 @@ def _send_smtp_email(to: str, subject: str, body_html: str, body_text: str) -> b
     msg.attach(MIMEText(body_html, "html", "utf-8"))
 
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+            server.set_debuglevel(0)
+            server.ehlo()
             server.starttls()
+            server.ehlo()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(sender, [to], msg.as_string())
+        logger.info(f"SMTP: email sent successfully to {to}")
         return True
+    except smtplib.SMTPResponseException as e:
+        logger.error(f"SMTP response error for {to}: code={e.smtp_code} msg={e.smtp_error}")
+        return False
     except Exception as e:
-        logger.error(f"SMTP send failed for {to}: {e}")
+        logger.error(f"SMTP send failed for {to}: {type(e).__name__}: {e}")
         return False
 
 
@@ -2260,6 +2271,95 @@ def _handle_admin_set_role(event: dict) -> dict:
         return _cors_response(500, {"message": "Erro ao alterar role"})
 
 
+def _handle_admin_delete_user(event: dict) -> dict:
+    """DELETE /admin/users/delete — admin deletes a user and all their data."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    if not email:
+        return _cors_response(400, {"message": "Email obrigatório"})
+
+    # Prevent admin self-deletion
+    if email == admin.get("email", ""):
+        return _cors_response(400, {"message": "Você não pode excluir sua própria conta por aqui."})
+
+    users_table = dynamodb.Table(USERS_TABLE)
+
+    try:
+        result = users_table.get_item(Key={"email": email}, ProjectionExpression="email, stripeSubscriptionId")
+        if "Item" not in result:
+            return _cors_response(404, {"message": "Usuário não encontrado"})
+        item = result["Item"]
+    except Exception:
+        return _cors_response(500, {"message": "Erro interno"})
+
+    try:
+        # 1. Cancel Stripe subscription if exists
+        stripe_sub_id = item.get("stripeSubscriptionId", "")
+        if stripe_sub_id and STRIPE_SECRET_KEY:
+            try:
+                _stripe_request("DELETE", f"subscriptions/{stripe_sub_id}")
+            except Exception as e:
+                logger.warning(f"Failed to cancel Stripe sub for {email}: {e}")
+
+        # 2. Delete user
+        users_table.delete_item(Key={"email": email})
+
+        # 3. Delete auth logs
+        try:
+            logs_table = dynamodb.Table(AUTH_LOGS_TABLE)
+            logs_result = logs_table.query(
+                KeyConditionExpression="userId = :uid",
+                ExpressionAttributeValues={":uid": email},
+                ProjectionExpression="userId, #ts",
+                ExpressionAttributeNames={"#ts": "timestamp"},
+            )
+            with logs_table.batch_writer() as batch:
+                for log_item in logs_result.get("Items", []):
+                    batch.delete_item(Key={"userId": log_item["userId"], "timestamp": log_item["timestamp"]})
+        except Exception as e:
+            logger.warning(f"Admin delete: failed to delete auth logs for {email}: {e}")
+
+        # 4. Delete rate limit entries
+        try:
+            rl_table = dynamodb.Table(RATE_LIMITS_TABLE)
+            for prefix in ["auth_ip:", "email_verify:", "password_reset:"]:
+                try:
+                    rl_table.delete_item(Key={"identifier": f"{prefix}{email}"})
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.warning(f"Admin delete: failed to delete rate limits for {email}: {e}")
+
+        # 5. Delete chat tickets
+        try:
+            chat_table = dynamodb.Table(CHAT_TABLE)
+            chat_result = chat_table.scan(
+                FilterExpression="userEmail = :e",
+                ExpressionAttributeValues={":e": email},
+                ProjectionExpression="ticketId",
+            )
+            for ticket in chat_result.get("Items", []):
+                chat_table.delete_item(Key={"ticketId": ticket["ticketId"]})
+        except Exception as e:
+            logger.warning(f"Admin delete: failed to delete chat tickets for {email}: {e}")
+
+        _log_auth(email, "admin_delete_user", True, "admin", admin.get("email", "admin"),
+                   f"deleted by {admin.get('email')}")
+        return _cors_response(200, {"message": f"Usuário {email} excluído com sucesso."})
+
+    except Exception as e:
+        logger.error(f"Admin delete user failed for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao excluir usuário."})
+
+
 def _handle_delete_account(event: dict) -> dict:
     """DELETE /auth/me — LGPD Art. 18: delete all user data."""
     ip = _get_ip(event)
@@ -2411,6 +2511,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_admin_set_plan(event)
     elif path.endswith("/admin/users/set-role") and method == "POST":
         return _handle_admin_set_role(event)
+    elif path.endswith("/admin/users/delete") and method == "POST":
+        return _handle_admin_delete_user(event)
     elif path.endswith("/admin/chat") and method == "GET":
         return _handle_admin_chat_list(event)
     elif path.endswith("/admin/chat/reply") and method == "POST":
