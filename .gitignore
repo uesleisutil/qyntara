@@ -92,7 +92,6 @@ infra/outputs.json
 # Compiled TypeScript (infra)
 infra/**/*.js
 infra/**/*.d.ts
-!infra/jest.config.js
 
 # Task/checkpoint/implementation summaries (AI-generated docs)
 TASK_*.md

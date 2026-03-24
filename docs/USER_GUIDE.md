@@ -156,6 +156,6 @@ Use the **Feedback** option in the Help menu to submit ratings and comments dire
 
 ## Support
 
-- **Email**: support@b3-tactical-ranking.example.com
+- **Email**: support@qyntara.tech
 - **Documentation**: See `docs/API.md` for REST API reference
 - **FAQ**: Available in the Help menu within the dashboard

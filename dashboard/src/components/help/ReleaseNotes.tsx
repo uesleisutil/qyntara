@@ -129,7 +129,7 @@ export const ReleaseNotes: React.FC<ReleaseNotesProps> = ({ darkMode = false }) 
 
       <div style={{ textAlign: 'center', marginTop: '1rem' }}>
         <a
-          href="https://github.com/your-org/b3-tactical-ranking/blob/main/CHANGELOG.md"
+          href="https://github.com/uesleisutil/qyntara/blob/main/CHANGELOG.md"
           target="_blank"
           rel="noopener noreferrer"
           style={{

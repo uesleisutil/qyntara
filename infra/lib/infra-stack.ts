@@ -957,8 +957,8 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     // Dashboard Web - REMOVIDO (usando GitHub Pages)
     // -----------------------
-    // Dashboard agora está hospedado no GitHub Pages:
-    // https://uesleisutil.github.io/b3-tactical-ranking
+    // Dashboard hospedado no GitHub Pages:
+    // https://qyntara.tech
     
     // -----------------------
     // Task 28.1: Storage Optimizer Lambda
@@ -1312,8 +1312,8 @@ export class InfraStack extends cdk.Stack {
     new cdk.CfnOutput(this, "SageMakerRoleArn", { value: sagemakerRole.roleArn });
     new cdk.CfnOutput(this, "SsmPrefix", { value: ssmPrefix });
     new cdk.CfnOutput(this, "DashboardUrl", {
-      value: "https://uesleisutil.github.io/b3-tactical-ranking",
-      description: "URL do Dashboard Web B3TR (GitHub Pages)"
+      value: "https://qyntara.tech",
+      description: "URL do Dashboard Web Qyntara (GitHub Pages)"
     });
     new cdk.CfnOutput(this, "AdvancedFeaturesDashboardUrl", {
       value: `https://console.aws.amazon.com/cloudwatch/home?region=${cdk.Aws.REGION}#dashboards:name=B3TR-AdvancedFeatures`,

@@ -1,233 +1,203 @@
-# B3 Tactical Ranking — MLOps Dashboard
+<p align="center">
+  <img src="https://img.shields.io/badge/status-production-brightgreen" alt="Status" />
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License" />
+  <img src="https://img.shields.io/badge/react-18-61dafb" alt="React 18" />
+  <img src="https://img.shields.io/badge/python-3.11-3776ab" alt="Python 3.11" />
+  <img src="https://img.shields.io/badge/aws-cdk-ff9900" alt="AWS CDK" />
+</p>
 
-A machine learning-powered stock recommendation system for the Brazilian stock exchange (B3), featuring an 8-tab monitoring dashboard, automated model training, drift detection, and cost optimization.
+# Qyntara
 
-## Architecture Overview
+Plataforma de recomendações de ações para a B3 baseada em machine learning, com dashboard de monitoramento MLOps, treinamento automatizado, detecção de drift e otimização de custos.
+
+> **[qyntara.tech](https://qyntara.tech)**
+
+---
+
+## Visão Geral
+
+O Qyntara combina um ensemble de modelos ML (XGBoost + DeepAR) com 50+ features técnicas para gerar um ranking diário das melhores oportunidades na bolsa brasileira. O sistema roda 100% serverless na AWS, com custo operacional inferior a US$ 1/mês.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Client (Browser)                         │
-│  React 18 + TypeScript │ Recharts + D3.js │ TanStack Table      │
-│  React Query │ Tailwind CSS │ Service Worker                    │
-└──────────┬──────────────────────┬───────────────────────────────┘
-           │ HTTPS                │ WebSocket
-┌──────────▼──────────┐  ┌───────▼──────────┐
-│   API Gateway       │  │  WebSocket GW    │
-│   (REST + Auth)     │  │  (Real-time)     │
-└──────────┬──────────┘  └───────┬──────────┘
-           │                     │
-┌──────────▼─────────────────────▼────────────────────────────────┐
-│                     AWS Lambda (Python 3.11)                     │
-│  dashboard_api │ rest_api │ backtesting_api │ data_quality       │
-│  monitor_drift │ monitor_costs │ rank_sagemaker │ train_sagemaker│
-│  webhook_management │ security_middleware │ auth_service         │
-└──────┬──────────┬──────────┬──────────┬─────────────────────────┘
-       │          │          │          │
-┌──────▼───┐ ┌───▼────┐ ┌──▼───┐ ┌───▼──────────┐
-│    S3    │ │DynamoDB│ │Redis │ │  SageMaker   │
-│  (Data)  │ │(Config)│ │(Cache)│ │  (Training)  │
-└──────────┘ └────────┘ └──────┘ └──────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                     Client (Browser)                        │
+│  React 18 + TypeScript │ Recharts + D3 │ TanStack Table    │
+└──────────┬──────────────────────────────────────────────────┘
+           │ HTTPS
+┌──────────▼──────────────────────────────────────────────────┐
+│              API Gateway (REST + WAF + API Key)             │
+└──────────┬──────────────────────────────────────────────────┘
+           │
+┌──────────▼──────────────────────────────────────────────────┐
+│                  AWS Lambda (Python 3.11)                    │
+│  28 funções: ingest, rank, train, monitor, backtest, auth  │
+└─────┬──────────┬──────────┬──────────┬──────────────────────┘
+      │          │          │          │
+┌─────▼───┐ ┌───▼────┐ ┌──▼───────┐ ┌▼────────────┐
+│   S3    │ │DynamoDB│ │ Secrets  │ │  SageMaker  │
+│ (dados) │ │(users) │ │ Manager  │ │ (training)  │
+└─────────┘ └────────┘ └──────────┘ └─────────────┘
 ```
 
-## Dashboard Tabs
+## Funcionalidades
 
-| Tab | Description |
-|-----|-------------|
-| **Recommendations** | Top-ranked stock picks with filtering, export, comparison, and alerts |
-| **Performance** | Model metrics (MAPE, accuracy, Sharpe), confusion matrix, benchmarks |
-| **Validation** | Predicted vs actual scatter plots, temporal accuracy, outlier analysis |
-| **Costs** | AWS cost trends, cost-per-prediction, budget alerts, ROI calculator |
-| **Data Quality** | Completeness rates, anomaly detection, freshness indicators, coverage |
-| **Drift Detection** | Data drift (KS test), concept drift, performance degradation, retrain recommendations |
-| **Explainability** | SHAP values, sensitivity analysis, feature impact, decision paths |
-| **Backtesting** | Historical strategy simulation, walk-forward analysis, risk metrics |
+| Área | Descrição |
+|------|-----------|
+| Recomendações | Top-50 ações ranqueadas por score, com filtros, comparação e alertas |
+| Performance | MAPE, acurácia direcional, Sharpe ratio, confusion matrix, benchmarks |
+| Backtesting | Simulação histórica walk-forward, análise de risco (VaR, CVaR, drawdown) |
+| Explainability | SHAP values, análise de sensibilidade, impacto de features |
+| Carteiras | Carteiras personalizadas e carteira modelo por perfil de risco |
+| Data Quality | Completude, anomalias, freshness, cobertura do universo |
+| Drift Detection | Data drift (KS test), concept drift, alertas de degradação |
+| Custos | Tendência de custos AWS, custo por predição, ROI calculator |
 
 ## Quick Start
 
-### Prerequisites
+### Pré-requisitos
 
-- Node.js 18+ and npm
-- Python 3.11+
-- AWS CLI configured (`aws configure`)
-- AWS CDK (`npm install -g aws-cdk`)
+- Node.js 20+, Python 3.11+, AWS CLI configurado, AWS CDK
 
-### 1. Clone and Install
+### Setup
 
 ```bash
-git clone https://github.com/uesleisutil/b3-tactical-ranking.git
-cd b3-tactical-ranking
+# Clone
+git clone https://github.com/uesleisutil/qyntara.git
+cd qyntara
+
+# Infra
+cp .env.example .env   # configure suas variáveis
+cd infra && npm install && cdk deploy --all && cd ..
+
+# Dashboard (dev)
+cd dashboard && npm install && npm start
 ```
 
-### 2. Deploy Infrastructure
+### Primeiro ranking
 
 ```bash
-cd infra
-npm install
-cdk deploy --all
+# Treinar modelo (~10 min)
+aws lambda invoke --function-name <TrainSageMaker> --payload '{}' /dev/null
+
+# Gerar ranking manualmente (roda automaticamente 18:10 BRT)
+aws lambda invoke --function-name <RankSageMaker> --payload '{}' /dev/null
 ```
 
-This deploys: Lambda functions, API Gateway, S3 buckets, DynamoDB tables, ElastiCache Redis, CloudFront CDN, monitoring alarms, and disaster recovery resources.
 
-### 3. Start the Dashboard (Development)
-
-```bash
-cd dashboard
-npm install
-npm start
-```
-
-The dashboard opens at `http://localhost:3000`.
-
-### 4. Train the Initial Model
-
-```bash
-aws lambda invoke \
-  --function-name <TrainSageMaker> \
-  --payload '{"lookback_days": 365}' \
-  output.json
-```
-
-Training takes 5–15 minutes. The system bootstraps historical data automatically.
-
-### 5. Generate First Recommendations
-
-Recommendations run daily at 18:10 BRT. To trigger manually:
-
-```bash
-aws lambda invoke \
-  --function-name <RankSageMaker> \
-  --payload '{}' \
-  output.json
-```
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and configure:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `AWS_REGION` | AWS region | `us-east-1` |
-| `BRAPI_SECRET_ID` | Secrets Manager key for BRAPI token | `brapi/pro/token` |
-| `B3TR_PREDICTION_LENGTH` | Prediction horizon in days | `20` |
-| `B3TR_TOP_N` | Number of top recommendations | `10` |
-| `ALERT_EMAIL` | Email for SNS alerts | — |
-| `MODEL_QUALITY_MAPE_THRESHOLD` | MAPE threshold for retrain alerts | `0.20` |
-
-See `.env.example` for the full list.
-
-## Project Structure
+## Estrutura do Projeto
 
 ```
-.
-├── dashboard/               # React 18 + TypeScript frontend
-│   ├── src/
-│   │   ├── components/      # UI components by feature
-│   │   │   ├── recommendations/  # Recommendations tab
-│   │   │   ├── charts/           # Shared chart components
-│   │   │   ├── backtesting/      # Backtesting tab
-│   │   │   ├── costs/            # Costs tab
-│   │   │   ├── dataQuality/      # Data Quality tab
-│   │   │   ├── driftDetection/   # Drift Detection tab
-│   │   │   ├── explainability/   # Explainability tab
-│   │   │   ├── validation/       # Validation tab
-│   │   │   ├── monitoring/       # Monitoring components
-│   │   │   ├── filters/          # Filter components
-│   │   │   ├── export/           # Export (CSV, Excel, PDF)
-│   │   │   ├── auth/             # Authentication
-│   │   │   ├── help/             # FAQ, glossary, guided tour
-│   │   │   ├── settings/         # User preferences
-│   │   │   ├── shared/           # Reusable UI components
-│   │   │   └── panels/           # Dashboard panels
-│   │   ├── contexts/        # React Context providers
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── services/        # API client, cache, WebSocket
-│   │   └── utils/           # Utilities (accessibility, code splitting)
-│   └── package.json
-├── ml/                      # Python ML backend
+qyntara/
+├── dashboard/           # Frontend React 18 + TypeScript
 │   └── src/
-│       ├── lambdas/         # Lambda function handlers
-│       ├── features/        # Feature engineering
-│       └── sagemaker/       # SageMaker training scripts
-├── infra/                   # AWS CDK infrastructure
+│       ├── components/  # Componentes por feature
+│       ├── contexts/    # React Context providers
+│       ├── hooks/       # Custom hooks
+│       ├── pages/       # Páginas (dashboard + admin)
+│       ├── services/    # API client, cache, WebSocket
+│       └── lib/         # Utilitários e formatters
+├── ml/                  # Backend ML (Python 3.11)
+│   └── src/
+│       ├── lambdas/     # 28 Lambda handlers (deployed)
+│       ├── features/    # Feature engineering (50+ features)
+│       ├── monitoring/  # Drift, métricas, alertas
+│       ├── explainability/ # SHAP, ensemble analysis
+│       ├── backtesting/ # Motor de backtesting
+│       ├── portfolio/   # Otimizador de carteira
+│       ├── retraining/  # Versionamento e orquestração
+│       ├── sentiment/   # Análise de sentimento
+│       └── sagemaker/   # Scripts de treino SageMaker
+├── infra/               # AWS CDK (5 stacks)
 │   └── lib/
-│       ├── infra-stack.ts          # Core infrastructure
-│       ├── monitoring-stack.ts     # CloudWatch monitoring
-│       ├── security-stack.ts       # Security (WAF, auth)
-│       ├── optimization-stack.ts   # Performance optimization
-│       └── disaster-recovery-stack.ts  # DR resources
-├── config/                  # Universe definition, holidays
-├── scripts/                 # Utility scripts
-├── docs/                    # Documentation
-│   ├── API.md               # API reference
-│   ├── COMPONENTS.md        # React component docs
-│   ├── ARCHITECTURE.md      # Architecture decisions
-│   └── runbooks/            # Operational runbooks
-├── CHANGELOG.md             # Release changelog
-├── DEPLOYMENT_GUIDE.md      # Deployment instructions
-├── OPERATIONS_GUIDE.md      # Operations guide
-└── TROUBLESHOOTING_RUNBOOK.md  # Troubleshooting
+│       ├── infra-stack.ts             # Core (Lambda, API GW, S3, DynamoDB)
+│       ├── monitoring-stack.ts        # CloudWatch dashboards e alarmes
+│       ├── security-stack.ts          # WAF, auth, encryption
+│       ├── optimization-stack.ts      # Performance tuning
+│       └── disaster-recovery-stack.ts # DR cross-region
+├── config/              # Universo de ações e feriados B3
+├── scripts/             # Scripts de deploy e operação
+└── docs/                # Documentação e runbooks
 ```
 
-## Technology Stack
+## Variáveis de Ambiente
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend Framework | React 18 + TypeScript |
-| Charts | Recharts, D3.js, Plotly.js |
-| Tables | TanStack Table v8 |
-| State Management | React Context + React Query + URL state |
-| Styling | Tailwind CSS, MUI |
-| Animations | Framer Motion |
-| Testing | Jest, React Testing Library, fast-check, Playwright |
-| Backend | AWS Lambda (Python 3.11) |
-| API | API Gateway (REST + WebSocket) |
-| Storage | S3, DynamoDB |
-| Caching | ElastiCache Redis |
-| CDN | CloudFront |
-| ML Training | SageMaker |
-| Monitoring | CloudWatch, Sentry |
-| Auth | AWS Cognito (SAML/OAuth) |
+Copie `.env.example` para `.env` e configure:
 
-## Daily Operations
+| Variável | Descrição | Default |
+|----------|-----------|---------|
+| `AWS_REGION` | Região AWS | `us-east-1` |
+| `BRAPI_SECRET_ID` | Secret Manager key para token BRAPI | `brapi/pro/token` |
+| `B3TR_PREDICTION_LENGTH` | Horizonte de predição (dias) | `20` |
+| `B3TR_TOP_N` | Número de recomendações | `10` |
+| `ALERT_EMAIL` | Email para alertas SNS | — |
+| `JWT_SECRET` | Secret para autenticação JWT | — |
 
-The system runs automatically:
+Veja `.env.example` para a lista completa.
 
-| Schedule | Task |
-|----------|------|
-| Every 5 min | Monitor SageMaker instances |
-| 18:10 BRT | Generate top-50 ranking |
-| 19:30 BRT | Validate 20-day-old predictions |
-| 20:00 BRT | Monitor AWS costs |
+## Operação Diária
 
-### Retraining Criteria
+O sistema roda automaticamente via EventBridge:
 
-The system alerts when retraining is needed:
-- MAPE > 20%
-- Drift detected (performance degraded 50%)
-- Performance 2× worse than training baseline
+| Horário (BRT) | Tarefa |
+|----------------|--------|
+| 10:00–17:55 | Ingestão de cotações (a cada 5 min) |
+| 09:00 | Análise de sentimento |
+| 17:00 | Preparação de dados de treino |
+| 18:00 | Ingestão de features |
+| 18:10 | Ranking diário (top-50) |
+| 18:25–18:35 | Feature importance, prediction intervals, model metrics |
+| 18:45 | Cálculo de stop-loss |
+| 18:50 | Otimização de carteira |
+| 19:30 | Validação de predições (20 dias atrás) |
+| 20:00 | Monitoramento de custos |
+| 20:30 | Detecção de drift |
+| Domingo 19:00 | Retreino semanal |
 
-## Estimated Monthly Cost
+## Stack Tecnológico
 
-| Service | Cost |
-|---------|------|
-| Lambda (all functions) | ~$0.75 |
-| S3 Storage | ~$0.10 |
-| CloudWatch | ~$0.10 |
-| **Total** | **~$0.95/month** |
+| Camada | Tecnologia |
+|--------|-----------|
+| Frontend | React 18, TypeScript, Recharts, D3.js, TanStack Table v8 |
+| State | React Context + React Query + Zustand |
+| Backend | AWS Lambda (Python 3.11), API Gateway |
+| ML | SageMaker (XGBoost + DeepAR ensemble) |
+| Storage | S3 (dados), DynamoDB (users, carteiras, agents) |
+| Auth | JWT + Stripe (planos Pro) |
+| Infra | AWS CDK, WAF, CloudWatch, SNS |
+| CI/CD | GitHub Actions, GitHub Pages |
 
-SageMaker training: ~$0.06 per run (on-demand).
+## Custo Estimado
 
-## Documentation
+| Serviço | Custo/mês |
+|---------|-----------|
+| Lambda (28 funções) | ~$0.75 |
+| S3 + DynamoDB | ~$0.15 |
+| CloudWatch + SNS | ~$0.10 |
+| **Total** | **~$1.00** |
 
-- [API Reference](docs/API.md) — All REST endpoints with examples
-- [Component Guide](docs/COMPONENTS.md) — React components, contexts, hooks
-- [Architecture Decisions](docs/ARCHITECTURE.md) — ADRs and design rationale
-- [Deployment Guide](DEPLOYMENT_GUIDE.md) — Full deployment instructions
-- [Operations Guide](OPERATIONS_GUIDE.md) — Day-to-day operations
-- [Troubleshooting](TROUBLESHOOTING_RUNBOOK.md) — Common issues and fixes
-- [Disaster Recovery](docs/DISASTER_RECOVERY.md) — DR procedures and runbooks
-- [Changelog](CHANGELOG.md) — Release history
+SageMaker training: ~$0.06 por execução (on-demand).
 
-## License
+## Documentação
 
-MIT License — see [LICENSE](LICENSE).
+- [API Reference](docs/API.md)
+- [Componentes](docs/COMPONENTS.md)
+- [Arquitetura (ADRs)](docs/ARCHITECTURE.md)
+- [Disaster Recovery](docs/DISASTER_RECOVERY.md)
+- [Runbooks](docs/runbooks/)
+- [Changelog](CHANGELOG.md)
+
+## Contribuindo
+
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para guidelines de contribuição.
+
+## Segurança
+
+Para reportar vulnerabilidades, veja [SECURITY.md](SECURITY.md).
+
+## Licença
+
+MIT — veja [LICENSE](LICENSE).
+
+---
+
+> **Disclaimer:** Este projeto é apenas para fins educacionais e não constitui recomendação de investimento.

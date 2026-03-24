@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This document captures the key architecture decisions for the B3 Tactical Ranking MLOps Dashboard.
+This document captures the key architecture decisions for Qyntara.
 
 ---
 
@@ -109,15 +109,15 @@ This document captures the key architecture decisions for the B3 Tactical Rankin
 
 **Key Lambda Functions:**
 - `dashboard_api.py` — Dashboard data serving
-- `rest_api.py` — Public REST API
-- `backtesting_api.py` — Backtesting simulation
+- `user_auth.py` — Authentication and user management
+- `agent_hub.py` — Multi-agent governance
 - `rank_sagemaker.py` — Daily recommendation generation
 - `train_sagemaker.py` — Model training orchestration
+- `run_backtest.py` — Backtesting simulation
 - `monitor_drift.py` — Drift detection
 - `monitor_costs.py` — Cost monitoring
-- `data_quality.py` — Data quality checks
-- `webhook_management.py` — Webhook delivery
-- `security_middleware.py` — Auth and rate limiting
+- `storage_optimizer.py` — Storage optimization
+- `ingest_quotes.py` — Market data ingestion
 
 **Consequences:**
 - Cold starts add 1–3 seconds on first invocation (mitigated by provisioned concurrency for critical paths)

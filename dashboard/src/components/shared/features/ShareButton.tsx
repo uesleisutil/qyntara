@@ -13,7 +13,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ text, darkMode, size = 14 }) 
   const [copied, setCopied] = useState(false);
   const [btnRect, setBtnRect] = useState<DOMRect | null>(null);
 
-  const siteUrl = 'https://uesleisutil.github.io/b3-tactical-ranking/';
+  const siteUrl = 'https://qyntara.tech/';
   const fullText = `${text}\n\n${siteUrl}`;
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(fullText)}`;
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(siteUrl)}`;
