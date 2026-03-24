@@ -8,8 +8,9 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import { useIsPro } from '../shared/ProGate';
+import { useIsPro } from '../shared/pro/ProGate';
 import { getSignal, getSignalColor } from '../../constants';
+import { fmt, authHeaders } from '../../lib/formatters';
 
 /* ── Types ── */
 interface Carteira {
@@ -47,12 +48,6 @@ const renderIcon = (key: string, size: number, color?: string) => {
 const COLORS = ['#8b5cf6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6'];
 const MAX_FREE = 1;
 
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
-
-const authHeaders = () => {
-  const token = localStorage.getItem('authToken');
-  return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
-};
 
 const CarteirasTab: React.FC<CarteirasTabProps> = ({ darkMode = false }) => {
   const isPro = useIsPro();

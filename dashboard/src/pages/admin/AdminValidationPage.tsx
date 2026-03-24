@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { RefreshCw, CheckCircle, AlertTriangle, Clock, Search, Target, BarChart3 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../../components/shared/InfoTooltip';
+import InfoTooltip from '../../components/shared/ui/InfoTooltip';
+import { fmt } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
-
-const fmt = (v: any, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : null;
 
 const AdminValidationPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();

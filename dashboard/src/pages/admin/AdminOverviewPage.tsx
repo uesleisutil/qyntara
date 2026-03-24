@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { TrendingUp, DollarSign, AlertTriangle, CheckCircle, Activity, Server, Database, RefreshCw, Shield, Clock, XCircle, Loader2 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../../components/shared/InfoTooltip';
+import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { getCurrentMonthPriceKey } from '../../constants';
+import { fmt } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface HealthStatus { name: string; desc: string; status: 'ok' | 'error' | 'loading'; latency?: number; }
-
-const fmt = (v: any, decimals = 1) => v != null && !isNaN(v) ? Number(v).toFixed(decimals) : null;
 
 const AdminOverviewPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();

@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   TrendingUp, LogOut, Menu, X, ChevronRight,
-  BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
+  BarChart3, Brain, TestTubes, Moon, Sun, User, Lock,
   Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
   Settings, Mail, Shield, DollarSign, Database, CheckSquare, Activity, Layers,
   Landmark,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import NotificationCenter from '../components/shared/NotificationCenter';
-import GuidedTour, { shouldShowTour } from '../components/shared/GuidedTour';
-import OnboardingModal, { shouldShowOnboarding } from '../components/shared/OnboardingModal';
-import { ProBadge } from '../components/shared/ProGate';
+import NotificationCenter from '../components/shared/features/NotificationCenter';
+import GuidedTour, { shouldShowTour } from '../components/shared/features/GuidedTour';
+import OnboardingModal, { shouldShowOnboarding } from '../components/shared/features/OnboardingModal';
+import { ProBadge } from '../components/shared/pro/ProGate';
 
 const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -84,10 +84,7 @@ const DashboardLayout: React.FC = () => {
     { path: '/dashboard/carteiras', label: 'Carteiras', icon: <Briefcase size={18} />, tourId: 'nav-carteiras' },
   ];
 
-  const proMenuItems = [
-    { path: '/dashboard/tracking', label: 'Acompanhamento', icon: <Target size={18} /> },
-    { path: '/dashboard/portfolio', label: 'Carteira Modelo', icon: <Briefcase size={18} /> },
-  ];
+  const proMenuItems: typeof userMenuItems = [];
 
   const adminModelItems = [
     { path: '/admin', label: 'Visão Geral', icon: <BarChart3 size={18} /> },

@@ -6,7 +6,7 @@
 import React, { useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { BarChart3 } from 'lucide-react';
-import InfoTooltip from '../shared/InfoTooltip';
+import InfoTooltip from '../shared/ui/InfoTooltip';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;

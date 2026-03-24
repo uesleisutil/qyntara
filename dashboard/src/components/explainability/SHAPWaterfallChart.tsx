@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 import { TrendingUp } from 'lucide-react';
-import InfoTooltip from '../shared/InfoTooltip';
-import ProValue from '../shared/ProValue';
+import InfoTooltip from '../shared/ui/InfoTooltip';
+import ProValue from '../shared/pro/ProValue';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;

@@ -6,15 +6,12 @@ import {
   ChevronRight, Cpu, Zap, TrendingUp, Package, Eye, FileText,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../../components/shared/InfoTooltip';
+import InfoTooltip from '../../components/shared/ui/InfoTooltip';
+import { fmt, fmtDate } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
 /* ── helpers ── */
-const fmt = (v: any, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
-const fmtDate = (iso: string) => {
-  try { const d = new Date(iso); return d.toLocaleDateString('pt-BR'); } catch { return iso; }
-};
 const fmtDateTime = (iso: string) => {
   try { const d = new Date(iso); return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch { return iso; }
 };

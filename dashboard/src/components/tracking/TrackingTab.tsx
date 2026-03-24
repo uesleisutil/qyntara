@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { CheckCircle, TrendingUp, TrendingDown, BarChart3, Target, ChevronDown, ChevronRight, Activity, Calendar, ArrowUpRight, ArrowDownRight, Minus, Search, Filter, Award, SlidersHorizontal, Crown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getPriceDataKeys } from '../../constants';
-import InfoTooltip from '../shared/InfoTooltip';
+import InfoTooltip from '../shared/ui/InfoTooltip';
+import { fmt } from '../../lib/formatters';
 
 interface TrackingTabProps { darkMode?: boolean; }
 
@@ -40,8 +41,6 @@ interface SafraProgress {
 
 type SortKey = 'date' | 'tracking' | 'return' | 'progress';
 type ViewMode = 'safras' | 'ranking';
-
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
   const [prices, setPrices] = useState<Record<string, Record<string, number>>>({});

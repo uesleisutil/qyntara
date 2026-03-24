@@ -8,18 +8,19 @@ import {
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
-import DailyHighlight from '../../components/shared/DailyHighlight';
-import SignalChangesDropdown from '../../components/shared/SignalChangesDropdown';
-import MyPositionsPanel from '../../components/shared/MyPositionsPanel';
-import PersonalPerformance from '../../components/shared/PersonalPerformance';
-import GoalTracker from '../../components/shared/GoalTracker';
-import PriceAlerts from '../../components/shared/PriceAlerts';
-import WidgetCard from '../../components/shared/WidgetCard';
-import WidgetPreferences, { WidgetConfig } from '../../components/shared/WidgetPreferences';
-import { useIsPro } from '../../components/shared/ProGate';
-import ProValue from '../../components/shared/ProValue';
-import Sparkline from '../../components/shared/Sparkline';
-import { markChecklistItem } from '../../components/shared/ActivationChecklist';
+import DailyHighlight from '../../components/shared/features/DailyHighlight';
+import SignalChangesDropdown from '../../components/shared/features/SignalChangesDropdown';
+import MyPositionsPanel from '../../components/shared/features/MyPositionsPanel';
+import PersonalPerformance from '../../components/shared/features/PersonalPerformance';
+import GoalTracker from '../../components/shared/features/GoalTracker';
+import PriceAlerts from '../../components/shared/features/PriceAlerts';
+import WidgetCard from '../../components/shared/ui/WidgetCard';
+import WidgetPreferences, { WidgetConfig } from '../../components/shared/features/WidgetPreferences';
+import { useIsPro } from '../../components/shared/pro/ProGate';
+import ProValue from '../../components/shared/pro/ProValue';
+import Sparkline from '../../components/shared/ui/Sparkline';
+import { markChecklistItem } from '../../components/shared/features/ActivationChecklist';
+import { fmt, authHeaders } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Rec {
@@ -87,13 +88,6 @@ const getGreeting = (): string => {
   if (h < 12) return 'Bom dia';
   if (h < 18) return 'Boa tarde';
   return 'Boa noite';
-};
-
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
-
-const authHeaders = () => {
-  const token = localStorage.getItem('authToken');
-  return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 };
 
 /* ─── Market Pulse Widget ─── */

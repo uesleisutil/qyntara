@@ -8,10 +8,9 @@ import {
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../config';
 import { SCORE_BUY_THRESHOLD, getPriceDataKeys, PRO_PRICE, UNIVERSE_SIZE_FALLBACK, getSignal, getSignalColor } from '../constants';
+import { fmt } from '../lib/formatters';
 
 interface LiveRec { ticker: string; score: number; last_close: number; exp_return_20: number; pred_price_t_plus_20: number; vol_20d: number; }
-
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const brand = {
   gradient: 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)',

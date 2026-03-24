@@ -2,14 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { RefreshCw, TrendingUp, Target, BarChart3, Award, Calendar, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../../components/shared/InfoTooltip';
+import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getPriceDataKeys, UNIVERSE_SIZE_FALLBACK } from '../../constants';
+import { fmt } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface PriceRow { date: string; ticker: string; close: string; }
 interface HistoryEntry { date: string; exp_return_20: number; score: number; }
-
-const fmt = (v: any, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const AdminPerformancePage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();

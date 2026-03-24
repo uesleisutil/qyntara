@@ -17,8 +17,6 @@ import ExplainabilityPage from './pages/dashboard/ExplainabilityPage';
 import BacktestingPage from './pages/dashboard/BacktestingPage';
 import ChangePasswordPage from './pages/dashboard/ChangePasswordPage';
 import ChangePhonePage from './pages/dashboard/ChangePhonePage';
-import TrackingPage from './pages/dashboard/TrackingPage';
-import PortfolioPage from './pages/dashboard/PortfolioPage';
 import PerformancePage from './pages/dashboard/PerformancePage';
 import UpgradePage from './pages/dashboard/UpgradePage';
 import AdminOverviewPage from './pages/admin/AdminOverviewPage';
@@ -111,8 +109,8 @@ const AppRoutes: React.FC = () => {
         <Route path="recommendations" element={<RecommendationsPage />} />
         <Route path="explainability" element={<ExplainabilityPage />} />
         <Route path="backtesting" element={<BacktestingPage />} />
-        <Route path="tracking" element={<TrackingPage />} />
-        <Route path="portfolio" element={<PortfolioPage />} />
+        <Route path="tracking" element={<Navigate to="/dashboard/performance" replace />} />
+        <Route path="portfolio" element={<Navigate to="/dashboard/carteiras" replace />} />
         <Route path="carteiras" element={<CarteirasPage />} />
         <Route path="performance" element={<PerformancePage />} />
         <Route path="upgrade" element={<UpgradePage />} />

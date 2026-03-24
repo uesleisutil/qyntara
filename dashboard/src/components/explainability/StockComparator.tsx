@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Columns, X, Plus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import InfoTooltip from '../shared/InfoTooltip';
+import InfoTooltip from '../shared/ui/InfoTooltip';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
+import { fmt } from '../../lib/formatters';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -12,8 +13,6 @@ interface StockComparatorProps {
   tickers: TickerData[];
   darkMode?: boolean;
 }
-
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = false }) => {
   const [selected, setSelected] = useState<string[]>([]);

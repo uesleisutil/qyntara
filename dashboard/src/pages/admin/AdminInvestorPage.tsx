@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { UNIVERSE_SIZE_FALLBACK, PRO_PRICE } from '../../constants';
+import { fmt, fmtUsd, fmtBrl } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
@@ -33,9 +34,6 @@ interface LiveMetrics {
   costs: CostBreakdown | null;
 }
 
-const fmt = (v: any, d = 1) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
-const fmtUsd = (v: number | null | undefined, d = 2) => v != null && !isNaN(v) ? `$${Number(v).toFixed(d)}` : '—';
-const fmtBrl = (v: number | null | undefined, d = 2) => v != null && !isNaN(v) ? `R$ ${Number(v).toFixed(d)}` : '—';
 
 const AdminInvestorPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();

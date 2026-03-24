@@ -5,14 +5,14 @@ import {
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { getSignal, getSignalColor } from '../../constants';
-import { useIsPro } from '../shared/ProGate';
-import ProValue from '../shared/ProValue';
-import ProBlur from '../shared/ProBlur';
+import { useIsPro } from '../shared/pro/ProGate';
+import ProValue from '../shared/pro/ProValue';
+import ProBlur from '../shared/pro/ProBlur';
 import SHAPWaterfallChart from './SHAPWaterfallChart';
 import SensitivityAnalysis from './SensitivityAnalysis';
 import FeatureImpactChart from './FeatureImpactChart';
 import ExplanationText from './ExplanationText';
-import { markChecklistItem } from '../shared/ActivationChecklist';
+import { markChecklistItem } from '../shared/features/ActivationChecklist';
 
 interface ExplainabilityTabProps { darkMode?: boolean; }
 

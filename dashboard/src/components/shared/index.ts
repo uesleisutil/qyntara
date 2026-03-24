@@ -1,33 +1,39 @@
-export { KPICard } from './KPICard';
-export { StatusBadge, StatusBadgeLegend } from './StatusBadge';
-export { ProgressBar } from './ProgressBar';
-export { GoalProgressBar } from './GoalProgressBar';
-export { Sparkline } from './Sparkline';
-export { Skeleton } from './Skeleton';
-export { SkeletonTable } from './SkeletonTable';
-export { SkeletonChart } from './SkeletonChart';
-export { SkeletonCard } from './SkeletonCard';
-export { LazyTab } from './LazyTab';
-export { CacheIndicator } from './CacheIndicator';
-export { OfflineIndicator } from './OfflineIndicator';
-export { Modal } from './Modal';
-export { ErrorBoundary } from './ErrorBoundary';
-export { ThemeToggle } from './ThemeToggle';
-export { BaseTable } from './BaseTable';
-export { default as NotificationCenter } from './NotificationCenter';
-export { Breadcrumb } from './Breadcrumb';
-export { FavoriteIcon } from './FavoriteIcon';
-export { FavoritesPanel } from './FavoritesPanel';
-export { DraggableKPICard } from './DraggableKPICard';
-export { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
-export { CrossFilterBar } from './CrossFilterBar';
-export { ZoomControls } from './ZoomControls';
-export { AnnotationModal } from './AnnotationModal';
-export { 
-  TemporalComparisonProvider, 
-  useTemporalComparison, 
+// ── UI primitives ──
+export { KPICard } from './ui/KPICard';
+export { StatusBadge, StatusBadgeLegend } from './ui/StatusBadge';
+export { ProgressBar } from './ui/ProgressBar';
+export { GoalProgressBar } from './ui/GoalProgressBar';
+export { Sparkline } from './ui/Sparkline';
+export { LazyTab } from './ui/LazyTab';
+export { Modal } from './ui/Modal';
+export { BaseTable } from './ui/BaseTable';
+export { Breadcrumb } from './ui/Breadcrumb';
+export { DraggableKPICard } from './ui/DraggableKPICard';
+export { KeyboardShortcutsHelp } from './ui/KeyboardShortcutsHelp';
+export { CrossFilterBar } from './ui/CrossFilterBar';
+export { ZoomControls } from './ui/ZoomControls';
+export { AnnotationModal } from './ui/AnnotationModal';
+export { ThemeToggle } from './ui/ThemeToggle';
+export { default as ExportCSV } from './ui/ExportCSV';
+export {
+  TemporalComparisonProvider,
+  useTemporalComparison,
   TemporalComparisonToggle,
   ComparisonValue,
   TemporalKPICard,
   ChartComparisonOverlay,
-} from './TemporalComparison';
+} from './ui/TemporalComparison';
+
+// ── Feedback / loading ──
+export { Skeleton } from './feedback/Skeleton';
+export { SkeletonTable } from './feedback/SkeletonTable';
+export { SkeletonChart } from './feedback/SkeletonChart';
+export { SkeletonCard } from './feedback/SkeletonCard';
+export { CacheIndicator } from './feedback/CacheIndicator';
+export { OfflineIndicator } from './feedback/OfflineIndicator';
+export { ErrorBoundary } from './feedback/ErrorBoundary';
+
+// ── Features ──
+export { FavoriteIcon } from './features/FavoriteIcon';
+export { FavoritesPanel } from './features/FavoritesPanel';
+export { default as NotificationCenter } from './features/NotificationCenter';

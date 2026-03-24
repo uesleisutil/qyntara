@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Play, Settings, TrendingUp, BarChart3, AlertTriangle, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../shared/InfoTooltip';
+import InfoTooltip from '../shared/ui/InfoTooltip';
 import { UNIVERSE_SIZE_FALLBACK } from '../../constants';
-import { markChecklistItem } from '../shared/ActivationChecklist';
-import { saveBacktestResult, loadBacktestResult } from '../shared/BacktestCache';
+import { markChecklistItem } from '../shared/features/ActivationChecklist';
+import { saveBacktestResult, loadBacktestResult } from '../../lib/BacktestCache';
+import { fmt, fmtPct, fmtBRL } from '../../lib/formatters';
 
 interface BacktestingTabProps { darkMode?: boolean; }
 
@@ -16,10 +17,6 @@ interface Config {
 }
 
 interface PriceRow { date: string; ticker: string; close: string | number; }
-
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
-const fmtPct = (v: number) => `${(v * 100).toFixed(2)}%`;
-const fmtBRL = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
 async function fetchAllPrices(): Promise<PriceRow[]> {
   const headers: Record<string, string> = { 'x-api-key': API_KEY };

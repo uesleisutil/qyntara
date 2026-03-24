@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { MessageSquare, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
-import InfoTooltip from '../shared/InfoTooltip';
-import ProValue from '../shared/ProValue';
+import InfoTooltip from '../shared/ui/InfoTooltip';
+import ProValue from '../shared/pro/ProValue';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 
 interface TickerData {

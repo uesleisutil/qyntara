@@ -1,7 +1,7 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { DriftDetectionTab } from '../../components/driftDetection';
-import InfoTooltip from '../../components/shared/InfoTooltip';
+import { DriftDetectionTab } from '../../components/admin/driftDetection';
+import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 

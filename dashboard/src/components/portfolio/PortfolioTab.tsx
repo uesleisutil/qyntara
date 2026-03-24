@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Crown, TrendingUp, Shield, Target, PieChart, ArrowUpRight, ShieldCheck, Flame, Scale } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../shared/InfoTooltip';
+import InfoTooltip from '../shared/ui/InfoTooltip';
+import { fmt } from '../../lib/formatters';
 
 interface PortfolioTabProps { darkMode?: boolean; }
 
@@ -33,7 +34,6 @@ const PROFILES: Record<Profile, { label: string; icon: React.ReactNode; color: s
   },
 };
 
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 const pieColors = ['#8b5cf6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16'];
 
 const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {

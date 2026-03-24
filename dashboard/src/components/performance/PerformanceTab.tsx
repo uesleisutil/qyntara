@@ -2,17 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { LineChart, TrendingUp, BarChart3, Target, Award, Calendar } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getPriceDataKeys, UNIVERSE_SIZE_FALLBACK } from '../../constants';
-import InfoTooltip from '../shared/InfoTooltip';
-import ShareButton from '../shared/ShareButton';
-import { markChecklistItem } from '../shared/ActivationChecklist';
-import RetroactiveValidation from '../shared/RetroactiveValidation';
+import InfoTooltip from '../shared/ui/InfoTooltip';
+import ShareButton from '../shared/features/ShareButton';
+import { markChecklistItem } from '../shared/features/ActivationChecklist';
+import RetroactiveValidation from '../shared/features/RetroactiveValidation';
+import { fmt } from '../../lib/formatters';
 
 interface PerformanceTabProps { darkMode?: boolean; }
 
 interface PriceRow { date: string; ticker: string; close: string; }
 interface HistoryEntry { date: string; exp_return_20: number; score: number; }
-
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => {
   const [history, setHistory] = useState<Record<string, HistoryEntry[]>>({});

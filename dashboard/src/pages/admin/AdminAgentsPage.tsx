@@ -6,7 +6,7 @@ import {
   Zap, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
-import InfoTooltip from '../../components/shared/InfoTooltip';
+import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 

@@ -17,7 +17,7 @@ import FilterBar from './FilterBar';
 import ExportButton from './ExportButton';
 import ComparisonModal from './ComparisonModal';
 import AlertsPanel from './AlertsPanel';
-import RecommendationsTable from '../RecommendationsTable';
+import RecommendationsTable from './RecommendationsTable';
 import { GitCompare, X, Bell } from 'lucide-react';
 import { useFilters } from '../../contexts/FilterContext';
 

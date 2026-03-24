@@ -2,25 +2,24 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { ArrowUpRight, ArrowDownRight, RefreshCw, Search, ArrowUpDown, Clock, Lock, Crown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
-import InfoTooltip from '../../components/shared/InfoTooltip';
-import ShareButton from '../../components/shared/ShareButton';
-import { useIsPro } from '../../components/shared/ProGate';
-import ActivationChecklist, { markChecklistItem } from '../../components/shared/ActivationChecklist';
-import { WatchlistButton, getWatchlist } from '../../components/shared/Watchlist';
-import ExportCSV from '../../components/shared/ExportCSV';
-import Sparkline from '../../components/shared/Sparkline';
+import InfoTooltip from '../../components/shared/ui/InfoTooltip';
+import ShareButton from '../../components/shared/features/ShareButton';
+import { useIsPro } from '../../components/shared/pro/ProGate';
+import ActivationChecklist, { markChecklistItem } from '../../components/shared/features/ActivationChecklist';
+import { WatchlistButton, getWatchlist } from '../../components/shared/features/Watchlist';
+import ExportCSV from '../../components/shared/ui/ExportCSV';
+import Sparkline from '../../components/shared/ui/Sparkline';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getSignal, getSignalColor, getCurrentMonthPriceKey, PRO_PRICE_LABEL } from '../../constants';
 import { getSector, ALL_SECTORS } from '../../constants/sectors';
-import MonthlyReport from '../../components/shared/MonthlyReport';
-import ProValue from '../../components/shared/ProValue';
+import MonthlyReport from '../../components/shared/features/MonthlyReport';
+import ProValue from '../../components/shared/pro/ProValue';
+import { fmt } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
   exp_return_20: number; vol_20d: number; score: number;
 }
-
-const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const RecommendationsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
