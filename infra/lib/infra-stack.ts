@@ -1131,6 +1131,8 @@ export class InfraStack extends cdk.Stack {
     adminUsersSetPlan.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const adminUsersSetRole = adminUsers.addResource("set-role");
     adminUsersSetRole.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const adminUsersSetCostsAccess = adminUsers.addResource("set-costs-access");
+    adminUsersSetCostsAccess.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const adminUsersDelete = adminUsers.addResource("delete");
     adminUsersDelete.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
 

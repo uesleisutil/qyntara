@@ -2122,7 +2122,7 @@ def _handle_admin_list_users(event: dict) -> dict:
     table = dynamodb.Table(USERS_TABLE)
     try:
         result = table.scan(
-            ProjectionExpression="email, #n, userId, #r, #p, planExpiresAt, planSource, createdAt, lastLoginAt, emailVerified, stripeSubscriptionId, enabled",
+            ProjectionExpression="email, #n, userId, #r, #p, planExpiresAt, planSource, createdAt, lastLoginAt, emailVerified, stripeSubscriptionId, enabled, canViewCosts",
             ExpressionAttributeNames={"#n": "name", "#r": "role", "#p": "plan"},
         )
         users = result.get("Items", [])
@@ -2279,6 +2279,51 @@ def _handle_admin_set_role(event: dict) -> dict:
     except Exception as e:
         logger.error(f"Error setting role for {email}: {e}")
         return _cors_response(500, {"message": "Erro ao alterar role"})
+
+
+def _handle_admin_set_costs_access(event: dict) -> dict:
+    """POST /admin/users/set-costs-access — admin toggles a user's canViewCosts flag."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    email = _normalize_email(body.get("email", ""))
+    can_view = body.get("canViewCosts")
+
+    if not email:
+        return _cors_response(400, {"message": "Email obrigatório"})
+    if not isinstance(can_view, bool):
+        return _cors_response(400, {"message": "canViewCosts deve ser true ou false"})
+
+    table = dynamodb.Table(USERS_TABLE)
+
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="email")
+        if "Item" not in result:
+            return _cors_response(404, {"message": "Usuário não encontrado"})
+    except Exception:
+        return _cors_response(500, {"message": "Erro interno"})
+
+    now = datetime.now(UTC).isoformat()
+
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET canViewCosts = :val, updatedAt = :now",
+            ExpressionAttributeValues={":val": can_view, ":now": now},
+        )
+        status = "liberado" if can_view else "revogado"
+        _log_auth(email, f"admin_set_costs_access_{can_view}", True, "admin", admin.get("email", "admin"),
+                   f"by {admin.get('email')}")
+        return _cors_response(200, {"message": f"Acesso a dados sensíveis {status} para {email}", "canViewCosts": can_view})
+    except Exception as e:
+        logger.error(f"Error setting canViewCosts for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao alterar acesso"})
 
 
 def _handle_admin_delete_user(event: dict) -> dict:
@@ -2784,6 +2829,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_admin_set_plan(event)
     elif path.endswith("/admin/users/set-role") and method == "POST":
         return _handle_admin_set_role(event)
+    elif path.endswith("/admin/users/set-costs-access") and method == "POST":
+        return _handle_admin_set_costs_access(event)
     elif path.endswith("/admin/users/delete") and method == "POST":
         return _handle_admin_delete_user(event)
     elif path.endswith("/admin/chat") and method == "GET":
