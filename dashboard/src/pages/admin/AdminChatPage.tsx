@@ -89,7 +89,7 @@ const AdminChatPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
 
@@ -147,7 +147,7 @@ const AdminChatPage: React.FC = () => {
                 <div style={{
                   maxWidth: '80%', padding: '0.6rem 0.85rem', borderRadius: 12,
                   borderBottomRightRadius: isAdmin ? 4 : 12, borderBottomLeftRadius: isAdmin ? 12 : 4,
-                  background: isAdmin ? 'linear-gradient(135deg, #10b981, #059669)' : (darkMode ? '#2a2745' : '#f1f5f9'),
+                  background: isAdmin ? 'linear-gradient(135deg, #10b981, #059669)' : (darkMode ? '#363258' : '#f1f5f9'),
                   color: isAdmin ? 'white' : theme.text,
                 }}>
                   {!isAdmin && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#8b5cf6', marginBottom: '0.15rem' }}>{m.senderName || 'Cliente'}</div>}
@@ -168,7 +168,7 @@ const AdminChatPage: React.FC = () => {
               rows={1}
               style={{
                 flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'none',
-                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
                 color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 42, maxHeight: 120,
                 fontFamily: 'inherit',
               }} />
@@ -176,7 +176,7 @@ const AdminChatPage: React.FC = () => {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 42, height: 42, borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: reply.trim() ? 'linear-gradient(135deg, #10b981, #059669)' : (darkMode ? '#2a2745' : '#e2e8f0'),
+                background: reply.trim() ? 'linear-gradient(135deg, #10b981, #059669)' : (darkMode ? '#363258' : '#e2e8f0'),
                 color: reply.trim() ? 'white' : theme.textSecondary,
                 transition: 'all 0.2s', WebkitAppearance: 'none' as any, opacity: sending ? 0.6 : 1,
               }}>
@@ -264,8 +264,8 @@ const AdminChatPage: React.FC = () => {
                   ...cardStyle, padding: '0.75rem', cursor: 'pointer', transition: 'background 0.15s',
                   borderLeft: hasUnread ? '3px solid #f59e0b' : `1px solid ${theme.border}`,
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'}
-                onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a1836' : '#fff')}>
+                onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#363258' : '#f1f5f9'}
+                onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1e1b40' : '#fff')}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, flex: 1 }}>
                     <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.subject}</span>

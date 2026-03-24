@@ -27,13 +27,13 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
   const [errorMessage, setErrorMessage] = useState('');
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e2e0f0',
+    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
+    border: darkMode ? '#363258' : '#e2e0f0',
     accent: '#8b5cf6',
-    inputBg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    inputBg: darkMode ? '#0e0c1e' : '#f8f7fc',
   };
 
   const categories = [
@@ -230,7 +230,7 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
         style={{
           width: '100%',
           padding: '0.75rem',
-          backgroundColor: rating === 0 ? (darkMode ? '#2a2745' : '#e2e0f0') : theme.accent,
+          backgroundColor: rating === 0 ? (darkMode ? '#363258' : '#e2e0f0') : theme.accent,
           color: rating === 0 ? theme.textSecondary : 'white',
           border: 'none',
           borderRadius: '8px',

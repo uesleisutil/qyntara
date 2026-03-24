@@ -62,7 +62,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
   const done = alerts.filter(a => a.triggered);
   const inputS: React.CSSProperties = {
     padding: '0.4rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`,
-    background: darkMode ? '#0c0a1a' : '#f8fafc', color: theme.text, fontSize: '0.8rem', outline: 'none',
+    background: darkMode ? '#0e0c1e' : '#f8fafc', color: theme.text, fontSize: '0.8rem', outline: 'none',
   };
 
   return (
@@ -112,7 +112,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
             placeholder="R$" style={{ ...inputS, flex: '1 1 70px' }} />
           <button onClick={add} disabled={!form.ticker || !form.targetPrice} style={{
             padding: '0.4rem 0.7rem', borderRadius: 6, border: 'none',
-            background: form.ticker && form.targetPrice ? '#10b981' : (darkMode ? '#2a2745' : '#e2e8f0'),
+            background: form.ticker && form.targetPrice ? '#10b981' : (darkMode ? '#363258' : '#e2e8f0'),
             color: form.ticker && form.targetPrice ? 'white' : theme.textSecondary,
             cursor: form.ticker && form.targetPrice ? 'pointer' : 'not-allowed',
             fontSize: '0.78rem', fontWeight: 600,

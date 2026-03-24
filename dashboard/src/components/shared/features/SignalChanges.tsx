@@ -70,7 +70,7 @@ const SignalChanges: React.FC<SignalChangesProps> = ({ darkMode, theme }) => {
   const visible = expanded ? changes : changes.slice(0, 3);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '0.75rem',
     marginBottom: '0.75rem',
   };

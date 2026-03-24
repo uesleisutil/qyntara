@@ -53,7 +53,7 @@ const InfoTooltip: React.FC<InfoTooltipProps> = ({ text, darkMode = false, size 
   const show = () => { calcCoords(); setOpen(true); };
   const hide = () => setOpen(false);
 
-  const bgColor = darkMode ? '#2a2745' : '#1a1836';
+  const bgColor = darkMode ? '#363258' : '#1a1836';
 
   const tooltip = open ? ReactDOM.createPortal(
     <div ref={tipRef} style={{

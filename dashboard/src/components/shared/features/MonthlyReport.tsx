@@ -124,14 +124,14 @@ ${positions.length > 0 ? `<h2>📋 Minhas Posições</h2>
     <button onClick={generate} disabled={generating} style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
       padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-      border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+      border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
       background: 'transparent',
-      color: darkMode ? '#9895b0' : '#64748b',
+      color: darkMode ? '#b8b5d0' : '#64748b',
       cursor: generating ? 'wait' : 'pointer', transition: 'all 0.15s',
       WebkitAppearance: 'none' as any, minHeight: 'auto',
     }}
       onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; } }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a2745' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#9895b0' : '#64748b'; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#363258' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#b8b5d0' : '#64748b'; }}
     >
       {generating ? <Loader size={13} className="spin" /> : <FileText size={13} />}
       {generating ? 'Gerando...' : 'Relatório Mensal'}

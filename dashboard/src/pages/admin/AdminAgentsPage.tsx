@@ -120,7 +120,7 @@ const AdminAgentsPage: React.FC = () => {
   const currentAgent = agents.find(a => a.id === selectedAgent);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
 
@@ -149,7 +149,7 @@ const AdminAgentsPage: React.FC = () => {
   // Shimmer loading
   if (loading) {
     const pulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -262,7 +262,7 @@ const AdminAgentsPage: React.FC = () => {
                 maxWidth: '85%', padding: '0.6rem 0.8rem', borderRadius: 10,
                 background: msg.role === 'user'
                   ? 'linear-gradient(135deg, #7c3aed, #3b82f6)'
-                  : (darkMode ? '#0c0a1a' : '#f1f5f9'),
+                  : (darkMode ? '#0e0c1e' : '#f1f5f9'),
                 color: msg.role === 'user' ? 'white' : theme.text,
                 fontSize: '0.8rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
               }}>
@@ -273,7 +273,7 @@ const AdminAgentsPage: React.FC = () => {
               </div>
             ))}
             {sending && (
-              <div style={{ alignSelf: 'flex-start', padding: '0.6rem 0.8rem', borderRadius: 10, background: darkMode ? '#0c0a1a' : '#f1f5f9', fontSize: '0.8rem', color: theme.textSecondary }}>
+              <div style={{ alignSelf: 'flex-start', padding: '0.6rem 0.8rem', borderRadius: 10, background: darkMode ? '#0e0c1e' : '#f1f5f9', fontSize: '0.8rem', color: theme.textSecondary }}>
                 {currentAgent.emoji} Analisando...
               </div>
             )}
@@ -289,14 +289,14 @@ const AdminAgentsPage: React.FC = () => {
               placeholder={`Envie uma diretiva para o ${currentAgent.id}...`}
               style={{
                 flex: 1, padding: '0.6rem 0.8rem', borderRadius: 8,
-                border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8fafc',
+                border: `1px solid ${theme.border}`, background: darkMode ? '#0e0c1e' : '#f8fafc',
                 color: theme.text, fontSize: '0.85rem', outline: 'none',
               }}
             />
             <button onClick={sendMessage} disabled={!chatInput.trim() || sending}
               style={{
                 padding: '0.6rem 1rem', borderRadius: 8, border: 'none',
-                background: chatInput.trim() ? currentAgent.color : (darkMode ? '#2a2745' : '#e2e8f0'),
+                background: chatInput.trim() ? currentAgent.color : (darkMode ? '#363258' : '#e2e8f0'),
                 color: chatInput.trim() ? 'white' : theme.textSecondary,
                 cursor: chatInput.trim() ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 600,

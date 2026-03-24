@@ -1,12 +1,12 @@
 /* Shared theme constants — extracted from inline styles for better perf (#7) */
 
 export const getTheme = (darkMode: boolean) => ({
-  bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-  cardBg: darkMode ? '#1a1836' : 'white',
-  text: darkMode ? '#f1f5f9' : '#0c0a1a',
-  textSecondary: darkMode ? '#9895b0' : '#64618b',
-  border: darkMode ? '#2a2745' : '#e2e0f0',
-  hover: darkMode ? '#2a2745' : '#f3f1fa',
+  bg: darkMode ? '#0e0c1e' : '#f8f7fc',
+  cardBg: darkMode ? '#1e1b40' : 'white',
+  text: darkMode ? '#f5f4fb' : '#0c0a1a',
+  textSecondary: darkMode ? '#b8b5d0' : '#64618b',
+  border: darkMode ? '#363258' : '#e2e0f0',
+  hover: darkMode ? '#272450' : '#f3f1fa',
   green: '#10b981',
   red: '#ef4444',
   yellow: '#f59e0b',

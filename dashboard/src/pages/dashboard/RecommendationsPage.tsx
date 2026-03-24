@@ -139,7 +139,7 @@ const RecommendationsPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
   const btnBase: React.CSSProperties = {
@@ -151,7 +151,7 @@ const RecommendationsPage: React.FC = () => {
 
   if (loading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -280,7 +280,7 @@ const RecommendationsPage: React.FC = () => {
             onChange={e => setSearchTerm(e.target.value)}
             style={{
               width: '100%', padding: '0.55rem 0.55rem 0.55rem 2rem', borderRadius: 8,
-              border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+              border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
               color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box',
             }}
           />
@@ -288,7 +288,7 @@ const RecommendationsPage: React.FC = () => {
         <select value={signalFilter} onChange={e => setSignalFilter(e.target.value as any)}
           style={{
             padding: '0.55rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
-            background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text,
+            background: theme.card || (darkMode ? '#1e1b40' : '#fff'), color: theme.text,
             fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
           }}>
           <option value="ALL">Todos</option>
@@ -300,14 +300,14 @@ const RecommendationsPage: React.FC = () => {
         <select value={sectorFilter} onChange={e => setSectorFilter(e.target.value)}
           style={{
             padding: '0.55rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
-            background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text,
+            background: theme.card || (darkMode ? '#1e1b40' : '#fff'), color: theme.text,
             fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
           }}>
           <option value="ALL">Setor: Todos</option>
           {ALL_SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <button onClick={() => handleSort(sortBy === 'score' ? 'return' : sortBy === 'return' ? 'ticker' : sortBy === 'ticker' ? 'vol' : 'score')}
-          style={{ ...btnBase, padding: '0.55rem 0.75rem', background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, border: `1px solid ${theme.border}` }}>
+          style={{ ...btnBase, padding: '0.55rem 0.75rem', background: theme.card || (darkMode ? '#1e1b40' : '#fff'), color: theme.text, border: `1px solid ${theme.border}` }}>
           <ArrowUpDown size={14} /> {sortBy === 'score' ? 'Score' : sortBy === 'return' ? 'Retorno' : sortBy === 'ticker' ? 'Ticker' : 'Volatilidade'}
         </button>
       </div>
@@ -399,7 +399,7 @@ const RecommendationsPage: React.FC = () => {
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: getSignalColor(getSignal(r.score)).text }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
                       {fmt(r.score, 2)}
-                      <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#2a2745' : '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                      <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#363258' : '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
                         <div style={{ height: '100%', borderRadius: 2, width: `${confidence}%`, background: confidence >= 70 ? '#10b981' : confidence >= 40 ? '#f59e0b' : '#ef4444' }} />
                       </div>
                     </div>

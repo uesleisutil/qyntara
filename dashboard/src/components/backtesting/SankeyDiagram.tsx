@@ -47,10 +47,10 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => ({
-    cardBg: darkMode ? '#1a1836' : 'white',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
+    border: darkMode ? '#363258' : '#e2e8f0',
   }), [darkMode]);
 
   const sectorColors: Record<string, string> = useMemo(() => ({
@@ -196,7 +196,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <GitBranch size={20} color={darkMode ? '#9895b0' : '#64748b'} />
+        <GitBranch size={20} color={darkMode ? '#b8b5d0' : '#64748b'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 

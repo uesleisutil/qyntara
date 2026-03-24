@@ -59,12 +59,12 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
   const [showFilters, setShowFilters] = useState(false);
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e2e0f0',
-    hover: darkMode ? '#2a2745' : '#f3f1fa',
+    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
+    border: darkMode ? '#363258' : '#e2e0f0',
+    hover: darkMode ? '#363258' : '#f3f1fa',
     green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#8b5cf6', purple: '#8b5cf6',
   };
 
@@ -290,7 +290,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
           <span>Dia {Math.min(daysElapsed, totalDays)} de {totalDays}</span>
           <span>{fmt(progress * 100, 0)}%</span>
         </div>
-        <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e0f0', overflow: 'hidden' }}>
+        <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#363258' : '#e2e0f0', overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 3, width: `${Math.min(progress * 100, 100)}%`,
             background: `linear-gradient(90deg, ${barColor}, ${barColor}dd)`, transition: 'width 0.5s ease' }} />
         </div>
@@ -312,7 +312,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
 
   if (loading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e0f0'} 25%, ${darkMode ? '#2a2745' : '#f3f1fa'} 50%, ${darkMode ? '#1a1836' : '#e2e0f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e0f0'} 25%, ${darkMode ? '#363258' : '#f3f1fa'} 50%, ${darkMode ? '#1e1b40' : '#e2e0f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -368,7 +368,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
             <button key={v.key} onClick={() => setViewMode(v.key)} style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem',
               border: 'none', fontSize: '0.76rem', fontWeight: viewMode === v.key ? 600 : 400,
-              background: viewMode === v.key ? (darkMode ? '#2a2745' : '#e2e0f0') : 'transparent',
+              background: viewMode === v.key ? (darkMode ? '#363258' : '#e2e0f0') : 'transparent',
               color: viewMode === v.key ? theme.text : theme.textSecondary,
               cursor: 'pointer', transition: 'all 0.15s', WebkitAppearance: 'none' as any,
             }}>{v.icon} {v.label}</button>

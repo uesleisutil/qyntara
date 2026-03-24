@@ -38,12 +38,12 @@ const SettingsPage: React.FC = () => {
   }, [isPro]);
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e2e0f0',
-    hover: darkMode ? '#2a2745' : '#f3f1fa',
+    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
+    border: darkMode ? '#363258' : '#e2e0f0',
+    hover: darkMode ? '#363258' : '#f3f1fa',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -142,7 +142,7 @@ const SettingsPage: React.FC = () => {
             }}
             style={{
               padding: '0.5rem 1.25rem', borderRadius: 8, border: 'none', fontSize: '0.82rem', fontWeight: 600,
-              background: (!newTicker || newTicker === user?.freeTicker) ? (darkMode ? '#2a2745' : '#e2e0f0') : 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+              background: (!newTicker || newTicker === user?.freeTicker) ? (darkMode ? '#363258' : '#e2e0f0') : 'linear-gradient(135deg, #7c3aed, #3b82f6)',
               color: (!newTicker || newTicker === user?.freeTicker) ? theme.textSecondary : 'white',
               cursor: (!newTicker || newTicker === user?.freeTicker) ? 'not-allowed' : 'pointer',
               opacity: savingTicker ? 0.6 : 1,
@@ -209,7 +209,7 @@ const SettingsPage: React.FC = () => {
             aria-label="Notificações por email"
             style={{
               width: 44, height: 24, borderRadius: 12, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
-              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#2a2745' : '#e2e0f0'),
+              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#363258' : '#e2e0f0'),
               position: 'relative', transition: 'background 0.2s', flexShrink: 0,
               opacity: isPro ? 1 : 0.5, padding: 0,
               WebkitAppearance: 'none' as any,
@@ -248,7 +248,7 @@ const SettingsPage: React.FC = () => {
               <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>{s.desc}</span>
               <kbd style={{
                 padding: '0.15rem 0.5rem', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600,
-                background: darkMode ? '#0c0a1a' : '#f3f1fa', border: `1px solid ${theme.border}`,
+                background: darkMode ? '#0e0c1e' : '#f3f1fa', border: `1px solid ${theme.border}`,
                 color: theme.text, fontFamily: 'monospace',
               }}>{s.keys}</kbd>
             </div>

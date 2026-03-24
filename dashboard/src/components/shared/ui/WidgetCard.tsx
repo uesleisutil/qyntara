@@ -28,8 +28,8 @@ const WidgetCard: React.FC<Props> = ({
 
   return (
     <div style={{
-      background: theme.card || (darkMode ? '#1a1836' : '#ffffff'),
-      border: `1px solid ${theme.border || (darkMode ? '#2a2745' : '#e2e8f0')}`,
+      background: theme.card || (darkMode ? '#1e1b40' : '#ffffff'),
+      border: `1px solid ${theme.border || (darkMode ? '#363258' : '#e2e8f0')}`,
       borderRadius: 12, overflow: 'hidden',
       transition: 'box-shadow 0.2s',
     }}>
@@ -61,7 +61,7 @@ const WidgetCard: React.FC<Props> = ({
               <div style={{
                 position: 'absolute', right: 0, top: '100%', marginTop: 6, zIndex: 50,
                 width: 220, padding: '0.5rem 0.65rem', borderRadius: 8,
-                background: darkMode ? '#1a1836' : '#ffffff',
+                background: darkMode ? '#1e1b40' : '#ffffff',
                 border: `1px solid ${theme.border}`,
                 boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
                 fontSize: '0.72rem', lineHeight: 1.45, color: theme.textSecondary,

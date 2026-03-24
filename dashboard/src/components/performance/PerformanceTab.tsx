@@ -20,11 +20,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
   const [perfPeriod, setPerfPeriod] = useState<'all' | '7d' | '14d'>('all');
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8fafc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8fafc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
+    border: darkMode ? '#363258' : '#e2e8f0',
     green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#8b5cf6', purple: '#8b5cf6',
   };
 
@@ -204,7 +204,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
 
   if (loading) {
     const pulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (

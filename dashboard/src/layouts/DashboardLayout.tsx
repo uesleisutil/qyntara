@@ -114,16 +114,16 @@ const DashboardLayout: React.FC = () => {
 
   /* ── Theme with purple accents ── */
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    sidebar: darkMode ? '#13112a' : '#ffffff',
-    card: darkMode ? '#1a1836' : '#ffffff',
-    text: darkMode ? '#f1f0f9' : '#0f0e1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e8e5f0',
-    hover: darkMode ? '#1f1d3a' : '#f3f1fa',
-    activeItem: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)',
+    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
+    sidebar: darkMode ? '#161430' : '#ffffff',
+    card: darkMode ? '#1e1b40' : '#ffffff',
+    text: darkMode ? '#f5f4fb' : '#0f0e1a',
+    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
+    border: darkMode ? '#363258' : '#e8e5f0',
+    hover: darkMode ? '#272450' : '#f3f1fa',
+    activeItem: darkMode ? 'rgba(139,92,246,0.20)' : 'rgba(139,92,246,0.08)',
     accentColor: '#8b5cf6',
-    accentSoft: darkMode ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.06)',
+    accentSoft: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.06)',
   };
 
   const handleLogout = async () => { await logout(); navigate('/'); };

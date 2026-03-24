@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Users, Crown, RefreshCw, Search, Shield, Clock, CheckCircle, XCircle, Loader2, Trash2 } from 'lucide-react';
+import { Users, Crown, RefreshCw, Search, Shield, Clock, CheckCircle, XCircle, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 
@@ -10,6 +10,7 @@ interface UserItem {
   plan?: string; planExpiresAt?: string; planSource?: string;
   createdAt?: string; lastLoginAt?: string; emailVerified?: boolean;
   stripeSubscriptionId?: string; enabled?: boolean; planExpired?: boolean;
+  canViewCosts?: boolean;
 }
 
 const AdminUsersPage: React.FC = () => {
@@ -28,6 +29,7 @@ const AdminUsersPage: React.FC = () => {
   const [modalMsg, setModalMsg] = useState('');
   const [roleLoading, setRoleLoading] = useState<string>(''); // email of user being toggled
   const [deleteLoading, setDeleteLoading] = useState<string>('');
+  const [costsToggleLoading, setCostsToggleLoading] = useState<string>('');
 
   const fetchUsers = useCallback(async () => {
     setLoading(true); setError('');
@@ -105,6 +107,23 @@ const AdminUsersPage: React.FC = () => {
     } finally { setDeleteLoading(''); }
   };
 
+  const handleToggleCosts = async (email: string, current: boolean) => {
+    setCostsToggleLoading(email);
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${API_BASE_URL}/admin/users/set-costs-access`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, canViewCosts: !current }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro');
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.message);
+    } finally { setCostsToggleLoading(''); }
+  };
+
   const filtered = users
     .filter(u => !search || u.email?.toLowerCase().includes(search.toLowerCase()) || u.name?.toLowerCase().includes(search.toLowerCase()))
     .filter(u => planFilter === 'all' || u.plan === planFilter);
@@ -113,7 +132,7 @@ const AdminUsersPage: React.FC = () => {
   const totalFree = users.filter(u => u.plan === 'free' || !u.plan).length;
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
   const btnBase: React.CSSProperties = {
@@ -171,10 +190,10 @@ const AdminUsersPage: React.FC = () => {
         <div style={{ position: 'relative', flex: '1 1 200px' }}>
           <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
           <input type="text" placeholder="Buscar email ou nome..." value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e1b40' : '#fff'), color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' }} />
         </div>
         <select value={planFilter} onChange={e => setPlanFilter(e.target.value as any)}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, fontSize: '0.82rem', WebkitAppearance: 'none' as any }}>
+          style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e1b40' : '#fff'), color: theme.text, fontSize: '0.82rem', WebkitAppearance: 'none' as any }}>
           <option value="all">Todos</option>
           <option value="pro">Pro</option>
           <option value="free">Free</option>
@@ -198,6 +217,7 @@ const AdminUsersPage: React.FC = () => {
                     { l: 'Email', t: '' }, { l: 'Nome', t: '' }, { l: 'Plano', t: 'Plano atual do usuário' },
                     { l: 'Expira', t: 'Data de expiração do plano Pro (se aplicável)' },
                     { l: 'Origem', t: 'Como o plano foi ativado: stripe, admin ou —' },
+                    { l: 'Custos', t: 'Permissão para visualizar valores de custo' },
                     { l: 'Cadastro', t: '' }, { l: 'Último Login', t: '' }, { l: 'Ações', t: '' },
                   ].map(h => (
                     <th key={h.l} style={{ padding: '0.5rem 0.4rem', textAlign: 'left', fontSize: '0.7rem', fontWeight: 600, color: theme.textSecondary, whiteSpace: 'nowrap' }}>
@@ -240,6 +260,23 @@ const AdminUsersPage: React.FC = () => {
                       </td>
                       <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>
                         {u.planSource === 'admin' ? '🔧 Admin' : u.stripeSubscriptionId ? '💳 Stripe' : '—'}
+                      </td>
+                      <td style={{ padding: '0.5rem 0.4rem', textAlign: 'center' }}>
+                        <button
+                          onClick={() => handleToggleCosts(u.email, !!u.canViewCosts)}
+                          disabled={costsToggleLoading === u.email || u.role === 'admin'}
+                          title={u.role === 'admin' ? 'Admins sempre veem custos' : u.canViewCosts ? 'Revogar acesso a custos' : 'Liberar acesso a custos'}
+                          style={{
+                            ...btnBase, padding: '0.3rem 0.5rem', fontSize: '0.72rem',
+                            background: u.role === 'admin' ? 'rgba(16,185,129,0.1)' : u.canViewCosts ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.1)',
+                            color: u.role === 'admin' || u.canViewCosts ? '#10b981' : '#9895b0',
+                            opacity: costsToggleLoading === u.email ? 0.5 : 1,
+                            cursor: u.role === 'admin' ? 'default' : 'pointer',
+                          }}
+                        >
+                          {costsToggleLoading === u.email ? <Loader2 size={11} className="spin" /> : (u.role === 'admin' || u.canViewCosts ? <Eye size={11} /> : <EyeOff size={11} />)}
+                          {u.role === 'admin' ? 'Admin' : u.canViewCosts ? 'Sim' : 'Não'}
+                        </button>
                       </td>
                       <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDate(u.createdAt)}</td>
                       <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDateTime(u.lastLoginAt)}</td>
@@ -299,6 +336,22 @@ const AdminUsersPage: React.FC = () => {
                     <div><span style={{ color: theme.textSecondary }}>Origem:</span> {u.planSource === 'admin' ? '🔧 Admin' : u.stripeSubscriptionId ? '💳 Stripe' : '—'}</div>
                     <div><span style={{ color: theme.textSecondary }}>Cadastro:</span> {fmtDate(u.createdAt)}</div>
                     <div><span style={{ color: theme.textSecondary }}>Login:</span> {fmtDateTime(u.lastLoginAt)}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <span style={{ color: theme.textSecondary }}>Custos:</span>
+                      <button
+                        onClick={() => handleToggleCosts(u.email, !!u.canViewCosts)}
+                        disabled={costsToggleLoading === u.email || u.role === 'admin'}
+                        style={{
+                          ...btnBase, padding: '0.15rem 0.4rem', fontSize: '0.68rem',
+                          background: u.role === 'admin' || u.canViewCosts ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.1)',
+                          color: u.role === 'admin' || u.canViewCosts ? '#10b981' : '#9895b0',
+                          opacity: costsToggleLoading === u.email ? 0.5 : 1,
+                        }}
+                      >
+                        {u.role === 'admin' || u.canViewCosts ? <Eye size={9} /> : <EyeOff size={9} />}
+                        {u.role === 'admin' ? 'Admin' : u.canViewCosts ? 'Sim' : 'Não'}
+                      </button>
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: '0.35rem' }}>
                     <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
@@ -330,7 +383,7 @@ const AdminUsersPage: React.FC = () => {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000 }} onClick={() => setModalUser(null)} />
           <div style={{
             position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-            background: theme.card || (darkMode ? '#1a1836' : '#fff'), border: `1px solid ${theme.border}`,
+            background: theme.card || (darkMode ? '#1e1b40' : '#fff'), border: `1px solid ${theme.border}`,
             borderRadius: 16, padding: '1.5rem', zIndex: 1001, width: 'min(420px, 90vw)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>

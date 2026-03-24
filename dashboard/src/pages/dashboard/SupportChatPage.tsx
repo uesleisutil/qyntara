@@ -78,7 +78,7 @@ const SupportChatPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
 
@@ -130,7 +130,7 @@ const SupportChatPage: React.FC = () => {
                 <div style={{
                   maxWidth: '80%', padding: '0.6rem 0.85rem', borderRadius: 12,
                   borderBottomRightRadius: isUser ? 4 : 12, borderBottomLeftRadius: isUser ? 12 : 4,
-                  background: isUser ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#2a2745' : '#f3f1fa'),
+                  background: isUser ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#363258' : '#f3f1fa'),
                   color: isUser ? 'white' : theme.text,
                 }}>
                   {!isUser && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#10b981', marginBottom: '0.15rem' }}>Suporte</div>}
@@ -151,7 +151,7 @@ const SupportChatPage: React.FC = () => {
               rows={1}
               style={{
                 flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'none',
-                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
                 color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 42, maxHeight: 120,
                 fontFamily: 'inherit',
               }} />
@@ -159,7 +159,7 @@ const SupportChatPage: React.FC = () => {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 42, height: 42, borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: message.trim() ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#2a2745' : '#e8e5f0'),
+                background: message.trim() ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#363258' : '#e8e5f0'),
                 color: message.trim() ? 'white' : theme.textSecondary,
                 transition: 'all 0.2s', WebkitAppearance: 'none' as any,
                 opacity: sending ? 0.6 : 1,
@@ -206,7 +206,7 @@ const SupportChatPage: React.FC = () => {
             rows={2}
             style={{
               flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'vertical',
-              border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8f7fc',
+              border: `1px solid ${theme.border}`, background: darkMode ? '#0e0c1e' : '#f8f7fc',
               color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 60, maxHeight: 200,
               fontFamily: 'inherit',
             }} />
@@ -214,7 +214,7 @@ const SupportChatPage: React.FC = () => {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
               padding: '0.5rem 1rem', borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: message.trim() ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#2a2745' : '#e8e5f0'),
+              background: message.trim() ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#363258' : '#e8e5f0'),
               color: message.trim() ? 'white' : theme.textSecondary,
               fontSize: '0.82rem', fontWeight: 600, alignSelf: 'flex-end',
               WebkitAppearance: 'none' as any, opacity: sending ? 0.6 : 1, transition: 'all 0.2s',
@@ -243,8 +243,8 @@ const SupportChatPage: React.FC = () => {
                 return (
                   <div key={t.ticketId} onClick={() => setActiveTicket(t)}
                     style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.4rem', cursor: 'pointer', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f3f1fa'}
-                    onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a1836' : '#fff')}>
+                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#363258' : '#f3f1fa'}
+                    onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1e1b40' : '#fff')}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                       <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>{t.subject}</span>
                       <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 6, background: s.bg, color: s.color, fontWeight: 600 }}>{s.text}</span>

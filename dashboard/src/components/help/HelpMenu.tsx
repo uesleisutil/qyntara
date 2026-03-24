@@ -22,12 +22,12 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
   });
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e2e0f0',
-    hover: darkMode ? '#2a2745' : '#f3f1fa',
+    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
+    border: darkMode ? '#363258' : '#e2e0f0',
+    hover: darkMode ? '#363258' : '#f3f1fa',
     accent: '#8b5cf6',
   };
 
@@ -84,7 +84,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
         }}
         style={{
           padding: '0.75rem',
-          backgroundColor: darkMode ? '#2a2745' : '#f3f1fa',
+          backgroundColor: darkMode ? '#363258' : '#f3f1fa',
           border: 'none',
           borderRadius: '12px',
           cursor: 'pointer',

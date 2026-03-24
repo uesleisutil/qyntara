@@ -469,7 +469,7 @@ const MyDashboardPage: React.FC = () => {
   /* ─── Loading ─── */
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 12,
     };
     return (
@@ -491,7 +491,7 @@ const MyDashboardPage: React.FC = () => {
     return (
       <div style={{
         textAlign: 'center', padding: '3rem 1.5rem',
-        background: theme.card || (darkMode ? '#1a1836' : '#ffffff'),
+        background: theme.card || (darkMode ? '#1e1b40' : '#ffffff'),
         borderRadius: 16, border: `1px solid ${theme.border}`,
       }}>
         <AlertCircle size={36} color="#ef4444" style={{ marginBottom: '0.75rem', opacity: 0.7 }} />
@@ -607,7 +607,7 @@ const MyDashboardPage: React.FC = () => {
       {visible.length === 0 && (
         <div style={{
           textAlign: 'center', padding: '3rem 1rem',
-          background: theme.card || (darkMode ? '#1a1836' : '#ffffff'),
+          background: theme.card || (darkMode ? '#1e1b40' : '#ffffff'),
           borderRadius: 16, border: `1px dashed ${theme.border}`,
         }}>
           <Settings2 size={28} style={{ opacity: 0.2, marginBottom: 10 }} color={theme.textSecondary} />

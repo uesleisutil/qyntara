@@ -42,7 +42,7 @@ const WidgetPreferences: React.FC<WidgetPreferencesProps> = ({
       {/* Panel */}
       <div style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, width: 'min(360px, 90vw)',
-        background: darkMode ? '#0c0a1a' : '#ffffff',
+        background: darkMode ? '#0e0c1e' : '#ffffff',
         borderLeft: `1px solid ${theme.border}`,
         zIndex: 1000, display: 'flex', flexDirection: 'column',
         boxShadow: '-8px 0 30px rgba(0,0,0,0.2)',

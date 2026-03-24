@@ -60,7 +60,7 @@ const AdminModelsPage: React.FC = () => {
   const headers = useMemo(() => ({ 'x-api-key': API_KEY }), []);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`,
     borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
@@ -168,7 +168,7 @@ const AdminModelsPage: React.FC = () => {
   // Skeleton
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -381,7 +381,7 @@ const AdminModelsPage: React.FC = () => {
                   color: '#8b5cf6', tip: 'Número de amostras usadas no treino.',
                 }] : []),
               ].map((m, i) => (
-                <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 8 }}>
+                <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 8 }}>
                   <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                     {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={11} />
                   </div>
@@ -415,7 +415,7 @@ const AdminModelsPage: React.FC = () => {
                 { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio), color: latest.sharpe_ratio >= 0 ? '#10b981' : '#ef4444' },
                 { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#8b5cf6' },
               ].map((m, i) => (
-                <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 8 }}>
+                <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 8 }}>
                   <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4 }}>{m.label}</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, color: m.color }}>{m.value}</div>
                 </div>
@@ -511,7 +511,7 @@ const AdminModelsPage: React.FC = () => {
                     }}>
                       {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                       <span style={{ fontWeight: 600, fontSize: '0.85rem', minWidth: 60 }}>{audit.ticker}</span>
-                      <div style={{ flex: 1, height: 6, background: darkMode ? '#0c0a1a' : '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ flex: 1, height: 6, background: darkMode ? '#0e0c1e' : '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ width: `${pct}%`, height: '100%', background: pct >= 80 ? '#10b981' : pct >= 60 ? '#f59e0b' : '#ef4444', borderRadius: 3, transition: 'width 0.3s' }} />
                       </div>
                       <span style={{ fontSize: '0.75rem', color: pct >= 80 ? '#10b981' : '#f59e0b', fontWeight: 600, minWidth: 40, textAlign: 'right' }}>
@@ -522,7 +522,7 @@ const AdminModelsPage: React.FC = () => {
                       </span>
                     </button>
                     {isExpanded && audit.missing.length > 0 && (
-                      <div style={{ marginLeft: 28, marginTop: 4, padding: '0.5rem', background: darkMode ? '#0c0a1a' : '#fef3c7', borderRadius: 6, fontSize: '0.75rem' }}>
+                      <div style={{ marginLeft: 28, marginTop: 4, padding: '0.5rem', background: darkMode ? '#0e0c1e' : '#fef3c7', borderRadius: 6, fontSize: '0.75rem' }}>
                         <span style={{ color: '#f59e0b', fontWeight: 600 }}>Campos ausentes: </span>
                         <span style={{ color: theme.textSecondary }}>{audit.missing.join(', ')}</span>
                       </div>
@@ -546,7 +546,7 @@ const AdminModelsPage: React.FC = () => {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem' }}>
             {EXPECTED_FIELDS.map(group => (
-              <div key={group.group} style={{ padding: '0.6rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 8 }}>
+              <div key={group.group} style={{ padding: '0.6rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 8 }}>
                 <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#8b5cf6', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                   {group.group}
                 </div>
@@ -554,7 +554,7 @@ const AdminModelsPage: React.FC = () => {
                   {group.fields.map(f => (
                     <span key={f} style={{
                       padding: '0.15rem 0.4rem', borderRadius: 4, fontSize: '0.68rem',
-                      background: darkMode ? '#2a2745' : '#e2e8f0', color: theme.textSecondary,
+                      background: darkMode ? '#363258' : '#e2e8f0', color: theme.textSecondary,
                       fontFamily: 'monospace',
                     }}>
                       {f}
@@ -626,19 +626,19 @@ const AdminModelsPage: React.FC = () => {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem', marginBottom: 12 }}>
-              <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 6 }}>
+              <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 6 }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: 2 }}>Schedule</div>
                 <div style={{ fontSize: '0.78rem', color: theme.text, display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Clock size={12} /> {p.schedule}
                 </div>
               </div>
-              <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 6 }}>
+              <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 6 }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: 2 }}>Próxima execução</div>
                 <div style={{ fontSize: '0.78rem', color: theme.text }}>
                   {p.status?.next_run ? fmtDateTime(p.status.next_run) : '—'}
                 </div>
               </div>
-              <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 6 }}>
+              <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 6 }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: 2 }}>Lambda</div>
                 <div style={{ fontSize: '0.72rem', color: theme.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
                   {p.lambda}
@@ -765,7 +765,7 @@ const AdminModelsPage: React.FC = () => {
                 {stage.items.map(item => (
                   <div key={item.label} style={{
                     display: 'flex', alignItems: 'flex-start', gap: 8, padding: '0.5rem 0.75rem',
-                    background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 6,
+                    background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 6,
                     borderLeft: `2px solid ${item.status ? '#10b981' : '#9895b0'}`,
                   }}>
                     <div style={{ marginTop: 2 }}>

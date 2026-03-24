@@ -122,8 +122,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
         transform: visible ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
         opacity: visible ? 1 : 0, transition: 'all 0.2s ease',
         zIndex: 9999, width: 'min(440px, 90vw)',
-        background: darkMode ? '#1a1836' : '#fff',
-        border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+        background: darkMode ? '#1e1b40' : '#fff',
+        border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
         borderRadius: 16, overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
       }}>
@@ -140,7 +140,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
           {Array.from({ length: totalSteps }).map((_, i) => (
             <div key={i} style={{
               flex: 1, height: 3, borderRadius: 2,
-              background: i <= step ? '#8b5cf6' : (darkMode ? '#2a2745' : '#e2e8f0'),
+              background: i <= step ? '#8b5cf6' : (darkMode ? '#363258' : '#e2e8f0'),
               transition: 'background 0.3s',
             }} />
           ))}
@@ -155,14 +155,14 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
               color: darkMode ? '#f1f5f9' : '#0c0a1a',
             }}>{infoSteps[step].title}</h2>
             <p style={{
-              fontSize: '0.85rem', color: darkMode ? '#9895b0' : '#64748b',
+              fontSize: '0.85rem', color: darkMode ? '#b8b5d0' : '#64748b',
               lineHeight: 1.6, marginBottom: '0.75rem',
             }}>{infoSteps[step].desc}</p>
             <div style={{
               padding: '0.5rem 0.75rem', borderRadius: 8, fontSize: '0.78rem',
               background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
               border: `1px solid ${darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.1)'}`,
-              color: darkMode ? '#9895b0' : '#64748b',
+              color: darkMode ? '#b8b5d0' : '#64748b',
             }}>
               💡 {infoSteps[step].tip}
             </div>
@@ -176,7 +176,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                 color: darkMode ? '#f1f5f9' : '#0c0a1a',
               }}>Escolha sua ação gratuita</h2>
               <p style={{
-                fontSize: '0.82rem', color: darkMode ? '#9895b0' : '#64748b',
+                fontSize: '0.82rem', color: darkMode ? '#b8b5d0' : '#64748b',
                 lineHeight: 1.5, margin: 0,
               }}>
                 No plano Free, você tem acesso completo a <strong style={{ color: darkMode ? '#f1f5f9' : '#0c0a1a' }}>1 ação</strong> de sua escolha.
@@ -191,8 +191,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                 onChange={e => setTickerSearch(e.target.value)}
                 style={{
                   width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8,
-                  border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
-                  background: darkMode ? '#0c0a1a' : '#f8f7fc',
+                  border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
+                  background: darkMode ? '#0e0c1e' : '#f8f7fc',
                   color: darkMode ? '#f1f5f9' : '#0c0a1a', fontSize: '0.82rem', outline: 'none',
                   boxSizing: 'border-box',
                 }}
@@ -209,7 +209,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                   padding: '0.5rem 0.4rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
                   border: selectedTicker === t.ticker
                     ? '2px solid #8b5cf6'
-                    : `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+                    : `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
                   background: selectedTicker === t.ticker
                     ? (darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)')
                     : 'transparent',
@@ -231,7 +231,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
               marginTop: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 8, fontSize: '0.75rem',
               background: darkMode ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.04)',
               border: `1px solid ${darkMode ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)'}`,
-              color: darkMode ? '#9895b0' : '#64748b',
+              color: darkMode ? '#b8b5d0' : '#64748b',
             }}>
               👑 Com o Pro, você desbloqueia todas as {UNIVERSE_SIZE_FALLBACK} ações, carteira modelo e muito mais.
             </div>
@@ -250,8 +250,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
             {step > 0 && (
               <button onClick={() => setStep(step - 1)} style={{
                 padding: '0.5rem 1rem', borderRadius: 8, fontSize: '0.82rem',
-                border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
-                background: 'transparent', color: darkMode ? '#9895b0' : '#64748b',
+                border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
+                background: 'transparent', color: darkMode ? '#b8b5d0' : '#64748b',
                 cursor: 'pointer', WebkitAppearance: 'none' as any,
               }}>Voltar</button>
             )}

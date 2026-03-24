@@ -13,14 +13,14 @@
 }
 
 html.dark {
-  --text-primary: #f1f0f9;
-  --text-secondary: #9895b0;
-  --bg-primary: #0c0a1a;
-  --bg-secondary: #13112a;
-  --bg-card: #1a1836;
-  --border-color: #2a2745;
-  --bg-subtle: #1a1836;
-  --bg-hover: #1f1d3a;
+  --text-primary: #f5f4fb;
+  --text-secondary: #b8b5d0;
+  --bg-primary: #0e0c1e;
+  --bg-secondary: #161430;
+  --bg-card: #1e1b40;
+  --border-color: #363258;
+  --bg-subtle: #1e1b40;
+  --bg-hover: #272450;
 }
 
 * {

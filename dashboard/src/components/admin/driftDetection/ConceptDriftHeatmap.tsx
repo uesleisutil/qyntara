@@ -25,10 +25,10 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const theme = React.useMemo(() => ({
-    cardBg: darkMode ? '#1a1836' : '#fff',
+    cardBg: darkMode ? '#1e1b40' : '#fff',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
+    border: darkMode ? '#363258' : '#e2e8f0',
     success: '#10b981', warning: '#f59e0b', error: '#ef4444',
   }), [darkMode]);
 
@@ -186,7 +186,7 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <svg ref={heatmapRef} style={{ display: 'block', margin: '0 auto' }} />
-            <div style={{ marginTop: '1rem', padding: '0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+            <div style={{ marginTop: '1rem', padding: '0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
               <strong style={{ color: theme.text }}>Interpretação:</strong>
               <ul style={{ margin: '0.3rem 0 0 0', paddingLeft: '1.2rem' }}>
                 <li><strong>Baseline/Atual:</strong> Azul = correlação positiva, vermelho = correlação negativa</li>
@@ -224,19 +224,19 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
                       padding: '0.6rem', textAlign: h.align as any, fontWeight: 600,
                       color: sortColumn === h.key ? '#8b5cf6' : theme.textSecondary,
                       cursor: 'pointer', userSelect: 'none', fontSize: '0.75rem',
-                      background: darkMode ? '#0c0a1a' : '#f8fafc', whiteSpace: 'nowrap',
+                      background: darkMode ? '#0e0c1e' : '#f8fafc', whiteSpace: 'nowrap',
                     }}>
                       {h.label} <SortIcon column={h.key} />
                     </th>
                   ))}
-                  <th style={{ padding: '0.6rem', textAlign: 'center', fontWeight: 600, color: theme.textSecondary, fontSize: '0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc' }}>Status</th>
+                  <th style={{ padding: '0.6rem', textAlign: 'center', fontWeight: 600, color: theme.textSecondary, fontSize: '0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedFeatures.map(f => (
                   <tr key={f.feature} onClick={() => setSelectedFeature(f.feature)}
                     style={{ borderBottom: `1px solid ${theme.border}`, cursor: 'pointer', transition: 'background 0.15s',
-                      background: selectedFeature === f.feature ? (darkMode ? '#2a2745' : '#f1f5f9') : 'transparent' }}
+                      background: selectedFeature === f.feature ? (darkMode ? '#363258' : '#f1f5f9') : 'transparent' }}
                     onMouseEnter={e => { if (selectedFeature !== f.feature) e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)'; }}
                     onMouseLeave={e => { if (selectedFeature !== f.feature) e.currentTarget.style.background = 'transparent'; }}
                   >

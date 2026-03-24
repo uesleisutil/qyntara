@@ -37,7 +37,7 @@ const AdminNotificationsPage: React.FC = () => {
   const [whatsappResult, setWhatsappResult] = useState<{ phones: string[]; message: string } | null>(null);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -116,14 +116,14 @@ const AdminNotificationsPage: React.FC = () => {
   const manualNotifs = notifications.filter(n => n.type === 'manual');
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '0.6rem 0.75rem', backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc',
+    width: '100%', padding: '0.6rem 0.75rem', backgroundColor: darkMode ? '#0e0c1e' : '#f8fafc',
     border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text,
     fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' as const,
   };
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -159,7 +159,7 @@ const AdminNotificationsPage: React.FC = () => {
           <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: 2 }}>{n.message}</div>
           <div style={{ display: 'flex', gap: '0.4rem', marginTop: 4, flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: `${typeInfo.color}15`, color: typeInfo.color }}>{typeInfo.label}</span>
-            <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: darkMode ? '#2a2745' : '#f1f5f9', color: theme.textSecondary }}>
+            <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: darkMode ? '#363258' : '#f1f5f9', color: theme.textSecondary }}>
               <Users size={9} style={{ verticalAlign: 'middle', marginRight: 2 }} />{TARGET_LABELS[n.target]}
             </span>
             {n.created_at && (
@@ -396,7 +396,7 @@ const AdminNotificationsPage: React.FC = () => {
           style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.6rem 1.25rem',
             borderRadius: 8, border: 'none',
-            background: whatsappMsg.trim() && !whatsappSending ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#2a2745' : '#e2e8f0'),
+            background: whatsappMsg.trim() && !whatsappSending ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#363258' : '#e2e8f0'),
             color: whatsappMsg.trim() && !whatsappSending ? 'white' : theme.textSecondary,
             cursor: whatsappMsg.trim() && !whatsappSending ? 'pointer' : 'not-allowed',
             fontSize: '0.85rem', fontWeight: 600, WebkitAppearance: 'none' as any,

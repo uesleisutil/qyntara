@@ -29,12 +29,12 @@ export const Glossary: React.FC<GlossaryProps> = ({ darkMode = false, onTermClic
   const [selectedLetter, setSelectedLetter] = useState<string>('all');
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e2e0f0',
-    hover: darkMode ? '#2a2745' : '#f3f1fa',
+    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
+    border: darkMode ? '#363258' : '#e2e0f0',
+    hover: darkMode ? '#363258' : '#f3f1fa',
     accent: '#8b5cf6',
   };
 
@@ -306,7 +306,7 @@ export const Glossary: React.FC<GlossaryProps> = ({ darkMode = false, onTermClic
                       style={{
                         marginBottom: '0.75rem',
                         padding: '0.75rem',
-                        backgroundColor: darkMode ? '#0c0a1a' : '#f8f7fc',
+                        backgroundColor: darkMode ? '#0e0c1e' : '#f8f7fc',
                         borderRadius: '8px',
                         border: `1px solid ${theme.border}`,
                       }}
@@ -373,7 +373,7 @@ export const Glossary: React.FC<GlossaryProps> = ({ darkMode = false, onTermClic
                         fontSize: '0.75rem',
                         color: theme.textSecondary,
                         padding: '0.25rem 0.5rem',
-                        backgroundColor: darkMode ? '#2a2745' : '#f3f1fa',
+                        backgroundColor: darkMode ? '#363258' : '#f3f1fa',
                         borderRadius: '4px',
                       }}
                     >

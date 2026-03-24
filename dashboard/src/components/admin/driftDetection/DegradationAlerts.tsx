@@ -31,10 +31,10 @@ export const DegradationAlerts: React.FC<DegradationAlertsProps> = ({
   const [expandedAlert, setExpandedAlert] = useState<string | null>(null);
 
   const theme = {
-    cardBg: darkMode ? '#1a1836' : '#fff',
+    cardBg: darkMode ? '#1e1b40' : '#fff',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
+    border: darkMode ? '#363258' : '#e2e8f0',
     alertBg: {
       critical: darkMode ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.05)',
       high: darkMode ? 'rgba(249,115,22,0.1)' : 'rgba(249,115,22,0.05)',

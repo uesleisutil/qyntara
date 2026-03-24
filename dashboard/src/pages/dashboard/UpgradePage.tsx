@@ -41,7 +41,7 @@ const UpgradePage: React.FC = () => {
   }, [searchParams, refreshPlan]);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
   const btnBase: React.CSSProperties = {

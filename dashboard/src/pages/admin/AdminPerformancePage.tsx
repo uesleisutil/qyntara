@@ -18,7 +18,7 @@ const AdminPerformancePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
@@ -140,7 +140,7 @@ const AdminPerformancePage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -220,7 +220,7 @@ const AdminPerformancePage: React.FC = () => {
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                       {['Ticker', 'Sinal', 'Ret. previsto', 'Ret. real', 'Acertou?'].map(h => (
-                        <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc' }}>{h}</th>
+                        <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0e0c1e' : '#f8fafc' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>

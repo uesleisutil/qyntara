@@ -68,7 +68,7 @@ const AdminOverviewPage: React.FC = () => {
   useEffect(() => { fetchAll(); runHealthChecks(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -82,7 +82,7 @@ const AdminOverviewPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -222,7 +222,7 @@ const AdminOverviewPage: React.FC = () => {
                 <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>Projeção</span>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981' }}>{fmt(threshold.percentage, 1)}%</span>
               </div>
-              <div style={{ height: 10, borderRadius: 5, background: darkMode ? '#2a2745' : '#e2e8f0' }}>
+              <div style={{ height: 10, borderRadius: 5, background: darkMode ? '#363258' : '#e2e8f0' }}>
                 <div style={{ height: '100%', borderRadius: 5, background: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', width: `${Math.min(threshold.percentage || 0, 100)}%`, transition: 'width 0.3s' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.3rem' }}>

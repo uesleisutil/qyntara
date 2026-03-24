@@ -362,13 +362,13 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
   });
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8fafc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8fafc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    inputBg: darkMode ? '#0c0a1a' : '#f8fafc',
-    hover: darkMode ? '#2a2745' : '#f1f5f9',
+    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
+    border: darkMode ? '#363258' : '#e2e8f0',
+    inputBg: darkMode ? '#0e0c1e' : '#f8fafc',
+    hover: darkMode ? '#363258' : '#f1f5f9',
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -453,7 +453,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.55rem 0.85rem',
               borderRadius: 8, border: 'none', cursor: tab.disabled ? 'default' : 'pointer',
               fontSize: '0.8rem', fontWeight: activeTab === tab.id ? 600 : 400, whiteSpace: 'nowrap',
-              background: activeTab === tab.id ? (darkMode ? '#2a2745' : 'white') : 'transparent',
+              background: activeTab === tab.id ? (darkMode ? '#363258' : 'white') : 'transparent',
               color: tab.disabled ? (darkMode ? '#475569' : '#cbd5e1') : activeTab === tab.id ? '#8b5cf6' : theme.textSecondary,
               boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
               transition: 'all 0.15s', opacity: tab.disabled ? 0.5 : 1,
@@ -485,12 +485,12 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             ].map((preset, i) => (
               <button key={i} onClick={() => setConfig(prev => ({ ...prev, ...preset.cfg }))} style={{
                 padding: '0.4rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-                border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8fafc',
+                border: `1px solid ${theme.border}`, background: darkMode ? '#0e0c1e' : '#f8fafc',
                 color: theme.text, cursor: 'pointer', transition: 'all 0.15s',
                 WebkitAppearance: 'none' as any,
               }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = darkMode ? '#0c0a1a' : '#f8fafc'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = darkMode ? '#0e0c1e' : '#f8fafc'; }}
               >
                 {preset.label}
               </button>

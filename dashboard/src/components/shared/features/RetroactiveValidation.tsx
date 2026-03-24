@@ -75,7 +75,7 @@ const RetroactiveValidation: React.FC<RetroactiveValidationProps> = ({ darkMode,
   const topBuys = buyValidations.sort((a, b) => b.score - a.score).slice(0, 5);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1rem)', marginBottom: '1rem',
   };

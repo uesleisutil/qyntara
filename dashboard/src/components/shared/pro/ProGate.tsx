@@ -72,8 +72,8 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
 
   return (
     <div style={{
-      background: darkMode ? '#1a1836' : 'white',
-      border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+      background: darkMode ? '#1e1b40' : 'white',
+      border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
       borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)',
       textAlign: 'center', maxWidth: 480, margin: '2rem auto',
       position: 'relative',
@@ -99,7 +99,7 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
         Recurso exclusivo Pro
       </h2>
       <p style={{
-        fontSize: '0.85rem', color: darkMode ? '#9895b0' : '#64748b',
+        fontSize: '0.85rem', color: darkMode ? '#b8b5d0' : '#64748b',
         lineHeight: 1.6, marginBottom: '1.5rem',
       }}>
         {feature} está disponível no plano Pro. Faça upgrade para desbloquear

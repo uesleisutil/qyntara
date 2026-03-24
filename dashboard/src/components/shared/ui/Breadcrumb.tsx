@@ -22,8 +22,8 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
 }) => {
   const theme = {
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    hover: darkMode ? '#2a2745' : '#f1f5f9',
+    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
+    hover: darkMode ? '#363258' : '#f1f5f9',
     active: '#8b5cf6'
   };
 

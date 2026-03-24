@@ -27,7 +27,7 @@ const AdminValidationPage: React.FC = () => {
   useEffect(() => { fetchValidation(); }, []);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -41,7 +41,7 @@ const AdminValidationPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -192,7 +192,7 @@ const AdminValidationPage: React.FC = () => {
             <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 0 }}>
               <Search size={16} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
               <input type="text" placeholder="Buscar ticker..." value={tickerSearch} onChange={e => setTickerSearch(e.target.value)}
-                style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', background: darkMode ? '#0e0c1e' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }}
                 onFocus={e => { e.currentTarget.style.borderColor = '#8b5cf6'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
               />
@@ -241,7 +241,7 @@ const AdminValidationPage: React.FC = () => {
                       { label: 'Direção', tip: 'Se o modelo acertou a direção (alta/baixa).' },
                       { label: 'Status', tip: 'Validado = preço real disponível. Pendente = aguardando.' },
                     ].map((h, idx) => (
-                      <th key={idx} style={{ padding: '0.6rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc', whiteSpace: 'nowrap', position: 'sticky', top: 0 }}>
+                      <th key={idx} style={{ padding: '0.6rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0e0c1e' : '#f8fafc', whiteSpace: 'nowrap', position: 'sticky', top: 0 }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           {h.label} <InfoTooltip text={h.tip} darkMode={darkMode} size={11} />
                         </span>

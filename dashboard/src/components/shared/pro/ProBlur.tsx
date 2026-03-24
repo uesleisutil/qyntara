@@ -33,8 +33,8 @@ const ProBlur: React.FC<Props> = ({ isPro, darkMode, label = 'Disponível no pla
       }}>
         <div style={{
           textAlign: 'center', padding: '1.5rem 2rem', borderRadius: 12, position: 'relative',
-          background: darkMode ? '#1a1836' : '#ffffff',
-          border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+          background: darkMode ? '#1e1b40' : '#ffffff',
+          border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
           boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
           maxWidth: 320,
         }}>
@@ -48,7 +48,7 @@ const ProBlur: React.FC<Props> = ({ isPro, darkMode, label = 'Disponível no pla
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: darkMode ? '#f1f5f9' : '#0c0a1a', marginBottom: 4 }}>
             {label}
           </div>
-          <div style={{ fontSize: '0.75rem', color: darkMode ? '#9895b0' : '#64748b', lineHeight: 1.5, marginBottom: 12 }}>
+          <div style={{ fontSize: '0.75rem', color: darkMode ? '#b8b5d0' : '#64748b', lineHeight: 1.5, marginBottom: 12 }}>
             Assine o plano Pro para desbloquear este conteúdo.
           </div>
           <button onClick={() => { window.location.hash = '#/dashboard/upgrade'; }} style={{

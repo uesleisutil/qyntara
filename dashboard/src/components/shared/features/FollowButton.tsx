@@ -84,8 +84,8 @@ const FollowButton: React.FC<FollowButtonProps> = ({ ticker, entryPrice, predPri
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
       padding: '0.3rem 0.6rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
       background: following ? 'rgba(245,158,11,0.15)' : 'transparent',
-      border: `1px solid ${following ? 'rgba(245,158,11,0.4)' : (darkMode ? '#2a2745' : '#e2e8f0')}`,
-      color: following ? '#f59e0b' : (darkMode ? '#9895b0' : '#64748b'),
+      border: `1px solid ${following ? 'rgba(245,158,11,0.4)' : (darkMode ? '#363258' : '#e2e8f0')}`,
+      color: following ? '#f59e0b' : (darkMode ? '#b8b5d0' : '#64748b'),
       cursor: 'pointer', transition: 'all 0.2s', WebkitAppearance: 'none' as any,
     }}>
       {following ? <Star size={12} fill="#f59e0b" /> : <Star size={12} />}

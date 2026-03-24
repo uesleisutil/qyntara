@@ -45,12 +45,12 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const freeTicker = useFreeTicker();
 
   const theme = useMemo(() => ({
-    bg: darkMode ? '#0c0a1a' : '#f8fafc',
-    cardBg: darkMode ? '#1a1836' : 'white',
+    bg: darkMode ? '#0e0c1e' : '#f8fafc',
+    cardBg: darkMode ? '#1e1b40' : 'white',
     text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
+    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
+    border: darkMode ? '#363258' : '#e2e8f0',
+    subtle: darkMode ? '#0e0c1e' : '#f8fafc',
   }), [darkMode]);
 
   useEffect(() => {
