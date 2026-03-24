@@ -23,6 +23,26 @@ logger.setLevel(logging.INFO)
 
 BUCKET = os.environ.get("BUCKET", "")
 
+ALLOWED_ORIGINS = os.environ.get(
+    'ALLOWED_ORIGINS',
+    'https://qyntara.tech,https://www.qyntara.tech'
+).split(',')
+
+SECURITY_HEADERS = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+}
+
+
+def _get_cors_origin(event):
+    """Return the request Origin if it is in the allow-list."""
+    headers = event.get('headers') or {}
+    origin = headers.get('origin') or headers.get('Origin') or ''
+    if origin in ALLOWED_ORIGINS:
+        return origin
+    return ALLOWED_ORIGINS[0]
+
 
 def load_latest_from_prefix(prefix: str, days: int = 1) -> Optional[Dict]:
     """
@@ -2045,12 +2065,14 @@ def handler(event, context):
                 "body": json.dumps({"error": f"Route not found: {path}"})
             }
         
-        # Adicionar headers CORS
+        # Adicionar headers CORS + Security
+        cors_origin = _get_cors_origin(event)
         response["headers"] = {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": cors_origin,
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, X-Api-Key, Authorization"
+            "Access-Control-Allow-Headers": "Content-Type, X-Api-Key, Authorization",
+            **SECURITY_HEADERS,
         }
         
         # Comprimir response se solicitado (Req 20.6)
@@ -2070,10 +2092,10 @@ def handler(event, context):
             "statusCode": 500,
             "headers": {
                 "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*"
+                "Access-Control-Allow-Origin": _get_cors_origin(event),
+                **SECURITY_HEADERS,
             },
             "body": json.dumps({
-                "error": "Internal server error",
-                "message": str(e)
+                "error": "Internal server error"
             })
         }

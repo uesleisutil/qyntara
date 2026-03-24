@@ -145,7 +145,7 @@ jobs:
       - name: Deploy frontend to S3
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          REGION=${{ vars.AWS_REGION || 'us-east-1' }}
+          REGION="${{ vars.AWS_REGION || 'us-east-1' }}"
           BUCKET="b3tr-${ACCOUNT_ID}-${REGION}"
           aws s3 sync dashboard/build/ "s3://${BUCKET}/dashboard-prod/" \
             --delete \

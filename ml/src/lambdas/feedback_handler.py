@@ -27,6 +27,38 @@ logger.setLevel(logging.INFO)
 
 VALID_CATEGORIES = {"general", "bug", "feature", "usability", "performance"}
 
+ALLOWED_ORIGINS = os.environ.get(
+    'ALLOWED_ORIGINS',
+    'https://qyntara.tech,https://www.qyntara.tech'
+).split(',')
+
+
+def _get_cors_origin(event):
+    """Return the request Origin if it is in the allow-list."""
+    headers = event.get('headers') or {}
+    origin = headers.get('origin') or headers.get('Origin') or ''
+    if origin in ALLOWED_ORIGINS:
+        return origin
+    return ALLOWED_ORIGINS[0]
+
+
+def _response(status_code: int, body: dict, event: dict = None) -> dict:
+    origin = _get_cors_origin(event) if event else ALLOWED_ORIGINS[0]
+    return {
+        "statusCode": status_code,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": origin,
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, X-Api-Key, Authorization",
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+            "Cache-Control": "no-store",
+        },
+        "body": json.dumps(body),
+    }
+
 
 def handler(event, context):
     """
@@ -146,16 +178,3 @@ def get_feedback_summary(event, context):
     except Exception as exc:
         logger.error("Error getting feedback summary: %s", exc, exc_info=True)
         return _response(500, {"error": "Internal server error"})
-
-
-def _response(status_code: int, body: dict) -> dict:
-    return {
-        "statusCode": status_code,
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, X-Api-Key, Authorization",
-        },
-        "body": json.dumps(body),
-    }

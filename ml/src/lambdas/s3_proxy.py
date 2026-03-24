@@ -10,6 +10,43 @@ from datetime import datetime
 s3 = boto3.client('s3')
 BUCKET = os.environ['BUCKET']
 
+ALLOWED_ORIGINS = os.environ.get(
+    'ALLOWED_ORIGINS',
+    'https://qyntara.tech,https://www.qyntara.tech'
+).split(',')
+
+# Prefixes allowed for read access (prevent arbitrary S3 traversal)
+ALLOWED_PREFIXES = (
+    'recommendations/', 'monitoring/', 'curated/',
+    'config/', 'models/', 'processed/',
+)
+
+SECURITY_HEADERS = {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Cache-Control': 'no-store',
+}
+
+
+def _get_cors_origin(event):
+    """Return the request Origin if it is in the allow-list, else the first allowed origin."""
+    headers = event.get('headers') or {}
+    origin = headers.get('origin') or headers.get('Origin') or ''
+    if origin in ALLOWED_ORIGINS:
+        return origin
+    return ALLOWED_ORIGINS[0]
+
+
+def _validate_path(key: str) -> bool:
+    """Reject path traversal and keys outside allowed prefixes."""
+    if not key:
+        return False
+    if '..' in key or key.startswith('/'):
+        return False
+    return key.startswith(ALLOWED_PREFIXES)
+
+
 def handler(event, context):
     """
     Proxy para acessar dados do S3 via API Gateway
@@ -18,6 +55,8 @@ def handler(event, context):
     - GET /s3-proxy?key=path/to/file.json - Retorna conteúdo de um arquivo
     - GET /s3-proxy/list?prefix=path/ - Lista objetos com prefixo
     """
+    cors_origin = _get_cors_origin(event)
+
     try:
         # Parse query parameters
         params = event.get('queryStringParameters', {}) or {}
@@ -26,6 +65,17 @@ def handler(event, context):
         # List objects
         if '/list' in path:
             prefix = params.get('prefix', '')
+            
+            if not _validate_path(prefix):
+                return {
+                    'statusCode': 403,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': cors_origin,
+                        **SECURITY_HEADERS,
+                    },
+                    'body': json.dumps({'error': 'Access denied'})
+                }
             
             response = s3.list_objects_v2(
                 Bucket=BUCKET,
@@ -46,9 +96,10 @@ def handler(event, context):
                 'statusCode': 200,
                 'headers': {
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Origin': cors_origin,
                     'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                    'Access-Control-Allow-Methods': 'GET,OPTIONS'
+                    'Access-Control-Allow-Methods': 'GET,OPTIONS',
+                    **SECURITY_HEADERS,
                 },
                 'body': json.dumps({
                     'objects': objects,
@@ -61,14 +112,15 @@ def handler(event, context):
         else:
             key = params.get('key', '')
             
-            if not key:
+            if not _validate_path(key):
                 return {
-                    'statusCode': 400,
+                    'statusCode': 403,
                     'headers': {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+                        'Access-Control-Allow-Origin': cors_origin,
+                        **SECURITY_HEADERS,
                     },
-                    'body': json.dumps({'error': 'Missing key parameter'})
+                    'body': json.dumps({'error': 'Access denied'})
                 }
             
             try:
@@ -88,9 +140,10 @@ def handler(event, context):
                     'statusCode': 200,
                     'headers': {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Origin': cors_origin,
                         'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-                        'Access-Control-Allow-Methods': 'GET,OPTIONS'
+                        'Access-Control-Allow-Methods': 'GET,OPTIONS',
+                        **SECURITY_HEADERS,
                     },
                     'body': json.dumps(data)
                 }
@@ -100,9 +153,10 @@ def handler(event, context):
                     'statusCode': 404,
                     'headers': {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+                        'Access-Control-Allow-Origin': cors_origin,
+                        **SECURITY_HEADERS,
                     },
-                    'body': json.dumps({'error': f'Object not found: {key}'})
+                    'body': json.dumps({'error': 'Object not found'})
                 }
     
     except Exception as e:
@@ -111,7 +165,8 @@ def handler(event, context):
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': cors_origin,
+                **SECURITY_HEADERS,
             },
-            'body': json.dumps({'error': str(e)})
+            'body': json.dumps({'error': 'Internal server error'})
         }

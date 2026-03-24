@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Users, Crown, RefreshCw, Search, Shield, Clock, CheckCircle, XCircle, Loader2, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Users, Crown, RefreshCw, Search, Shield, Clock, CheckCircle, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 

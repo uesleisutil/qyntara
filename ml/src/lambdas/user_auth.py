@@ -405,12 +405,18 @@ def _get_user_agent(event: dict) -> str:
     return headers.get("User-Agent", headers.get("user-agent", "unknown"))
 
 
+ALLOWED_ORIGINS = os.environ.get(
+    'ALLOWED_ORIGINS',
+    'https://qyntara.tech,https://www.qyntara.tech'
+).split(',')
+
+
 def _cors_response(status: int, body: dict) -> dict:
     return {
         "statusCode": status,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": ALLOWED_ORIGINS[0],
             "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Api-Key",
             "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
             # Security headers

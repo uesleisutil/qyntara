@@ -73,14 +73,35 @@ def _require_admin(event: dict) -> Optional[dict]:
     return payload
 
 
+ALLOWED_ORIGINS = os.environ.get(
+    'ALLOWED_ORIGINS',
+    'https://qyntara.tech,https://www.qyntara.tech'
+).split(',')
+
+
+def _get_cors_origin(event=None):
+    """Return the request Origin if it is in the allow-list."""
+    if not event:
+        return ALLOWED_ORIGINS[0]
+    headers = event.get('headers') or {}
+    origin = headers.get('origin') or headers.get('Origin') or ''
+    if origin in ALLOWED_ORIGINS:
+        return origin
+    return ALLOWED_ORIGINS[0]
+
+
 def _cors_response(status: int, body: dict) -> dict:
     return {
         "statusCode": status,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": ALLOWED_ORIGINS[0],
             "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Api-Key",
             "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+            "Cache-Control": "no-store",
         },
         "body": json.dumps(body, default=str),
     }

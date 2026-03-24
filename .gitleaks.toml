@@ -2,8 +2,31 @@
 # Use default gitleaks rules
 
 [allowlist]
-description = "Allow example env files"
+description = "Allow example env files and placeholder values"
 paths = [
   '''\.env\.example''',
   '''\.env\.local\.example''',
 ]
+regexes = [
+  '''CHANGE_ME_USE_SECRETS_MANAGER''',
+  '''STAGING_API_KEY_PLACEHOLDER''',
+]
+
+# Additional custom rules for project-specific patterns
+[[rules]]
+id = "stripe-live-key"
+description = "Stripe Live Secret Key"
+regex = '''sk_live_[0-9a-zA-Z]{24,}'''
+tags = ["stripe", "secret"]
+
+[[rules]]
+id = "stripe-webhook-secret"
+description = "Stripe Webhook Secret"
+regex = '''whsec_[0-9a-zA-Z]{24,}'''
+tags = ["stripe", "secret"]
+
+[[rules]]
+id = "jwt-secret-hardcoded"
+description = "Hardcoded JWT Secret"
+regex = '''JWT_SECRET=(?!CHANGE_ME)[a-zA-Z0-9\-_]{10,}'''
+tags = ["jwt", "secret"]

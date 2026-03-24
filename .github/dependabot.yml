@@ -48,7 +48,7 @@ updates:
 
   # Python dependencies (Lambda functions)
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/ml"
     schedule:
       interval: "weekly"
       day: "monday"
