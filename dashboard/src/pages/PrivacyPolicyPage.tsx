@@ -20,7 +20,7 @@ const PrivacyPolicyPage: React.FC = () => {
             <ArrowLeft size={20} />
           </button>
           <TrendingUp size={24} color="#3b82f6" />
-          <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9' }}>B3 Tactical Ranking</span>
+          <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9' }}>Qyntara</span>
         </div>
 
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
@@ -115,7 +115,7 @@ const PrivacyPolicyPage: React.FC = () => {
 
           <div style={{ ...sectionStyle, borderTop: '1px solid #334155', paddingTop: '1rem' }}>
             <h2 style={h2Style}>9. Termos de Uso</h2>
-            <p style={pStyle}>Ao criar uma conta no B3 Tactical Ranking, você concorda com os seguintes termos:</p>
+            <p style={pStyle}>Ao criar uma conta no Qyntara, você concorda com os seguintes termos:</p>
             <ul style={{ listStyle: 'disc', paddingLeft: '1rem' }}>
               <li style={liStyle}>O serviço é uma ferramenta de apoio à decisão e não constitui recomendação de investimento.</li>
               <li style={liStyle}>Resultados passados não garantem resultados futuros.</li>

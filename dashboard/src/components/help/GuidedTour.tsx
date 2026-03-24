@@ -11,7 +11,7 @@ interface GuidedTourProps {
 const mainTourSteps: Step[] = [
   {
     target: 'body',
-    content: 'Bem-vindo ao B3 Tactical Ranking! Vamos fazer um tour rápido pelas principais funcionalidades.',
+    content: 'Bem-vindo ao Qyntara! Vamos fazer um tour rápido pelas principais funcionalidades.',
     placement: 'center',
     disableBeacon: true,
   },

@@ -99,7 +99,7 @@ def load_time_series(prefix: str, days: int = 30) -> List[Dict]:
                 continue
         
         # Ordenar por data (mais antigo primeiro)
-        data_list.sort(key=lambda x: x.get("date", x.get("timestamp", "")))
+        data_list.sort(key=lambda x: x.get("dt", x.get("date", x.get("timestamp", ""))))
         
     except Exception as e:
         logger.error(f"Error loading time series from {prefix}: {e}")
@@ -219,12 +219,12 @@ def get_recommendations_validation(days: int = 30) -> Dict:
     GET /api/recommendations/validation?days=30
     
     Retorna validação das recomendações: esperado vs realizado.
-    Compara previsões de D-20 com retornos reais observados.
+    Usa preços reais do curated/daily_monthly para calcular retornos observados.
     """
     logger.info(f"Getting recommendations validation for {days} days")
     
     # Carregar série temporal de recomendações
-    history_data = load_time_series("recommendations/dt=", days=days + 20)  # Buscar mais dias para ter dados de validação
+    history_data = load_time_series("recommendations/dt=", days=days)
     
     if not history_data:
         return {
@@ -232,86 +232,115 @@ def get_recommendations_validation(days: int = 30) -> Dict:
             "body": json.dumps({"error": "No recommendations validation data found"})
         }
     
-    # Organizar dados por ticker e data
-    ticker_predictions = {}  # {ticker: {date: {predicted, actual}}}
+    # Carregar preços reais do curated/daily_monthly
+    import csv as csv_mod
+    from io import StringIO
+    
+    price_map: Dict[str, Dict[str, float]] = {}  # {ticker: {date: close}}
+    try:
+        now = datetime.now(UTC)
+        # Buscar meses relevantes (atual + 2 anteriores)
+        for m_offset in range(3):
+            dt_m = datetime(now.year, now.month, 1) - timedelta(days=m_offset * 30)
+            yr = dt_m.year
+            mo = dt_m.month
+            key = f"curated/daily_monthly/year={yr}/month={mo:02d}/daily.csv"
+            try:
+                obj = s3.get_object(Bucket=BUCKET, Key=key)
+                content = obj["Body"].read().decode("utf-8")
+                reader = csv_mod.DictReader(StringIO(content))
+                for row in reader:
+                    t = row.get("ticker", "")
+                    d = row.get("date", "")
+                    c = row.get("close", "")
+                    if t and d and c:
+                        if t not in price_map:
+                            price_map[t] = {}
+                        try:
+                            price_map[t][d] = float(c)
+                        except ValueError:
+                            pass
+            except Exception:
+                continue
+    except Exception as e:
+        logger.warning(f"Error loading price data for validation: {e}")
+    
+    # Organizar previsões por ticker e data
+    validation_results = []
     
     for data in history_data:
-        date = data.get("dt", data.get("date"))
+        pred_date = data.get("dt", data.get("date"))
         items = data.get("items", data.get("recommendations", []))
         
         for item in items:
             ticker = item.get("ticker")
-            if not ticker:
-                continue
-            
             exp_return = item.get("exp_return_20")
-            if exp_return is None:
+            if not ticker or exp_return is None:
                 continue
             
-            if ticker not in ticker_predictions:
-                ticker_predictions[ticker] = {}
-            
-            ticker_predictions[ticker][date] = {
-                "predicted": exp_return,
-                "actual": None,  # Será preenchido depois
-                "prediction_date": date
-            }
-    
-    # Calcular retornos reais observados (D+20)
-    # Para cada previsão, buscar o preço 20 dias depois
-    validation_results = []
-    
-    for ticker, predictions in ticker_predictions.items():
-        for pred_date, pred_data in predictions.items():
-            # Buscar dados 20 dias depois
-            from datetime import datetime, timedelta
             try:
-                pred_datetime = datetime.fromisoformat(pred_date)
-                target_date = (pred_datetime + timedelta(days=20)).date().isoformat()
+                pred_dt = datetime.fromisoformat(pred_date)
+                target_date = (pred_dt + timedelta(days=28)).date().isoformat()  # ~20 dias úteis
                 
-                # Buscar preço no target_date
-                # Por enquanto, vamos simular com dados disponíveis
-                # Em produção, isso viria de dados reais de preços
+                ticker_prices = price_map.get(ticker, {})
+                base_price = ticker_prices.get(pred_date)
                 
-                # Verificar se temos dados para essa data
-                target_data = None
-                for data in history_data:
-                    if data.get("dt", data.get("date")) == target_date:
-                        target_items = data.get("items", data.get("recommendations", []))
-                        for item in target_items:
-                            if item.get("ticker") == ticker:
-                                target_data = item
-                                break
-                        break
+                # Fallback: preço mais recente <= pred_date
+                if base_price is None:
+                    prior = [d for d in sorted(ticker_prices.keys()) if d <= pred_date]
+                    if prior:
+                        base_price = ticker_prices[prior[-1]]
                 
-                if target_data:
-                    # Calcular retorno real observado
-                    # Aqui seria o retorno real do preço, mas como não temos,
-                    # vamos usar uma aproximação baseada nos dados disponíveis
-                    actual_return = target_data.get("exp_return_20")  # Placeholder
+                if base_price is None or base_price == 0:
+                    # Sem preço base, não podemos validar
+                    days_elapsed = (datetime.now(UTC).date() - pred_dt.date()).days
+                    validation_results.append({
+                        "ticker": ticker,
+                        "prediction_date": pred_date,
+                        "target_date": target_date,
+                        "predicted_return": exp_return,
+                        "actual_return": None,
+                        "error": None,
+                        "direction_correct": None,
+                        "days_elapsed": days_elapsed,
+                        "status": "pending"
+                    })
+                    continue
+                
+                # Buscar preço mais recente disponível
+                future_dates = sorted(d for d in ticker_prices.keys() if d > pred_date)
+                latest_price_date = future_dates[-1] if future_dates else None
+                
+                if latest_price_date:
+                    current_price = ticker_prices[latest_price_date]
+                    actual_return = (current_price - base_price) / base_price
+                    days_elapsed = len(future_dates)  # dias úteis com dados
+                    
+                    # Considerar "completed" se >= 20 dias úteis se passaram
+                    is_completed = days_elapsed >= 20
                     
                     validation_results.append({
                         "ticker": ticker,
                         "prediction_date": pred_date,
                         "target_date": target_date,
-                        "predicted_return": pred_data["predicted"],
-                        "actual_return": actual_return,
-                        "error": abs(pred_data["predicted"] - actual_return) if actual_return is not None else None,
-                        "direction_correct": (pred_data["predicted"] > 0) == (actual_return > 0) if actual_return is not None else None,
-                        "days_elapsed": 20,
-                        "status": "completed" if actual_return is not None else "pending"
+                        "predicted_return": exp_return,
+                        "actual_return": round(actual_return, 6),
+                        "error": round(abs(exp_return - actual_return), 6),
+                        "direction_correct": (exp_return >= 0) == (actual_return >= 0),
+                        "days_elapsed": days_elapsed,
+                        "status": "completed" if is_completed else "in_progress"
                     })
                 else:
-                    # Ainda não temos dados para validar
+                    days_elapsed = (datetime.now(UTC).date() - pred_dt.date()).days
                     validation_results.append({
                         "ticker": ticker,
                         "prediction_date": pred_date,
                         "target_date": target_date,
-                        "predicted_return": pred_data["predicted"],
+                        "predicted_return": exp_return,
                         "actual_return": None,
                         "error": None,
                         "direction_correct": None,
-                        "days_elapsed": (datetime.now().date() - pred_datetime.date()).days,
+                        "days_elapsed": days_elapsed,
                         "status": "pending"
                     })
             except Exception as e:
@@ -319,24 +348,26 @@ def get_recommendations_validation(days: int = 30) -> Dict:
                 continue
     
     # Calcular métricas agregadas
-    completed_validations = [v for v in validation_results if v["status"] == "completed"]
+    completed = [v for v in validation_results if v["status"] in ("completed", "in_progress") and v["actual_return"] is not None]
     
-    if completed_validations:
-        errors = [v["error"] for v in completed_validations if v["error"] is not None]
-        directions = [v["direction_correct"] for v in completed_validations if v["direction_correct"] is not None]
+    if completed:
+        errors = [v["error"] for v in completed if v["error"] is not None]
+        directions = [v["direction_correct"] for v in completed if v["direction_correct"] is not None]
         
         summary = {
             "total_predictions": len(validation_results),
-            "completed_validations": len(completed_validations),
+            "completed_validations": len([v for v in completed if v["status"] == "completed"]),
+            "in_progress_validations": len([v for v in completed if v["status"] == "in_progress"]),
             "pending_validations": len([v for v in validation_results if v["status"] == "pending"]),
-            "mean_absolute_error": sum(errors) / len(errors) if errors else 0,
-            "directional_accuracy": sum(directions) / len(directions) if directions else 0,
-            "rmse": (sum(e ** 2 for e in errors) / len(errors)) ** 0.5 if errors else 0
+            "mean_absolute_error": round(sum(errors) / len(errors), 6) if errors else 0,
+            "directional_accuracy": round(sum(directions) / len(directions), 4) if directions else 0,
+            "rmse": round((sum(e ** 2 for e in errors) / len(errors)) ** 0.5, 6) if errors else 0
         }
     else:
         summary = {
             "total_predictions": len(validation_results),
             "completed_validations": 0,
+            "in_progress_validations": 0,
             "pending_validations": len(validation_results),
             "mean_absolute_error": 0,
             "directional_accuracy": 0,
@@ -352,7 +383,7 @@ def get_recommendations_validation(days: int = 30) -> Dict:
                 "end_date": history_data[-1].get("dt", history_data[-1].get("date")) if history_data else None
             },
             "summary": summary,
-            "validations": sorted(validation_results, key=lambda x: x["prediction_date"], reverse=True)[:100]  # Top 100 mais recentes
+            "validations": sorted(validation_results, key=lambda x: x["prediction_date"], reverse=True)[:200]
         })
     }
 

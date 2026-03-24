@@ -71,7 +71,7 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
       );
 
       const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Relatório Mensal - B3 Tactical</title>
+<html><head><meta charset="utf-8"><title>Relatório Mensal - Qyntara</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #0f172a; }
   h1 { color: #1e293b; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; }
@@ -85,7 +85,7 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
   .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #94a3b8; text-align: center; }
   @media print { body { padding: 0; } }
 </style></head><body>
-<h1>📊 Relatório Mensal — B3 Tactical</h1>
+<h1>📊 Relatório Mensal — Qyntara</h1>
 <p style="color:#64748b">${monthName} · Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
 
 <div class="summary">
@@ -106,7 +106,7 @@ ${positions.length > 0 ? `<h2>📋 Minhas Posições</h2>
 
 <div class="footer">
   ⚠️ Este relatório é uma ferramenta de apoio à decisão. Não constitui recomendação de investimento.<br>
-  B3 Tactical Ranking · ${now.getFullYear()}
+  Qyntara · ${now.getFullYear()}
 </div>
 </body></html>`;
 

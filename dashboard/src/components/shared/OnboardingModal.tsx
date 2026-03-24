@@ -12,7 +12,7 @@ const STORAGE_KEY = 'b3tr_onboarding_done';
 const steps = [
   {
     icon: <TrendingUp size={32} color="#3b82f6" />,
-    title: 'Bem-vindo ao B3 Tactical Ranking!',
+    title: 'Bem-vindo ao Qyntara!',
     desc: `Nosso modelo de Machine Learning analisa ${UNIVERSE_SIZE_FALLBACK} ações da B3 diariamente e gera sinais de Compra, Venda ou Neutro com base em dezenas de indicadores.`,
     tip: 'Comece pela aba Recomendações — ela é sua página principal.',
   },

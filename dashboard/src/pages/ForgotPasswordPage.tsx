@@ -50,7 +50,7 @@ const ForgotPasswordPage: React.FC = () => {
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <TrendingUp size={32} color="#3b82f6" />
-          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: t.text }}>B3 Tactical Ranking</span>
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: t.text }}>Qyntara</span>
         </div>
         <div style={{ background: t.card, border: `1px solid ${t.cardBorder}`, borderRadius: 16, padding: '2rem', boxShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.08)' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: t.text, marginBottom: '0.5rem', textAlign: 'center' }}>

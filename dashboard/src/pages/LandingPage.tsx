@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  TrendingUp, Shield, BarChart3, Zap, ArrowRight, CheckCircle, Menu, X,
+  Shield, BarChart3, Zap, ArrowRight, CheckCircle, Menu, X,
   Award, Target, Brain, TestTubes, LineChart, Lock, Crown, Star,
   ArrowUpRight, ArrowDownRight, Eye, Briefcase, FileText, RefreshCw,
 } from 'lucide-react';
@@ -12,6 +12,27 @@ interface LiveRec { ticker: string; score: number; last_close: number; exp_retur
 
 const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
+/* ── Qyntara brand tokens ── */
+const brand = {
+  gradient: 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)',
+  gradientHover: 'linear-gradient(135deg, #6d28d9, #4f46e5, #2563eb)',
+  accent: '#8b5cf6',
+  accentSoft: 'rgba(139,92,246,0.12)',
+  accentBorder: 'rgba(139,92,246,0.25)',
+  glow: 'rgba(139,92,246,0.15)',
+  glowStrong: 'rgba(99,102,241,0.25)',
+  surface: '#0c0f1a',
+  surfaceCard: 'rgba(255,255,255,0.025)',
+  border: 'rgba(139,92,246,0.12)',
+  borderSubtle: '#1a1f35',
+  text: '#f1f5f9',
+  textMuted: '#94a3b8',
+  textDim: '#64748b',
+  buy: '#10b981',
+  sell: '#ef4444',
+  pro: '#f59e0b',
+};
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,7 +42,6 @@ const LandingPage: React.FC = () => {
   const [userCount, setUserCount] = useState(0);
   const [activeSection, setActiveSection] = useState('');
 
-  // Fetch live recommendations
   useEffect(() => {
     (async () => {
       try {
@@ -35,7 +55,6 @@ const LandingPage: React.FC = () => {
     })();
   }, []);
 
-  // Fetch track record
   useEffect(() => {
     (async () => {
       try {
@@ -92,7 +111,6 @@ const LandingPage: React.FC = () => {
     })();
   }, []);
 
-  // Fetch user count
   useEffect(() => {
     (async () => {
       try {
@@ -102,7 +120,6 @@ const LandingPage: React.FC = () => {
     })();
   }, []);
 
-  // Scroll spy
   useEffect(() => {
     const handler = () => {
       const sections = ['hero', 'live-data', 'features', 'track-record', 'pricing'];
@@ -124,19 +141,26 @@ const LandingPage: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', color: '#f1f5f9', overflowX: 'hidden' }}>
+    <div style={{ minHeight: '100vh', background: brand.surface, color: brand.text, overflowX: 'hidden' }}>
+
       {/* ─── Navbar ─── */}
       <nav style={{
-        position: 'sticky', top: 0, zIndex: 50, background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(51,65,85,0.5)',
+        position: 'sticky', top: 0, zIndex: 50, background: 'rgba(12,15,26,0.82)', backdropFilter: 'blur(16px)',
+        borderBottom: `1px solid ${brand.borderSubtle}`,
       }}>
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           padding: '0.75rem clamp(1rem, 4vw, 2rem)', maxWidth: 1200, margin: '0 auto',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }} onClick={() => scrollTo('hero')}>
-            <TrendingUp size={26} color="#3b82f6" />
-            <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>B3 Tactical</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer' }} onClick={() => scrollTo('hero')}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 8, background: brand.gradient,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 2px 12px ${brand.glow}`,
+            }}>
+              <span style={{ color: 'white', fontWeight: 800, fontSize: '0.95rem', fontFamily: "'Inter', system-ui, sans-serif" }}>Q</span>
+            </div>
+            <span style={{ fontSize: '1.15rem', fontWeight: 700, letterSpacing: '-0.02em', background: brand.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Qyntara</span>
           </div>
           <div className="landing-nav-desktop" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             {[
@@ -146,21 +170,22 @@ const LandingPage: React.FC = () => {
               { label: 'Planos', id: 'pricing' },
             ].map(n => (
               <button key={n.id} onClick={() => scrollTo(n.id)} style={{
-                background: 'none', border: 'none', color: activeSection === n.id ? '#3b82f6' : '#94a3b8',
+                background: 'none', border: 'none', color: activeSection === n.id ? brand.accent : brand.textMuted,
                 cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500, transition: 'color 0.2s', padding: 0,
               }}>{n.label}</button>
             ))}
             <button onClick={() => navigate('/login')} style={{
-              background: 'transparent', border: '1px solid #334155', color: '#94a3b8',
+              background: 'transparent', border: `1px solid ${brand.borderSubtle}`, color: brand.textMuted,
               padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', transition: 'all 0.2s',
             }}>Entrar</button>
             <button onClick={() => navigate('/register')} style={{
-              background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white',
+              background: brand.gradient, border: 'none', color: 'white',
               padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600,
+              boxShadow: `0 2px 12px ${brand.glow}`,
             }}>Começar Grátis</button>
           </div>
           <button className="landing-nav-mobile" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{
-            display: 'none', background: 'none', border: 'none', color: '#f1f5f9', cursor: 'pointer', padding: 4,
+            display: 'none', background: 'none', border: 'none', color: brand.text, cursor: 'pointer', padding: 4,
           }} aria-label="Menu">
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -168,51 +193,55 @@ const LandingPage: React.FC = () => {
         {mobileMenuOpen && (
           <div className="landing-mobile-menu" style={{ display: 'none', flexDirection: 'column', gap: '0.5rem', padding: '0 1rem 1rem', maxWidth: 1200, margin: '0 auto' }}>
             {['live-data', 'features', 'track-record', 'pricing'].map(id => (
-              <button key={id} onClick={() => scrollTo(id)} style={{ width: '100%', padding: '0.6rem', background: 'transparent', border: '1px solid #334155', color: '#f1f5f9', borderRadius: 8, cursor: 'pointer', fontSize: '0.9rem', textTransform: 'capitalize' }}>
+              <button key={id} onClick={() => scrollTo(id)} style={{ width: '100%', padding: '0.6rem', background: 'transparent', border: `1px solid ${brand.borderSubtle}`, color: brand.text, borderRadius: 8, cursor: 'pointer', fontSize: '0.9rem', textTransform: 'capitalize' }}>
                 {id.replace('-', ' ')}
               </button>
             ))}
-            <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} style={{ width: '100%', padding: '0.6rem', background: 'transparent', border: '1px solid #334155', color: '#f1f5f9', borderRadius: 8, cursor: 'pointer' }}>Entrar</button>
-            <button onClick={() => { navigate('/register'); setMobileMenuOpen(false); }} style={{ width: '100%', padding: '0.6rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Começar Grátis</button>
+            <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} style={{ width: '100%', padding: '0.6rem', background: 'transparent', border: `1px solid ${brand.borderSubtle}`, color: brand.text, borderRadius: 8, cursor: 'pointer' }}>Entrar</button>
+            <button onClick={() => { navigate('/register'); setMobileMenuOpen(false); }} style={{ width: '100%', padding: '0.6rem', background: brand.gradient, border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Começar Grátis</button>
           </div>
         )}
       </nav>
 
       {/* ─── Hero ─── */}
       <section id="hero" style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(3rem, 10vw, 6rem) clamp(1rem, 4vw, 2rem) 2rem', textAlign: 'center', position: 'relative' }}>
-        {/* Glow effect */}
-        <div style={{ position: 'absolute', top: '20%', left: '50%', transform: 'translateX(-50%)', width: 600, height: 400, background: 'radial-gradient(ellipse, rgba(59,130,246,0.12) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 20, padding: '0.3rem 0.9rem', marginBottom: '1.5rem', fontSize: '0.8rem', color: '#10b981' }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
+        {/* Dual glow */}
+        <div style={{ position: 'absolute', top: '10%', left: '35%', width: 500, height: 500, background: `radial-gradient(ellipse, ${brand.glow} 0%, transparent 70%)`, pointerEvents: 'none', filter: 'blur(40px)' }} />
+        <div style={{ position: 'absolute', top: '25%', left: '55%', width: 400, height: 400, background: 'radial-gradient(ellipse, rgba(59,130,246,0.08) 0%, transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
+
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: brand.accentSoft, border: `1px solid ${brand.accentBorder}`, borderRadius: 20, padding: '0.3rem 0.9rem', marginBottom: '1.5rem', fontSize: '0.8rem', color: brand.accent }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: brand.accent, animation: 'qyntara-pulse 2s infinite' }} />
           {liveDate ? `Atualizado: ${liveDate}` : 'Dados atualizados diariamente'}
         </div>
-        <h1 style={{ fontSize: 'clamp(2rem, 6vw, 3.75rem)', fontWeight: 800, lineHeight: 1.08, marginBottom: '1.25rem', position: 'relative' }}>
-          <span style={{ background: 'linear-gradient(135deg, #f1f5f9 30%, #60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Inteligência artificial<br />aplicada à Bolsa
+
+        <h1 style={{ fontSize: 'clamp(2.25rem, 6vw, 4rem)', fontWeight: 800, lineHeight: 1.05, marginBottom: '1.25rem', position: 'relative', letterSpacing: '-0.03em' }}>
+          <span style={{ background: 'linear-gradient(135deg, #f1f5f9 20%, #a78bfa 50%, #60a5fa 80%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            Inteligência preditiva<br />para a Bolsa brasileira
           </span>
         </h1>
-        <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.2rem)', color: '#94a3b8', maxWidth: 620, margin: '0 auto 2rem', lineHeight: 1.6 }}>
-          Nosso modelo de ML analisa {UNIVERSE_SIZE_FALLBACK} ações da B3 diariamente e gera sinais de Compra, Venda e Neutro com previsões para 20 pregões.
+        <p style={{ fontSize: 'clamp(1rem, 2.5vw, 1.15rem)', color: brand.textMuted, maxWidth: 600, margin: '0 auto 2.25rem', lineHeight: 1.7 }}>
+          Modelos de deep learning analisam {UNIVERSE_SIZE_FALLBACK} ações da B3 diariamente e geram sinais de Compra, Venda e Neutro com previsões para 20 pregões.
         </p>
-        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
           <button onClick={() => navigate('/register')} style={{
-            background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white',
+            background: brand.gradient, border: 'none', color: 'white',
             padding: '0.9rem 2.25rem', borderRadius: 12, cursor: 'pointer', fontSize: '1.05rem',
             fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem',
-            boxShadow: '0 4px 20px rgba(37,99,235,0.4)', transition: 'transform 0.15s',
+            boxShadow: `0 4px 24px ${brand.glowStrong}`, transition: 'transform 0.15s, box-shadow 0.2s',
           }}>
             Começar Grátis <ArrowRight size={18} />
           </button>
           <button onClick={() => scrollTo('live-data')} style={{
-            background: 'rgba(255,255,255,0.05)', border: '1px solid #334155', color: '#f1f5f9',
+            background: 'rgba(255,255,255,0.04)', border: `1px solid ${brand.borderSubtle}`, color: brand.text,
             padding: '0.9rem 2.25rem', borderRadius: 12, cursor: 'pointer', fontSize: '1.05rem',
             display: 'flex', alignItems: 'center', gap: '0.5rem',
           }}>
             <Eye size={18} /> Ver dados ao vivo
           </button>
         </div>
+
         {/* Trust badges */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(1.5rem, 5vw, 3rem)', flexWrap: 'wrap', opacity: 0.7 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(1.5rem, 5vw, 3rem)', flexWrap: 'wrap', opacity: 0.8 }}>
           {[
             { v: `${UNIVERSE_SIZE_FALLBACK}`, l: 'ações analisadas' },
             { v: userCount > 0 ? `${userCount}+` : '20+', l: 'investidores' },
@@ -220,8 +249,8 @@ const LandingPage: React.FC = () => {
             { v: 'DeepAR', l: 'modelo AWS' },
           ].map((b, i) => (
             <div key={i} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, color: '#3b82f6' }}>{b.v}</div>
-              <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{b.l}</div>
+              <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, background: brand.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{b.v}</div>
+              <div style={{ fontSize: '0.7rem', color: brand.textDim }}>{b.l}</div>
             </div>
           ))}
         </div>
@@ -233,35 +262,33 @@ const LandingPage: React.FC = () => {
           <h2 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '0.5rem' }}>
             Dados reais, atualizados hoje
           </h2>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
+          <p style={{ color: brand.textDim, fontSize: '0.9rem' }}>
             Estas são as recomendações reais do modelo — não é mockup
           </p>
         </div>
 
         {liveRecs.length > 0 ? (
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #1e293b', borderRadius: 16, overflow: 'hidden' }}>
-            {/* KPI bar */}
-            <div style={{ display: 'flex', justifyContent: 'space-around', padding: '1rem', borderBottom: '1px solid #1e293b', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ background: brand.surfaceCard, border: `1px solid ${brand.borderSubtle}`, borderRadius: 16, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', padding: '1rem', borderBottom: `1px solid ${brand.borderSubtle}`, flexWrap: 'wrap', gap: '0.5rem' }}>
               {[
-                { label: 'Compra', value: totalBuy, color: '#10b981', icon: <ArrowUpRight size={14} /> },
-                { label: 'Venda', value: totalSell, color: '#ef4444', icon: <ArrowDownRight size={14} /> },
-                { label: 'Neutro', value: liveRecs.length - totalBuy - totalSell, color: '#94a3b8', icon: null },
+                { label: 'Compra', value: totalBuy, color: brand.buy, icon: <ArrowUpRight size={14} /> },
+                { label: 'Venda', value: totalSell, color: brand.sell, icon: <ArrowDownRight size={14} /> },
+                { label: 'Neutro', value: liveRecs.length - totalBuy - totalSell, color: brand.textMuted, icon: null },
               ].map((k, i) => (
                 <div key={i} style={{ textAlign: 'center', minWidth: 60 }}>
-                  <div style={{ fontSize: '0.65rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k.label}</div>
+                  <div style={{ fontSize: '0.65rem', color: brand.textDim, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{k.label}</div>
                   <div style={{ fontSize: '1.3rem', fontWeight: 800, color: k.color, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem' }}>{k.icon}{k.value}</div>
                 </div>
               ))}
             </div>
-            {/* Table */}
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #1e293b' }}>
+                  <tr style={{ borderBottom: `1px solid ${brand.borderSubtle}` }}>
                     {['#', 'Ticker', 'Sinal', 'Score', 'Preço', 'Previsto', 'Retorno', 'Faixa'].map((h, i) => (
-                      <th key={i} style={{ padding: '0.6rem 0.6rem', textAlign: i < 2 ? 'left' : 'right', color: '#64748b', fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
+                      <th key={i} style={{ padding: '0.6rem 0.6rem', textAlign: i < 2 ? 'left' : 'right', color: brand.textDim, fontWeight: 600, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
                         {h}
-                        {i >= 5 && <Lock size={9} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
+                        {i >= 5 && <Lock size={9} style={{ marginLeft: 3, verticalAlign: 'middle', color: brand.pro }} />}
                       </th>
                     ))}
                   </tr>
@@ -271,9 +298,9 @@ const LandingPage: React.FC = () => {
                     const signal = getSignal(r.score);
                     const sc = getSignalColor(signal);
                     return (
-                      <tr key={r.ticker} style={{ borderBottom: '1px solid rgba(51,65,85,0.5)' }}>
-                        <td style={{ padding: '0.55rem 0.6rem', color: '#64748b', fontSize: '0.72rem' }}>{idx + 1}</td>
-                        <td style={{ padding: '0.55rem 0.6rem', fontWeight: 700, color: '#f1f5f9' }}>{r.ticker}</td>
+                      <tr key={r.ticker} style={{ borderBottom: `1px solid rgba(139,92,246,0.06)` }}>
+                        <td style={{ padding: '0.55rem 0.6rem', color: brand.textDim, fontSize: '0.72rem' }}>{idx + 1}</td>
+                        <td style={{ padding: '0.55rem 0.6rem', fontWeight: 700, color: brand.text }}>{r.ticker}</td>
                         <td style={{ padding: '0.55rem 0.6rem', textAlign: 'right' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.15rem', padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600, background: sc.bg, color: sc.text }}>
                             {signal === 'Compra' ? <ArrowUpRight size={11} /> : signal === 'Venda' ? <ArrowDownRight size={11} /> : null}
@@ -281,15 +308,15 @@ const LandingPage: React.FC = () => {
                           </span>
                         </td>
                         <td style={{ padding: '0.55rem 0.6rem', textAlign: 'right', fontWeight: 600, color: sc.text }}>{fmt(r.score, 2)}</td>
-                        <td style={{ padding: '0.55rem 0.6rem', textAlign: 'right', color: '#f1f5f9' }}>R$ {fmt(r.last_close)}</td>
+                        <td style={{ padding: '0.55rem 0.6rem', textAlign: 'right', color: brand.text }}>R$ {fmt(r.last_close)}</td>
                         <td style={{ padding: '0.55rem 0.6rem', textAlign: 'right' }}>
-                          <span style={{ filter: 'blur(5px)', userSelect: 'none', color: '#f1f5f9' }}>R$ {fmt(r.pred_price_t_plus_20)}</span>
+                          <span style={{ filter: 'blur(5px)', userSelect: 'none', color: brand.text }}>R$ {fmt(r.pred_price_t_plus_20)}</span>
                         </td>
                         <td style={{ padding: '0.55rem 0.6rem', textAlign: 'right' }}>
-                          <span style={{ filter: 'blur(5px)', userSelect: 'none', color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 1)}%</span>
+                          <span style={{ filter: 'blur(5px)', userSelect: 'none', color: r.exp_return_20 >= 0 ? brand.buy : brand.sell }}>{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 1)}%</span>
                         </td>
                         <td style={{ padding: '0.55rem 0.6rem', textAlign: 'right' }}>
-                          <span style={{ filter: 'blur(5px)', userSelect: 'none', color: '#64748b', fontSize: '0.75rem' }}>R$ {fmt(r.last_close * 0.95)} → R$ {fmt(r.pred_price_t_plus_20 * 1.05)}</span>
+                          <span style={{ filter: 'blur(5px)', userSelect: 'none', color: brand.textDim, fontSize: '0.75rem' }}>R$ {fmt(r.last_close * 0.95)} → R$ {fmt(r.pred_price_t_plus_20 * 1.05)}</span>
                         </td>
                       </tr>
                     );
@@ -297,22 +324,23 @@ const LandingPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ padding: '0.75rem 1rem', borderTop: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+            <div style={{ padding: '0.75rem 1rem', borderTop: `1px solid ${brand.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.75rem', color: brand.textDim }}>
                 Mostrando 8 de {UNIVERSE_SIZE_FALLBACK} ações · Colunas com <Lock size={9} style={{ verticalAlign: 'middle' }} /> são exclusivas Pro
               </span>
               <button onClick={() => navigate('/register')} style={{
                 padding: '0.4rem 1rem', borderRadius: 8, border: 'none', fontSize: '0.8rem', fontWeight: 600,
-                background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white', cursor: 'pointer',
+                background: brand.gradient, color: 'white', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: '0.3rem',
+                boxShadow: `0 2px 10px ${brand.glow}`,
               }}>
                 Ver todas <ArrowRight size={14} />
               </button>
             </div>
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-            <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: '0.5rem' }} />
+          <div style={{ textAlign: 'center', padding: '3rem', color: brand.textDim }}>
+            <RefreshCw size={24} style={{ animation: 'qyntara-spin 1s linear infinite', marginBottom: '0.5rem' }} />
             <div>Carregando dados ao vivo...</div>
           </div>
         )}
@@ -321,23 +349,23 @@ const LandingPage: React.FC = () => {
       {/* ─── How it Works ─── */}
       <section style={{ maxWidth: 900, margin: '0 auto', padding: '4rem clamp(1rem, 4vw, 2rem) 2rem', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(1.3rem, 3.5vw, 1.75rem)', fontWeight: 700, marginBottom: '0.5rem' }}>Como funciona?</h2>
-        <p style={{ color: '#64748b', marginBottom: '2.5rem', fontSize: '0.9rem' }}>Pipeline 100% automatizado, do dado ao sinal</p>
+        <p style={{ color: brand.textDim, marginBottom: '2.5rem', fontSize: '0.9rem' }}>Pipeline 100% automatizado, do dado ao sinal</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           {[
             { step: '1', icon: <BarChart3 size={20} />, title: 'Coleta', desc: 'Preços, volumes e indicadores de todas as ações da B3 são coletados automaticamente.' },
             { step: '→', icon: null, title: '', desc: '' },
             { step: '2', icon: <Brain size={20} />, title: 'Modelo DeepAR', desc: 'O modelo de ML processa os dados e gera previsões de preço para 20 pregões.' },
             { step: '→', icon: null, title: '', desc: '' },
-            { step: '3', icon: <TrendingUp size={20} />, title: 'Sinais', desc: 'Ações ranqueadas por score com sinais claros de Compra, Venda ou Neutro.' },
+            { step: '3', icon: <BarChart3 size={20} />, title: 'Sinais', desc: 'Ações ranqueadas por score com sinais claros de Compra, Venda ou Neutro.' },
           ].map((s, i) => s.icon ? (
-            <div key={i} style={{ flex: '1 1 160px', maxWidth: 200, padding: '1.25rem 0.75rem', background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', margin: '0 auto 0.75rem', fontSize: '0.9rem', fontWeight: 700 }}>{s.step}</div>
-              <div style={{ color: '#3b82f6', marginBottom: '0.4rem' }}>{s.icon}</div>
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 0.3rem', color: '#f1f5f9' }}>{s.title}</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>{s.desc}</p>
+            <div key={i} style={{ flex: '1 1 160px', maxWidth: 200, padding: '1.25rem 0.75rem', background: brand.surfaceCard, border: `1px solid ${brand.borderSubtle}`, borderRadius: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: brand.gradient, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', margin: '0 auto 0.75rem', fontSize: '0.9rem', fontWeight: 700, boxShadow: `0 2px 10px ${brand.glow}` }}>{s.step}</div>
+              <div style={{ color: brand.accent, marginBottom: '0.4rem' }}>{s.icon}</div>
+              <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 0.3rem', color: brand.text }}>{s.title}</h3>
+              <p style={{ fontSize: '0.78rem', color: brand.textDim, lineHeight: 1.5, margin: 0 }}>{s.desc}</p>
             </div>
           ) : (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', color: '#334155', fontSize: '1.5rem', padding: '0 0.25rem' }}>→</div>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', color: brand.accent, fontSize: '1.5rem', padding: '0 0.25rem', opacity: 0.4 }}>→</div>
           ))}
         </div>
       </section>
@@ -346,34 +374,34 @@ const LandingPage: React.FC = () => {
       <section id="features" style={{ maxWidth: 1100, margin: '0 auto', padding: '3rem clamp(1rem, 4vw, 2rem)' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <h2 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '0.5rem' }}>O que você encontra dentro</h2>
-          <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Tudo que um investidor precisa para tomar decisões informadas</p>
+          <p style={{ color: brand.textDim, fontSize: '0.9rem' }}>Tudo que um investidor precisa para tomar decisões informadas</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '1rem' }}>
           {[
-            { icon: <TrendingUp size={22} />, title: 'Ranking Diário', desc: 'Todas as ações ranqueadas por score ML com sinais de Compra/Venda/Neutro atualizados diariamente.', tag: 'Free', tagColor: '#10b981' },
-            { icon: <Brain size={22} />, title: 'Explicabilidade', desc: 'Entenda por que cada ação foi recomendada com SHAP values, importância de features e comparação entre ações.', tag: 'Free', tagColor: '#10b981' },
-            { icon: <TestTubes size={22} />, title: 'Backtesting', desc: 'Simule estratégias com dados históricos reais. Métricas de risco, Sharpe, drawdown e comparação com benchmarks.', tag: 'Free', tagColor: '#10b981' },
-            { icon: <LineChart size={22} />, title: 'Performance', desc: 'Acompanhe a performance acumulada do modelo vs mercado com gráficos interativos e métricas detalhadas.', tag: 'Free', tagColor: '#10b981' },
-            { icon: <RefreshCw size={22} />, title: 'Mudanças de Sinal', desc: 'Veja quais ações mudaram de sinal hoje vs ontem e compare o ranking com dias anteriores.', tag: 'Free', tagColor: '#10b981' },
-            { icon: <Eye size={22} />, title: 'Preço Previsto & Retorno', desc: 'Acesse previsões de preço para 20 pregões e retorno esperado para cada ação do universo.', tag: 'Pro', tagColor: '#f59e0b' },
-            { icon: <Shield size={22} />, title: 'Stop-Loss & Take-Profit', desc: 'Faixas de preço sugeridas baseadas em volatilidade para proteger seu capital e maximizar ganhos.', tag: 'Pro', tagColor: '#f59e0b' },
-            { icon: <Target size={22} />, title: 'Tracking por Safra', desc: 'Acompanhe cada safra de recomendações e veja como performaram ao longo do tempo.', tag: 'Pro', tagColor: '#f59e0b' },
-            { icon: <Briefcase size={22} />, title: 'Carteira Modelo', desc: 'Portfólio otimizado com perfis de risco (conservador, moderado, agressivo) e rebalanceamento sugerido.', tag: 'Pro', tagColor: '#f59e0b' },
-            { icon: <Star size={22} />, title: 'Seguir Posições', desc: 'Siga ações e acompanhe sua performance pessoal com P&L, win rate e meta de rentabilidade.', tag: 'Pro', tagColor: '#f59e0b' },
-            { icon: <FileText size={22} />, title: 'Relatório Mensal', desc: 'Exporte um relatório completo do mês com suas posições, retornos e as top recomendações.', tag: 'Pro', tagColor: '#f59e0b' },
-            { icon: <Zap size={22} />, title: 'Filtros Avançados', desc: 'Filtre por setor, sinal, favoritos. Exporte CSV. Notificações de mudança de sinal em tempo real.', tag: 'Free', tagColor: '#10b981' },
+            { icon: <BarChart3 size={22} />, title: 'Ranking Diário', desc: 'Todas as ações ranqueadas por score ML com sinais de Compra/Venda/Neutro atualizados diariamente.', tag: 'Free', tagColor: brand.buy },
+            { icon: <Brain size={22} />, title: 'Explicabilidade', desc: 'Entenda por que cada ação foi recomendada com SHAP values, importância de features e comparação entre ações.', tag: 'Free', tagColor: brand.buy },
+            { icon: <TestTubes size={22} />, title: 'Backtesting', desc: 'Simule estratégias com dados históricos reais. Métricas de risco, Sharpe, drawdown e comparação com benchmarks.', tag: 'Free', tagColor: brand.buy },
+            { icon: <LineChart size={22} />, title: 'Performance', desc: 'Acompanhe a performance acumulada do modelo vs mercado com gráficos interativos e métricas detalhadas.', tag: 'Free', tagColor: brand.buy },
+            { icon: <RefreshCw size={22} />, title: 'Mudanças de Sinal', desc: 'Veja quais ações mudaram de sinal hoje vs ontem e compare o ranking com dias anteriores.', tag: 'Free', tagColor: brand.buy },
+            { icon: <Eye size={22} />, title: 'Preço Previsto & Retorno', desc: 'Acesse previsões de preço para 20 pregões e retorno esperado para cada ação do universo.', tag: 'Pro', tagColor: brand.pro },
+            { icon: <Shield size={22} />, title: 'Stop-Loss & Take-Profit', desc: 'Faixas de preço sugeridas baseadas em volatilidade para proteger seu capital e maximizar ganhos.', tag: 'Pro', tagColor: brand.pro },
+            { icon: <Target size={22} />, title: 'Tracking por Safra', desc: 'Acompanhe cada safra de recomendações e veja como performaram ao longo do tempo.', tag: 'Pro', tagColor: brand.pro },
+            { icon: <Briefcase size={22} />, title: 'Carteira Modelo', desc: 'Portfólio otimizado com perfis de risco (conservador, moderado, agressivo) e rebalanceamento sugerido.', tag: 'Pro', tagColor: brand.pro },
+            { icon: <Star size={22} />, title: 'Seguir Posições', desc: 'Siga ações e acompanhe sua performance pessoal com P&L, win rate e meta de rentabilidade.', tag: 'Pro', tagColor: brand.pro },
+            { icon: <FileText size={22} />, title: 'Relatório Mensal', desc: 'Exporte um relatório completo do mês com suas posições, retornos e as top recomendações.', tag: 'Pro', tagColor: brand.pro },
+            { icon: <Zap size={22} />, title: 'Filtros Avançados', desc: 'Filtre por setor, sinal, favoritos. Exporte CSV. Notificações de mudança de sinal em tempo real.', tag: 'Free', tagColor: brand.buy },
           ].map((f, i) => (
             <div key={i} style={{
-              background: f.tag === 'Pro' ? 'linear-gradient(135deg, rgba(245,158,11,0.04), rgba(245,158,11,0.01))' : 'rgba(255,255,255,0.02)',
-              border: `1px solid ${f.tag === 'Pro' ? 'rgba(245,158,11,0.2)' : '#1e293b'}`,
-              borderRadius: 12, padding: '1.25rem', transition: 'border-color 0.2s',
+              background: f.tag === 'Pro' ? 'linear-gradient(135deg, rgba(245,158,11,0.04), rgba(245,158,11,0.01))' : brand.surfaceCard,
+              border: `1px solid ${f.tag === 'Pro' ? 'rgba(245,158,11,0.15)' : brand.borderSubtle}`,
+              borderRadius: 12, padding: '1.25rem', transition: 'border-color 0.2s, transform 0.15s',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: f.tag === 'Pro' ? 'rgba(245,158,11,0.1)' : 'rgba(59,130,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: f.tag === 'Pro' ? '#f59e0b' : '#3b82f6' }}>{f.icon}</div>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: f.tag === 'Pro' ? 'rgba(245,158,11,0.1)' : brand.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', color: f.tag === 'Pro' ? brand.pro : brand.accent }}>{f.icon}</div>
                 <span style={{ fontSize: '0.65rem', fontWeight: 600, padding: '0.15rem 0.5rem', borderRadius: 8, background: `${f.tagColor}15`, color: f.tagColor, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{f.tag}</span>
               </div>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.35rem', color: '#f1f5f9' }}>{f.title}</h3>
-              <p style={{ fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5, margin: 0 }}>{f.desc}</p>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.35rem', color: brand.text }}>{f.title}</h3>
+              <p style={{ fontSize: '0.82rem', color: brand.textDim, lineHeight: 1.5, margin: 0 }}>{f.desc}</p>
             </div>
           ))}
         </div>
@@ -382,48 +410,49 @@ const LandingPage: React.FC = () => {
       {/* ─── Track Record ─── */}
       <section id="track-record" style={{ maxWidth: 900, margin: '0 auto', padding: '4rem clamp(1rem, 4vw, 2rem)', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(1.4rem, 4vw, 2rem)', fontWeight: 700, marginBottom: '0.5rem' }}>Resultados Reais</h2>
-        <p style={{ color: '#64748b', marginBottom: '2rem', fontSize: '0.9rem' }}>
+        <p style={{ color: brand.textDim, marginBottom: '2rem', fontSize: '0.9rem' }}>
           Performance real dos sinais de Compra — calculada com preços da B3
         </p>
         {trackRecord && trackRecord.days >= 3 ? (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
               {[
-                { icon: <TrendingUp size={24} />, label: 'Retorno Acumulado', value: `${trackRecord.totalReturn >= 0 ? '+' : ''}${trackRecord.totalReturn.toFixed(2)}%`, color: trackRecord.totalReturn >= 0 ? '#10b981' : '#ef4444', sub: `em ${trackRecord.days} pregões` },
-                { icon: <Award size={24} />, label: 'Alpha vs Mercado', value: `${trackRecord.alpha >= 0 ? '+' : ''}${trackRecord.alpha.toFixed(2)}pp`, color: trackRecord.alpha >= 0 ? '#10b981' : '#ef4444', sub: 'acima do benchmark' },
-                { icon: <Target size={24} />, label: 'Win Rate', value: `${trackRecord.winRate.toFixed(0)}%`, color: trackRecord.winRate >= 55 ? '#10b981' : '#f59e0b', sub: 'dos dias positivos' },
+                { icon: <ArrowUpRight size={24} />, label: 'Retorno Acumulado', value: `${trackRecord.totalReturn >= 0 ? '+' : ''}${trackRecord.totalReturn.toFixed(2)}%`, color: trackRecord.totalReturn >= 0 ? brand.buy : brand.sell, sub: `em ${trackRecord.days} pregões` },
+                { icon: <Award size={24} />, label: 'Alpha vs Mercado', value: `${trackRecord.alpha >= 0 ? '+' : ''}${trackRecord.alpha.toFixed(2)}pp`, color: trackRecord.alpha >= 0 ? brand.buy : brand.sell, sub: 'acima do benchmark' },
+                { icon: <Target size={24} />, label: 'Win Rate', value: `${trackRecord.winRate.toFixed(0)}%`, color: trackRecord.winRate >= 55 ? brand.buy : brand.pro, sub: 'dos dias positivos' },
               ].map((m, i) => (
-                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: '1.5rem' }}>
+                <div key={i} style={{ background: brand.surfaceCard, border: `1px solid ${brand.borderSubtle}`, borderRadius: 16, padding: '1.5rem', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: brand.gradient, opacity: 0.6 }} />
                   <div style={{ color: m.color, marginBottom: '0.75rem', opacity: 0.8 }}>{m.icon}</div>
                   <div style={{ fontSize: 'clamp(1.75rem, 5vw, 2.5rem)', fontWeight: 800, color: m.color, marginBottom: '0.15rem' }}>{m.value}</div>
-                  <div style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 500 }}>{m.label}</div>
-                  <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: '0.2rem' }}>{m.sub}</div>
+                  <div style={{ fontSize: '0.85rem', color: brand.textMuted, fontWeight: 500 }}>{m.label}</div>
+                  <div style={{ fontSize: '0.7rem', color: brand.textDim, marginTop: '0.2rem' }}>{m.sub}</div>
                 </div>
               ))}
             </div>
-            <p style={{ fontSize: '0.72rem', color: '#475569', lineHeight: 1.5, maxWidth: 600, margin: '0 auto' }}>
+            <p style={{ fontSize: '0.72rem', color: brand.textDim, lineHeight: 1.5, maxWidth: 600, margin: '0 auto' }}>
               Retorno acumulado comprando igualmente todas as ações com sinal de Compra (score ≥ {SCORE_BUY_THRESHOLD}).
               Dados reais da B3. Resultados passados não garantem resultados futuros.
             </p>
           </>
         ) : (
-          <div style={{ padding: '2rem', color: '#64748b', fontSize: '0.9rem' }}>Calculando resultados...</div>
+          <div style={{ padding: '2rem', color: brand.textDim, fontSize: '0.9rem' }}>Calculando resultados...</div>
         )}
       </section>
 
       {/* ─── Pricing ─── */}
       <section id="pricing" style={{ maxWidth: 950, margin: '0 auto', padding: '4rem clamp(1rem, 4vw, 2rem)', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 700, marginBottom: '0.5rem' }}>Planos</h2>
-        <p style={{ color: '#64748b', marginBottom: '2.5rem', fontSize: '0.95rem' }}>Comece grátis. Escale quando quiser.</p>
+        <p style={{ color: brand.textDim, marginBottom: '2.5rem', fontSize: '0.95rem' }}>Comece grátis. Escale quando quiser.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: '1.5rem' }}>
           {/* Free */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid #1e293b', borderRadius: 16, padding: '2rem', textAlign: 'left' }}>
+          <div style={{ background: brand.surfaceCard, border: `1px solid ${brand.borderSubtle}`, borderRadius: 16, padding: '2rem', textAlign: 'left' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.25rem' }}>Free</h3>
             <div style={{ marginBottom: '1.25rem' }}>
               <span style={{ fontSize: '2.5rem', fontWeight: 800 }}>R$ 0</span>
-              <span style={{ color: '#64748b', fontSize: '0.9rem' }}>/mês</span>
+              <span style={{ color: brand.textDim, fontSize: '0.9rem' }}>/mês</span>
             </div>
-            <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.82rem', color: brand.textMuted, marginBottom: '1.25rem', lineHeight: 1.5 }}>
               Acesso completo ao ranking, explicabilidade, backtesting e performance.
             </p>
             <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem' }}>
@@ -437,32 +466,32 @@ const LandingPage: React.FC = () => {
                 'Comparação temporal',
                 'Filtro por setor e sinal',
               ].map((f, j) => (
-                <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem', color: '#94a3b8', fontSize: '0.85rem' }}>
-                  <CheckCircle size={15} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} /> {f}
+                <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem', color: brand.textMuted, fontSize: '0.85rem' }}>
+                  <CheckCircle size={15} color={brand.buy} style={{ flexShrink: 0, marginTop: 2 }} /> {f}
                 </li>
               ))}
             </ul>
             <button onClick={() => navigate('/register')} style={{
-              width: '100%', padding: '0.75rem', background: 'transparent', border: '1px solid #334155',
-              color: '#f1f5f9', borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', transition: 'all 0.2s',
+              width: '100%', padding: '0.75rem', background: 'transparent', border: `1px solid ${brand.borderSubtle}`,
+              color: brand.text, borderRadius: 10, cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem', transition: 'all 0.2s',
             }}>Criar Conta Grátis</button>
           </div>
           {/* Pro */}
           <div style={{
-            background: 'linear-gradient(135deg, rgba(37,99,235,0.12), rgba(59,130,246,0.04))',
-            border: '2px solid #2563eb', borderRadius: 16, padding: '2rem', textAlign: 'left', position: 'relative',
+            background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(99,102,241,0.04))',
+            border: `2px solid ${brand.accent}`, borderRadius: 16, padding: '2rem', textAlign: 'left', position: 'relative',
           }}>
-            <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#0f172a', fontSize: '0.75rem', fontWeight: 700, padding: '0.3rem 1rem', borderRadius: 12, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: brand.gradient, color: 'white', fontSize: '0.75rem', fontWeight: 700, padding: '0.3rem 1rem', borderRadius: 12, display: 'flex', alignItems: 'center', gap: '0.3rem', boxShadow: `0 2px 12px ${brand.glow}` }}>
               <Crown size={12} /> Recomendado
             </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              Pro <Crown size={16} color="#f59e0b" />
+              Pro <Crown size={16} color={brand.pro} />
             </h3>
             <div style={{ marginBottom: '1.25rem' }}>
               <span style={{ fontSize: '2.5rem', fontWeight: 800 }}>{PRO_PRICE}</span>
-              <span style={{ color: '#64748b', fontSize: '0.9rem' }}>/mês</span>
+              <span style={{ color: brand.textDim, fontSize: '0.9rem' }}>/mês</span>
             </div>
-            <p style={{ fontSize: '0.82rem', color: '#94a3b8', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '0.82rem', color: brand.textMuted, marginBottom: '1.25rem', lineHeight: 1.5 }}>
               Tudo do Free + previsões completas, tracking e ferramentas avançadas.
             </p>
             <ul style={{ listStyle: 'none', padding: 0, marginBottom: '1.5rem' }}>
@@ -479,46 +508,56 @@ const LandingPage: React.FC = () => {
                 { text: 'Relatório mensal exportável', highlight: true },
                 { text: 'Exportação CSV', highlight: true },
               ].map((f, j) => (
-                <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem', color: f.highlight ? '#f1f5f9' : '#94a3b8', fontSize: '0.85rem', fontWeight: f.highlight ? 500 : 400 }}>
-                  <CheckCircle size={15} color={f.highlight ? '#f59e0b' : '#10b981'} style={{ flexShrink: 0, marginTop: 2 }} /> {f.text}
+                <li key={j} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.5rem', color: f.highlight ? brand.text : brand.textMuted, fontSize: '0.85rem', fontWeight: f.highlight ? 500 : 400 }}>
+                  <CheckCircle size={15} color={f.highlight ? brand.pro : brand.buy} style={{ flexShrink: 0, marginTop: 2 }} /> {f.text}
                 </li>
               ))}
             </ul>
             <button onClick={() => navigate('/register')} style={{
-              width: '100%', padding: '0.75rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+              width: '100%', padding: '0.75rem', background: brand.gradient,
               border: 'none', color: 'white', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem',
-              boxShadow: '0 4px 16px rgba(37,99,235,0.35)',
+              boxShadow: `0 4px 20px ${brand.glowStrong}`,
             }}>Começar com Pro</button>
           </div>
         </div>
       </section>
 
       {/* ─── Final CTA ─── */}
-      <section style={{ maxWidth: 700, margin: '0 auto', padding: '4rem clamp(1rem, 4vw, 2rem)', textAlign: 'center' }}>
-        <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 1.75rem)', fontWeight: 700, marginBottom: '0.75rem' }}>
+      <section style={{ maxWidth: 700, margin: '0 auto', padding: '4rem clamp(1rem, 4vw, 2rem)', textAlign: 'center', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, height: 300, background: `radial-gradient(ellipse, ${brand.glow} 0%, transparent 70%)`, pointerEvents: 'none', filter: 'blur(50px)' }} />
+        <h2 style={{ fontSize: 'clamp(1.3rem, 4vw, 1.75rem)', fontWeight: 700, marginBottom: '0.75rem', position: 'relative' }}>
           Pronto para investir com inteligência?
         </h2>
-        <p style={{ color: '#64748b', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
+        <p style={{ color: brand.textDim, marginBottom: '1.5rem', fontSize: '0.95rem', position: 'relative' }}>
           Crie sua conta em 30 segundos e comece a receber sinais do modelo.
         </p>
         <button onClick={() => navigate('/register')} style={{
           padding: '0.9rem 2.5rem', borderRadius: 12, border: 'none',
-          background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white',
+          background: brand.gradient, color: 'white',
           fontSize: '1.05rem', fontWeight: 700, cursor: 'pointer',
-          boxShadow: '0 4px 20px rgba(37,99,235,0.4)',
-          display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+          boxShadow: `0 4px 24px ${brand.glowStrong}`,
+          display: 'inline-flex', alignItems: 'center', gap: '0.5rem', position: 'relative',
         }}>
           Começar Grátis <ArrowRight size={18} />
         </button>
       </section>
 
       {/* ─── Footer ─── */}
-      <footer style={{ borderTop: '1px solid #1e293b', padding: '2rem clamp(1rem, 4vw, 2rem)', textAlign: 'center', color: '#475569', fontSize: '0.82rem' }}>
-        <p>© {new Date().getFullYear()} B3 Tactical Ranking. Todos os direitos reservados.</p>
-        <p style={{ marginTop: '0.4rem', fontSize: '0.75rem' }}>
+      <footer style={{ borderTop: `1px solid ${brand.borderSubtle}`, padding: '2.5rem clamp(1rem, 4vw, 2rem)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <div style={{
+            width: 24, height: 24, borderRadius: 6, background: brand.gradient,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <span style={{ color: 'white', fontWeight: 800, fontSize: '0.7rem' }}>Q</span>
+          </div>
+          <span style={{ fontSize: '0.9rem', fontWeight: 600, background: brand.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Qyntara</span>
+        </div>
+        <p style={{ color: brand.textDim, fontSize: '0.78rem' }}>© {new Date().getFullYear()} Qyntara. Todos os direitos reservados.</p>
+        <p style={{ marginTop: '0.3rem', fontSize: '0.72rem', color: brand.textDim }}>
           Não é recomendação de investimento. Resultados passados não garantem resultados futuros.
         </p>
-        <a href="#/privacidade" style={{ color: '#64748b', fontSize: '0.75rem', textDecoration: 'underline', marginTop: '0.4rem', display: 'inline-block' }}>
+        <a href="#/privacidade" style={{ color: brand.textMuted, fontSize: '0.72rem', textDecoration: 'underline', marginTop: '0.4rem', display: 'inline-block' }}>
           <Shield size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />Política de Privacidade
         </a>
       </footer>
@@ -526,22 +565,23 @@ const LandingPage: React.FC = () => {
       {/* Sticky CTA mobile */}
       <div className="landing-sticky-cta" style={{
         display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 50,
-        padding: '0.6rem 1rem', background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(8px)',
-        borderTop: '1px solid #1e293b', paddingBottom: 'env(safe-area-inset-bottom, 0.6rem)',
+        padding: '0.6rem 1rem', background: 'rgba(12,15,26,0.95)', backdropFilter: 'blur(8px)',
+        borderTop: `1px solid ${brand.borderSubtle}`, paddingBottom: 'env(safe-area-inset-bottom, 0.6rem)',
       }}>
         <button onClick={() => navigate('/register')} style={{
           width: '100%', padding: '0.7rem', borderRadius: 10, border: 'none',
-          background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white',
+          background: brand.gradient, color: 'white',
           fontSize: '0.95rem', fontWeight: 600, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+          boxShadow: `0 2px 12px ${brand.glow}`,
         }}>
           Começar Grátis <ArrowRight size={16} />
         </button>
       </div>
 
       <style>{`
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes qyntara-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes qyntara-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @media (max-width: 640px) {
           .landing-nav-desktop { display: none !important; }
           .landing-nav-mobile { display: flex !important; }

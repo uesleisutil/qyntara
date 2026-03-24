@@ -48,7 +48,7 @@ const ResetPasswordPage: React.FC = () => {
         <div style={{ width: '100%', maxWidth: 420 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem' }}>
             <TrendingUp size={32} color="#3b82f6" />
-            <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>B3 Tactical Ranking</span>
+            <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>Qyntara</span>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: '2rem', textAlign: 'center' }}>
             <CheckCircle size={48} color="#10b981" style={{ marginBottom: '1rem' }} />
@@ -71,7 +71,7 @@ const ResetPasswordPage: React.FC = () => {
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <TrendingUp size={32} color="#3b82f6" />
-          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>B3 Tactical Ranking</span>
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>Qyntara</span>
         </div>
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem', textAlign: 'center' }}>Redefinir Senha</h2>

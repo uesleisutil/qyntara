@@ -65,7 +65,7 @@ describe('GuidedTour', () => {
   it('has correct welcome message for main tour', () => {
     render(<GuidedTour run={true} tourType="main" />);
     const tourType = screen.getByTestId('tour-type');
-    expect(tourType).toHaveTextContent('Welcome to the B3 Tactical Ranking MLOps Dashboard');
+    expect(tourType).toHaveTextContent('Welcome to the Qyntara MLOps Dashboard');
   });
 
   it('has correct welcome message for advanced tour', () => {

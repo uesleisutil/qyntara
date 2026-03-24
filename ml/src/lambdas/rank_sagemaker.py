@@ -395,7 +395,11 @@ def handler(event, context):
     bucket = cfg.bucket
 
     now = datetime.now(UTC)
-    dt = now.date().isoformat()
+    # Usar horário de Brasília (UTC-3) para determinar a data de referência
+    # O modelo roda às 18:30 BRT (21:30 UTC), mas se rodar após meia-noite UTC
+    # a data UTC seria D+1 enquanto em BRT ainda é D
+    brt_now = now - timedelta(hours=3)
+    dt = brt_now.date().isoformat()
 
     holidays = load_holidays(bucket, cfg.holidays_s3_key)
     force = event.get('force', False)

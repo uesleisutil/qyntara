@@ -139,7 +139,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
     // Welcome
     notes.push({
       id: 'welcome', type: 'system',
-      title: 'Bem-vindo ao B3 Tactical',
+      title: 'Bem-vindo ao Qyntara',
       message: 'Explore as recomendações, acompanhe safras e analise a explicabilidade do modelo.',
       time: new Date(now.getTime() - 86400000), read: readIds.includes('welcome'),
       icon: <CheckCircle size={16} />, color: '#10b981',

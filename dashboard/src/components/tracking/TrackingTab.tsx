@@ -90,17 +90,26 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
     try {
       const headers = { 'x-api-key': API_KEY };
       const [curKey, prevKey] = getPriceDataKeys();
-      const [histRes, valRes, mar, feb] = await Promise.all([
+      const [histRes, mar, feb] = await Promise.all([
         fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
-        fetch(`${API_BASE_URL}/api/recommendations/validation`, { headers }),
         fetch(`${API_BASE_URL}/s3-proxy?key=${curKey}`, { headers }),
         fetch(`${API_BASE_URL}/s3-proxy?key=${prevKey}`, { headers }),
       ]);
-      if (!histRes.ok || !valRes.ok) throw new Error('Falha ao carregar dados');
+      if (!histRes.ok) throw new Error('Falha ao carregar histórico de recomendações');
       const histData = await histRes.json();
-      const valData = await valRes.json();
+
+      // Validações são opcionais — não bloquear a aba se falharem
+      let valData: any = { validations: [] };
+      try {
+        const valRes = await fetch(`${API_BASE_URL}/api/recommendations/validation`, { headers });
+        if (valRes.ok) valData = await valRes.json();
+      } catch { /* silently ignore validation errors */ }
+
       const marData: PriceRow[] = mar.ok ? await mar.json() : [];
       const febData: PriceRow[] = feb.ok ? await feb.json() : [];
+
+      if (!marData.length && !febData.length) throw new Error('Dados de preços não disponíveis');
+
       setHistory(histData.data || {});
       setValidations(valData.validations || []);
       const priceMap: Record<string, Record<string, number>> = {};
@@ -124,13 +133,17 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
     const tradingDays = Array.from(allPriceDates).sort();
 
     return sortedDates.map(predDate => {
+      // Calcular targetDate localmente: ~28 dias calendário ≈ 20 dias úteis
       const valForDate = validations.find(v => v.prediction_date === predDate);
-      const targetDate = valForDate?.target_date || '';
+      const targetDate = valForDate?.target_date || (() => {
+        const d = new Date(predDate + 'T12:00:00');
+        d.setDate(d.getDate() + 28);
+        return d.toISOString().split('T')[0];
+      })();
       const futureDays = tradingDays.filter(d => d > predDate);
       const daysElapsed = futureDays.length;
       const totalDays = 20;
       const progress = Math.min(daysElapsed / totalDays, 1);
-      const latestPriceDate = tradingDays[tradingDays.length - 1] || predDate;
 
       const tickers: TickerProgress[] = [];
       Object.entries(history).forEach(([ticker, entries]) => {
@@ -144,7 +157,12 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
           if (priorDates.length) basePrice = tickerPrices[priorDates[priorDates.length - 1]];
         }
         if (!basePrice) return;
-        const currentPrice = tickerPrices[latestPriceDate] || basePrice;
+        // Usar o preço mais recente disponível para ESTE ticker (não o global)
+        const tickerFutureDates = Object.keys(tickerPrices).filter(d => d > predDate).sort();
+        const tickerLatestDate = tickerFutureDates.length
+          ? tickerFutureDates[tickerFutureDates.length - 1]
+          : predDate;
+        const currentPrice = tickerPrices[tickerLatestDate] || basePrice;
         const partialReturn = (currentPrice - basePrice) / basePrice;
         const dailyPrices = futureDays.filter(d => tickerPrices[d]).map(d => ({
           date: d, close: tickerPrices[d], partialReturn: (tickerPrices[d] - basePrice) / basePrice,

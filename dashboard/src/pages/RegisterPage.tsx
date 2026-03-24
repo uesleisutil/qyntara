@@ -76,7 +76,7 @@ const RegisterPage: React.FC = () => {
           onClick={() => navigate('/')}
         >
           <TrendingUp size={32} color="#3b82f6" />
-          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: t.text }}>B3 Tactical Ranking</span>
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: t.text }}>Qyntara</span>
         </div>
 
         <div style={{

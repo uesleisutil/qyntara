@@ -2,7 +2,7 @@
  * User Adoption Tracking Service
  *
  * Tracks daily active users, session duration, feature usage,
- * and retention metrics for the B3 Tactical Ranking Dashboard.
+ * and retention metrics for the Qyntara Dashboard.
  *
  * Requirements: 91.1-91.10
  */

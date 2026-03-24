@@ -306,7 +306,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
             {perfData.alpha >= 0 ? '✅ Modelo superou o mercado' : '⚠️ Modelo abaixo do mercado'}
           </div>
           <ShareButton
-            text={`📈 B3 Tactical Ranking — Performance\nRetorno realizado: ${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%\nAlpha vs mercado: ${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha, 2)}pp\nWin rate: ${fmt(perfData.buyWinRate * 100, 0)}%\n${perfData.totalDays} pregões analisados`}
+            text={`📈 Qyntara — Performance\nRetorno realizado: ${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%\nAlpha vs mercado: ${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha, 2)}pp\nWin rate: ${fmt(perfData.buyWinRate * 100, 0)}%\n${perfData.totalDays} pregões analisados`}
             darkMode={darkMode}
           />
         </div>

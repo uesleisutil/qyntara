@@ -65,7 +65,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
       recipients: [],
     },
     branding: {
-      companyName: 'B3 Tactical Ranking',
+      companyName: 'Qyntara',
       primaryColor: '#3b82f6',
     },
   });

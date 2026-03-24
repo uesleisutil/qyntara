@@ -213,7 +213,7 @@ const RecommendationsPage: React.FC = () => {
             </>
           )}
           <ShareButton
-            text={`📊 B3 Tactical — ${date}\n${totalBuy} compra, ${totalSell} venda, ${totalNeutral} neutros\nTop: ${topTicker?.ticker || '—'} (${topTicker ? fmt(topTicker.score, 2) : '—'})`}
+            text={`📊 Qyntara — ${date}\n${totalBuy} compra, ${totalSell} venda, ${totalNeutral} neutros\nTop: ${topTicker?.ticker || '—'} (${topTicker ? fmt(topTicker.score, 2) : '—'})`}
             darkMode={darkMode}
           />
           <button onClick={fetchRecommendations}

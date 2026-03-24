@@ -156,7 +156,7 @@ const DashboardLayout: React.FC = () => {
         borderBottom: `1px solid ${theme.border}`, cursor: 'pointer',
       }} onClick={() => handleNav('/dashboard')}>
         <TrendingUp size={24} color="#3b82f6" />
-        <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>B3 Tactical</span>
+        <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>Qyntara</span>
       </div>
 
       {/* Navigation */}

@@ -16,7 +16,7 @@ export const resetTour = (): void => localStorage.removeItem(TOUR_KEY);
 const steps: Step[] = [
   {
     target: 'body',
-    content: 'Bem-vindo ao B3 Tactical Ranking! Vamos conhecer as principais áreas da plataforma.',
+    content: 'Bem-vindo ao Qyntara! Vamos conhecer as principais áreas da plataforma.',
     title: '👋 Olá!',
     placement: 'center',
     disableBeacon: true,

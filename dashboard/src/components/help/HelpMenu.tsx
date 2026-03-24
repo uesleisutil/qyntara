@@ -38,7 +38,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
       localStorage.setItem('hasVisited', 'true');
       // Offer tour after a short delay
       setTimeout(() => {
-        if (window.confirm('Welcome to the B3 Tactical Ranking Dashboard! Would you like to take a guided tour?')) {
+        if (window.confirm('Welcome to the Qyntara Dashboard! Would you like to take a guided tour?')) {
           setRunTour(true);
         }
       }, 1000);

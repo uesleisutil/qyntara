@@ -18,8 +18,8 @@ const faqData: FAQEntry[] = [
   // Getting Started
   {
     id: 'gs-1',
-    question: 'What is the B3 Tactical Ranking Dashboard?',
-    answer: 'The B3 Tactical Ranking Dashboard is an MLOps monitoring platform for tracking machine learning model recommendations for Brazilian stock market (B3) trading. It provides real-time insights into model performance, data quality, and cost optimization.',
+    question: 'What is the Qyntara Dashboard?',
+    answer: 'The Qyntara Dashboard is an MLOps monitoring platform for tracking machine learning model recommendations for Brazilian stock market (B3) trading. It provides real-time insights into model performance, data quality, and cost optimization.',
     category: 'getting-started',
     relatedDocs: ['User Guide', 'Quick Start'],
     helpfulCount: 45,
@@ -330,7 +330,7 @@ export const FAQ: React.FC<FAQProps> = ({ darkMode = false }) => {
             Frequently Asked Questions
           </h1>
           <p style={{ margin: 0, color: theme.textSecondary, fontSize: '1rem' }}>
-            Find answers to common questions about the B3 Tactical Ranking Dashboard
+            Find answers to common questions about the Qyntara Dashboard
           </p>
         </div>
 

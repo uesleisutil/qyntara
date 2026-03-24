@@ -27,7 +27,7 @@ describe('FAQ', () => {
 
   it('displays FAQ entries', () => {
     render(<FAQ />);
-    expect(screen.getByText('What is the B3 Tactical Ranking Dashboard?')).toBeInTheDocument();
+    expect(screen.getByText('What is the Qyntara Dashboard?')).toBeInTheDocument();
   });
 
   it('filters FAQs by search query', () => {
@@ -37,7 +37,7 @@ describe('FAQ', () => {
     fireEvent.change(searchInput, { target: { value: 'SHAP' } });
     
     expect(screen.getByText(/What is SHAP and how is it used/)).toBeInTheDocument();
-    expect(screen.queryByText('What is the B3 Tactical Ranking Dashboard?')).not.toBeInTheDocument();
+    expect(screen.queryByText('What is the Qyntara Dashboard?')).not.toBeInTheDocument();
   });
 
   it('filters FAQs by category', () => {
@@ -53,7 +53,7 @@ describe('FAQ', () => {
   it('expands FAQ entry when clicked', () => {
     render(<FAQ />);
     
-    const question = screen.getByText('What is the B3 Tactical Ranking Dashboard?');
+    const question = screen.getByText('What is the Qyntara Dashboard?');
     fireEvent.click(question);
     
     // Answer should be visible
@@ -63,7 +63,7 @@ describe('FAQ', () => {
   it('collapses FAQ entry when clicked again', () => {
     render(<FAQ />);
     
-    const question = screen.getByText('What is the B3 Tactical Ranking Dashboard?');
+    const question = screen.getByText('What is the Qyntara Dashboard?');
     
     // Expand
     fireEvent.click(question);
@@ -89,7 +89,7 @@ describe('FAQ', () => {
   it('allows rating FAQ entries as helpful', () => {
     render(<FAQ />);
     
-    const question = screen.getByText('What is the B3 Tactical Ranking Dashboard?');
+    const question = screen.getByText('What is the Qyntara Dashboard?');
     fireEvent.click(question);
     
     // Find and click thumbs up button
@@ -109,7 +109,7 @@ describe('FAQ', () => {
   it('displays related documentation links when available', () => {
     render(<FAQ />);
     
-    const question = screen.getByText('What is the B3 Tactical Ranking Dashboard?');
+    const question = screen.getByText('What is the Qyntara Dashboard?');
     fireEvent.click(question);
     
     expect(screen.getByText('Related Documentation:')).toBeInTheDocument();
