@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { DollarSign, TrendingDown, TrendingUp, RefreshCw, AlertTriangle, Clock, XCircle, CheckCircle, EyeOff, Calendar } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
@@ -8,16 +8,20 @@ import { useCanViewCosts } from '../../components/shared/pro/ProGate';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
-/** Style applied to redacted placeholders — blur + block selection/copy */
 const redactedStyle: React.CSSProperties = {
-  filter: 'blur(8px)',
-  userSelect: 'none',
-  WebkitUserSelect: 'none',
-  pointerEvents: 'none',
-  clipPath: 'inset(0)',       // prevents blur bleed outside bounds
+  filter: 'blur(8px)', userSelect: 'none', WebkitUserSelect: 'none',
+  pointerEvents: 'none', clipPath: 'inset(0)',
 };
-
 const PLACEHOLDER = 'R$ ••••••';
+
+const PERIOD_OPTIONS = [
+  { label: '7 dias', value: 7 },
+  { label: '14 dias', value: 14 },
+  { label: 'Mês atual', value: -1 },  // -1 = dynamic
+  { label: '30 dias', value: 30 },
+  { label: '60 dias', value: 60 },
+  { label: '90 dias', value: 90 },
+];
 
 const AdminCostsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
@@ -25,42 +29,28 @@ const AdminCostsPage: React.FC = () => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [periodValue, setPeriodValue] = useState(-1); // default: mês atual
 
-  // Default to current month (days since 1st of month + 1)
-  const getDaysInCurrentMonth = () => {
-    const now = new Date();
-    return now.getDate();
-  };
-  const [costDays, setCostDays] = useState<number>(getDaysInCurrentMonth);
+  // Resolve actual days from period value (-1 = current month)
+  const costDays = periodValue === -1 ? new Date().getDate() : periodValue;
+  const periodLabel = periodValue === -1 ? 'mês atual' : `${costDays} dias`;
 
-  const periodOptions = [
-    { label: '7 dias', value: 7 },
-    { label: '14 dias', value: 14 },
-    { label: 'Mês atual', value: getDaysInCurrentMonth() },
-    { label: '30 dias', value: 30 },
-    { label: '60 dias', value: 60 },
-    { label: '90 dias', value: 90 },
-  ];
-
-  /**
-   * Renders real value when allowed, otherwise a blurred placeholder.
-   * The real value is NEVER placed in the DOM when access is off.
-   */
   const R: React.FC<{ children: React.ReactNode; ph?: string }> = ({ children, ph }) =>
-    canViewCosts
-      ? <>{children}</>
-      : <span style={redactedStyle} aria-hidden="true">{ph || PLACEHOLDER}</span>;
+    canViewCosts ? <>{children}</> : <span style={redactedStyle} aria-hidden="true">{ph || PLACEHOLDER}</span>;
 
-  const fetchCosts = async () => {
+  const fetchCosts = useCallback(async (days: number) => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=${costDays}`, { headers: { 'x-api-key': API_KEY } });
+      const res = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=${days}`, {
+        headers: { 'x-api-key': API_KEY },
+      });
       if (res.ok) { setData(await res.json()); setLastUpdated(new Date()); }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  };
+  }, []);
 
-  useEffect(() => { fetchCosts(); }, [costDays]);
+  // Re-fetch whenever the resolved costDays changes
+  useEffect(() => { fetchCosts(costDays); }, [costDays, fetchCosts]);
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
@@ -68,13 +58,14 @@ const AdminCostsPage: React.FC = () => {
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
-  const getRelativeTime = (d: Date) => {
-    const diff = Math.round((Date.now() - d.getTime()) / 1000);
-    if (diff < 60) return 'agora mesmo';
-    if (diff < 3600) return `há ${Math.floor(diff / 60)} min`;
-    return `há ${Math.floor(diff / 3600)}h`;
+  const relTime = (d: Date) => {
+    const s = Math.round((Date.now() - d.getTime()) / 1000);
+    if (s < 60) return 'agora mesmo';
+    if (s < 3600) return `há ${Math.floor(s / 60)} min`;
+    return `há ${Math.floor(s / 3600)}h`;
   };
 
+  /* ── Loading skeleton ── */
   if (loading) {
     const sk: React.CSSProperties = {
       background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
@@ -87,16 +78,9 @@ const AdminCostsPage: React.FC = () => {
           <div style={{ ...sk, height: 28, width: 180, marginBottom: 8 }} />
           <div style={{ ...sk, height: 16, width: 300 }} />
         </div>
-        <div style={{ ...sk, height: 52, marginBottom: '1rem', borderRadius: 12 }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
-          {[1,2,3,4].map(i => (
-            <div key={i} style={{ ...cardStyle, padding: '1rem' }}>
-              <div style={{ ...sk, height: 14, width: 80, marginBottom: 8 }} />
-              <div style={{ ...sk, height: 28, width: 60 }} />
-            </div>
-          ))}
+          {[1,2,3,4].map(i => <div key={i} style={{ ...cardStyle, padding: '1rem' }}><div style={{ ...sk, height: 14, width: 80, marginBottom: 8 }} /><div style={{ ...sk, height: 28, width: 60 }} /></div>)}
         </div>
-        <div style={{ ...sk, height: 60, marginBottom: '1rem', borderRadius: 12 }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '1rem' }}>
           <div style={{ ...sk, height: 200, borderRadius: 12 }} />
           <div style={{ ...sk, height: 200, borderRadius: 12 }} />
@@ -105,46 +89,50 @@ const AdminCostsPage: React.FC = () => {
     );
   }
 
-  if (!data) {
-    return <div style={{ ...cardStyle, textAlign: 'center', padding: '3rem', color: theme.textSecondary }}>Sem dados de custos disponíveis.</div>;
-  }
+  if (!data) return <div style={{ ...cardStyle, textAlign: 'center', padding: '3rem', color: theme.textSecondary }}>Sem dados de custos disponíveis.</div>;
 
   const latest = data?.latest || {};
   const threshold = latest.threshold || {};
   const projection = latest.monthly_projection || {};
-  const total7d = latest.total_7_days || {};
+  const totalPeriod = latest.total_7_days || {};
   const byService = latest.costs_by_service || {};
   const byComponent = latest.costs_by_component || {};
   const anomalies = latest.anomalies || [];
 
   const sortedServices = Object.entries(byService).sort(([, a]: any, [, b]: any) => b - a).filter(([, v]: any) => v > 0);
   const maxServiceCost = sortedServices.length > 0 ? (sortedServices[0][1] as number) : 1;
-
   const budgetOk = !threshold.exceeded && !threshold.warning;
 
   const kpis = [
-    { label: 'Projeção Mensal (BRL)', value: `R$ ${fmt(projection.brl)}`, ph: 'R$ ••••', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo total AWS para o mês atual, convertido em reais.', sensitive: true },
-    { label: `Custo ${costDays}d (USD)`, value: `${fmt(total7d.usd)}`, ph: '$ ••••', color: '#3b82f6', icon: <TrendingDown size={16} />, tip: `Custo total acumulado dos últimos ${costDays} dias em dólares.`, sensitive: true },
-    { label: 'Orçamento Usado', value: `${fmt(threshold.percentage, 1)}%`, ph: '••%', color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', icon: threshold.exceeded ? <TrendingUp size={16} /> : <TrendingDown size={16} />, tip: 'Percentual do orçamento mensal já consumido pela projeção atual.', sensitive: true },
-    { label: 'Anomalias', value: `${anomalies.length}`, ph: '', color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Serviços com custos significativamente acima da média histórica.', sensitive: false },
+    { label: 'Projeção Mensal (BRL)', value: `R$ ${fmt(projection.brl)}`, ph: 'R$ ••••', color: '#f59e0b', icon: <DollarSign size={16} />,
+      tip: 'Projeção de custo total AWS para o mês atual, convertido em reais.', sensitive: true },
+    { label: `Custo no período (USD)`, value: `${fmt(totalPeriod.usd)}`, ph: '$ ••••', color: '#3b82f6', icon: <TrendingDown size={16} />,
+      tip: `Custo total acumulado no período selecionado (${periodLabel}) em dólares.`, sensitive: true },
+    { label: 'Orçamento Usado', value: `${fmt(threshold.percentage, 1)}%`, ph: '••%',
+      color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981',
+      icon: threshold.exceeded ? <TrendingUp size={16} /> : <TrendingDown size={16} />,
+      tip: 'Percentual do orçamento mensal já consumido pela projeção atual.', sensitive: true },
+    { label: 'Anomalias', value: `${anomalies.length}`, ph: '', color: anomalies.length > 0 ? '#ef4444' : '#10b981',
+      icon: <AlertTriangle size={16} />, tip: `Serviços com custos acima de 2× a média histórica no período (${periodLabel}).`, sensitive: false },
   ];
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ minWidth: 0 }}>
           <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>💰 Custos AWS</h1>
           <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             Monitoramento de custos e otimização
-            {latest.date && <span>— Última: {latest.date}</span>}
+            {latest.date && <span>— Última coleta: {latest.date}</span>}
             {lastUpdated && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '0.15rem 0.5rem', borderRadius: 10 }}>
-                <Clock size={10} /> {getRelativeTime(lastUpdated)}
+                <Clock size={10} /> {relTime(lastUpdated)}
               </span>
             )}
           </p>
         </div>
-        <button onClick={fetchCosts} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={() => fetchCosts(costDays)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -153,65 +141,48 @@ const AdminCostsPage: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         <Calendar size={14} color={theme.textSecondary} style={{ flexShrink: 0 }} />
         <span style={{ fontSize: '0.78rem', color: theme.textSecondary, marginRight: '0.25rem' }}>Período:</span>
-        {periodOptions.map(opt => {
-          const isActive = costDays === opt.value;
+        {PERIOD_OPTIONS.map(opt => {
+          const isActive = periodValue === opt.value;
           return (
-            <button key={opt.value} onClick={() => setCostDays(opt.value)} style={{
+            <button key={opt.value} onClick={() => setPeriodValue(opt.value)} style={{
               padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.74rem',
               fontWeight: isActive ? 600 : 400,
               border: `1px solid ${isActive ? '#3b82f6' : theme.border}`,
               background: isActive ? '#3b82f6' : 'transparent',
               color: isActive ? 'white' : theme.textSecondary,
-              cursor: 'pointer', transition: 'all 0.15s',
-              WebkitAppearance: 'none' as any,
+              cursor: 'pointer', transition: 'all 0.15s', WebkitAppearance: 'none' as any,
             }}>{opt.label}</button>
           );
         })}
       </div>
 
-      {/* Blur notice banner */}
+      {/* Blur notice */}
       {!canViewCosts && (
-        <div style={{
-          ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem',
-          background: darkMode ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.04)',
-          borderColor: 'rgba(245,158,11,0.2)',
-          display: 'flex', alignItems: 'center', gap: '0.6rem',
-        }}>
+        <div style={{ ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem', background: darkMode ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.04)', borderColor: 'rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <EyeOff size={16} color="#f59e0b" style={{ flexShrink: 0 }} />
-          <div style={{ fontSize: '0.8rem', color: theme.textSecondary }}>
-            Dados sensíveis estão ocultos. Ative o acesso em <span style={{ color: '#f59e0b', fontWeight: 600 }}>Usuários → Dados Sensíveis</span> para visualizar.
-          </div>
+          <div style={{ fontSize: '0.8rem', color: theme.textSecondary }}>Dados sensíveis estão ocultos. Ative o acesso em <span style={{ color: '#f59e0b', fontWeight: 600 }}>Usuários → Dados Sensíveis</span> para visualizar.</div>
         </div>
       )}
 
-      {/* Verdict Card */}
-      <div style={{
-        ...cardStyle, marginBottom: '1rem', padding: '0.85rem 1rem',
-        background: budgetOk ? (darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.03)') : (darkMode ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.03)'),
-        borderColor: budgetOk ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
-        display: 'flex', alignItems: 'center', gap: '0.75rem',
-      }}>
+      {/* Verdict */}
+      <div style={{ ...cardStyle, marginBottom: '1rem', padding: '0.85rem 1rem', background: budgetOk ? (darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.03)') : (darkMode ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.03)'), borderColor: budgetOk ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         {budgetOk ? <CheckCircle size={20} color="#10b981" style={{ flexShrink: 0 }} /> : <AlertTriangle size={20} color="#ef4444" style={{ flexShrink: 0 }} />}
         <div>
           <div style={{ fontSize: '0.85rem', fontWeight: 600, color: budgetOk ? '#10b981' : '#ef4444' }}>
             {budgetOk ? 'Custos dentro do orçamento' : threshold.exceeded ? 'Orçamento mensal excedido' : 'Custos próximos do limite'}
           </div>
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
-            {budgetOk
-              ? 'Todos os serviços operando dentro dos limites de custo esperados.'
-              : <>Projeção atual: <R ph="R$ •••• de R$ •••• (••%)">R$ {fmt(projection.brl)} de R$ {fmt(threshold.limit_brl, 0)} ({fmt(threshold.percentage, 1)}%)</R></>}
+            {budgetOk ? 'Todos os serviços operando dentro dos limites esperados.' : <>Projeção: <R ph="R$ •••• de R$ •••• (••%)">R$ {fmt(projection.brl)} de R$ {fmt(threshold.limit_brl, 0)} ({fmt(threshold.percentage, 1)}%)</R></>}
           </div>
         </div>
       </div>
 
       {/* How it works */}
-      <div style={{
-        ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem',
-        background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
-        borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)',
-      }}>
+      <div style={{ ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem', background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)', borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)' }}>
         <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
-          💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Os custos são coletados diariamente via AWS Cost Explorer. A projeção mensal extrapola o gasto dos últimos 7 dias. Anomalias são detectadas quando um serviço excede 2× a média histórica.
+          💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Os custos são coletados diariamente via AWS Cost Explorer.
+          Exibindo dados dos últimos <strong style={{ color: theme.text }}>{costDays} dias</strong> ({periodLabel}).
+          A projeção mensal extrapola o gasto do período selecionado. Anomalias são detectadas quando um serviço excede 2× a média histórica.
         </div>
       </div>
 
@@ -249,13 +220,13 @@ const AdminCostsPage: React.FC = () => {
         </div>
       )}
 
+      {/* Service + Component grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
-        {/* By Service */}
         {sortedServices.length > 0 && (
           <div style={cardStyle}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Custo por Serviço ({costDays} dias)
-              <InfoTooltip text="Distribuição de custos por serviço AWS nos últimos 7 dias. Barras proporcionais ao maior custo." darkMode={darkMode} size={12} />
+              Custo por Serviço ({periodLabel})
+              <InfoTooltip text={`Distribuição de custos por serviço AWS no período selecionado (${periodLabel}). Barras proporcionais ao maior custo.`} darkMode={darkMode} size={12} />
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {sortedServices.map(([service, cost]: any) => (
@@ -273,7 +244,6 @@ const AdminCostsPage: React.FC = () => {
           </div>
         )}
 
-        {/* By Component */}
         {Object.keys(byComponent).length > 0 && (
           <div style={cardStyle}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -298,7 +268,6 @@ const AdminCostsPage: React.FC = () => {
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <AlertTriangle size={16} color="#f59e0b" /> Anomalias de Custo
             <span style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontWeight: 600 }}>{anomalies.length}</span>
-            <InfoTooltip text="Serviços com custos significativamente acima da média. Custo atual vs média histórica mostrados para cada serviço." darkMode={darkMode} size={12} />
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {anomalies.map((a: any, i: number) => (
