@@ -74,6 +74,7 @@ const DashboardLayout: React.FC = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [navigate]);
 
+  /* ── Navigation items ── */
   const userMenuItems = [
     { path: '/dashboard', label: 'Meu Dashboard', icon: <TrendingUp size={18} />, tourId: 'nav-mydashboard' },
     { path: '/dashboard/recommendations', label: 'Recomendações', icon: <BarChart3 size={18} />, tourId: 'nav-recommendations' },
@@ -88,7 +89,6 @@ const DashboardLayout: React.FC = () => {
     { path: '/dashboard/portfolio', label: 'Carteira Modelo', icon: <Briefcase size={18} /> },
   ];
 
-  /* #2 + #3: Admin items grouped with unique icons */
   const adminModelItems = [
     { path: '/admin', label: 'Visão Geral', icon: <BarChart3 size={18} /> },
     { path: '/admin/performance', label: 'Performance', icon: <Activity size={18} /> },
@@ -109,15 +109,18 @@ const DashboardLayout: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
+  /* ── Theme with purple accents ── */
   const theme = {
-    bg: darkMode ? '#0f172a' : '#f8fafc',
-    sidebar: darkMode ? '#1e293b' : '#ffffff',
-    card: darkMode ? '#1e293b' : '#ffffff',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f1f5f9',
-    activeItem: darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.08)',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    sidebar: darkMode ? '#13112a' : '#ffffff',
+    card: darkMode ? '#1a1836' : '#ffffff',
+    text: darkMode ? '#f1f0f9' : '#0f0e1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e8e5f0',
+    hover: darkMode ? '#1f1d3a' : '#f3f1fa',
+    activeItem: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)',
+    accentColor: '#8b5cf6',
+    accentSoft: darkMode ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.06)',
   };
 
   const handleLogout = async () => { await logout(); navigate('/'); };
@@ -130,7 +133,7 @@ const DashboardLayout: React.FC = () => {
         width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
         padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
         background: isActive(item.path) ? theme.activeItem : 'transparent',
-        color: isActive(item.path) ? '#3b82f6' : theme.textSecondary,
+        color: isActive(item.path) ? theme.accentColor : theme.textSecondary,
         fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
         transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
       }}
@@ -157,19 +160,21 @@ const DashboardLayout: React.FC = () => {
         padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
         borderBottom: `1px solid ${theme.border}`, cursor: 'pointer',
       }} onClick={() => handleNav('/dashboard')}>
-        <TrendingUp size={24} color="#3b82f6" />
+        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>Q</span>
+        </div>
         <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>Qyntara</span>
       </div>
 
       {/* Navigation */}
       <nav style={{ padding: '1rem 0.5rem', flex: 1, overflowY: 'auto' }}>
-        {sectionLabel('Dashboard')}
+        {sectionLabel('Principal')}
         {userMenuItems.map(renderNavButton)}
 
         {/* Pro section */}
-        <div data-tour="nav-pro" style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Crown size={11} color="#f59e0b" /> Pro
+        <div data-tour="nav-pro" style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Crown size={10} color="#f59e0b" /> Pro
           </span>
         </div>
         {proMenuItems.map(item => (
@@ -177,7 +182,7 @@ const DashboardLayout: React.FC = () => {
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
               padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: isActive(item.path) ? theme.activeItem : 'transparent',
+              background: isActive(item.path) ? 'rgba(245,158,11,0.12)' : 'transparent',
               color: isActive(item.path) ? '#f59e0b' : theme.textSecondary,
               fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
               transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
@@ -192,19 +197,19 @@ const DashboardLayout: React.FC = () => {
           </button>
         ))}
 
-        {/* Investidor Anjo — visível para todos */}
-        <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Landmark size={11} color="#f59e0b" /> Investidor
+        {/* Investor Deck */}
+        <div style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: theme.accentColor, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Landmark size={10} color={theme.accentColor} /> Investor
           </span>
         </div>
-        {renderNavButton({ path: '/dashboard/investor', label: 'Investidor Anjo', icon: <Landmark size={18} /> })}
+        {renderNavButton({ path: '/dashboard/investor', label: 'Investor Deck', icon: <Landmark size={18} /> })}
 
-        {/* #2: Admin grouped sections */}
+        {/* Admin sections */}
         {isAdmin && (
           <>
-            <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-              <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Admin
               </span>
             </div>
@@ -220,14 +225,14 @@ const DashboardLayout: React.FC = () => {
         )}
       </nav>
 
-      {/* User info + logout */}
+      {/* User info + actions */}
       <div style={{ padding: '0.75rem', borderTop: `1px solid ${theme.border}` }}>
         <div style={{
           display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem',
           borderRadius: 8, marginBottom: '0.5rem',
         }}>
           <div style={{
-            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.8rem', fontWeight: 600,
           }}>
             {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
@@ -243,12 +248,22 @@ const DashboardLayout: React.FC = () => {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button onClick={() => handleNav('/dashboard/settings')} style={{
+            flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+            padding: '0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: 'transparent',
+            color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <Settings size={14} /> Config
+          </button>
           <button onClick={handleLogout} style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            padding: '0.5rem', borderRadius: 6, border: '1px solid rgba(239,68,68,0.3)', background: 'transparent',
+            padding: '0.5rem', borderRadius: 6, border: '1px solid rgba(239,68,68,0.2)', background: 'transparent',
             color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.15s',
           }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <LogOut size={14} /> Sair
@@ -258,10 +273,8 @@ const DashboardLayout: React.FC = () => {
     </>
   );
 
-  /* #1: Fix breadcrumb priority — admin paths checked FIRST */
   const getBreadcrumb = () => {
     const p = location.pathname;
-    // Admin routes first (more specific)
     if (p === '/admin') return '🔒 Admin — Visão Geral';
     if (p === '/admin/performance') return '🔒 Admin — Performance';
     if (p === '/admin/models') return '🔒 Admin — Modelos & Features';
@@ -273,25 +286,25 @@ const DashboardLayout: React.FC = () => {
     if (p === '/admin/agents') return '🤖 Admin — Agentes IA';
     if (p === '/admin/users') return '👥 Admin — Usuários';
     if (p === '/admin/chat') return '💬 Admin — Chat';
-    if (p === '/admin/investor') return '💰 Admin — Investidor Anjo';
-    if (p.startsWith('/admin')) return '🔒 Admin';    // Client routes
-    if (p === '/dashboard') return '📊 Recomendações';
-    if (p === '/dashboard/tracking') return '🎯 Acompanhamento';
-    if (p === '/dashboard/explainability') return '🧠 Explicabilidade';
-    if (p === '/dashboard/backtesting') return '🧪 Backtesting';
-    if (p === '/dashboard/performance') return '📈 Performance';
-    if (p === '/dashboard/portfolio') return '👑 Carteira Modelo';
-    if (p === '/dashboard/carteiras') return '💼 Minhas Carteiras';
-    if (p === '/dashboard/upgrade') return '👑 Upgrade Pro';
-    if (p === '/dashboard/change-password') return '🔒 Alterar Senha';
-    if (p === '/dashboard/change-phone') return '📱 Alertas WhatsApp';
-    if (p === '/dashboard/support') return '💬 Fale Conosco';
-    if (p === '/dashboard/settings') return '⚙️ Configurações';
-    if (p === '/dashboard/investor') return '💰 Investidor Anjo';
+    if (p === '/admin/investor') return '💰 Admin — Investor Deck';
+    if (p.startsWith('/admin')) return '🔒 Admin';
+    if (p === '/dashboard') return 'Meu Dashboard';
+    if (p === '/dashboard/recommendations') return 'Recomendações';
+    if (p === '/dashboard/tracking') return 'Acompanhamento';
+    if (p === '/dashboard/explainability') return 'Explicabilidade';
+    if (p === '/dashboard/backtesting') return 'Backtesting';
+    if (p === '/dashboard/performance') return 'Performance';
+    if (p === '/dashboard/portfolio') return 'Carteira Modelo';
+    if (p === '/dashboard/carteiras') return 'Minhas Carteiras';
+    if (p === '/dashboard/upgrade') return 'Upgrade Pro';
+    if (p === '/dashboard/change-password') return 'Alterar Senha';
+    if (p === '/dashboard/change-phone') return 'Alertas WhatsApp';
+    if (p === '/dashboard/support') return 'Fale Conosco';
+    if (p === '/dashboard/settings') return 'Configurações';
+    if (p === '/dashboard/investor') return 'Investor Deck';
     return 'Dashboard';
   };
 
-  /* #4: Only show upgrade banner on pages where Pro matters */
   const [bannerDismissed, setBannerDismissed] = useState(() => {
     try { return localStorage.getItem('b3tr_upgrade_banner_dismissed') === 'true'; } catch { return false; }
   });
@@ -337,11 +350,10 @@ const DashboardLayout: React.FC = () => {
           }} className="mobile-menu-btn" aria-label="Menu">
             {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <div style={{ fontSize: '0.9rem', color: theme.textSecondary, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
+          <div style={{ fontSize: '0.9rem', fontWeight: 500, color: theme.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
             {getBreadcrumb()}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-            {/* #11: Dark mode toggle in header */}
             <button onClick={toggleDarkMode} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: '0.35rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: 'transparent',
@@ -371,55 +383,78 @@ const DashboardLayout: React.FC = () => {
                 <>
                   <div style={{ position: 'fixed', inset: 0, zIndex: 49 }} onClick={() => setUserMenuOpen(false)} />
                   <div style={{
-                    position: 'absolute', right: 0, top: '100%', marginTop: 6, minWidth: 200,
-                    background: theme.sidebar, border: `1px solid ${theme.border}`, borderRadius: 8,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)', zIndex: 50, overflow: 'hidden',
+                    position: 'absolute', right: 0, top: '100%', marginTop: 6, minWidth: 220,
+                    background: theme.sidebar, border: `1px solid ${theme.border}`, borderRadius: 10,
+                    boxShadow: darkMode ? '0 8px 32px rgba(0,0,0,0.4)' : '0 4px 16px rgba(0,0,0,0.1)', zIndex: 50, overflow: 'hidden',
                   }} className="user-menu-dropdown">
-                    <div style={{ padding: '0.6rem 0.75rem', borderBottom: `1px solid ${theme.border}` }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.text }}>{user?.name || user?.email}</div>
-                      <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    {/* User info header */}
+                    <div style={{ padding: '0.75rem 1rem', borderBottom: `1px solid ${theme.border}`, background: theme.accentSoft }}>
+                      <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>{user?.name || user?.email}</div>
+                      <div style={{ fontSize: '0.7rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.15rem' }}>
                         {user?.role === 'admin' ? 'Administrador' : 'Usuário'}
                         {isPro && <ProBadge small />}
                       </div>
                     </div>
-                    {[
-                      { path: '/dashboard/change-password', icon: <Lock size={14} />, label: 'Alterar Senha', color: theme.textSecondary },
-                      { path: '/dashboard/change-phone', icon: <Phone size={14} />, label: 'Alertas WhatsApp', color: theme.textSecondary },
-                      { path: '/dashboard/support', icon: <MessageCircle size={14} />, label: 'Fale Conosco', color: theme.textSecondary },
-                      { path: '/dashboard/settings', icon: <Settings size={14} />, label: 'Configurações', color: theme.textSecondary },
-                    ].map(item => (
-                      <button key={item.path} onClick={() => { setUserMenuOpen(false); navigate(item.path); }} style={{
+                    {/* Account section */}
+                    <div style={{ padding: '0.35rem 0' }}>
+                      <div style={{ padding: '0.25rem 1rem', fontSize: '0.65rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Conta</div>
+                      {[
+                        { path: '/dashboard/change-password', icon: <Lock size={14} />, label: 'Alterar Senha' },
+                        { path: '/dashboard/change-phone', icon: <Phone size={14} />, label: 'Alertas WhatsApp' },
+                        { path: '/dashboard/settings', icon: <Settings size={14} />, label: 'Configurações' },
+                      ].map(item => (
+                        <button key={item.path} onClick={() => { setUserMenuOpen(false); navigate(item.path); }} style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                          padding: '0.5rem 1rem', background: 'transparent', border: 'none',
+                          color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                          transition: 'background 0.1s',
+                        }}
+                          onMouseEnter={e => e.currentTarget.style.background = theme.hover}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          {item.icon} {item.label}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Support section */}
+                    <div style={{ padding: '0.35rem 0', borderTop: `1px solid ${theme.border}` }}>
+                      <div style={{ padding: '0.25rem 1rem', fontSize: '0.65rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Suporte</div>
+                      <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/support'); }} style={{
                         width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
-                        color: item.color, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                        padding: '0.5rem 1rem', background: 'transparent', border: 'none',
+                        color: theme.textSecondary, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
                         transition: 'background 0.1s',
                       }}
                         onMouseEnter={e => e.currentTarget.style.background = theme.hover}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
-                        {item.icon} {item.label}
+                        <MessageCircle size={14} /> Fale Conosco
                       </button>
-                    ))}
+                    </div>
+                    {/* Upgrade */}
                     {!isPro && (
-                      <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{
-                        width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
-                        color: '#f59e0b', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
-                        transition: 'background 0.1s', fontWeight: 500,
-                      }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.08)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <Crown size={14} /> Upgrade Pro
-                      </button>
+                      <div style={{ padding: '0.35rem 0', borderTop: `1px solid ${theme.border}` }}>
+                        <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
+                          padding: '0.5rem 1rem', background: 'transparent', border: 'none',
+                          color: '#f59e0b', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                          transition: 'background 0.1s', fontWeight: 500,
+                        }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.06)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <Crown size={14} /> Upgrade Pro
+                        </button>
+                      </div>
                     )}
+                    {/* Logout */}
                     <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      padding: '0.6rem 0.75rem', background: 'transparent', border: 'none',
+                      padding: '0.6rem 1rem', background: 'transparent', border: 'none',
                       color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
                       borderTop: `1px solid ${theme.border}`, transition: 'background 0.1s',
                     }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <LogOut size={14} /> Sair
@@ -430,6 +465,7 @@ const DashboardLayout: React.FC = () => {
             </div>
           </div>
         </header>
+
         <div style={{ padding: 'clamp(0.75rem, 3vw, 1.5rem)' }}>
           {isOffline && (
             <div style={{
@@ -444,7 +480,6 @@ const DashboardLayout: React.FC = () => {
           {user && user.emailVerified === false && (
             <EmailVerificationBanner darkMode={darkMode} theme={theme} />
           )}
-          {/* #4: Upgrade banner only on relevant pages */}
           {showUpgradeBanner && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem',
@@ -480,7 +515,7 @@ const DashboardLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* #9: Mobile bottom tab bar */}
+        {/* Mobile bottom tab bar */}
         <nav className="mobile-bottom-tabs" style={{
           display: 'none', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40,
           background: theme.sidebar, borderTop: `1px solid ${theme.border}`,
@@ -488,15 +523,15 @@ const DashboardLayout: React.FC = () => {
           paddingBottom: 'env(safe-area-inset-bottom, 0.35rem)',
         }}>
           {[
-            { path: '/dashboard', icon: <TrendingUp size={20} />, label: 'Recs' },
-            { path: '/dashboard/explainability', icon: <Brain size={20} />, label: 'Explica' },
+            { path: '/dashboard', icon: <TrendingUp size={20} />, label: 'Home' },
+            { path: '/dashboard/recommendations', icon: <BarChart3 size={20} />, label: 'Recs' },
             { path: '/dashboard/backtesting', icon: <TestTubes size={20} />, label: 'Backtest' },
-            { path: '/dashboard/performance', icon: <LineChart size={20} />, label: 'Perf' },
+            { path: '/dashboard/carteiras', icon: <Briefcase size={20} />, label: 'Carteiras' },
           ].map(tab => (
             <button key={tab.path} onClick={() => navigate(tab.path)} style={{
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.1rem',
               background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem 0.5rem',
-              color: isActive(tab.path) ? '#3b82f6' : theme.textSecondary,
+              color: isActive(tab.path) ? theme.accentColor : theme.textSecondary,
               fontWeight: isActive(tab.path) ? 600 : 400, fontSize: '0.6rem',
               minHeight: 'auto', transition: 'color 0.15s',
             }}>
@@ -528,7 +563,7 @@ const DashboardLayout: React.FC = () => {
   );
 };
 
-// Email verification banner with auto-resend after 1h
+// Email verification banner
 const EmailVerificationBanner: React.FC<{ darkMode: boolean; theme: Record<string, string> }> = ({ darkMode }) => {
   const { user, resendCode } = useAuth();
   const navigate = useNavigate();

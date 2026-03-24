@@ -1,7 +1,7 @@
 :root {
   --font-size-scale: 1;
   --focus-color: #fbbf24;
-  --primary-color: #2563eb;
+  --primary-color: #8b5cf6;
   --text-primary: #111827;
   --text-secondary: #6b7280;
   --bg-primary: #ffffff;
@@ -93,7 +93,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
@@ -166,7 +166,7 @@ body {
 .metric-value {
   font-size: calc(1.5rem * var(--font-size-scale, 1));
   font-weight: 700;
-  color: #1e40af;
+  color: #7c3aed;
 }
 
 .metric-label {
@@ -271,7 +271,7 @@ body {
 
 .rank-badge {
   display: inline-block;
-  background: #1e40af;
+  background: #7c3aed;
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -325,12 +325,12 @@ body {
 }
 
 .tab-button:hover {
-  color: #3b82f6;
+  color: #8b5cf6;
 }
 
 .tab-button.active {
-  border-bottom-color: #3b82f6;
-  color: #3b82f6;
+  border-bottom-color: #8b5cf6;
+  color: #8b5cf6;
   font-weight: bold;
 }
 
@@ -399,15 +399,15 @@ body {
 
 /* Dark mode skeleton */
 .dark-mode .skeleton {
-  background-color: #334155;
+  background-color: #2a2745;
 }
 
 .dark-mode .skeleton-wave {
   background: linear-gradient(
     90deg,
-    #334155 0%,
-    #475569 50%,
-    #334155 100%
+    #2a2745 0%,
+    #3d3a5c 50%,
+    #2a2745 100%
   );
   background-size: 200% 100%;
 }

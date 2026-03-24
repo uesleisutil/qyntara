@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Shield, ArrowLeft } from 'lucide-react';
+import { Shield, ArrowLeft } from 'lucide-react';
 import { PRO_PRICE_LABEL } from '../constants';
 
 const PrivacyPolicyPage: React.FC = () => {
@@ -8,11 +8,11 @@ const PrivacyPolicyPage: React.FC = () => {
 
   const sectionStyle: React.CSSProperties = { marginBottom: '1.5rem' };
   const h2Style: React.CSSProperties = { fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem' };
-  const pStyle: React.CSSProperties = { color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.7, margin: '0.3rem 0' };
-  const liStyle: React.CSSProperties = { color: '#94a3b8', fontSize: '0.88rem', lineHeight: 1.7, marginLeft: '1.2rem' };
+  const pStyle: React.CSSProperties = { color: '#9895b0', fontSize: '0.88rem', lineHeight: 1.7, margin: '0.3rem 0' };
+  const liStyle: React.CSSProperties = { color: '#9895b0', fontSize: '0.88rem', lineHeight: 1.7, marginLeft: '1.2rem' };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: '#0c0a1a', padding: '2rem' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>

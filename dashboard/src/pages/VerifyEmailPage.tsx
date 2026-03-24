@@ -1,7 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
+const accent = '#8b5cf6';
+const gradient = 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)';
 
 const VerifyEmailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,15 +19,10 @@ const VerifyEmailPage: React.FC = () => {
 
   const email = user?.email || '';
 
-  useEffect(() => {
-    if (!email) navigate('/register');
-  }, [email, navigate]);
+  useEffect(() => { if (!email) navigate('/register'); }, [email, navigate]);
 
   useEffect(() => {
-    if (cooldown > 0) {
-      const t = setTimeout(() => setCooldown(c => c - 1), 1000);
-      return () => clearTimeout(t);
-    }
+    if (cooldown > 0) { const t = setTimeout(() => setCooldown(c => c - 1), 1000); return () => clearTimeout(t); }
   }, [cooldown]);
 
   const handleChange = (index: number, value: string) => {
@@ -36,9 +34,7 @@ const VerifyEmailPage: React.FC = () => {
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
+    if (e.key === 'Backspace' && !code[index] && index > 0) inputRefs.current[index - 1]?.focus();
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -51,8 +47,7 @@ const VerifyEmailPage: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(''); setSuccess('');
+    e.preventDefault(); setError(''); setSuccess('');
     const fullCode = code.join('');
     if (fullCode.length !== 6) { setError('Digite o código completo de 6 dígitos.'); return; }
     setLoading(true);
@@ -60,40 +55,37 @@ const VerifyEmailPage: React.FC = () => {
       await verifyEmail(email, fullCode);
       setSuccess('Email verificado com sucesso!');
       setTimeout(() => navigate('/dashboard'), 1500);
-    } catch (err: any) {
-      setError(err.message || 'Código inválido ou expirado.');
-    } finally { setLoading(false); }
+    } catch (err: any) { setError(err.message || 'Código inválido ou expirado.'); }
+    finally { setLoading(false); }
   };
 
   const handleResend = async () => {
     if (cooldown > 0) return;
     setResending(true); setError(''); setSuccess('');
-    try {
-      await resendCode(email);
-      setSuccess('Novo código enviado para seu email.');
-      setCooldown(60);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao reenviar código.');
-    } finally { setResending(false); }
+    try { await resendCode(email); setSuccess('Novo código enviado para seu email.'); setCooldown(60); }
+    catch (err: any) { setError(err.message || 'Erro ao reenviar código.'); }
+    finally { setResending(false); }
   };
 
   const inputStyle: React.CSSProperties = {
     width: 'clamp(38px, 10vw, 48px)', height: 'clamp(44px, 12vw, 56px)', textAlign: 'center',
     fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', fontWeight: 700,
-    background: '#1e293b', border: '1px solid #334155', borderRadius: 8, color: '#f1f5f9', outline: 'none',
+    background: '#1a1836', border: '1px solid #2a2745', borderRadius: 8, color: '#f1f0f9', outline: 'none',
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: '#0c0a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <TrendingUp size={32} color="#3b82f6" />
-          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f5f9' }}>Qyntara</span>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: 'white', fontWeight: 800, fontSize: '0.95rem' }}>Q</span>
+          </div>
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f0f9' }}>Qyntara</span>
         </div>
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem', textAlign: 'center' }}>Verificar Email</h2>
-          <p style={{ color: '#64748b', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-            Enviamos um código de 6 dígitos para<br /><span style={{ color: '#3b82f6' }}>{email}</span>
+        <div style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid #2a2745', borderRadius: 16, padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f0f9', marginBottom: '0.5rem', textAlign: 'center' }}>Verificar Email</h2>
+          <p style={{ color: '#9895b0', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            Enviamos um código de 6 dígitos para<br /><span style={{ color: accent }}>{email}</span>
           </p>
           {error && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#f87171', fontSize: '0.85rem' }}>
@@ -110,13 +102,13 @@ const VerifyEmailPage: React.FC = () => {
               {code.map((digit, i) => (
                 <input key={i} ref={el => { inputRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1}
                   value={digit} onChange={e => handleChange(i, e.target.value)} onKeyDown={e => handleKeyDown(i, e)}
-                  style={{ ...inputStyle, borderColor: digit ? '#3b82f6' : '#334155' }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'} onBlur={e => { if (!digit) e.currentTarget.style.borderColor = '#334155'; }}
+                  style={{ ...inputStyle, borderColor: digit ? accent : '#2a2745' }}
+                  onFocus={e => e.currentTarget.style.borderColor = accent} onBlur={e => { if (!digit) e.currentTarget.style.borderColor = '#2a2745'; }}
                   aria-label={`Dígito ${i + 1}`} />
               ))}
             </div>
             <button type="submit" disabled={loading} style={{
-              width: '100%', padding: '0.8rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+              width: '100%', padding: '0.8rem', background: gradient,
               border: 'none', color: 'white', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
               fontWeight: 600, fontSize: '0.95rem', opacity: loading ? 0.7 : 1, transition: 'all 0.2s',
             }}>
@@ -125,7 +117,7 @@ const VerifyEmailPage: React.FC = () => {
           </form>
           <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
             <button onClick={handleResend} disabled={resending || cooldown > 0} style={{
-              background: 'none', border: 'none', color: cooldown > 0 ? '#475569' : '#3b82f6',
+              background: 'none', border: 'none', color: cooldown > 0 ? '#7a7694' : accent,
               cursor: cooldown > 0 ? 'default' : 'pointer', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             }}>
               <RefreshCw size={14} /> {cooldown > 0 ? `Reenviar em ${cooldown}s` : 'Reenviar código'}

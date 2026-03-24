@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
+const accent = '#8b5cf6';
+const gradient = 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,14 +22,14 @@ const LoginPage: React.FC = () => {
   });
 
   const t = {
-    bg: dark ? '#0f172a' : '#f8fafc',
-    card: dark ? 'rgba(255,255,255,0.03)' : 'white',
-    cardBorder: dark ? '#1e293b' : '#e2e8f0',
-    input: dark ? '#1e293b' : '#f1f5f9',
-    inputBorder: dark ? '#334155' : '#d1d5db',
-    text: dark ? '#f1f5f9' : '#0f172a',
-    textSecondary: dark ? '#64748b' : '#64748b',
-    label: dark ? '#94a3b8' : '#475569',
+    bg: dark ? '#0c0a1a' : '#f8f7fc',
+    card: dark ? 'rgba(139,92,246,0.03)' : 'white',
+    cardBorder: dark ? '#2a2745' : '#e8e5f0',
+    input: dark ? '#1a1836' : '#f3f1fa',
+    inputBorder: dark ? '#2a2745' : '#d1d5db',
+    text: dark ? '#f1f0f9' : '#0f0e1a',
+    textSecondary: dark ? '#9895b0' : '#64618b',
+    label: dark ? '#9895b0' : '#475569',
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,16 +58,16 @@ const LoginPage: React.FC = () => {
       justifyContent: 'center', padding: '2rem',
     }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
-        {/* Logo */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }}
           onClick={() => navigate('/')}
         >
-          <TrendingUp size={32} color="#3b82f6" />
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: 'white', fontWeight: 800, fontSize: '0.95rem' }}>Q</span>
+          </div>
           <span style={{ fontSize: '1.35rem', fontWeight: 700, color: t.text }}>Qyntara</span>
         </div>
 
-        {/* Card */}
         <div style={{
           background: t.card, border: `1px solid ${t.cardBorder}`, borderRadius: 16,
           padding: '2rem', boxShadow: dark ? 'none' : '0 1px 3px rgba(0,0,0,0.08)',
@@ -94,16 +97,14 @@ const LoginPage: React.FC = () => {
               <input
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="seu@email.com" required style={inputStyle}
-                onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'}
+                onFocus={e => e.currentTarget.style.borderColor = accent}
                 onBlur={e => e.currentTarget.style.borderColor = t.inputBorder}
               />
             </div>
             <div style={{ marginBottom: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                <label style={{ color: t.label, fontSize: '0.85rem', fontWeight: 500 }}>
-                  Senha
-                </label>
-                <Link to="/forgot-password" style={{ color: '#3b82f6', textDecoration: 'none', fontSize: '0.8rem' }}>
+                <label style={{ color: t.label, fontSize: '0.85rem', fontWeight: 500 }}>Senha</label>
+                <Link to="/forgot-password" style={{ color: accent, textDecoration: 'none', fontSize: '0.8rem' }}>
                   Esqueci minha senha
                 </Link>
               </div>
@@ -112,7 +113,7 @@ const LoginPage: React.FC = () => {
                   type={showPassword ? 'text' : 'password'} value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••" required style={{ ...inputStyle, paddingRight: '2.5rem' }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#3b82f6'}
+                  onFocus={e => e.currentTarget.style.borderColor = accent}
                   onBlur={e => e.currentTarget.style.borderColor = t.inputBorder}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} style={{
@@ -124,7 +125,7 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
             <button type="submit" disabled={loading} style={{
-              width: '100%', padding: '0.8rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+              width: '100%', padding: '0.8rem', background: gradient,
               border: 'none', color: 'white', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
               fontWeight: 600, fontSize: '0.95rem', opacity: loading ? 0.7 : 1, transition: 'all 0.2s',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
@@ -137,7 +138,7 @@ const LoginPage: React.FC = () => {
 
         <p style={{ textAlign: 'center', marginTop: '1.5rem', color: t.textSecondary, fontSize: '0.9rem' }}>
           Não tem conta?{' '}
-          <Link to="/register" style={{ color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>
+          <Link to="/register" style={{ color: accent, textDecoration: 'none', fontWeight: 500 }}>
             Criar conta grátis
           </Link>
         </p>
