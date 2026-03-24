@@ -156,20 +156,14 @@ jobs:
       # ── Health checks ──
       - name: Health check
         run: |
-          echo "Checking Lambda functions..."
-          LAMBDAS=$(aws lambda list-functions \
-            --query "Functions[?contains(FunctionName, 'B3TacticalRanking')].FunctionName" \
-            --output text || echo "")
-          for FUNC in $LAMBDAS; do
-            STATE=$(aws lambda get-function --function-name "$FUNC" \
-              --query 'Configuration.State' --output text 2>/dev/null || echo "Unknown")
-            echo "  $FUNC: $STATE"
-          done
-
           STACK_STATUS=$(aws cloudformation describe-stacks \
             --stack-name "${{ env.PROD_STACK_NAME }}" \
             --query 'Stacks[0].StackStatus' --output text || echo "UNKNOWN")
           echo "Stack status: $STACK_STATUS"
+          if [[ "$STACK_STATUS" != *"COMPLETE"* ]]; then
+            echo "::error::Stack is not in a healthy state: $STACK_STATUS"
+            exit 1
+          fi
 
       # ── Tag release ──
       - name: Tag release
