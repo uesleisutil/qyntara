@@ -21,12 +21,12 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
   const [perfPeriod, setPerfPeriod] = useState<'all' | '7d' | '14d'>('all');
 
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    green: '#4ead8a', red: '#e07070', yellow: '#d4a84b', blue: darkMode ? '#4da8c4' : '#2d7d9a', purple: darkMode ? '#a99dd0' : '#8b7eb8',
+    bg: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#8b5cf6', purple: '#8b5cf6',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -205,7 +205,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
 
   if (loading) {
     const pulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -227,7 +227,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-        <LineChart size={20} color="#5a9e87" />
+        <LineChart size={20} color="#8b5cf6" />
         <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, margin: 0 }}>
           Performance Acumulada
         </h1>
@@ -296,10 +296,10 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
         ...cardStyle, marginBottom: '1rem', padding: '0.85rem 1rem',
         background: perfData.alpha >= 0
           ? (darkMode ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.04)')
-          : (darkMode ? 'rgba(224,112,112,0.08)' : 'rgba(224,112,112,0.04)'),
+          : (darkMode ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.04)'),
         borderColor: perfData.alpha >= 0
           ? (darkMode ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)')
-          : (darkMode ? 'rgba(224,112,112,0.2)' : 'rgba(224,112,112,0.15)'),
+          : (darkMode ? 'rgba(239,68,68,0.2)' : 'rgba(239,68,68,0.15)'),
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
           <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>

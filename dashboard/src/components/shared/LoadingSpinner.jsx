@@ -29,7 +29,7 @@ const LoadingSpinner = ({
 
   const spinnerStyle = {
     ...sizes[size],
-    border: `${sizes[size].borderWidth} solid #5a9e87`,
+    border: `${sizes[size].borderWidth} solid #8b5cf6`,
     borderTopColor: 'transparent',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
@@ -46,7 +46,7 @@ const LoadingSpinner = ({
 
   const textStyle = {
     fontSize: textSizes[size],
-    color: '#5a7268',
+    color: '#64748b',
     fontWeight: '500',
     margin: 0
   };

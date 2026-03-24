@@ -111,16 +111,16 @@ const DashboardLayout: React.FC = () => {
 
   /* ── Theme with purple accents ── */
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    sidebar: darkMode ? '#162020' : '#ffffff',
-    card: darkMode ? '#1a2626' : '#ffffff',
-    text: darkMode ? '#e8f0ed' : '#0f1a16',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    hover: darkMode ? '#223330' : '#edf5f1',
-    activeItem: darkMode ? 'rgba(90,158,135,0.15)' : 'rgba(90,158,135,0.08)',
-    accentColor: '#5a9e87',
-    accentSoft: darkMode ? 'rgba(90,158,135,0.12)' : 'rgba(90,158,135,0.06)',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    sidebar: darkMode ? '#13112a' : '#ffffff',
+    card: darkMode ? '#1a1836' : '#ffffff',
+    text: darkMode ? '#f1f0f9' : '#0f0e1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e8e5f0',
+    hover: darkMode ? '#1f1d3a' : '#f3f1fa',
+    activeItem: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)',
+    accentColor: '#8b5cf6',
+    accentSoft: darkMode ? 'rgba(139,92,246,0.12)' : 'rgba(139,92,246,0.06)',
   };
 
   const handleLogout = async () => { await logout(); navigate('/'); };
@@ -160,7 +160,7 @@ const DashboardLayout: React.FC = () => {
         padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
         borderBottom: `1px solid ${theme.border}`, cursor: 'pointer',
       }} onClick={() => handleNav('/dashboard')}>
-        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a, #8b7eb8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>Q</span>
         </div>
         <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>Qyntara</span>
@@ -173,8 +173,8 @@ const DashboardLayout: React.FC = () => {
 
         {/* Pro section */}
         <div data-tour="nav-pro" style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#d4a84b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Crown size={10} color="#d4a84b" /> Pro
+          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Crown size={10} color="#f59e0b" /> Pro
           </span>
         </div>
         {proMenuItems.map(item => (
@@ -182,8 +182,8 @@ const DashboardLayout: React.FC = () => {
             style={{
               width: '100%', display: 'flex', alignItems: 'center', gap: '0.6rem',
               padding: '0.6rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: isActive(item.path) ? 'rgba(212,168,75,0.12)' : 'transparent',
-              color: isActive(item.path) ? '#d4a84b' : theme.textSecondary,
+              background: isActive(item.path) ? 'rgba(245,158,11,0.12)' : 'transparent',
+              color: isActive(item.path) ? '#f59e0b' : theme.textSecondary,
               fontSize: '0.875rem', fontWeight: isActive(item.path) ? 600 : 400,
               transition: 'all 0.15s', marginBottom: '0.15rem', textAlign: 'left',
               opacity: isPro ? 1 : 0.6,
@@ -209,7 +209,7 @@ const DashboardLayout: React.FC = () => {
         {isAdmin && (
           <>
             <div style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#e07070', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Admin
               </span>
             </div>
@@ -232,7 +232,7 @@ const DashboardLayout: React.FC = () => {
           borderRadius: 8, marginBottom: '0.5rem',
         }}>
           <div style={{
-            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
+            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.8rem', fontWeight: 600,
           }}>
             {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
@@ -260,10 +260,10 @@ const DashboardLayout: React.FC = () => {
           </button>
           <button onClick={handleLogout} style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            padding: '0.5rem', borderRadius: 6, border: '1px solid rgba(224,112,112,0.2)', background: 'transparent',
-            color: '#e89090', cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.15s',
+            padding: '0.5rem', borderRadius: 6, border: '1px solid rgba(239,68,68,0.2)', background: 'transparent',
+            color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', transition: 'all 0.15s',
           }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(224,112,112,0.08)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.08)'}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <LogOut size={14} /> Sair
@@ -437,10 +437,10 @@ const DashboardLayout: React.FC = () => {
                         <button onClick={() => { setUserMenuOpen(false); navigate('/dashboard/upgrade'); }} style={{
                           width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
                           padding: '0.5rem 1rem', background: 'transparent', border: 'none',
-                          color: '#d4a84b', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                          color: '#f59e0b', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
                           transition: 'background 0.1s', fontWeight: 500,
                         }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(212,168,75,0.06)'}
+                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.06)'}
                           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                         >
                           <Crown size={14} /> Upgrade Pro
@@ -451,10 +451,10 @@ const DashboardLayout: React.FC = () => {
                     <button onClick={() => { setUserMenuOpen(false); handleLogout(); }} style={{
                       width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem',
                       padding: '0.6rem 1rem', background: 'transparent', border: 'none',
-                      color: '#e89090', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
+                      color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
                       borderTop: `1px solid ${theme.border}`, transition: 'background 0.1s',
                     }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(224,112,112,0.06)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.06)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <LogOut size={14} /> Sair
@@ -471,8 +471,8 @@ const DashboardLayout: React.FC = () => {
             <div style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.5rem 0.75rem', marginBottom: '0.75rem', borderRadius: 8,
-              background: 'rgba(224,112,112,0.08)', border: '1px solid rgba(224,112,112,0.2)',
-              fontSize: '0.78rem', color: '#e89090',
+              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
+              fontSize: '0.78rem', color: '#f87171',
             }}>
               📡 Sem conexão com a internet. Dados podem estar desatualizados.
             </div>
@@ -484,13 +484,13 @@ const DashboardLayout: React.FC = () => {
             <div style={{
               display: 'flex', alignItems: 'center', gap: '0.5rem',
               padding: '0.4rem 0.75rem', marginBottom: '0.75rem', borderRadius: 8,
-              background: darkMode ? 'rgba(212,168,75,0.06)' : 'rgba(212,168,75,0.04)',
-              border: '1px solid rgba(212,168,75,0.15)', fontSize: '0.75rem',
+              background: darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
+              border: '1px solid rgba(245,158,11,0.15)', fontSize: '0.75rem',
             }}>
-              <Crown size={13} color="#d4a84b" />
+              <Crown size={13} color="#f59e0b" />
               <span style={{ color: theme.textSecondary, flex: 1 }}>
                 Alguns valores estão ocultos.{' '}
-                <a href="#/dashboard/upgrade" style={{ color: '#d4a84b', fontWeight: 600, textDecoration: 'none' }}>
+                <a href="#/dashboard/upgrade" style={{ color: '#f59e0b', fontWeight: 600, textDecoration: 'none' }}>
                   Assine o Pro
                 </a>
               </span>
@@ -599,27 +599,27 @@ const EmailVerificationBanner: React.FC<{ darkMode: boolean; theme: Record<strin
     <div style={{
       display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
       padding: '0.6rem 1rem', marginBottom: '0.75rem', borderRadius: 8,
-      background: darkMode ? 'rgba(212,168,75,0.1)' : 'rgba(212,168,75,0.08)',
-      border: '1px solid rgba(212,168,75,0.3)', fontSize: '0.82rem', color: '#d4a84b',
+      background: darkMode ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.08)',
+      border: '1px solid rgba(245,158,11,0.3)', fontSize: '0.82rem', color: '#f59e0b',
     }}>
       <Mail size={16} />
       <span style={{ flex: 1 }}>
         Verifique seu email para ativar todos os recursos.
       </span>
       {sent ? (
-        <span style={{ fontSize: '0.75rem', color: '#4ead8a' }}>Código reenviado ✓</span>
+        <span style={{ fontSize: '0.75rem', color: '#10b981' }}>Código reenviado ✓</span>
       ) : (
         <button onClick={handleResend} disabled={resending} style={{
-          padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px solid rgba(212,168,75,0.4)',
-          background: 'rgba(212,168,75,0.15)', color: '#d4a84b', cursor: 'pointer',
+          padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px solid rgba(245,158,11,0.4)',
+          background: 'rgba(245,158,11,0.15)', color: '#f59e0b', cursor: 'pointer',
           fontSize: '0.75rem', fontWeight: 600, minHeight: 'auto',
         }}>
           {resending ? 'Enviando...' : 'Reenviar código'}
         </button>
       )}
       <button onClick={() => navigate('/verify-email')} style={{
-        padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px solid rgba(212,168,75,0.4)',
-        background: '#d4a84b', color: '#0f1a16', cursor: 'pointer',
+        padding: '0.3rem 0.6rem', borderRadius: 6, border: '1px solid rgba(245,158,11,0.4)',
+        background: '#f59e0b', color: '#0f172a', cursor: 'pointer',
         fontSize: '0.75rem', fontWeight: 600, minHeight: 'auto',
       }}>
         Verificar agora

@@ -32,8 +32,8 @@ export const DraggableKPICard: React.FC<DraggableKPICardProps> = ({
   const isVisible = cardConfig?.visible ?? true;
 
   const theme = {
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    hover: darkMode ? '#2a3d36' : '#e8f0ed'
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f1f5f9'
   };
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -112,7 +112,7 @@ export const DraggableKPICard: React.FC<DraggableKPICardProps> = ({
             title="Hide card"
             aria-label="Hide card"
           >
-            <EyeOff size={14} color="#5a7268" />
+            <EyeOff size={14} color="#64748b" />
           </button>
           
           <div
@@ -129,7 +129,7 @@ export const DraggableKPICard: React.FC<DraggableKPICardProps> = ({
             }}
             title="Drag to reorder"
           >
-            <GripVertical size={14} color="#5a7268" />
+            <GripVertical size={14} color="#64748b" />
           </div>
         </div>
       )}

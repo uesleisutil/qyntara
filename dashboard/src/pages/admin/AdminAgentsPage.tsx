@@ -120,15 +120,15 @@ const AdminAgentsPage: React.FC = () => {
   const currentAgent = agents.find(a => a.id === selectedAgent);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
 
   const getRiskBadge = (level: string) => {
     const map: Record<string, { bg: string; text: string; label: string }> = {
-      low: { bg: 'rgba(16,185,129,0.15)', text: '#4ead8a', label: 'Baixo' },
-      medium: { bg: 'rgba(212,168,75,0.15)', text: '#d4a84b', label: 'Médio' },
-      high: { bg: 'rgba(224,112,112,0.15)', text: '#e07070', label: 'Alto' },
+      low: { bg: 'rgba(16,185,129,0.15)', text: '#10b981', label: 'Baixo' },
+      medium: { bg: 'rgba(245,158,11,0.15)', text: '#f59e0b', label: 'Médio' },
+      high: { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', label: 'Alto' },
     };
     const r = map[level] || map.low;
     return (
@@ -140,16 +140,16 @@ const AdminAgentsPage: React.FC = () => {
   };
 
   const getPriorityColor = (p: string) => {
-    if (p === 'crítica') return '#e07070';
-    if (p === 'alta') return '#d4a84b';
-    if (p === 'média') return '#5a9e87';
-    return '#8fa89c';
+    if (p === 'crítica') return '#ef4444';
+    if (p === 'alta') return '#f59e0b';
+    if (p === 'média') return '#8b5cf6';
+    return '#9895b0';
   };
 
   // Shimmer loading
   if (loading) {
     const pulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -170,7 +170,7 @@ const AdminAgentsPage: React.FC = () => {
       <div>
         <button onClick={() => setSelectedAgent(null)} style={{
           display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'none', border: 'none',
-          color: '#5a9e87', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '1rem', padding: 0,
+          color: '#8b5cf6', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '1rem', padding: 0,
           WebkitAppearance: 'none' as any,
         }}>
           <ChevronLeft size={16} /> Voltar aos Agentes
@@ -261,8 +261,8 @@ const AdminAgentsPage: React.FC = () => {
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                 maxWidth: '85%', padding: '0.6rem 0.8rem', borderRadius: 10,
                 background: msg.role === 'user'
-                  ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)'
-                  : (darkMode ? '#121a1a' : '#e8f0ed'),
+                  ? 'linear-gradient(135deg, #7c3aed, #3b82f6)'
+                  : (darkMode ? '#0c0a1a' : '#f1f5f9'),
                 color: msg.role === 'user' ? 'white' : theme.text,
                 fontSize: '0.8rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
               }}>
@@ -273,7 +273,7 @@ const AdminAgentsPage: React.FC = () => {
               </div>
             ))}
             {sending && (
-              <div style={{ alignSelf: 'flex-start', padding: '0.6rem 0.8rem', borderRadius: 10, background: darkMode ? '#121a1a' : '#e8f0ed', fontSize: '0.8rem', color: theme.textSecondary }}>
+              <div style={{ alignSelf: 'flex-start', padding: '0.6rem 0.8rem', borderRadius: 10, background: darkMode ? '#0c0a1a' : '#f1f5f9', fontSize: '0.8rem', color: theme.textSecondary }}>
                 {currentAgent.emoji} Analisando...
               </div>
             )}
@@ -289,14 +289,14 @@ const AdminAgentsPage: React.FC = () => {
               placeholder={`Envie uma diretiva para o ${currentAgent.id}...`}
               style={{
                 flex: 1, padding: '0.6rem 0.8rem', borderRadius: 8,
-                border: `1px solid ${theme.border}`, background: darkMode ? '#121a1a' : '#f6faf8',
+                border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8fafc',
                 color: theme.text, fontSize: '0.85rem', outline: 'none',
               }}
             />
             <button onClick={sendMessage} disabled={!chatInput.trim() || sending}
               style={{
                 padding: '0.6rem 1rem', borderRadius: 8, border: 'none',
-                background: chatInput.trim() ? currentAgent.color : (darkMode ? '#2a3d36' : '#d4e5dc'),
+                background: chatInput.trim() ? currentAgent.color : (darkMode ? '#2a2745' : '#e2e8f0'),
                 color: chatInput.trim() ? 'white' : theme.textSecondary,
                 cursor: chatInput.trim() ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85rem', fontWeight: 600,
@@ -326,7 +326,7 @@ const AdminAgentsPage: React.FC = () => {
         </div>
         <button onClick={fetchAgents} style={{
           display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem',
-          borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
+          borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)',
           color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
           WebkitAppearance: 'none' as any,
         }}>
@@ -335,7 +335,7 @@ const AdminAgentsPage: React.FC = () => {
       </div>
 
       {error && (
-        <div style={{ ...cardStyle, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', marginBottom: '1rem', fontSize: '0.85rem' }}>
+        <div style={{ ...cardStyle, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', marginBottom: '1rem', fontSize: '0.85rem' }}>
           {error}
         </div>
       )}
@@ -356,23 +356,23 @@ const AdminAgentsPage: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
           <div style={cardStyle}>
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Agentes Ativos</div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#5a9e87' }}>{agents.length}</div>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#8b5cf6' }}>{agents.length}</div>
           </div>
           <div style={cardStyle}>
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Tarefas Totais</div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#d4a84b' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f59e0b' }}>
               {agents.reduce((s, a) => s + (a.analysis?.tasks?.length || 0), 0)}
             </div>
           </div>
           <div style={cardStyle}>
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Risco Alto</div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#e07070' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#ef4444' }}>
               {agents.filter(a => a.analysis?.risk_level === 'high').length}
             </div>
           </div>
           <div style={cardStyle}>
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Diretivas Ativas</div>
-            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#4ead8a' }}>
+            <div style={{ fontSize: '1.3rem', fontWeight: 700, color: '#10b981' }}>
               {agents.filter(a => a.last_directive).length}
             </div>
           </div>

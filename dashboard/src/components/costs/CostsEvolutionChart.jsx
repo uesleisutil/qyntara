@@ -25,7 +25,7 @@ const CostsEvolutionChart = ({ data, isLoading }) => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
         Carregando evolução de custos...
       </div>
     );
@@ -33,7 +33,7 @@ const CostsEvolutionChart = ({ data, isLoading }) => {
 
   if (chartData.length === 0) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
         Sem dados de evolução de custos disponíveis
       </div>
     );
@@ -57,11 +57,11 @@ const CostsEvolutionChart = ({ data, isLoading }) => {
         <div style={{
           backgroundColor: 'white',
           padding: '0.75rem',
-          border: '1px solid #d4e5dc',
+          border: '1px solid #e2e8f0',
           borderRadius: '8px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}>
-          <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#1a2626' }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontWeight: '600', color: '#1a1836' }}>
             {format(parseISO(label), 'dd/MM/yyyy', { locale: ptBR })}
           </p>
           {payload.map((entry, idx) => (
@@ -77,7 +77,7 @@ const CostsEvolutionChart = ({ data, isLoading }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a2626' }}>
+      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
         Evolução Diária de Custos (Últimos 30 dias)
       </h3>
 
@@ -85,11 +85,11 @@ const CostsEvolutionChart = ({ data, isLoading }) => {
         <ComposedChart data={chartDataWithMA}>
           <defs>
             <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#5a9e87" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#5a9e87" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis 
             dataKey="date" 
             tick={{ fontSize: 12 }}
@@ -105,14 +105,14 @@ const CostsEvolutionChart = ({ data, isLoading }) => {
             type="monotone"
             dataKey="cost"
             fill="url(#colorCost)"
-            stroke="#5a9e87"
+            stroke="#8b5cf6"
             strokeWidth={2}
             name="Custo Diário"
           />
           <Line 
             type="monotone" 
             dataKey="movingAverage" 
-            stroke="#4ead8a" 
+            stroke="#10b981" 
             strokeWidth={2}
             strokeDasharray="5 5"
             name="Média Móvel (7 dias)"
@@ -127,30 +127,30 @@ const CostsEvolutionChart = ({ data, isLoading }) => {
         gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
         gap: '1rem',
         padding: '1rem',
-        backgroundColor: '#f6faf8',
+        backgroundColor: '#f8fafc',
         borderRadius: '8px'
       }}>
         <div>
-          <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: '0 0 0.25rem 0' }}>Custo Mínimo</p>
-          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#4ead8a', margin: 0 }}>
+          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Custo Mínimo</p>
+          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#10b981', margin: 0 }}>
             R$ {Math.min(...chartData.map(d => d.cost)).toFixed(2)}
           </p>
         </div>
         <div>
-          <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: '0 0 0.25rem 0' }}>Custo Máximo</p>
-          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#e07070', margin: 0 }}>
+          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Custo Máximo</p>
+          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#ef4444', margin: 0 }}>
             R$ {Math.max(...chartData.map(d => d.cost)).toFixed(2)}
           </p>
         </div>
         <div>
-          <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: '0 0 0.25rem 0' }}>Custo Médio</p>
-          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#5a9e87', margin: 0 }}>
+          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Custo Médio</p>
+          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#8b5cf6', margin: 0 }}>
             R$ {(chartData.reduce((sum, d) => sum + d.cost, 0) / chartData.length).toFixed(2)}
           </p>
         </div>
         <div>
-          <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: '0 0 0.25rem 0' }}>Custo Total</p>
-          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1a2626', margin: 0 }}>
+          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Custo Total</p>
+          <p style={{ fontSize: '1.125rem', fontWeight: '600', color: '#1a1836', margin: 0 }}>
             R$ {chartData.reduce((sum, d) => sum + d.cost, 0).toFixed(2)}
           </p>
         </div>

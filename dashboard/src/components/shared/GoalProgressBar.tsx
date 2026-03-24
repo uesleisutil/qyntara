@@ -59,7 +59,7 @@ export const GoalProgressBar: React.FC<GoalProgressBarProps> = ({
   return (
     <div className="goal-progress-bar" style={{ 
       padding: '1rem', 
-      border: '1px solid #d4e5dc', 
+      border: '1px solid #e5e7eb', 
       borderRadius: '8px',
       marginBottom: '1rem',
     }}>
@@ -69,7 +69,7 @@ export const GoalProgressBar: React.FC<GoalProgressBarProps> = ({
             {goal.metric}
           </h4>
           {timeRemaining && (
-            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#5a7268' }}>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
               {timeRemaining} remaining
             </p>
           )}
@@ -81,11 +81,11 @@ export const GoalProgressBar: React.FC<GoalProgressBarProps> = ({
             style={{
               padding: '0.25rem 0.5rem',
               fontSize: '0.75rem',
-              background: '#e8f0ed',
+              background: '#f1f5f9',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
-              color: '#5a7268',
+              color: '#64748b',
             }}
           >
             Edit Target
@@ -102,7 +102,7 @@ export const GoalProgressBar: React.FC<GoalProgressBarProps> = ({
             onChange={(e) => setEditValue(e.target.value)}
             style={{
               padding: '0.25rem 0.5rem',
-              border: '1px solid #b0c8bc',
+              border: '1px solid #cbd5e1',
               borderRadius: '4px',
               width: '100px',
             }}
@@ -113,7 +113,7 @@ export const GoalProgressBar: React.FC<GoalProgressBarProps> = ({
             style={{
               padding: '0.25rem 0.5rem',
               fontSize: '0.75rem',
-              background: '#4ead8a',
+              background: '#10b981',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -127,11 +127,11 @@ export const GoalProgressBar: React.FC<GoalProgressBarProps> = ({
             style={{
               padding: '0.25rem 0.5rem',
               fontSize: '0.75rem',
-              background: '#e8f0ed',
+              background: '#f1f5f9',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
-              color: '#5a7268',
+              color: '#64748b',
             }}
           >
             Cancel
@@ -154,15 +154,15 @@ export const GoalProgressBar: React.FC<GoalProgressBarProps> = ({
         <div style={{ 
           marginTop: '0.5rem', 
           fontSize: '0.75rem', 
-          color: '#5a7268',
+          color: '#64748b',
           display: 'flex',
           justifyContent: 'space-between',
         }}>
           <span>Historical Achievement Rate:</span>
           <span style={{ 
             fontWeight: 600,
-            color: goal.historicalAchievementRate >= 80 ? '#4ead8a' : 
-                   goal.historicalAchievementRate >= 60 ? '#d4a84b' : '#e07070',
+            color: goal.historicalAchievementRate >= 80 ? '#10b981' : 
+                   goal.historicalAchievementRate >= 60 ? '#f59e0b' : '#ef4444',
           }}>
             {goal.historicalAchievementRate.toFixed(0)}%
           </span>

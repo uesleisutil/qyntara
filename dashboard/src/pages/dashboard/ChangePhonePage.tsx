@@ -69,21 +69,21 @@ const ChangePhonePage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '2rem',
     maxWidth: 480, margin: '0 auto',
   };
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.65rem 0.75rem',
-    background: darkMode ? '#121a1a' : '#f6faf8', border: `1px solid ${theme.border}`,
+    background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`,
     borderRadius: 8, color: theme.text, fontSize: '0.9rem', outline: 'none',
     boxSizing: 'border-box' as const,
   };
 
   if (fetching) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -110,12 +110,12 @@ const ChangePhonePage: React.FC = () => {
       <div style={cardStyle}>
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <AlertTriangle size={16} /> {error}
             </div>
           )}
           {success && (
-            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#4ead8a', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <CheckCircle size={16} /> {success}
             </div>
           )}
@@ -136,7 +136,7 @@ const ChangePhonePage: React.FC = () => {
           {/* WhatsApp toggle */}
           <div style={{
             marginBottom: '1.25rem', padding: '1rem', borderRadius: 8,
-            background: darkMode ? '#121a1a' : '#edf5f1',
+            background: darkMode ? '#0c0a1a' : '#f0fdf4',
             border: `1px solid ${whatsappEnabled ? 'rgba(37,211,102,0.3)' : theme.border}`,
           }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
@@ -144,7 +144,7 @@ const ChangePhonePage: React.FC = () => {
                 onClick={() => setWhatsappEnabled(!whatsappEnabled)}
                 style={{
                   width: 44, height: 24, borderRadius: 12, position: 'relative',
-                  background: whatsappEnabled ? '#25d366' : (darkMode ? '#3a5248' : '#b0c8bc'),
+                  background: whatsappEnabled ? '#25d366' : (darkMode ? '#475569' : '#cbd5e1'),
                   transition: 'background 0.2s', cursor: 'pointer', flexShrink: 0,
                 }}
               >
@@ -172,13 +172,13 @@ const ChangePhonePage: React.FC = () => {
             border: `1px solid ${darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)'}`,
           }}>
             <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
-              💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Ao ativar os alertas, você receberá mensagens no WhatsApp quando houver recomendações novas, sinais fortes detectados ou atualizações importantes do modelo. Disponível para usuários <strong style={{ color: '#d4a84b' }}>Pro</strong>.
+              💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Ao ativar os alertas, você receberá mensagens no WhatsApp quando houver recomendações novas, sinais fortes detectados ou atualizações importantes do modelo. Disponível para usuários <strong style={{ color: '#f59e0b' }}>Pro</strong>.
             </div>
           </div>
 
           <button type="submit" disabled={loading || (phoneClean.length > 0 && !isValid)} style={{
             width: '100%', padding: '0.75rem', borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600,
-            background: !loading ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+            background: !loading ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#2a2745' : '#e2e8f0'),
             color: !loading ? 'white' : theme.textSecondary,
             cursor: !loading ? 'pointer' : 'not-allowed',
             transition: 'all 0.2s', WebkitAppearance: 'none' as any,

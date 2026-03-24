@@ -69,7 +69,7 @@ const AdminOverviewPage: React.FC = () => {
   useEffect(() => { fetchAll(); runHealthChecks(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -83,7 +83,7 @@ const AdminOverviewPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -135,14 +135,14 @@ const AdminOverviewPage: React.FC = () => {
   const verdictOk = issues.length === 0;
 
   const kpis = [
-    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100)}%` : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#4ead8a' : '#d4a84b', icon: <TrendingUp size={16} />, tip: 'Percentual de previsões que acertaram a direção (alta/baixa) do preço.' },
-    { label: 'MAPE', value: mape != null ? `${fmt(mape)}%` : '—', color: mape != null && mape <= 1 ? '#4ead8a' : mape != null && mape <= 2 ? '#d4a84b' : '#e07070', icon: <Activity size={16} />, tip: 'Erro percentual absoluto médio. Quanto menor, mais preciso.' },
-    { label: 'Sharpe Ratio', value: sharpe != null ? `${fmt(sharpe, 2)}` : '—', color: sharpe != null && sharpe >= 0 ? '#4ead8a' : '#e07070', icon: <TrendingUp size={16} />, tip: 'Razão retorno/risco. Positivo = retorno acima do CDI ajustado ao risco.' },
-    { label: 'Projeção Mensal', value: projBrl != null ? `R$ ${fmt(projBrl, 2)}` : '—', color: '#d4a84b', icon: <DollarSign size={16} />, tip: 'Projeção de custo AWS para o mês atual em reais.' },
-    { label: 'Custo 7d (USD)', value: cost7d != null ? `$${fmt(cost7d, 2)}` : '—', color: '#5a9e87', icon: <Server size={16} />, tip: 'Custo total dos últimos 7 dias em dólares.' },
-    { label: 'Completude', value: overallCompleteness != null ? `${fmt(overallCompleteness * 100)}%` : '—', color: overallCompleteness != null && overallCompleteness >= 0.95 ? '#4ead8a' : '#d4a84b', icon: <Database size={16} />, tip: 'Percentual médio de dados presentes vs esperados.' },
-    { label: 'Freshness', value: freshnessRate != null ? `${fmt(freshnessRate * 100)}%` : '—', color: freshnessRate != null && freshnessRate >= 0.9 ? '#4ead8a' : '#d4a84b', icon: <Clock size={16} />, tip: 'Percentual de fontes de dados atualizadas no prazo.' },
-    { label: 'Anomalias Custo', value: `${anomalies.length}`, color: anomalies.length > 0 ? '#e07070' : '#4ead8a', icon: <AlertTriangle size={16} />, tip: 'Picos inesperados de custo em serviços AWS.' },
+    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100)}%` : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b', icon: <TrendingUp size={16} />, tip: 'Percentual de previsões que acertaram a direção (alta/baixa) do preço.' },
+    { label: 'MAPE', value: mape != null ? `${fmt(mape)}%` : '—', color: mape != null && mape <= 1 ? '#10b981' : mape != null && mape <= 2 ? '#f59e0b' : '#ef4444', icon: <Activity size={16} />, tip: 'Erro percentual absoluto médio. Quanto menor, mais preciso.' },
+    { label: 'Sharpe Ratio', value: sharpe != null ? `${fmt(sharpe, 2)}` : '—', color: sharpe != null && sharpe >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Razão retorno/risco. Positivo = retorno acima do CDI ajustado ao risco.' },
+    { label: 'Projeção Mensal', value: projBrl != null ? `R$ ${fmt(projBrl, 2)}` : '—', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo AWS para o mês atual em reais.' },
+    { label: 'Custo 7d (USD)', value: cost7d != null ? `$${fmt(cost7d, 2)}` : '—', color: '#8b5cf6', icon: <Server size={16} />, tip: 'Custo total dos últimos 7 dias em dólares.' },
+    { label: 'Completude', value: overallCompleteness != null ? `${fmt(overallCompleteness * 100)}%` : '—', color: overallCompleteness != null && overallCompleteness >= 0.95 ? '#10b981' : '#f59e0b', icon: <Database size={16} />, tip: 'Percentual médio de dados presentes vs esperados.' },
+    { label: 'Freshness', value: freshnessRate != null ? `${fmt(freshnessRate * 100)}%` : '—', color: freshnessRate != null && freshnessRate >= 0.9 ? '#10b981' : '#f59e0b', icon: <Clock size={16} />, tip: 'Percentual de fontes de dados atualizadas no prazo.' },
+    { label: 'Anomalias Custo', value: `${anomalies.length}`, color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Picos inesperados de custo em serviços AWS.' },
   ];
 
   const recentAnomalies = anomalies.slice(-5);
@@ -155,13 +155,13 @@ const AdminOverviewPage: React.FC = () => {
           <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             Visão geral de performance, custos e saúde do sistema
             {lastUpdated && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: '#4ead8a', background: 'rgba(16,185,129,0.1)', padding: '0.15rem 0.5rem', borderRadius: 10 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '0.15rem 0.5rem', borderRadius: 10 }}>
                 <Clock size={10} /> {getRelativeTime(lastUpdated)}
               </span>
             )}
           </p>
         </div>
-        <button onClick={() => { fetchAll(); runHealthChecks(); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={() => { fetchAll(); runHealthChecks(); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -169,13 +169,13 @@ const AdminOverviewPage: React.FC = () => {
       {/* Verdict Card */}
       <div style={{
         ...cardStyle, marginBottom: '1rem', padding: '0.85rem 1rem',
-        background: verdictOk ? (darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.03)') : (darkMode ? 'rgba(224,112,112,0.06)' : 'rgba(224,112,112,0.03)'),
-        borderColor: verdictOk ? 'rgba(16,185,129,0.2)' : 'rgba(224,112,112,0.2)',
+        background: verdictOk ? (darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.03)') : (darkMode ? 'rgba(239,68,68,0.06)' : 'rgba(239,68,68,0.03)'),
+        borderColor: verdictOk ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)',
         display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
       }}>
-        {verdictOk ? <CheckCircle size={20} color="#4ead8a" style={{ flexShrink: 0, marginTop: 2 }} /> : <AlertTriangle size={20} color="#e07070" style={{ flexShrink: 0, marginTop: 2 }} />}
+        {verdictOk ? <CheckCircle size={20} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} /> : <AlertTriangle size={20} color="#ef4444" style={{ flexShrink: 0, marginTop: 2 }} />}
         <div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: verdictOk ? '#4ead8a' : '#e07070', marginBottom: 2 }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: verdictOk ? '#10b981' : '#ef4444', marginBottom: 2 }}>
             {verdictOk ? 'Sistema operando normalmente' : `${issues.length} ponto${issues.length > 1 ? 's' : ''} de atenção`}
           </div>
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
@@ -215,16 +215,16 @@ const AdminOverviewPage: React.FC = () => {
         {threshold.limit_brl && (
           <div style={cardStyle}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <DollarSign size={16} color="#d4a84b" /> Orçamento Mensal
+              <DollarSign size={16} color="#f59e0b" /> Orçamento Mensal
               <InfoTooltip text="Barra de progresso do orçamento. Verde = OK, Amarelo = atenção, Vermelho = excedido." darkMode={darkMode} size={12} />
             </h3>
             <div style={{ marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                 <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>Projeção</span>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: threshold.exceeded ? '#e07070' : threshold.warning ? '#d4a84b' : '#4ead8a' }}>{fmt(threshold.percentage, 1)}%</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981' }}>{fmt(threshold.percentage, 1)}%</span>
               </div>
-              <div style={{ height: 10, borderRadius: 5, background: darkMode ? '#2a3d36' : '#d4e5dc' }}>
-                <div style={{ height: '100%', borderRadius: 5, background: threshold.exceeded ? '#e07070' : threshold.warning ? '#d4a84b' : '#4ead8a', width: `${Math.min(threshold.percentage || 0, 100)}%`, transition: 'width 0.3s' }} />
+              <div style={{ height: 10, borderRadius: 5, background: darkMode ? '#2a2745' : '#e2e8f0' }}>
+                <div style={{ height: '100%', borderRadius: 5, background: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', width: `${Math.min(threshold.percentage || 0, 100)}%`, transition: 'width 0.3s' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.3rem' }}>
                 <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>R$ 0</span>
@@ -232,7 +232,7 @@ const AdminOverviewPage: React.FC = () => {
               </div>
             </div>
             {threshold.alert_level && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: 6, background: threshold.alert_level === 'critical' ? 'rgba(224,112,112,0.1)' : 'rgba(212,168,75,0.1)', fontSize: '0.78rem', color: threshold.alert_level === 'critical' ? '#e07070' : '#d4a84b' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: 6, background: threshold.alert_level === 'critical' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)', fontSize: '0.78rem', color: threshold.alert_level === 'critical' ? '#ef4444' : '#f59e0b' }}>
                 <AlertTriangle size={14} /> Alerta: {threshold.alert_level}
               </div>
             )}
@@ -241,7 +241,7 @@ const AdminOverviewPage: React.FC = () => {
 
         <div style={cardStyle}>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Shield size={16} color="#5a9e87" /> Infraestrutura (Health Check)
+            <Shield size={16} color="#8b5cf6" /> Infraestrutura (Health Check)
             <InfoTooltip text="Status real dos serviços AWS verificado via chamadas HTTP. Latência em ms." darkMode={darkMode} size={12} />
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -254,9 +254,9 @@ const AdminOverviewPage: React.FC = () => {
                 {item.status === 'loading' ? (
                   <span style={{ fontSize: '0.75rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Loader2 size={12} className="spin" /> Verificando</span>
                 ) : item.status === 'ok' ? (
-                  <span style={{ fontSize: '0.75rem', color: '#4ead8a', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><CheckCircle size={12} /> OK {item.latency != null && <span style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{item.latency}ms</span>}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><CheckCircle size={12} /> OK {item.latency != null && <span style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{item.latency}ms</span>}</span>
                 ) : (
-                  <span style={{ fontSize: '0.75rem', color: '#e07070', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><XCircle size={12} /> Erro</span>
+                  <span style={{ fontSize: '0.75rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><XCircle size={12} /> Erro</span>
                 )}
               </div>
             ))}
@@ -268,18 +268,18 @@ const AdminOverviewPage: React.FC = () => {
       {recentAnomalies.length > 0 && (
         <div style={cardStyle}>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertTriangle size={16} color="#d4a84b" /> Anomalias de Custo
-            <span style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(212,168,75,0.1)', color: '#d4a84b', fontWeight: 600 }}>{anomalies.length}</span>
+            <AlertTriangle size={16} color="#f59e0b" /> Anomalias de Custo
+            <span style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontWeight: 600 }}>{anomalies.length}</span>
             <InfoTooltip text="Serviços AWS com custos acima da média histórica." darkMode={darkMode} size={12} />
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {recentAnomalies.map((a: any, i: number) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', borderRadius: 8, background: a.severity === 'critical' ? 'rgba(224,112,112,0.08)' : 'rgba(212,168,75,0.08)', border: `1px solid ${a.severity === 'critical' ? 'rgba(224,112,112,0.2)' : 'rgba(212,168,75,0.2)'}`, flexWrap: 'wrap', gap: '0.3rem' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', borderRadius: 8, background: a.severity === 'critical' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)', border: `1px solid ${a.severity === 'critical' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}`, flexWrap: 'wrap', gap: '0.3rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  {a.severity === 'critical' ? <XCircle size={14} color="#e07070" /> : <AlertTriangle size={14} color="#d4a84b" />}
+                  {a.severity === 'critical' ? <XCircle size={14} color="#ef4444" /> : <AlertTriangle size={14} color="#f59e0b" />}
                   <span style={{ fontSize: '0.82rem', color: theme.text }}>{a.service}</span>
                 </div>
-                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: a.severity === 'critical' ? '#e07070' : '#d4a84b' }}>+{fmt(a.change_percentage, 0)}%</span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: a.severity === 'critical' ? '#ef4444' : '#f59e0b' }}>+{fmt(a.change_percentage, 0)}%</span>
               </div>
             ))}
           </div>

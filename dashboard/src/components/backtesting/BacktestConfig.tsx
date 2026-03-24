@@ -44,11 +44,11 @@ export const BacktestConfig: React.FC<BacktestConfigProps> = ({
   });
 
   const theme = {
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    inputBg: darkMode ? '#121a1a' : '#f6faf8',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    inputBg: darkMode ? '#0c0a1a' : '#f8fafc',
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,7 +73,7 @@ export const BacktestConfig: React.FC<BacktestConfigProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <Settings size={20} color={darkMode ? '#8fa89c' : '#5a7268'} />
+        <Settings size={20} color={darkMode ? '#9895b0' : '#64748b'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 
@@ -304,7 +304,7 @@ export const BacktestConfig: React.FC<BacktestConfigProps> = ({
           disabled={loading}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: loading ? '#8fa89c' : '#5a9e87',
+            backgroundColor: loading ? '#9895b0' : '#8b5cf6',
             color: 'white',
             border: 'none',
             borderRadius: '8px',

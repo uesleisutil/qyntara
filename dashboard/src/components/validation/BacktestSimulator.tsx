@@ -148,19 +148,19 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
         <div
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid #d4e5dc',
+            border: '1px solid #e5e7eb',
             borderRadius: '8px',
             padding: '12px',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1a2e26' }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1f2937' }}>
             {new Date(data.date).toLocaleDateString()}
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#4ead8a' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#10b981' }}>
             Portfolio: {formatCurrency(data.value)}
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#5a7268' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#6b7280' }}>
             Return: {formatPercent(data.returns)}
           </p>
         </div>
@@ -193,7 +193,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   marginBottom: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 Start Date
@@ -206,7 +206,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   width: '100%',
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                 }}
               />
@@ -220,7 +220,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   marginBottom: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 End Date
@@ -233,7 +233,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   width: '100%',
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                 }}
               />
@@ -247,7 +247,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   marginBottom: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 Initial Capital (R$)
@@ -264,7 +264,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   width: '100%',
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                 }}
               />
@@ -278,7 +278,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   marginBottom: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 Top N Stocks
@@ -293,7 +293,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   width: '100%',
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                 }}
               />
@@ -307,7 +307,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   marginBottom: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 Position Sizing
@@ -321,7 +321,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   width: '100%',
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                   backgroundColor: 'white',
                 }}
@@ -339,7 +339,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   marginBottom: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 Rebalance Frequency
@@ -356,7 +356,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   width: '100%',
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                   backgroundColor: 'white',
                 }}
@@ -375,7 +375,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   marginBottom: '0.5rem',
                   fontSize: '0.875rem',
                   fontWeight: '500',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 Commission Rate (%)
@@ -393,7 +393,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   width: '100%',
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                 }}
               />
@@ -410,7 +410,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
               fontWeight: '600',
               border: 'none',
               borderRadius: '6px',
-              backgroundColor: isRunning || loading ? '#8fa89c' : '#5a9e87',
+              backgroundColor: isRunning || loading ? '#9ca3af' : '#8b5cf6',
               color: 'white',
               cursor: isRunning || loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
@@ -424,7 +424,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
       {/* Error Display */}
       {error && (
         <Card>
-          <div style={{ padding: '1.5rem', color: '#c04040', textAlign: 'center' }}>
+          <div style={{ padding: '1.5rem', color: '#dc2626', textAlign: 'center' }}>
             <p>Error: {error.message}</p>
           </div>
         </Card>
@@ -450,19 +450,19 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                 <div
                   style={{
                     padding: '1rem',
-                    backgroundColor: '#f6faf8',
+                    backgroundColor: '#f9fafb',
                     borderRadius: '8px',
-                    border: '1px solid #d4e5dc',
+                    border: '1px solid #e5e7eb',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
                     Total Return
                   </div>
                   <div
                     style={{
                       fontSize: '1.5rem',
                       fontWeight: 'bold',
-                      color: result.metrics.totalReturn >= 0 ? '#4ead8a' : '#c04040',
+                      color: result.metrics.totalReturn >= 0 ? '#10b981' : '#dc2626',
                     }}
                   >
                     {formatPercent(result.metrics.totalReturn)}
@@ -472,15 +472,15 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                 <div
                   style={{
                     padding: '1rem',
-                    backgroundColor: '#f6faf8',
+                    backgroundColor: '#f9fafb',
                     borderRadius: '8px',
-                    border: '1px solid #d4e5dc',
+                    border: '1px solid #e5e7eb',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
                     Annualized Return
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1a2e26' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
                     {formatPercent(result.metrics.annualizedReturn)}
                   </div>
                 </div>
@@ -488,15 +488,15 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                 <div
                   style={{
                     padding: '1rem',
-                    backgroundColor: '#f6faf8',
+                    backgroundColor: '#f9fafb',
                     borderRadius: '8px',
-                    border: '1px solid #d4e5dc',
+                    border: '1px solid #e5e7eb',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
                     Volatility
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1a2e26' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
                     {formatPercent(result.metrics.volatility)}
                   </div>
                 </div>
@@ -504,15 +504,15 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                 <div
                   style={{
                     padding: '1rem',
-                    backgroundColor: '#f6faf8',
+                    backgroundColor: '#f9fafb',
                     borderRadius: '8px',
-                    border: '1px solid #d4e5dc',
+                    border: '1px solid #e5e7eb',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
                     Sharpe Ratio
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1a2e26' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
                     {result.metrics.sharpeRatio.toFixed(2)}
                   </div>
                 </div>
@@ -520,15 +520,15 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                 <div
                   style={{
                     padding: '1rem',
-                    backgroundColor: '#f6faf8',
+                    backgroundColor: '#f9fafb',
                     borderRadius: '8px',
-                    border: '1px solid #d4e5dc',
+                    border: '1px solid #e5e7eb',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
                     Max Drawdown
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#c04040' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#dc2626' }}>
                     {formatPercent(result.metrics.maxDrawdown)}
                   </div>
                 </div>
@@ -536,15 +536,15 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                 <div
                   style={{
                     padding: '1rem',
-                    backgroundColor: '#f6faf8',
+                    backgroundColor: '#f9fafb',
                     borderRadius: '8px',
-                    border: '1px solid #d4e5dc',
+                    border: '1px solid #e5e7eb',
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
                     Win Rate
                   </div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1a2e26' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937' }}>
                     {formatPercent(result.metrics.winRate)}
                   </div>
                 </div>
@@ -564,10 +564,10 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   data={result.portfolioValues}
                   margin={{ top: 20, right: 30, bottom: 20, left: 60 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
+                    tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
                     tickFormatter={(value) =>
                       new Date(value).toLocaleDateString('en-US', {
                         month: 'short',
@@ -576,7 +576,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                     }
                   />
                   <YAxis
-                    tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
+                    tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
                     tickFormatter={(value) => formatCurrency(value)}
                   />
                   <Tooltip content={<PortfolioTooltip />} />
@@ -585,7 +585,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                     type="monotone"
                     dataKey="value"
                     name="Portfolio Value"
-                    stroke="#4ead8a"
+                    stroke="#10b981"
                     strokeWidth={2}
                     dot={false}
                   />
@@ -606,10 +606,10 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   data={drawdownData}
                   margin={{ top: 20, right: 30, bottom: 20, left: 20 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     dataKey="date"
-                    tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
+                    tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
                     tickFormatter={(value) =>
                       new Date(value).toLocaleDateString('en-US', {
                         month: 'short',
@@ -618,7 +618,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                     }
                   />
                   <YAxis
-                    tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
+                    tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
                     tickFormatter={(value) => `${value.toFixed(1)}%`}
                   />
                   <Tooltip
@@ -629,8 +629,8 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                     type="monotone"
                     dataKey="drawdown"
                     name="Drawdown"
-                    stroke="#c04040"
-                    fill="#f0c4c4"
+                    stroke="#dc2626"
+                    fill="#fecaca"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -656,10 +656,10 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                   style={{
                     padding: '0.5rem 1rem',
                     fontSize: '0.875rem',
-                    border: '1px solid #d4e5dc',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '6px',
                     backgroundColor: 'white',
-                    color: '#5a7268',
+                    color: '#6b7280',
                     cursor: 'pointer',
                   }}
                 >
@@ -677,13 +677,13 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                     }}
                   >
                     <thead>
-                      <tr style={{ backgroundColor: '#f6faf8', borderBottom: '2px solid #d4e5dc' }}>
+                      <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                         <th
                           style={{
                             padding: '0.75rem',
                             textAlign: 'left',
                             fontWeight: '600',
-                            color: '#2a4038',
+                            color: '#374151',
                           }}
                         >
                           Ticker
@@ -693,7 +693,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                             padding: '0.75rem',
                             textAlign: 'right',
                             fontWeight: '600',
-                            color: '#2a4038',
+                            color: '#374151',
                           }}
                         >
                           Weight
@@ -703,7 +703,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                             padding: '0.75rem',
                             textAlign: 'right',
                             fontWeight: '600',
-                            color: '#2a4038',
+                            color: '#374151',
                           }}
                         >
                           Value
@@ -715,15 +715,15 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
                         (position, index) => (
                           <tr
                             key={index}
-                            style={{ borderBottom: '1px solid #d4e5dc' }}
+                            style={{ borderBottom: '1px solid #e5e7eb' }}
                           >
-                            <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1a2e26' }}>
+                            <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1f2937' }}>
                               {position.ticker}
                             </td>
-                            <td style={{ padding: '0.75rem', textAlign: 'right', color: '#5a7268' }}>
+                            <td style={{ padding: '0.75rem', textAlign: 'right', color: '#6b7280' }}>
                               {formatPercent(position.weight)}
                             </td>
-                            <td style={{ padding: '0.75rem', textAlign: 'right', color: '#5a7268' }}>
+                            <td style={{ padding: '0.75rem', textAlign: 'right', color: '#6b7280' }}>
                               {formatCurrency(position.value)}
                             </td>
                           </tr>

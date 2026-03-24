@@ -16,9 +16,9 @@ export const getSignal = (score: number): 'Compra' | 'Venda' | 'Neutro' =>
   score >= SCORE_BUY_THRESHOLD ? 'Compra' : score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
 
 export const getSignalColor = (signal: string) => {
-  if (signal === 'Compra') return { bg: 'rgba(16,185,129,0.15)', text: '#4ead8a', border: 'rgba(16,185,129,0.3)' };
-  if (signal === 'Venda') return { bg: 'rgba(224,112,112,0.15)', text: '#e07070', border: 'rgba(224,112,112,0.3)' };
-  return { bg: 'rgba(148,163,184,0.15)', text: '#8fa89c', border: 'rgba(148,163,184,0.3)' };
+  if (signal === 'Compra') return { bg: 'rgba(16,185,129,0.15)', text: '#10b981', border: 'rgba(16,185,129,0.3)' };
+  if (signal === 'Venda') return { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', border: 'rgba(239,68,68,0.3)' };
+  return { bg: 'rgba(148,163,184,0.15)', text: '#94a3b8', border: 'rgba(148,163,184,0.3)' };
 };
 
 // ── S3 price data paths ──

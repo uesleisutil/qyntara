@@ -108,7 +108,7 @@ export const ErrorDistributionChart: React.FC<ErrorDistributionChartProps> = ({
           data={chartData}
           margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis
             dataKey="binLabel"
             angle={-45}
@@ -151,7 +151,7 @@ export const ErrorDistributionChart: React.FC<ErrorDistributionChartProps> = ({
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.isOutlier ? '#e89090' : '#5a9e87'}
+                fill={entry.isOutlier ? '#ff7c7c' : '#8884d8'}
               />
             ))}
           </Bar>

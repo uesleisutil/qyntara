@@ -48,13 +48,13 @@ const releases: ReleaseEntry[] = [
 
 export const ReleaseNotes: React.FC<ReleaseNotesProps> = ({ darkMode = false }) => {
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    accent: '#5a9e87',
-    accentBg: darkMode ? '#1e3030' : '#edf5f1',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e2e0f0',
+    accent: '#8b5cf6',
+    accentBg: darkMode ? '#1e1a3f' : '#f3f1fa',
   };
 
   return (
@@ -98,8 +98,8 @@ export const ReleaseNotes: React.FC<ReleaseNotesProps> = ({ darkMode = false }) 
               <span
                 style={{
                   padding: '0.125rem 0.5rem',
-                  backgroundColor: '#c8ede0',
-                  color: '#3a8a6a',
+                  backgroundColor: '#dcfce7',
+                  color: '#16a34a',
                   borderRadius: '9999px',
                   fontSize: '0.6875rem',
                   fontWeight: '600',

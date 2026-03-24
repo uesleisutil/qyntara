@@ -89,7 +89,7 @@ const AdminChatPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
 
@@ -104,9 +104,9 @@ const AdminChatPage: React.FC = () => {
   };
 
   const statusInfo = (s: string) => {
-    if (s === 'answered') return { text: 'Respondido', color: '#4ead8a', bg: 'rgba(16,185,129,0.12)' };
-    if (s === 'closed') return { text: 'Encerrado', color: '#8fa89c', bg: 'rgba(148,163,184,0.12)' };
-    return { text: 'Aberto', color: '#d4a84b', bg: 'rgba(212,168,75,0.12)' };
+    if (s === 'answered') return { text: 'Respondido', color: '#10b981', bg: 'rgba(16,185,129,0.12)' };
+    if (s === 'closed') return { text: 'Encerrado', color: '#9895b0', bg: 'rgba(148,163,184,0.12)' };
+    return { text: 'Aberto', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' };
   };
 
   const filtered = tickets.filter(t => filter === 'all' || t.status === filter);
@@ -133,7 +133,7 @@ const AdminChatPage: React.FC = () => {
           </div>
           {activeTicket.status !== 'closed' && (
             <button onClick={() => handleClose(activeTicket.ticketId)}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.35rem 0.7rem', borderRadius: 8, border: `1px solid rgba(148,163,184,0.3)`, background: 'transparent', color: '#8fa89c', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, WebkitAppearance: 'none' as any }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.35rem 0.7rem', borderRadius: 8, border: `1px solid rgba(148,163,184,0.3)`, background: 'transparent', color: '#9895b0', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 600, WebkitAppearance: 'none' as any }}>
               <XCircle size={12} /> Encerrar
             </button>
           )}
@@ -147,10 +147,10 @@ const AdminChatPage: React.FC = () => {
                 <div style={{
                   maxWidth: '80%', padding: '0.6rem 0.85rem', borderRadius: 12,
                   borderBottomRightRadius: isAdmin ? 4 : 12, borderBottomLeftRadius: isAdmin ? 12 : 4,
-                  background: isAdmin ? 'linear-gradient(135deg, #4ead8a, #3a8a6a)' : (darkMode ? '#2a3d36' : '#e8f0ed'),
+                  background: isAdmin ? 'linear-gradient(135deg, #10b981, #059669)' : (darkMode ? '#2a2745' : '#f1f5f9'),
                   color: isAdmin ? 'white' : theme.text,
                 }}>
-                  {!isAdmin && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#5a9e87', marginBottom: '0.15rem' }}>{m.senderName || 'Cliente'}</div>}
+                  {!isAdmin && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#8b5cf6', marginBottom: '0.15rem' }}>{m.senderName || 'Cliente'}</div>}
                   {isAdmin && <div style={{ fontSize: '0.65rem', fontWeight: 600, opacity: 0.8, marginBottom: '0.15rem' }}>Você</div>}
                   <div style={{ fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.message}</div>
                   <div style={{ fontSize: '0.6rem', opacity: 0.7, textAlign: 'right', marginTop: '0.2rem' }}>{fmtTime(m.timestamp)}</div>
@@ -168,7 +168,7 @@ const AdminChatPage: React.FC = () => {
               rows={1}
               style={{
                 flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'none',
-                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
                 color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 42, maxHeight: 120,
                 fontFamily: 'inherit',
               }} />
@@ -176,7 +176,7 @@ const AdminChatPage: React.FC = () => {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 42, height: 42, borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: reply.trim() ? 'linear-gradient(135deg, #4ead8a, #3a8a6a)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+                background: reply.trim() ? 'linear-gradient(135deg, #10b981, #059669)' : (darkMode ? '#2a2745' : '#e2e8f0'),
                 color: reply.trim() ? 'white' : theme.textSecondary,
                 transition: 'all 0.2s', WebkitAppearance: 'none' as any, opacity: sending ? 0.6 : 1,
               }}>
@@ -184,7 +184,7 @@ const AdminChatPage: React.FC = () => {
             </button>
           </div>
         )}
-        {error && <div style={{ color: '#e07070', fontSize: '0.78rem', marginTop: '0.3rem' }}>{error}</div>}
+        {error && <div style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '0.3rem' }}>{error}</div>}
         <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -202,19 +202,19 @@ const AdminChatPage: React.FC = () => {
             Chamados dos clientes
           </p>
         </div>
-        <button onClick={fetchTickets} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white', WebkitAppearance: 'none' as any }}>
+        <button onClick={fetchTickets} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', color: 'white', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
 
-      {error && <div style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.75rem', background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', fontSize: '0.82rem' }}>{error}</div>}
+      {error && <div style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.75rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
 
       {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
         {[
-          { label: 'Total', value: tickets.length, color: '#5a9e87' },
-          { label: 'Abertos', value: totalOpen, color: '#d4a84b' },
-          { label: 'Não lidos', value: totalUnread, color: '#e07070' },
+          { label: 'Total', value: tickets.length, color: '#8b5cf6' },
+          { label: 'Abertos', value: totalOpen, color: '#f59e0b' },
+          { label: 'Não lidos', value: totalUnread, color: '#ef4444' },
         ].map((k, i) => (
           <div key={i} style={cardStyle}>
             <div style={{ padding: '0.6rem 0.75rem' }}>
@@ -232,9 +232,9 @@ const AdminChatPage: React.FC = () => {
             style={{
               display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
               padding: '0.4rem 0.7rem', borderRadius: 8, fontSize: '0.75rem', fontWeight: 600,
-              border: `1.5px solid ${filter === val ? '#5a9e87' : theme.border}`,
+              border: `1.5px solid ${filter === val ? '#8b5cf6' : theme.border}`,
               background: filter === val ? 'rgba(59,130,246,0.1)' : 'transparent',
-              color: filter === val ? '#5a9e87' : theme.textSecondary,
+              color: filter === val ? '#8b5cf6' : theme.textSecondary,
               cursor: 'pointer', WebkitAppearance: 'none' as any,
             }}>
             {label}
@@ -262,14 +262,14 @@ const AdminChatPage: React.FC = () => {
               <div key={t.ticketId} onClick={() => { setActiveTicket(t); setError(''); }}
                 style={{
                   ...cardStyle, padding: '0.75rem', cursor: 'pointer', transition: 'background 0.15s',
-                  borderLeft: hasUnread ? '3px solid #d4a84b' : `1px solid ${theme.border}`,
+                  borderLeft: hasUnread ? '3px solid #f59e0b' : `1px solid ${theme.border}`,
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a3d36' : '#e8f0ed'}
-                onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a2626' : '#fff')}>
+                onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'}
+                onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a1836' : '#fff')}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, flex: 1 }}>
                     <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.subject}</span>
-                    {hasUnread && <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem', borderRadius: 8, background: '#e07070', color: 'white', fontWeight: 700, flexShrink: 0 }}>{t.unreadCount}</span>}
+                    {hasUnread && <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem', borderRadius: 8, background: '#ef4444', color: 'white', fontWeight: 700, flexShrink: 0 }}>{t.unreadCount}</span>}
                   </div>
                   <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 6, background: si.bg, color: si.color, fontWeight: 600, flexShrink: 0 }}>{si.text}</span>
                 </div>
@@ -281,7 +281,7 @@ const AdminChatPage: React.FC = () => {
                 </div>
                 {lastMsg && (
                   <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: '0.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {lastMsg.sender === 'admin' ? <CheckCircle size={10} style={{ verticalAlign: 'middle', marginRight: 3, color: '#4ead8a' }} /> : <Clock size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />}
+                    {lastMsg.sender === 'admin' ? <CheckCircle size={10} style={{ verticalAlign: 'middle', marginRight: 3, color: '#10b981' }} /> : <Clock size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />}
                     {lastMsg.sender === 'admin' ? 'Você: ' : `${t.userName || 'Cliente'}: `}{lastMsg.message.slice(0, 100)}
                   </div>
                 )}

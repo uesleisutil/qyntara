@@ -57,7 +57,7 @@ export function FontSizeSettings() {
           padding: 1.5rem;
           background: var(--card-bg, #ffffff);
           border-radius: 0.5rem;
-          border: 1px solid var(--border-color, #d4e5dc);
+          border: 1px solid var(--border-color, #e5e7eb);
         }
         
         .settings-label {
@@ -65,12 +65,12 @@ export function FontSizeSettings() {
           font-size: calc(1.125rem * var(--font-size-scale, 1));
           font-weight: 600;
           margin-bottom: 0.5rem;
-          color: var(--text-primary, #1a2e26);
+          color: var(--text-primary, #111827);
         }
         
         .settings-description {
           font-size: calc(0.875rem * var(--font-size-scale, 1));
-          color: var(--text-secondary, #5a7268);
+          color: var(--text-secondary, #6b7280);
           margin-bottom: 1rem;
         }
         
@@ -85,20 +85,20 @@ export function FontSizeSettings() {
           display: flex;
           align-items: center;
           padding: 0.75rem;
-          border: 2px solid var(--border-color, #d4e5dc);
+          border: 2px solid var(--border-color, #e5e7eb);
           border-radius: 0.375rem;
           cursor: pointer;
           transition: all 0.2s;
         }
         
         .font-size-option:hover {
-          border-color: var(--primary-color, #4a8e77);
-          background: var(--hover-bg, #edf5f1);
+          border-color: var(--primary-color, #7c3aed);
+          background: var(--hover-bg, #f3f4f6);
         }
         
         .font-size-option.selected {
-          border-color: var(--primary-color, #4a8e77);
-          background: var(--selected-bg, #edf5f1);
+          border-color: var(--primary-color, #7c3aed);
+          background: var(--selected-bg, #eff6ff);
         }
         
         .font-size-option input[type="radio"] {
@@ -109,32 +109,32 @@ export function FontSizeSettings() {
         }
         
         .font-size-option input[type="radio"]:focus {
-          outline: 3px solid var(--focus-color, #e0b85c);
+          outline: 3px solid var(--focus-color, #fbbf24);
           outline-offset: 2px;
         }
         
         .option-label {
           font-weight: 600;
           font-size: calc(1rem * var(--font-size-scale, 1));
-          color: var(--text-primary, #1a2e26);
+          color: var(--text-primary, #111827);
           margin-right: 0.5rem;
         }
         
         .option-description {
           font-size: calc(0.875rem * var(--font-size-scale, 1));
-          color: var(--text-secondary, #5a7268);
+          color: var(--text-secondary, #6b7280);
         }
         
         .preview-text {
           padding: 1rem;
-          background: var(--preview-bg, #f6faf8);
+          background: var(--preview-bg, #f9fafb);
           border-radius: 0.375rem;
-          border: 1px dashed var(--border-color, #d4e5dc);
+          border: 1px dashed var(--border-color, #e5e7eb);
         }
         
         .preview-text p {
           margin: 0;
-          color: var(--text-primary, #1a2e26);
+          color: var(--text-primary, #111827);
         }
       `}</style>
     </div>

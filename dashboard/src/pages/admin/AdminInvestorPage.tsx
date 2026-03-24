@@ -111,11 +111,11 @@ const AdminInvestorPage: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Shared styles ── */
-  const accent = '#2d7d9a';
-  const accentGradient = 'linear-gradient(135deg, #2d7d9a, #5a9e87)';
+  const accent = '#6366f1';
+  const accentGradient = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
 
   const card: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2e26' : '#fff'),
+    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 16,
     padding: 'clamp(1rem, 3vw, 1.5rem)',
   };
@@ -195,7 +195,7 @@ const AdminInvestorPage: React.FC = () => {
   /* ── Skeleton ── */
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2e26' : '#d4e5dc'} 25%, ${darkMode ? '#2a4038' : '#e8f0ed'} 50%, ${darkMode ? '#1a2e26' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 12,
     };
     return (
@@ -217,9 +217,9 @@ const AdminInvestorPage: React.FC = () => {
       <div style={{
         ...card, marginBottom: '1.5rem', padding: '1.75rem 1.5rem',
         background: darkMode
-          ? 'linear-gradient(135deg, rgba(90,176,160,0.1) 0%, rgba(90,158,135,0.06) 100%)'
-          : 'linear-gradient(135deg, rgba(90,176,160,0.06) 0%, rgba(90,158,135,0.03) 100%)',
-        borderColor: darkMode ? 'rgba(90,176,160,0.2)' : 'rgba(90,176,160,0.12)',
+          ? 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.06) 100%)'
+          : 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.03) 100%)',
+        borderColor: darkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.12)',
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: `${accent}08`, pointerEvents: 'none' }} />
@@ -246,13 +246,13 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 01 — KPIs AO VIVO ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={1} icon={<Activity size={16} color="#d4a84b" />} title="KPIs ao Vivo" color="#d4a84b" />
+        <SectionTitle num={1} icon={<Activity size={16} color="#f59e0b" />} title="KPIs ao Vivo" color="#f59e0b" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem' }}>
           {[
-            { label: 'Usuários Ativos', value: metrics.userCount || '—', icon: <Users size={18} color="#2d7d9a" />, color: '#2d7d9a' },
-            { label: 'Universo B3', value: UNIVERSE_SIZE_FALLBACK, icon: <BarChart3 size={18} color="#4ead8a" />, color: '#4ead8a' },
-            { label: 'Custo AWS/mês', value: metrics.costs ? fmtUsd(metrics.costs.monthlyProjectionUsd) : '—', icon: <Server size={18} color="#d4a84b" />, color: '#d4a84b' },
-            { label: 'Preço Pro', value: PRO_PRICE + '/mês', icon: <Crown size={18} color="#5a9e87" />, color: '#5a9e87' },
+            { label: 'Usuários Ativos', value: metrics.userCount || '—', icon: <Users size={18} color="#3b82f6" />, color: '#3b82f6' },
+            { label: 'Universo B3', value: UNIVERSE_SIZE_FALLBACK, icon: <BarChart3 size={18} color="#10b981" />, color: '#10b981' },
+            { label: 'Custo AWS/mês', value: metrics.costs ? fmtUsd(metrics.costs.monthlyProjectionUsd) : '—', icon: <Server size={18} color="#f59e0b" />, color: '#f59e0b' },
+            { label: 'Preço Pro', value: PRO_PRICE + '/mês', icon: <Crown size={18} color="#8b5cf6" />, color: '#8b5cf6' },
           ].map((kpi, i) => (
             <div key={i} style={{
               padding: '1rem', borderRadius: 12, textAlign: 'center',
@@ -269,10 +269,10 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 02 — PROBLEMA & OPORTUNIDADE ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={2} icon={<Target size={16} color="#e07070" />} title="Problema & Oportunidade" color="#e07070" />
+        <SectionTitle num={2} icon={<Target size={16} color="#ef4444" />} title="Problema & Oportunidade" color="#ef4444" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))', gap: '1rem' }}>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#e07070', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <Target size={13} /> O Problema
             </div>
             <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.75 }}>
@@ -282,13 +282,13 @@ const AdminInvestorPage: React.FC = () => {
             </div>
           </div>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#4ead8a', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <Zap size={13} /> A Solução
             </div>
             <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.75 }}>
               SaaS com <span style={{ color: theme.text, fontWeight: 600 }}>ML (SageMaker DeepAR+)</span> que ranqueia as {UNIVERSE_SIZE_FALLBACK} ações
               mais líquidas diariamente. Previsão a 20 dias, sinais de compra/venda, explicabilidade SHAP,
-              backtesting e MLOps completo. Tudo por <span style={{ color: '#d4a84b', fontWeight: 700 }}>{PRO_PRICE}/mês</span>.
+              backtesting e MLOps completo. Tudo por <span style={{ color: '#f59e0b', fontWeight: 700 }}>{PRO_PRICE}/mês</span>.
             </div>
           </div>
         </div>
@@ -296,60 +296,60 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 03 — PRODUTO ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={3} icon={<Layers size={16} color="#2d7d9a" />} title="Produto" color="#2d7d9a" />
+        <SectionTitle num={3} icon={<Layers size={16} color="#6366f1" />} title="Produto" color="#6366f1" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {sectionHeaderBtn("recs", <BarChart3 size={16} color="white" />, "Recomendações Diárias", `${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de ML`, "#2d7d9a")}
+          {sectionHeaderBtn("recs", <BarChart3 size={16} color="white" />, "Recomendações Diárias", `${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de ML`, "#3b82f6")}
           {expandedSection === 'recs' && (
-            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #2d7d9a`, borderRadius: '4px 12px 12px 4px' }}>
+            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #3b82f6`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
                 Modelo treinado no Amazon SageMaker analisa 60 dias de contexto para prever preços nos próximos 20 pregões:
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Score compra/venda', 'Preço previsto T+20', 'Retorno esperado', 'Volatilidade 20d', 'Confiança', 'Stop-Loss', 'Take-Profit'].map(f => (
-                  pill("#2d7d9a", <><CheckCircle size={9} /> {f}</>, f)
+                  pill("#3b82f6", <><CheckCircle size={9} /> {f}</>, f)
                 ))}
               </div>
               {navLinkBtn("/dashboard/recommendations", "Ver Recomendações", <BarChart3 size={12} />)}
             </div>
           )}
 
-          {sectionHeaderBtn("explain", <Brain size={16} color="white" />, "Explicabilidade (SHAP)", "Transparência: o usuário sabe POR QUE cada ação foi recomendada", "#5a9e87")}
+          {sectionHeaderBtn("explain", <Brain size={16} color="white" />, "Explicabilidade (SHAP)", "Transparência: o usuário sabe POR QUE cada ação foi recomendada", "#8b5cf6")}
           {expandedSection === 'explain' && (
-            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #5a9e87`, borderRadius: '4px 12px 12px 4px' }}>
+            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #8b5cf6`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
                 Diferencial competitivo: SHAP decompõe a contribuição de cada feature. O investidor entende que
                 "PETR4 tem score alto porque momentum de 20d está forte e volatilidade está baixa" — não é caixa preta.
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['SHAP Waterfall', 'Feature Impact', 'Sensibilidade', 'Texto em linguagem natural'].map(f => (
-                  pill("#5a9e87", <><Brain size={9} /> {f}</>, f)
+                  pill("#8b5cf6", <><Brain size={9} /> {f}</>, f)
                 ))}
               </div>
               {navLinkBtn("/dashboard/explainability", "Ver Explicabilidade", <Brain size={12} />)}
             </div>
           )}
 
-          {sectionHeaderBtn("backtest", <TestTubes size={16} color="white" />, "Backtesting Histórico", "Simulação com dados reais — prova de conceito verificável", "#4ead8a")}
+          {sectionHeaderBtn("backtest", <TestTubes size={16} color="white" />, "Backtesting Histórico", "Simulação com dados reais — prova de conceito verificável", "#10b981")}
           {expandedSection === 'backtest' && (
-            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #4ead8a`, borderRadius: '4px 12px 12px 4px' }}>
+            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #10b981`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
                 Simulação walk-forward com dados históricos reais. Raro em plataformas para PF — o investidor verifica se o modelo funciona antes de seguir.
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Walk-forward', 'vs IBOV', 'Sharpe / Sortino / Max DD', 'Cenários', 'Stress testing'].map(f => (
-                  pill("#4ead8a", <><CheckCircle size={9} /> {f}</>, f)
+                  pill("#10b981", <><CheckCircle size={9} /> {f}</>, f)
                 ))}
               </div>
               {navLinkBtn("/dashboard/backtesting", "Ver Backtesting", <TestTubes size={12} />)}
             </div>
           )}
 
-          {sectionHeaderBtn("perf", <LineChart size={16} color="white" />, "Performance do Modelo", "Métricas reais de acurácia com preços de mercado", "#d4a84b")}
+          {sectionHeaderBtn("perf", <LineChart size={16} color="white" />, "Performance do Modelo", "Métricas reais de acurácia com preços de mercado", "#f59e0b")}
           {expandedSection === 'perf' && (
-            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #d4a84b`, borderRadius: '4px 12px 12px 4px' }}>
+            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #f59e0b`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['MAPE', 'Hit Rate', 'Retorno acumulado', 'Alpha vs IBOV', 'Sharpe', 'Confusion Matrix'].map(f => (
-                  pill("#d4a84b", <><Activity size={9} /> {f}</>, f)
+                  pill("#f59e0b", <><Activity size={9} /> {f}</>, f)
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -359,12 +359,12 @@ const AdminInvestorPage: React.FC = () => {
             </div>
           )}
 
-          {sectionHeaderBtn("carteiras", <Briefcase size={16} color="white" />, "Carteiras & Portfólio", "Carteiras personalizadas + Carteira Modelo otimizada por Markowitz", "#2d7d9a")}
+          {sectionHeaderBtn("carteiras", <Briefcase size={16} color="white" />, "Carteiras & Portfólio", "Carteiras personalizadas + Carteira Modelo otimizada por Markowitz", "#6366f1")}
           {expandedSection === 'carteiras' && (
-            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #2d7d9a`, borderRadius: '4px 12px 12px 4px' }}>
+            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #6366f1`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Carteiras ilimitadas', 'Carteira Modelo (Pro)', 'Markowitz', 'Tracking por safra', 'Alertas'].map(f => (
-                  pill("#2d7d9a", <><Briefcase size={9} /> {f}</>, f)
+                  pill("#6366f1", <><Briefcase size={9} /> {f}</>, f)
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -378,21 +378,21 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 04 — PAINEL ADMIN / MLOps ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={4} icon={<Shield size={16} color="#e07070" />} title="Painel Admin — MLOps" color="#e07070" />
+        <SectionTitle num={4} icon={<Shield size={16} color="#ef4444" />} title="Painel Admin — MLOps" color="#ef4444" />
         <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '1rem' }}>
           Visibilidade total sobre a saúde do sistema de ML. Drift detection, custos, qualidade de dados e gestão de usuários.
-          {!isAdmin && <span style={{ color: '#d4a84b', fontWeight: 500 }}> Links admin requerem permissão de administrador.</span>}
+          {!isAdmin && <span style={{ color: '#f59e0b', fontWeight: 500 }}> Links admin requerem permissão de administrador.</span>}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '0.6rem' }}>
           {[
-            { icon: <BarChart3 size={15} />, title: 'Visão Geral', desc: 'KPIs, health checks de serviços AWS, pipeline status.', path: '/admin', color: '#2d7d9a' },
-            { icon: <Brain size={15} />, title: 'Drift Detection', desc: 'Data Drift (KS test), Concept Drift, alertas de retreinamento.', path: '/admin/drift', color: '#5a9e87' },
-            { icon: <DollarSign size={15} />, title: 'Custos AWS', desc: 'Custos por serviço, anomalias, budget alerts, ROI.', path: '/admin/costs', color: '#d4a84b' },
-            { icon: <Database size={15} />, title: 'Qualidade de Dados', desc: 'Completude, freshness, cobertura, anomalias.', path: '/admin/data-quality', color: '#4ead8a' },
-            { icon: <Layers size={15} />, title: 'Modelos & Features', desc: 'Versionamento, feature store, triggers de retrain.', path: '/admin/models', color: '#2d7d9a' },
-            { icon: <CheckCircle size={15} />, title: 'Validação', desc: 'Previsto vs real, acurácia temporal, outliers.', path: '/admin/validation', color: '#d4a84b' },
-            { icon: <Users size={15} />, title: 'Usuários', desc: 'Planos, roles, assinaturas, métricas de crescimento.', path: '/admin/users', color: '#e07070' },
-            { icon: <Bot size={15} />, title: 'Agentes IA & Chat', desc: 'Suporte IA, notificações inteligentes, chat admin.', path: '/admin/agents', color: '#2d7d9a' },
+            { icon: <BarChart3 size={15} />, title: 'Visão Geral', desc: 'KPIs, health checks de serviços AWS, pipeline status.', path: '/admin', color: '#3b82f6' },
+            { icon: <Brain size={15} />, title: 'Drift Detection', desc: 'Data Drift (KS test), Concept Drift, alertas de retreinamento.', path: '/admin/drift', color: '#8b5cf6' },
+            { icon: <DollarSign size={15} />, title: 'Custos AWS', desc: 'Custos por serviço, anomalias, budget alerts, ROI.', path: '/admin/costs', color: '#f59e0b' },
+            { icon: <Database size={15} />, title: 'Qualidade de Dados', desc: 'Completude, freshness, cobertura, anomalias.', path: '/admin/data-quality', color: '#10b981' },
+            { icon: <Layers size={15} />, title: 'Modelos & Features', desc: 'Versionamento, feature store, triggers de retrain.', path: '/admin/models', color: '#6366f1' },
+            { icon: <CheckCircle size={15} />, title: 'Validação', desc: 'Previsto vs real, acurácia temporal, outliers.', path: '/admin/validation', color: '#ec4899' },
+            { icon: <Users size={15} />, title: 'Usuários', desc: 'Planos, roles, assinaturas, métricas de crescimento.', path: '/admin/users', color: '#ef4444' },
+            { icon: <Bot size={15} />, title: 'Agentes IA & Chat', desc: 'Suporte IA, notificações inteligentes, chat admin.', path: '/admin/agents', color: '#0ea5e9' },
           ].map((item, i) => (
             <div key={i} style={{
               display: 'flex', gap: '0.6rem', padding: '0.75rem', borderRadius: 10,
@@ -415,13 +415,13 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 05 — ARQUITETURA ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={5} icon={<Cpu size={16} color="#2d7d9a" />} title="Arquitetura Técnica" color="#2d7d9a" />
+        <SectionTitle num={5} icon={<Cpu size={16} color="#6366f1" />} title="Arquitetura Técnica" color="#6366f1" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: '0.6rem', marginBottom: '1rem' }}>
           {[
-            { layer: 'Frontend', items: ['React 18 + TypeScript', 'Recharts + D3.js', 'TanStack Table', 'React Query', 'PWA + Service Worker'], color: '#2d7d9a' },
-            { layer: 'Backend', items: ['AWS Lambda (Python)', 'API Gateway (REST)', 'Cognito (Auth)', 'Stripe (Pagamentos)', 'WebSocket'], color: '#4ead8a' },
-            { layer: 'ML Pipeline', items: ['Amazon SageMaker', 'DeepAR+ (forecasting)', 'SHAP (explicabilidade)', 'Auto-retrain triggers', 'Feature Store (S3)'], color: '#5a9e87' },
-            { layer: 'Dados', items: ['S3 (data lake)', 'DynamoDB', 'ElastiCache Redis', 'CloudFront CDN', 'CloudWatch (logs)'], color: '#d4a84b' },
+            { layer: 'Frontend', items: ['React 18 + TypeScript', 'Recharts + D3.js', 'TanStack Table', 'React Query', 'PWA + Service Worker'], color: '#3b82f6' },
+            { layer: 'Backend', items: ['AWS Lambda (Python)', 'API Gateway (REST)', 'Cognito (Auth)', 'Stripe (Pagamentos)', 'WebSocket'], color: '#10b981' },
+            { layer: 'ML Pipeline', items: ['Amazon SageMaker', 'DeepAR+ (forecasting)', 'SHAP (explicabilidade)', 'Auto-retrain triggers', 'Feature Store (S3)'], color: '#8b5cf6' },
+            { layer: 'Dados', items: ['S3 (data lake)', 'DynamoDB', 'ElastiCache Redis', 'CloudFront CDN', 'CloudWatch (logs)'], color: '#f59e0b' },
           ].map((stack, i) => (
             <div key={i} style={{ padding: '0.75rem', borderRadius: 10, background: darkMode ? `${stack.color}06` : `${stack.color}03`, border: `1px solid ${stack.color}15` }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 700, color: stack.color, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -453,13 +453,13 @@ const AdminInvestorPage: React.FC = () => {
               {metrics.costs.sagemakerPerExec > 0 && <> Treino SageMaker: {fmtUsd(metrics.costs.sagemakerPerExec, 4)}/execução.</>}
             </>
           ) : 'Carregando dados reais...'}
-          <span style={{ color: '#4ead8a', fontWeight: 600 }}> 1 assinante Pro já cobre a infra de centenas de usuários.</span>
+          <span style={{ color: '#10b981', fontWeight: 600 }}> 1 assinante Pro já cobre a infra de centenas de usuários.</span>
         </div>
       </div>
 
       {/* ═══ 06 — UNIT ECONOMICS ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={6} icon={<DollarSign size={16} color="#4ead8a" />} title="Unit Economics" color="#4ead8a" />
+        <SectionTitle num={6} icon={<DollarSign size={16} color="#10b981" />} title="Unit Economics" color="#10b981" />
         {(() => {
           const c = metrics.costs;
           const users = metrics.userCount || 1;
@@ -470,10 +470,10 @@ const AdminInvestorPage: React.FC = () => {
             <>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.6rem', marginBottom: '1rem' }}>
                 {[
-                  { label: 'Modelo', value: 'Freemium → Pro', sub: 'Free atrai, Pro monetiza', color: '#4ead8a' },
-                  { label: 'ARPU (Pro)', value: PRO_PRICE + '/mês', sub: 'R$ 588/ano', color: '#d4a84b' },
-                  { label: 'Custo/Usuário', value: marginalCostBrl != null ? fmtBrl(marginalCostBrl) : '—', sub: 'por usuário/mês', color: '#2d7d9a' },
-                  { label: 'Margem Bruta', value: marginPct != null ? `${fmt(marginPct, 0)}%` : '—', sub: 'SaaS serverless', color: '#5a9e87' },
+                  { label: 'Modelo', value: 'Freemium → Pro', sub: 'Free atrai, Pro monetiza', color: '#10b981' },
+                  { label: 'ARPU (Pro)', value: PRO_PRICE + '/mês', sub: 'R$ 588/ano', color: '#f59e0b' },
+                  { label: 'Custo/Usuário', value: marginalCostBrl != null ? fmtBrl(marginalCostBrl) : '—', sub: 'por usuário/mês', color: '#3b82f6' },
+                  { label: 'Margem Bruta', value: marginPct != null ? `${fmt(marginPct, 0)}%` : '—', sub: 'SaaS serverless', color: '#8b5cf6' },
                 ].map((m, i) => (
                   <div key={i} style={{
                     padding: '0.85rem', borderRadius: 10, textAlign: 'center',
@@ -487,9 +487,9 @@ const AdminInvestorPage: React.FC = () => {
               </div>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7 }}>
                 <span style={{ color: theme.text, fontWeight: 600 }}>Projeção conservadora:</span> 5% conversão Free→Pro com 1.000 usuários
-                = 50 × R$ 49 = <span style={{ color: '#4ead8a', fontWeight: 700 }}>R$ 2.450/mês MRR</span>
+                = 50 × R$ 49 = <span style={{ color: '#10b981', fontWeight: 700 }}>R$ 2.450/mês MRR</span>
                 {c && <> (custo infra {fmtBrl(c.monthlyProjectionBrl)})</>}.
-                Com 10.000 usuários: <span style={{ color: '#4ead8a', fontWeight: 700 }}>R$ 24.500/mês MRR</span>.
+                Com 10.000 usuários: <span style={{ color: '#10b981', fontWeight: 700 }}>R$ 24.500/mês MRR</span>.
               </div>
             </>
           );
@@ -498,15 +498,15 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 07 — DIFERENCIAIS ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={7} icon={<Shield size={16} color="#5a9e87" />} title="Diferenciais Competitivos" color="#5a9e87" />
+        <SectionTitle num={7} icon={<Shield size={16} color="#8b5cf6" />} title="Diferenciais Competitivos" color="#8b5cf6" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '0.5rem' }}>
           {[
-            { title: 'Transparência Total (SHAP)', desc: 'Único no mercado PF a mostrar POR QUE cada ação foi recomendada.', icon: <Eye size={15} />, color: '#5a9e87' },
-            { title: 'Backtesting Verificável', desc: 'Simulação com dados reais. Casas de análise não oferecem isso.', icon: <TestTubes size={15} />, color: '#4ead8a' },
-            { title: 'MLOps Enterprise', desc: 'Drift detection, auto-retrain, data quality. Infra de hedge fund, preço de app.', icon: <Activity size={15} />, color: '#2d7d9a' },
-            { title: 'Custo Irrisório', desc: metrics.costs ? `Serverless: ${fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês. Escala sem dor.` : 'Serverless puro. Escala sem dor.', icon: <DollarSign size={15} />, color: '#d4a84b' },
-            { title: 'Produto Completo', desc: '11+ abas, auth, Stripe, PWA, dark mode, mobile-first. Não é MVP.', icon: <Globe size={15} />, color: '#e07070' },
-            { title: 'Mercado em Expansão', desc: '+5M CPFs na B3, +35%/ano. Geração que quer dados, não opiniões.', icon: <ArrowUpRight size={15} />, color: '#d4a84b' },
+            { title: 'Transparência Total (SHAP)', desc: 'Único no mercado PF a mostrar POR QUE cada ação foi recomendada.', icon: <Eye size={15} />, color: '#8b5cf6' },
+            { title: 'Backtesting Verificável', desc: 'Simulação com dados reais. Casas de análise não oferecem isso.', icon: <TestTubes size={15} />, color: '#10b981' },
+            { title: 'MLOps Enterprise', desc: 'Drift detection, auto-retrain, data quality. Infra de hedge fund, preço de app.', icon: <Activity size={15} />, color: '#3b82f6' },
+            { title: 'Custo Irrisório', desc: metrics.costs ? `Serverless: ${fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês. Escala sem dor.` : 'Serverless puro. Escala sem dor.', icon: <DollarSign size={15} />, color: '#f59e0b' },
+            { title: 'Produto Completo', desc: '11+ abas, auth, Stripe, PWA, dark mode, mobile-first. Não é MVP.', icon: <Globe size={15} />, color: '#ef4444' },
+            { title: 'Mercado em Expansão', desc: '+5M CPFs na B3, +35%/ano. Geração que quer dados, não opiniões.', icon: <ArrowUpRight size={15} />, color: '#ec4899' },
           ].map((d, i) => (
             <div key={i} style={{
               display: 'flex', gap: '0.6rem', padding: '0.7rem', borderRadius: 10,
@@ -526,22 +526,22 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 08 — UNIVERSO ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={8} icon={<Globe size={16} color="#2d7d9a" />} title={`Universo de Ações (${UNIVERSE_SIZE_FALLBACK})`} color="#2d7d9a" />
+        <SectionTitle num={8} icon={<Globe size={16} color="#3b82f6" />} title={`Universo de Ações (${UNIVERSE_SIZE_FALLBACK})`} color="#3b82f6" />
         <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6, marginBottom: '0.75rem' }}>
           Top {UNIVERSE_SIZE_FALLBACK} ações da B3 por retorno acumulado de 5 anos + liquidez. Cobertura multi-setorial:
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem 0.6rem' }}>
           {[
-            { sector: 'Tecnologia', tickers: ['MGLU3', 'LWSA3', 'PETZ3', 'VAMO3', 'RENT3'], color: '#2d7d9a' },
-            { sector: 'Energia', tickers: ['PETR4', 'PETR3', 'PRIO3', 'RECV3', 'RRRP3'], color: '#d4a84b' },
-            { sector: 'Mineração', tickers: ['VALE3', 'CSNA3', 'GGBR4', 'USIM5', 'GOAU4'], color: '#8fa89c' },
-            { sector: 'Bancos', tickers: ['ITUB4', 'BBDC4', 'BBAS3', 'SANB11', 'BPAC11'], color: '#4ead8a' },
-            { sector: 'Varejo', tickers: ['LREN3', 'ARZZ3', 'SOMA3', 'GUAR3', 'VIVA3'], color: '#d4a84b' },
-            { sector: 'Construção', tickers: ['MRVE3', 'CYRE3', 'EZTC3', 'TEND3', 'JHSF3'], color: '#5a9e87' },
-            { sector: 'Utilities', tickers: ['ELET3', 'ELET6', 'TAEE11', 'CMIG4', 'CPLE6'], color: '#2d7d9a' },
-            { sector: 'Saúde', tickers: ['HAPV3', 'RDOR3', 'FLRY3', 'GNDI3', 'QUAL3'], color: '#e07070' },
-            { sector: 'Agro', tickers: ['SLCE3', 'BEEF3', 'JBSS3', 'MRFG3', 'BRFS3'], color: '#4ead8a' },
-            { sector: 'Infra', tickers: ['CCRO3', 'ECOR3', 'TIMS3', 'VIVT3', 'CSAN3'], color: '#5a9e87' },
+            { sector: 'Tecnologia', tickers: ['MGLU3', 'LWSA3', 'PETZ3', 'VAMO3', 'RENT3'], color: '#3b82f6' },
+            { sector: 'Energia', tickers: ['PETR4', 'PETR3', 'PRIO3', 'RECV3', 'RRRP3'], color: '#f59e0b' },
+            { sector: 'Mineração', tickers: ['VALE3', 'CSNA3', 'GGBR4', 'USIM5', 'GOAU4'], color: '#94a3b8' },
+            { sector: 'Bancos', tickers: ['ITUB4', 'BBDC4', 'BBAS3', 'SANB11', 'BPAC11'], color: '#10b981' },
+            { sector: 'Varejo', tickers: ['LREN3', 'ARZZ3', 'SOMA3', 'GUAR3', 'VIVA3'], color: '#ec4899' },
+            { sector: 'Construção', tickers: ['MRVE3', 'CYRE3', 'EZTC3', 'TEND3', 'JHSF3'], color: '#8b5cf6' },
+            { sector: 'Utilities', tickers: ['ELET3', 'ELET6', 'TAEE11', 'CMIG4', 'CPLE6'], color: '#06b6d4' },
+            { sector: 'Saúde', tickers: ['HAPV3', 'RDOR3', 'FLRY3', 'GNDI3', 'QUAL3'], color: '#ef4444' },
+            { sector: 'Agro', tickers: ['SLCE3', 'BEEF3', 'JBSS3', 'MRFG3', 'BRFS3'], color: '#22c55e' },
+            { sector: 'Infra', tickers: ['CCRO3', 'ECOR3', 'TIMS3', 'VIVT3', 'CSAN3'], color: '#a855f7' },
           ].map((s, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '0.65rem', fontWeight: 700, color: s.color, minWidth: 68 }}>{s.sector}:</span>
@@ -559,12 +559,12 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 09 — ROADMAP ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={9} icon={<TrendingUp size={16} color="#d4a84b" />} title="Roadmap" color="#d4a84b" />
+        <SectionTitle num={9} icon={<TrendingUp size={16} color="#f59e0b" />} title="Roadmap" color="#f59e0b" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.6rem' }}>
           {[
-            { phase: 'Atual', badge: '✅ Live', items: ['Dashboard 11+ abas', 'ML pipeline automatizado', 'Auth + Stripe + PWA', 'Painel admin MLOps'], color: '#4ead8a' },
-            { phase: 'Próximo', badge: 'Q2 2026', items: ['App mobile (React Native)', 'Alertas WhatsApp/Telegram', 'Ensemble de modelos', 'FIIs e ETFs'], color: '#2d7d9a' },
-            { phase: 'Futuro', badge: 'Q4 2026+', items: ['API B2B (fintechs)', 'Outros mercados', 'Social trading', 'Plano Enterprise'], color: '#5a9e87' },
+            { phase: 'Atual', badge: '✅ Live', items: ['Dashboard 11+ abas', 'ML pipeline automatizado', 'Auth + Stripe + PWA', 'Painel admin MLOps'], color: '#10b981' },
+            { phase: 'Próximo', badge: 'Q2 2026', items: ['App mobile (React Native)', 'Alertas WhatsApp/Telegram', 'Ensemble de modelos', 'FIIs e ETFs'], color: '#3b82f6' },
+            { phase: 'Futuro', badge: 'Q4 2026+', items: ['API B2B (fintechs)', 'Outros mercados', 'Social trading', 'Plano Enterprise'], color: '#8b5cf6' },
           ].map((p, i) => (
             <div key={i} style={{ padding: '0.85rem', borderRadius: 10, background: darkMode ? `${p.color}06` : `${p.color}03`, border: `1px solid ${p.color}15` }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
@@ -585,9 +585,9 @@ const AdminInvestorPage: React.FC = () => {
       <div style={{
         ...card, textAlign: 'center', padding: '2rem 1.5rem',
         background: darkMode
-          ? 'linear-gradient(135deg, rgba(90,176,160,0.1), rgba(90,158,135,0.06))'
-          : 'linear-gradient(135deg, rgba(90,176,160,0.05), rgba(90,158,135,0.02))',
-        borderColor: darkMode ? 'rgba(90,176,160,0.2)' : 'rgba(90,176,160,0.1)',
+          ? 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.06))'
+          : 'linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.02))',
+        borderColor: darkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
       }}>
         <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 800, color: theme.text, marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>
           Produto em produção. Receita recorrente.

@@ -9,7 +9,7 @@ const AdminDriftPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };

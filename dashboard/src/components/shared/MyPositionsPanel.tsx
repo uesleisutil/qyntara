@@ -41,7 +41,7 @@ const MyPositionsPanel: React.FC<Props> = ({ darkMode, theme }) => {
   if (positions.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '1.5rem 1rem', color: theme.textSecondary, fontSize: '0.8rem' }}>
-        Siga ações nas recomendações clicando em <Star size={11} fill="#d4a84b" color="#d4a84b" style={{ verticalAlign: 'middle' }} />
+        Siga ações nas recomendações clicando em <Star size={11} fill="#f59e0b" color="#f59e0b" style={{ verticalAlign: 'middle' }} />
       </div>
     );
   }
@@ -56,12 +56,12 @@ const MyPositionsPanel: React.FC<Props> = ({ darkMode, theme }) => {
     <div>
       {/* Total */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.85rem' }}>
-        <span style={{ fontSize: '1.4rem', fontWeight: 800, color: isUp ? '#4ead8a' : '#e07070', letterSpacing: '-0.02em' }}>
+        <span style={{ fontSize: '1.4rem', fontWeight: 800, color: isUp ? '#10b981' : '#ef4444', letterSpacing: '-0.02em' }}>
           {isUp ? '+' : ''}R$ {Math.round(totalPnl).toLocaleString('pt-BR')}
         </span>
         <span style={{
-          fontSize: '0.75rem', fontWeight: 600, color: isUp ? '#4ead8a' : '#e07070',
-          padding: '0.1rem 0.4rem', borderRadius: 6, background: isUp ? 'rgba(16,185,129,0.1)' : 'rgba(224,112,112,0.1)',
+          fontSize: '0.75rem', fontWeight: 600, color: isUp ? '#10b981' : '#ef4444',
+          padding: '0.1rem 0.4rem', borderRadius: 6, background: isUp ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
         }}>
           {isUp ? '+' : ''}{fmt(totalPct, 1)}%
         </span>
@@ -90,7 +90,7 @@ const MyPositionsPanel: React.FC<Props> = ({ darkMode, theme }) => {
                 R$ {fmt(cur)}
               </span>
               <span style={{
-                fontSize: '0.75rem', fontWeight: 600, color: up ? '#4ead8a' : '#e07070',
+                fontSize: '0.75rem', fontWeight: 600, color: up ? '#10b981' : '#ef4444',
                 minWidth: 52, textAlign: 'right', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2,
               }}>
                 {up ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
@@ -100,7 +100,7 @@ const MyPositionsPanel: React.FC<Props> = ({ darkMode, theme }) => {
                 background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer',
                 padding: 2, opacity: 0, transition: 'opacity 0.15s',
               }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#e07070'; }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '0'; e.currentTarget.style.color = theme.textSecondary; }}
               >
                 <Trash2 size={12} />

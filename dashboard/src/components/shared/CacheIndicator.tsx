@@ -32,11 +32,11 @@ export const CacheIndicator: React.FC<CacheIndicatorProps> = ({
         alignItems: 'center',
         gap: '0.5rem',
         padding: '0.25rem 0.75rem',
-        backgroundColor: '#edf5f1',
-        border: '1px solid #7ed4b0',
+        backgroundColor: '#f0fdf4',
+        border: '1px solid #86efac',
         borderRadius: '6px',
         fontSize: '0.75rem',
-        color: '#1a5a3a',
+        color: '#166534',
       }}
       title={`Cached data (${ageDisplay})`}
     >

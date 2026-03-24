@@ -70,11 +70,11 @@ const FollowButton: React.FC<FollowButtonProps> = ({ ticker, entryPrice, predPri
       <button onClick={handleClick} title={following ? 'Deixar de seguir' : 'Estou seguindo'}
         style={{
           background: 'none', border: 'none', cursor: 'pointer', padding: 2,
-          color: following ? '#d4a84b' : (darkMode ? '#3a5248' : '#b0c8bc'),
+          color: following ? '#f59e0b' : (darkMode ? '#475569' : '#cbd5e1'),
           transition: 'color 0.2s', WebkitAppearance: 'none' as any,
         }}
       >
-        {following ? <Star size={14} fill="#d4a84b" /> : <StarOff size={14} />}
+        {following ? <Star size={14} fill="#f59e0b" /> : <StarOff size={14} />}
       </button>
     );
   }
@@ -83,12 +83,12 @@ const FollowButton: React.FC<FollowButtonProps> = ({ ticker, entryPrice, predPri
     <button onClick={handleClick} style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
       padding: '0.3rem 0.6rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600,
-      background: following ? 'rgba(212,168,75,0.15)' : 'transparent',
-      border: `1px solid ${following ? 'rgba(212,168,75,0.4)' : (darkMode ? '#2a3d36' : '#d4e5dc')}`,
-      color: following ? '#d4a84b' : (darkMode ? '#8fa89c' : '#5a7268'),
+      background: following ? 'rgba(245,158,11,0.15)' : 'transparent',
+      border: `1px solid ${following ? 'rgba(245,158,11,0.4)' : (darkMode ? '#2a2745' : '#e2e8f0')}`,
+      color: following ? '#f59e0b' : (darkMode ? '#9895b0' : '#64748b'),
       cursor: 'pointer', transition: 'all 0.2s', WebkitAppearance: 'none' as any,
     }}>
-      {following ? <Star size={12} fill="#d4a84b" /> : <Star size={12} />}
+      {following ? <Star size={12} fill="#f59e0b" /> : <Star size={12} />}
       {following ? 'Seguindo' : 'Seguir'}
     </button>
   );

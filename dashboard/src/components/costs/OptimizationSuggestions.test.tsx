@@ -12,16 +12,16 @@ import OptimizationSuggestions from './OptimizationSuggestions';
 // Mock chart config
 jest.mock('../../lib/chartConfig', () => ({
   useChartColors: () => ({
-    primary: '#5a9e87',
-    success: '#4ead8a',
-    warning: '#d4a84b',
-    error: '#e07070',
-    info: '#2d7d9a',
-    neutral: '#5a7268',
-    text: '#1a2e26',
+    primary: '#8b5cf6',
+    success: '#10b981',
+    warning: '#f59e0b',
+    error: '#ef4444',
+    info: '#06b6d4',
+    neutral: '#6b7280',
+    text: '#111827',
     background: '#ffffff',
-    grid: '#d4e5dc',
-    secondary: '#5a9e87',
+    grid: '#e5e7eb',
+    secondary: '#8b5cf6',
   }),
   formatters: {
     currency: (value: number) => `R$ ${value.toFixed(2)}`,

@@ -10,12 +10,12 @@ export const CrossFilterBar: React.FC<CrossFilterBarProps> = ({ darkMode = false
   const { filters, removeFilter, clearAllFilters, filterCount } = useCrossFilter();
 
   const theme = {
-    bg: darkMode ? '#1a2626' : '#f6faf8',
-    cardBg: darkMode ? '#121a1a' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    hover: darkMode ? '#2a3d36' : '#d4e5dc'
+    bg: darkMode ? '#1a1836' : '#f8fafc',
+    cardBg: darkMode ? '#0c0a1a' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#e2e8f0'
   };
 
   if (filters.length === 0) {
@@ -51,7 +51,7 @@ export const CrossFilterBar: React.FC<CrossFilterBarProps> = ({ darkMode = false
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Filter size={16} color="#5a9e87" />
+          <Filter size={16} color="#8b5cf6" />
           <span style={{ fontSize: '0.875rem', fontWeight: '600', color: theme.text }}>
             Active Cross-Filters ({filterCount})
           </span>
@@ -61,7 +61,7 @@ export const CrossFilterBar: React.FC<CrossFilterBarProps> = ({ darkMode = false
           style={{
             padding: '0.375rem 0.75rem',
             backgroundColor: 'transparent',
-            color: '#c04040',
+            color: '#dc2626',
             border: `1px solid ${theme.border}`,
             borderRadius: '0.375rem',
             fontSize: '0.8125rem',
@@ -70,7 +70,7 @@ export const CrossFilterBar: React.FC<CrossFilterBarProps> = ({ darkMode = false
             transition: 'all 0.2s'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#fde0e0';
+            e.currentTarget.style.backgroundColor = '#fee2e2';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';

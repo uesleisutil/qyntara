@@ -25,11 +25,11 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const theme = React.useMemo(() => ({
-    cardBg: darkMode ? '#1a2626' : '#fff',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    success: '#4ead8a', warning: '#d4a84b', error: '#e07070',
+    cardBg: darkMode ? '#1a1836' : '#fff',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    success: '#10b981', warning: '#f59e0b', error: '#ef4444',
   }), [darkMode]);
 
   const cardStyle: React.CSSProperties = {
@@ -78,9 +78,9 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
     const correlationColorScale = d3.scaleSequential(d3.interpolateRdBu).domain([1, -1]);
     const changeColorScale = (change: number) => {
       const abs = Math.abs(change);
-      if (abs >= 0.2) return '#e07070';
-      if (abs >= 0.15) return '#d4a84b';
-      return '#4ead8a';
+      if (abs >= 0.2) return '#ef4444';
+      if (abs >= 0.15) return '#f59e0b';
+      return '#10b981';
     };
 
     strongestDriftFeatures.forEach(feature => {
@@ -186,7 +186,7 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <svg ref={heatmapRef} style={{ display: 'block', margin: '0 auto' }} />
-            <div style={{ marginTop: '1rem', padding: '0.75rem', background: darkMode ? '#121a1a' : '#f6faf8', borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+            <div style={{ marginTop: '1rem', padding: '0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
               <strong style={{ color: theme.text }}>Interpretação:</strong>
               <ul style={{ margin: '0.3rem 0 0 0', paddingLeft: '1.2rem' }}>
                 <li><strong>Baseline/Atual:</strong> Azul = correlação positiva, vermelho = correlação negativa</li>
@@ -222,21 +222,21 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
                   ].map(h => (
                     <th key={h.key} onClick={() => handleSort(h.key)} style={{
                       padding: '0.6rem', textAlign: h.align as any, fontWeight: 600,
-                      color: sortColumn === h.key ? '#5a9e87' : theme.textSecondary,
+                      color: sortColumn === h.key ? '#8b5cf6' : theme.textSecondary,
                       cursor: 'pointer', userSelect: 'none', fontSize: '0.75rem',
-                      background: darkMode ? '#121a1a' : '#f6faf8', whiteSpace: 'nowrap',
+                      background: darkMode ? '#0c0a1a' : '#f8fafc', whiteSpace: 'nowrap',
                     }}>
                       {h.label} <SortIcon column={h.key} />
                     </th>
                   ))}
-                  <th style={{ padding: '0.6rem', textAlign: 'center', fontWeight: 600, color: theme.textSecondary, fontSize: '0.75rem', background: darkMode ? '#121a1a' : '#f6faf8' }}>Status</th>
+                  <th style={{ padding: '0.6rem', textAlign: 'center', fontWeight: 600, color: theme.textSecondary, fontSize: '0.75rem', background: darkMode ? '#0c0a1a' : '#f8fafc' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedFeatures.map(f => (
                   <tr key={f.feature} onClick={() => setSelectedFeature(f.feature)}
                     style={{ borderBottom: `1px solid ${theme.border}`, cursor: 'pointer', transition: 'background 0.15s',
-                      background: selectedFeature === f.feature ? (darkMode ? '#2a3d36' : '#e8f0ed') : 'transparent' }}
+                      background: selectedFeature === f.feature ? (darkMode ? '#2a2745' : '#f1f5f9') : 'transparent' }}
                     onMouseEnter={e => { if (selectedFeature !== f.feature) e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)'; }}
                     onMouseLeave={e => { if (selectedFeature !== f.feature) e.currentTarget.style.background = 'transparent'; }}
                   >
@@ -251,9 +251,9 @@ export const ConceptDriftHeatmap: React.FC<ConceptDriftHeatmapProps> = ({
                         display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
                         padding: '0.2rem 0.6rem', borderRadius: 12, fontSize: '0.7rem', fontWeight: 600,
                         background: Math.abs(f.change) >= 0.3
-                          ? (darkMode ? 'rgba(224,112,112,0.15)' : 'rgba(224,112,112,0.1)')
-                          : (darkMode ? 'rgba(212,168,75,0.15)' : 'rgba(212,168,75,0.1)'),
-                        color: Math.abs(f.change) >= 0.3 ? '#e07070' : '#d4a84b',
+                          ? (darkMode ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)')
+                          : (darkMode ? 'rgba(245,158,11,0.15)' : 'rgba(245,158,11,0.1)'),
+                        color: Math.abs(f.change) >= 0.3 ? '#ef4444' : '#f59e0b',
                       }}>
                         <AlertTriangle size={11} />
                         {Math.abs(f.change) >= 0.3 ? 'Alto' : 'Moderado'}

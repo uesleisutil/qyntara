@@ -62,11 +62,11 @@ export const StressTesting: React.FC<StressTestingProps> = ({
   const [loading, setLoading] = useState(false);
 
   const theme = {
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    tableBg: darkMode ? '#121a1a' : '#f6faf8',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    tableBg: darkMode ? '#0c0a1a' : '#f8fafc',
   };
 
   const predefinedScenarios: StressScenario[] = [
@@ -167,7 +167,7 @@ export const StressTesting: React.FC<StressTestingProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <AlertTriangle size={20} color={darkMode ? '#8fa89c' : '#5a7268'} />
+        <AlertTriangle size={20} color={darkMode ? '#9895b0' : '#64748b'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 
@@ -201,7 +201,7 @@ export const StressTesting: React.FC<StressTestingProps> = ({
                 padding: '1rem',
                 backgroundColor: theme.cardBg,
                 borderRadius: '8px',
-                border: `2px solid ${selectedScenarios.includes(scenario.id) ? '#5a9e87' : theme.border}`,
+                border: `2px solid ${selectedScenarios.includes(scenario.id) ? '#8b5cf6' : theme.border}`,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
@@ -229,7 +229,7 @@ export const StressTesting: React.FC<StressTestingProps> = ({
           disabled={loading || selectedScenarios.length === 0}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: loading || selectedScenarios.length === 0 ? '#8fa89c' : '#c04040',
+            backgroundColor: loading || selectedScenarios.length === 0 ? '#9895b0' : '#dc2626',
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -280,10 +280,10 @@ export const StressTesting: React.FC<StressTestingProps> = ({
                     <td style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.875rem', color: theme.text }}>
                       {formatCurrency(result.portfolioValue)}
                     </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.875rem', color: '#c04040', fontWeight: '600' }}>
+                    <td style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.875rem', color: '#dc2626', fontWeight: '600' }}>
                       {formatCurrency(result.maxLoss)}
                     </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.875rem', color: '#c04040', fontWeight: '600' }}>
+                    <td style={{ padding: '0.75rem', textAlign: 'right', fontSize: '0.875rem', color: '#dc2626', fontWeight: '600' }}>
                       {formatPercent(result.maxLossPercent)}
                     </td>
                   </tr>
@@ -296,14 +296,14 @@ export const StressTesting: React.FC<StressTestingProps> = ({
           <div style={{
             marginTop: '1.5rem',
             padding: '1rem',
-            backgroundColor: '#f5ecd0',
+            backgroundColor: '#fef3c7',
             borderRadius: '8px',
-            border: '1px solid #e0b85c',
+            border: '1px solid #fbbf24',
           }}>
-            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9375rem', fontWeight: '700', color: '#8a5a1e' }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9375rem', fontWeight: '700', color: '#92400e' }}>
               Recommendations
             </h4>
-            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#8a5a1e', fontSize: '0.875rem' }}>
+            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#92400e', fontSize: '0.875rem' }}>
               <li>Consider diversifying across sectors to reduce concentration risk</li>
               <li>Increase allocation to defensive sectors during high volatility</li>
               <li>Implement stop-loss orders to limit downside exposure</li>

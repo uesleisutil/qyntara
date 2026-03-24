@@ -69,8 +69,8 @@ const RealTimeStatusBar: React.FC = () => {
         alignItems: 'center',
         gap: '1rem',
         padding: '0.75rem 1rem',
-        backgroundColor: '#f6faf8',
-        borderBottom: '1px solid #d4e5dc',
+        backgroundColor: '#f9fafb',
+        borderBottom: '1px solid #e5e7eb',
         fontSize: '0.875rem',
       }}
     >
@@ -81,11 +81,11 @@ const RealTimeStatusBar: React.FC = () => {
             width: '0.5rem',
             height: '0.5rem',
             borderRadius: '50%',
-            backgroundColor: status.connected ? '#4ead8a' : '#e07070',
+            backgroundColor: status.connected ? '#10b981' : '#ef4444',
             animation: status.connected ? 'none' : 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
           }}
         />
-        <span style={{ color: '#5a7268' }}>
+        <span style={{ color: '#6b7280' }}>
           {status.connected ? 'Connected' : 'Disconnected'}
         </span>
       </div>
@@ -98,8 +98,8 @@ const RealTimeStatusBar: React.FC = () => {
             alignItems: 'center',
             gap: '0.5rem',
             padding: '0.25rem 0.75rem',
-            backgroundColor: status.processing ? '#f5ecd0' : '#d4ede0',
-            color: status.processing ? '#8a5a1e' : '#4a8e77',
+            backgroundColor: status.processing ? '#fef3c7' : '#dbeafe',
+            color: status.processing ? '#92400e' : '#7c3aed',
             borderRadius: '0.25rem',
           }}
         >
@@ -124,7 +124,7 @@ const RealTimeStatusBar: React.FC = () => {
       <div style={{ flex: 1 }} />
 
       {/* Last Refresh (Req 48.5) */}
-      <div style={{ color: '#5a7268' }}>
+      <div style={{ color: '#6b7280' }}>
         Last refresh: {formatLastRefresh(status.lastRefresh)}
       </div>
 
@@ -143,7 +143,7 @@ const RealTimeStatusBar: React.FC = () => {
           onChange={handleToggleAutoRefresh}
           style={{ cursor: 'pointer' }}
         />
-        <span style={{ color: '#5a7268' }}>Auto-refresh</span>
+        <span style={{ color: '#6b7280' }}>Auto-refresh</span>
       </label>
 
       {/* Countdown (Req 48.6) */}
@@ -151,9 +151,9 @@ const RealTimeStatusBar: React.FC = () => {
         <div
           style={{
             padding: '0.25rem 0.5rem',
-            backgroundColor: '#d4e5dc',
+            backgroundColor: '#e5e7eb',
             borderRadius: '0.25rem',
-            color: '#2a4038',
+            color: '#374151',
             fontVariantNumeric: 'tabular-nums',
           }}
         >
@@ -175,7 +175,7 @@ const RealTimeStatusBar: React.FC = () => {
           fontSize: '0.875rem',
           fontWeight: '500',
           color: 'white',
-          backgroundColor: refreshing || status.processing ? '#8fa89c' : '#5a9e87',
+          backgroundColor: refreshing || status.processing ? '#9ca3af' : '#8b5cf6',
           border: 'none',
           borderRadius: '0.375rem',
           cursor: refreshing || status.processing ? 'not-allowed' : 'pointer',
@@ -183,12 +183,12 @@ const RealTimeStatusBar: React.FC = () => {
         }}
         onMouseEnter={(e) => {
           if (!refreshing && !status.processing) {
-            e.currentTarget.style.backgroundColor = '#4a8e77';
+            e.currentTarget.style.backgroundColor = '#7c3aed';
           }
         }}
         onMouseLeave={(e) => {
           if (!refreshing && !status.processing) {
-            e.currentTarget.style.backgroundColor = '#5a9e87';
+            e.currentTarget.style.backgroundColor = '#8b5cf6';
           }
         }}
       >

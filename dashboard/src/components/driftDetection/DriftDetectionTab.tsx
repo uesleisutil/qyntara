@@ -21,11 +21,11 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
   const { data: rawData, isLoading, error, refresh } = queryResult;
 
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : '#fff',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    bg: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : '#fff',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -120,7 +120,7 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
 
   if (isLoading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -143,7 +143,7 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
 
   if (error) {
     return (
-      <div style={{ ...cardStyle, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div style={{ ...cardStyle, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <AlertTriangle size={20} />
         <span>Erro ao carregar métricas de drift: {error instanceof Error ? error.message : 'Erro desconhecido'}</span>
       </div>
@@ -181,7 +181,7 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
           <option value={90}>90 dias</option>
         </select>
         <button onClick={() => refresh()}
-          style={{ ...btnBase, padding: '0.45rem 0.9rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)' }}>
+          style={{ ...btnBase, padding: '0.45rem 0.9rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)' }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -189,10 +189,10 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
       {/* KPI Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem' }}>
         {[
-          { label: 'Features com Drift', value: `${data.driftedFeaturesCount} / ${data.totalFeatures}`, color: data.driftPercentage > 30 ? '#e07070' : '#4ead8a', icon: <TrendingDown size={16} />, tip: 'Quantidade de features cujas distribuições mudaram significativamente em relação ao baseline (teste KS, p-valor < 0.05).' },
-          { label: 'Status Performance', value: data.performanceDegraded ? 'Degradada' : 'Estável', color: data.performanceDegraded ? '#e07070' : '#4ead8a', icon: <Target size={16} />, tip: 'Indica se as métricas de performance do modelo (MAPE, acurácia) estão dentro dos limites aceitáveis.' },
-          { label: 'Variação MAPE', value: `${data.mapeChangePct >= 0 ? '+' : ''}${data.mapeChangePct.toFixed(1)}%`, color: Math.abs(data.mapeChangePct) < 20 ? '#4ead8a' : '#e07070', icon: <AlertTriangle size={16} />, tip: 'Variação percentual do MAPE atual em relação ao baseline. Acima de 20% indica degradação significativa.' },
-          { label: 'Retreinamento', value: data.driftPercentage > 30 || data.performanceDegraded ? 'Recomendado' : 'Não Necessário', color: data.driftPercentage > 30 || data.performanceDegraded ? '#d4a84b' : '#4ead8a', icon: <RefreshCw size={16} />, tip: 'Recomendação automática baseada no nível de drift e degradação detectados.' },
+          { label: 'Features com Drift', value: `${data.driftedFeaturesCount} / ${data.totalFeatures}`, color: data.driftPercentage > 30 ? '#ef4444' : '#10b981', icon: <TrendingDown size={16} />, tip: 'Quantidade de features cujas distribuições mudaram significativamente em relação ao baseline (teste KS, p-valor < 0.05).' },
+          { label: 'Status Performance', value: data.performanceDegraded ? 'Degradada' : 'Estável', color: data.performanceDegraded ? '#ef4444' : '#10b981', icon: <Target size={16} />, tip: 'Indica se as métricas de performance do modelo (MAPE, acurácia) estão dentro dos limites aceitáveis.' },
+          { label: 'Variação MAPE', value: `${data.mapeChangePct >= 0 ? '+' : ''}${data.mapeChangePct.toFixed(1)}%`, color: Math.abs(data.mapeChangePct) < 20 ? '#10b981' : '#ef4444', icon: <AlertTriangle size={16} />, tip: 'Variação percentual do MAPE atual em relação ao baseline. Acima de 20% indica degradação significativa.' },
+          { label: 'Retreinamento', value: data.driftPercentage > 30 || data.performanceDegraded ? 'Recomendado' : 'Não Necessário', color: data.driftPercentage > 30 || data.performanceDegraded ? '#f59e0b' : '#10b981', icon: <RefreshCw size={16} />, tip: 'Recomendação automática baseada no nível de drift e degradação detectados.' },
         ].map((kpi, i) => (
           <div key={i} style={cardStyle}>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>

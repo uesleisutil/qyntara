@@ -7,26 +7,26 @@ const PrivacyPolicyPage: React.FC = () => {
   const navigate = useNavigate();
 
   const sectionStyle: React.CSSProperties = { marginBottom: '1.5rem' };
-  const h2Style: React.CSSProperties = { fontSize: '1.1rem', fontWeight: 700, color: '#e8f0ed', marginBottom: '0.5rem' };
-  const pStyle: React.CSSProperties = { color: '#8fa89c', fontSize: '0.88rem', lineHeight: 1.7, margin: '0.3rem 0' };
-  const liStyle: React.CSSProperties = { color: '#8fa89c', fontSize: '0.88rem', lineHeight: 1.7, marginLeft: '1.2rem' };
+  const h2Style: React.CSSProperties = { fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9', marginBottom: '0.5rem' };
+  const pStyle: React.CSSProperties = { color: '#9895b0', fontSize: '0.88rem', lineHeight: 1.7, margin: '0.3rem 0' };
+  const liStyle: React.CSSProperties = { color: '#9895b0', fontSize: '0.88rem', lineHeight: 1.7, marginLeft: '1.2rem' };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#121a1a', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: '#0c0a1a', padding: '2rem' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#8fa89c', cursor: 'pointer', padding: 4, minHeight: 'auto' }}>
+          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#9895b0', cursor: 'pointer', padding: 4, minHeight: 'auto' }}>
             <ArrowLeft size={20} />
           </button>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>Q</div>
-          <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e8f0ed' }}>Qyntara</span>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #7c3aed, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>Q</div>
+          <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9' }}>Qyntara</span>
         </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #2a3d36', borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #2a2745', borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-            <Shield size={22} color="#5a9e87" />
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e8f0ed', margin: 0 }}>Política de Privacidade</h1>
+            <Shield size={22} color="#8b5cf6" />
+            <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Política de Privacidade</h1>
           </div>
           <p style={{ ...pStyle, marginBottom: '1.5rem' }}>Última atualização: 22 de março de 2026</p>
 
@@ -113,7 +113,7 @@ const PrivacyPolicyPage: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ ...sectionStyle, borderTop: '1px solid #2a3d36', paddingTop: '1rem' }}>
+          <div style={{ ...sectionStyle, borderTop: '1px solid #2a2745', paddingTop: '1rem' }}>
             <h2 style={h2Style}>9. Termos de Uso</h2>
             <p style={pStyle}>Ao criar uma conta no Qyntara, você concorda com os seguintes termos:</p>
             <ul style={{ listStyle: 'disc', paddingLeft: '1rem' }}>

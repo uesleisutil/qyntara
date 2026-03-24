@@ -60,13 +60,13 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
   const [showFilters, setShowFilters] = useState(false);
 
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    hover: darkMode ? '#2a3d36' : '#edf5f1',
-    green: '#4ead8a', red: '#e07070', yellow: '#d4a84b', blue: darkMode ? '#4da8c4' : '#2d7d9a', purple: darkMode ? '#a99dd0' : '#8b7eb8',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e2e0f0',
+    hover: darkMode ? '#2a2745' : '#f3f1fa',
+    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#8b5cf6', purple: '#8b5cf6',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -291,7 +291,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
           <span>Dia {Math.min(daysElapsed, totalDays)} de {totalDays}</span>
           <span>{fmt(progress * 100, 0)}%</span>
         </div>
-        <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a3d36' : '#d4e5dc', overflow: 'hidden' }}>
+        <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e0f0', overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 3, width: `${Math.min(progress * 100, 100)}%`,
             background: `linear-gradient(90deg, ${barColor}, ${barColor}dd)`, transition: 'width 0.5s ease' }} />
         </div>
@@ -313,7 +313,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
 
   if (loading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#edf5f1'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e0f0'} 25%, ${darkMode ? '#2a2745' : '#f3f1fa'} 50%, ${darkMode ? '#1a1836' : '#e2e0f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -342,7 +342,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
       {/* Header */}
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-          <Crown size={20} color="#d4a84b" />
+          <Crown size={20} color="#f59e0b" />
           <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, margin: 0 }}>
             Acompanhamento por Safra
           </h1>
@@ -353,7 +353,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
       </div>
 
       {error && (
-        <div style={{ ...cardStyle, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', marginBottom: '1rem', fontSize: '0.85rem' }}>
+        <div style={{ ...cardStyle, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', marginBottom: '1rem', fontSize: '0.85rem' }}>
           {error}
         </div>
       )}
@@ -369,7 +369,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
             <button key={v.key} onClick={() => setViewMode(v.key)} style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem',
               border: 'none', fontSize: '0.76rem', fontWeight: viewMode === v.key ? 600 : 400,
-              background: viewMode === v.key ? (darkMode ? '#2a3d36' : '#d4e5dc') : 'transparent',
+              background: viewMode === v.key ? (darkMode ? '#2a2745' : '#e2e0f0') : 'transparent',
               color: viewMode === v.key ? theme.text : theme.textSecondary,
               cursor: 'pointer', transition: 'all 0.15s', WebkitAppearance: 'none' as any,
             }}>{v.icon} {v.label}</button>
@@ -481,10 +481,10 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
           ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem',
           background: globalStats.avgTracking >= 0.55
             ? (darkMode ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.04)')
-            : (darkMode ? 'rgba(212,168,75,0.08)' : 'rgba(212,168,75,0.04)'),
+            : (darkMode ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.04)'),
           borderColor: globalStats.avgTracking >= 0.55
             ? (darkMode ? 'rgba(16,185,129,0.2)' : 'rgba(16,185,129,0.15)')
-            : (darkMode ? 'rgba(212,168,75,0.2)' : 'rgba(212,168,75,0.15)'),
+            : (darkMode ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.15)'),
         }}>
           <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text, marginBottom: 2 }}>
             {globalStats.avgTracking >= 0.55 ? '✅ Modelo está no caminho certo' : '⚠️ Modelo com desempenho misto'}

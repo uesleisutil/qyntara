@@ -113,7 +113,7 @@ const AdminUsersPage: React.FC = () => {
   const totalFree = users.filter(u => u.plan === 'free' || !u.plan).length;
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
   const btnBase: React.CSSProperties = {
@@ -145,19 +145,19 @@ const AdminUsersPage: React.FC = () => {
             Gerenciar planos e acessos
           </p>
         </div>
-        <button onClick={fetchUsers} style={{ ...btnBase, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white' }}>
+        <button onClick={fetchUsers} style={{ ...btnBase, background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', color: 'white' }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
 
-      {error && <div style={{ ...cardStyle, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', marginBottom: '0.75rem', fontSize: '0.85rem' }}>{error}</div>}
+      {error && <div style={{ ...cardStyle, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', marginBottom: '0.75rem', fontSize: '0.85rem' }}>{error}</div>}
 
       {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
         {[
-          { label: 'Total', value: users.length, color: '#5a9e87' },
-          { label: 'Pro', value: totalPro, color: '#d4a84b' },
-          { label: 'Free', value: totalFree, color: '#8fa89c' },
+          { label: 'Total', value: users.length, color: '#8b5cf6' },
+          { label: 'Pro', value: totalPro, color: '#f59e0b' },
+          { label: 'Free', value: totalFree, color: '#9895b0' },
         ].map((k, i) => (
           <div key={i} style={cardStyle}>
             <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{k.label}</div>
@@ -171,10 +171,10 @@ const AdminUsersPage: React.FC = () => {
         <div style={{ position: 'relative', flex: '1 1 200px' }}>
           <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
           <input type="text" placeholder="Buscar email ou nome..." value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a2626' : '#fff'), color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' }} />
         </div>
         <select value={planFilter} onChange={e => setPlanFilter(e.target.value as any)}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a2626' : '#fff'), color: theme.text, fontSize: '0.82rem', WebkitAppearance: 'none' as any }}>
+          style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, fontSize: '0.82rem', WebkitAppearance: 'none' as any }}>
           <option value="all">Todos</option>
           <option value="pro">Pro</option>
           <option value="free">Free</option>
@@ -218,20 +218,20 @@ const AdminUsersPage: React.FC = () => {
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <td style={{ padding: '0.5rem 0.4rem', color: theme.text, fontWeight: 500, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {u.email}
-                        {u.role === 'admin' && <span style={{ marginLeft: 4, fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: 4, background: 'rgba(224,112,112,0.15)', color: '#e07070', fontWeight: 600 }}>admin</span>}
+                        {u.role === 'admin' && <span style={{ marginLeft: 4, fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: 4, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 600 }}>admin</span>}
                       </td>
                       <td style={{ padding: '0.5rem 0.4rem', color: theme.textSecondary }}>{u.name || '—'}</td>
                       <td style={{ padding: '0.5rem 0.4rem' }}>
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 3,
                           padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
-                          background: isPro ? 'rgba(212,168,75,0.15)' : 'rgba(148,163,184,0.15)',
-                          color: isPro ? '#d4a84b' : '#8fa89c',
+                          background: isPro ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
+                          color: isPro ? '#f59e0b' : '#9895b0',
                         }}>
                           {isPro ? <Crown size={10} /> : null} {isPro ? 'Pro' : 'Free'}
                         </span>
                       </td>
-                      <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.75rem', color: isExpiring ? '#d4a84b' : theme.textSecondary }}>
+                      <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.75rem', color: isExpiring ? '#f59e0b' : theme.textSecondary }}>
                         {isExpiring ? (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
                             <Clock size={10} /> {fmtDate(u.planExpiresAt)}
@@ -246,18 +246,18 @@ const AdminUsersPage: React.FC = () => {
                       <td style={{ padding: '0.5rem 0.4rem' }}>
                         <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                           <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
-                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(212,168,75,0.15)', color: isPro ? '#8fa89c' : '#d4a84b' }}>
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#9895b0' : '#f59e0b' }}>
                             {isPro ? 'Rebaixar' : 'Tornar Pro'}
                           </button>
                           <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
                             disabled={roleLoading === u.email}
-                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(224,112,112,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#e07070' : '#5a9e87', opacity: roleLoading === u.email ? 0.5 : 1 }}>
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#8b5cf6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
                             {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
                             {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
                           </button>
                           <button onClick={() => handleDeleteUser(u.email)}
                             disabled={deleteLoading === u.email}
-                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: 'rgba(224,112,112,0.1)', color: '#e07070', opacity: deleteLoading === u.email ? 0.5 : 1 }}>
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', opacity: deleteLoading === u.email ? 0.5 : 1 }}>
                             {deleteLoading === u.email ? <Loader2 size={11} className="spin" /> : <Trash2 size={11} />}
                             Excluir
                           </button>
@@ -281,39 +281,39 @@ const AdminUsersPage: React.FC = () => {
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {u.email}
-                        {u.role === 'admin' && <span style={{ marginLeft: 4, fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: 4, background: 'rgba(224,112,112,0.15)', color: '#e07070', fontWeight: 600 }}>admin</span>}
+                        {u.role === 'admin' && <span style={{ marginLeft: 4, fontSize: '0.6rem', padding: '0.1rem 0.3rem', borderRadius: 4, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 600 }}>admin</span>}
                       </div>
                       {u.name && <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{u.name}</div>}
                     </div>
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 3, flexShrink: 0,
                       padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
-                      background: isPro ? 'rgba(212,168,75,0.15)' : 'rgba(148,163,184,0.15)',
-                      color: isPro ? '#d4a84b' : '#8fa89c',
+                      background: isPro ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
+                      color: isPro ? '#f59e0b' : '#9895b0',
                     }}>
                       {isPro ? <Crown size={10} /> : null} {isPro ? 'Pro' : 'Free'}
                     </span>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem', fontSize: '0.72rem', marginBottom: '0.5rem' }}>
-                    <div><span style={{ color: theme.textSecondary }}>Expira:</span> <span style={{ color: isExpiring ? '#d4a84b' : theme.textSecondary }}>{isExpiring ? fmtDate(u.planExpiresAt) : isPro ? '∞' : '—'}</span></div>
+                    <div><span style={{ color: theme.textSecondary }}>Expira:</span> <span style={{ color: isExpiring ? '#f59e0b' : theme.textSecondary }}>{isExpiring ? fmtDate(u.planExpiresAt) : isPro ? '∞' : '—'}</span></div>
                     <div><span style={{ color: theme.textSecondary }}>Origem:</span> {u.planSource === 'admin' ? '🔧 Admin' : u.stripeSubscriptionId ? '💳 Stripe' : '—'}</div>
                     <div><span style={{ color: theme.textSecondary }}>Cadastro:</span> {fmtDate(u.createdAt)}</div>
                     <div><span style={{ color: theme.textSecondary }}>Login:</span> {fmtDateTime(u.lastLoginAt)}</div>
                   </div>
                   <div style={{ display: 'flex', gap: '0.35rem' }}>
                     <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
-                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(212,168,75,0.15)', color: isPro ? '#8fa89c' : '#d4a84b' }}>
+                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#9895b0' : '#f59e0b' }}>
                       {isPro ? 'Rebaixar' : 'Tornar Pro'}
                     </button>
                     <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
                       disabled={roleLoading === u.email}
-                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(224,112,112,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#e07070' : '#5a9e87', opacity: roleLoading === u.email ? 0.5 : 1 }}>
+                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#8b5cf6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
                       {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
                       {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
                     </button>
                     <button onClick={() => handleDeleteUser(u.email)}
                       disabled={deleteLoading === u.email}
-                      style={{ ...btnBase, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: 'rgba(224,112,112,0.1)', color: '#e07070', opacity: deleteLoading === u.email ? 0.5 : 1 }}>
+                      style={{ ...btnBase, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: 'rgba(239,68,68,0.1)', color: '#ef4444', opacity: deleteLoading === u.email ? 0.5 : 1 }}>
                       {deleteLoading === u.email ? <Loader2 size={11} className="spin" /> : <Trash2 size={11} />}
                     </button>
                   </div>
@@ -330,16 +330,16 @@ const AdminUsersPage: React.FC = () => {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000 }} onClick={() => setModalUser(null)} />
           <div style={{
             position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-            background: theme.card || (darkMode ? '#1a2626' : '#fff'), border: `1px solid ${theme.border}`,
+            background: theme.card || (darkMode ? '#1a1836' : '#fff'), border: `1px solid ${theme.border}`,
             borderRadius: 16, padding: '1.5rem', zIndex: 1001, width: 'min(420px, 90vw)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: theme.text, margin: '0 0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Shield size={18} color="#d4a84b" /> Alterar Plano
+              <Shield size={18} color="#f59e0b" /> Alterar Plano
             </h3>
             <div style={{ fontSize: '0.82rem', color: theme.textSecondary, marginBottom: '1rem' }}>
               Usuário: <strong style={{ color: theme.text }}>{modalUser.email}</strong>
-              <br />Plano atual: <strong style={{ color: modalUser.plan === 'pro' ? '#d4a84b' : '#8fa89c' }}>{modalUser.plan === 'pro' ? 'Pro' : 'Free'}</strong>
+              <br />Plano atual: <strong style={{ color: modalUser.plan === 'pro' ? '#f59e0b' : '#9895b0' }}>{modalUser.plan === 'pro' ? 'Pro' : 'Free'}</strong>
             </div>
 
             <div style={{ marginBottom: '0.75rem' }}>
@@ -349,9 +349,9 @@ const AdminUsersPage: React.FC = () => {
                   <button key={p} onClick={() => setModalPlan(p)}
                     style={{
                       ...btnBase, flex: 1,
-                      background: modalPlan === p ? (p === 'pro' ? 'rgba(212,168,75,0.2)' : 'rgba(148,163,184,0.2)') : 'transparent',
-                      color: modalPlan === p ? (p === 'pro' ? '#d4a84b' : '#8fa89c') : theme.textSecondary,
-                      border: `1.5px solid ${modalPlan === p ? (p === 'pro' ? '#d4a84b' : '#8fa89c') : theme.border}`,
+                      background: modalPlan === p ? (p === 'pro' ? 'rgba(245,158,11,0.2)' : 'rgba(148,163,184,0.2)') : 'transparent',
+                      color: modalPlan === p ? (p === 'pro' ? '#f59e0b' : '#9895b0') : theme.textSecondary,
+                      border: `1.5px solid ${modalPlan === p ? (p === 'pro' ? '#f59e0b' : '#9895b0') : theme.border}`,
                     }}>
                     {p === 'pro' ? <Crown size={14} /> : null} {p === 'pro' ? 'Pro' : 'Free'}
                   </button>
@@ -375,8 +375,8 @@ const AdminUsersPage: React.FC = () => {
                       style={{
                         ...btnBase, fontSize: '0.72rem', padding: '0.4rem 0.3rem',
                         background: modalDuration === d.value ? 'rgba(59,130,246,0.15)' : 'transparent',
-                        color: modalDuration === d.value ? '#5a9e87' : theme.textSecondary,
-                        border: `1.5px solid ${modalDuration === d.value ? '#5a9e87' : theme.border}`,
+                        color: modalDuration === d.value ? '#8b5cf6' : theme.textSecondary,
+                        border: `1.5px solid ${modalDuration === d.value ? '#8b5cf6' : theme.border}`,
                       }}>
                       {d.label}
                     </button>
@@ -388,9 +388,9 @@ const AdminUsersPage: React.FC = () => {
             {modalMsg && (
               <div style={{
                 padding: '0.5rem 0.75rem', borderRadius: 8, marginBottom: '0.75rem', fontSize: '0.8rem',
-                background: modalMsg.includes('Erro') ? 'rgba(224,112,112,0.1)' : 'rgba(16,185,129,0.1)',
-                color: modalMsg.includes('Erro') ? '#e89090' : '#4ead8a',
-                border: `1px solid ${modalMsg.includes('Erro') ? 'rgba(224,112,112,0.3)' : 'rgba(16,185,129,0.3)'}`,
+                background: modalMsg.includes('Erro') ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                color: modalMsg.includes('Erro') ? '#f87171' : '#10b981',
+                border: `1px solid ${modalMsg.includes('Erro') ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
               }}>
                 {modalMsg.includes('Erro') ? <XCircle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} /> : <CheckCircle size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />}
                 {modalMsg}
@@ -402,7 +402,7 @@ const AdminUsersPage: React.FC = () => {
                 Cancelar
               </button>
               <button onClick={handleSetPlan} disabled={modalLoading}
-                style={{ ...btnBase, background: modalPlan === 'pro' ? 'linear-gradient(135deg, #d4a84b, #b08a30)' : 'linear-gradient(135deg, #5a7268, #3a5248)', color: 'white', opacity: modalLoading ? 0.7 : 1 }}>
+                style={{ ...btnBase, background: modalPlan === 'pro' ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #64748b, #475569)', color: 'white', opacity: modalLoading ? 0.7 : 1 }}>
                 {modalLoading ? <Loader2 size={14} className="spin" /> : <Shield size={14} />}
                 {modalLoading ? 'Salvando...' : 'Confirmar'}
               </button>

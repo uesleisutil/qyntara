@@ -14,26 +14,24 @@ interface LiveRec { ticker: string; score: number; last_close: number; exp_retur
 const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const brand = {
-  gradient: 'linear-gradient(135deg, #4a8e77, #2d7d9a, #8b7eb8)',
-  gradientSoft: 'linear-gradient(135deg, rgba(74,142,119,0.08), rgba(45,125,154,0.06), rgba(139,126,184,0.04))',
-  accent: '#5a9e87',
-  accentBlue: '#2d7d9a',
-  accentPurple: '#8b7eb8',
-  accentSoft: 'rgba(90,158,135,0.12)',
-  accentBorder: 'rgba(90,158,135,0.25)',
-  glow: 'rgba(90,158,135,0.15)',
-  glowStrong: 'rgba(45,125,154,0.25)',
-  surface: '#121a1a',
-  surfaceAlt: '#152020',
-  surfaceCard: 'rgba(90,158,135,0.04)',
-  border: 'rgba(90,158,135,0.12)',
-  borderSubtle: 'rgba(90,158,135,0.08)',
-  text: '#e8f0ed',
-  textMuted: '#8fa89c',
-  textDim: '#6a8a7c',
-  buy: '#4ead8a',
-  sell: '#e07070',
-  pro: '#d4a84b',
+  gradient: 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)',
+  gradientSoft: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(99,102,241,0.06), rgba(59,130,246,0.04))',
+  accent: '#8b5cf6',
+  accentSoft: 'rgba(139,92,246,0.12)',
+  accentBorder: 'rgba(139,92,246,0.25)',
+  glow: 'rgba(139,92,246,0.15)',
+  glowStrong: 'rgba(99,102,241,0.25)',
+  surface: '#0c0a1a',
+  surfaceAlt: '#110e24',
+  surfaceCard: 'rgba(139,92,246,0.04)',
+  border: 'rgba(139,92,246,0.12)',
+  borderSubtle: 'rgba(139,92,246,0.08)',
+  text: '#f5f5f7',
+  textMuted: '#b4b0c8',
+  textDim: '#7a7694',
+  buy: '#30d158',
+  sell: '#ff453a',
+  pro: '#ffd60a',
 };
 
 /* ── Scroll-triggered animation hook ── */
@@ -184,7 +182,7 @@ const LandingPage: React.FC = () => {
       background: brand.surfaceCard, border: `0.5px solid ${brand.borderSubtle}`,
       borderRadius: 16, padding: '1.5rem', transition: 'border-color 0.3s, background 0.3s',
     }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = brand.accentBorder; e.currentTarget.style.background = 'rgba(90,158,135,0.06)'; }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = brand.accentBorder; e.currentTarget.style.background = 'rgba(139,92,246,0.06)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = brand.borderSubtle; e.currentTarget.style.background = brand.surfaceCard; }}
     >
       <div style={{ color: brand.accent, marginBottom: '0.75rem' }}>{icon}</div>
@@ -195,7 +193,7 @@ const LandingPage: React.FC = () => {
 
   /* ── Live data table (reused for real + fallback) ── */
   const renderRecsTable = (recs: { ticker: string; signal?: string; score: number; price: number; pred?: number; ret?: number }[], isLive: boolean) => (
-    <div style={{ background: 'rgba(90,158,135,0.03)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(20px)' }}>
+    <div style={{ background: 'rgba(139,92,246,0.03)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, overflow: 'hidden', backdropFilter: 'blur(20px)' }}>
       <div style={{ padding: '1.25rem 1.5rem', borderBottom: `0.5px solid ${brand.borderSubtle}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
         <span style={{ fontSize: '0.82rem', color: brand.textMuted }}>{isLive ? 'Recomendações reais do modelo' : 'Exemplo de recomendações do modelo'}</span>
         {isLive && (
@@ -220,7 +218,7 @@ const LandingPage: React.FC = () => {
               const signal = r.signal || getSignal(r.score);
               const sc = getSignalColor(signal);
               return (
-                <tr key={r.ticker} style={{ borderBottom: '0.5px solid rgba(90,158,135,0.04)' }}>
+                <tr key={r.ticker} style={{ borderBottom: '0.5px solid rgba(139,92,246,0.04)' }}>
                   <td style={{ padding: '0.7rem 1rem', fontWeight: 600 }}>{r.ticker}</td>
                   <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}>
                     <span style={{ padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, background: sc.bg, color: sc.text, display: 'inline-flex', alignItems: 'center', gap: '0.15rem' }}>
@@ -292,12 +290,12 @@ const LandingPage: React.FC = () => {
               fontSize: '0.82rem', padding: 0,
             }}>Entrar</button>
             <button onClick={() => navigate('/register')} style={{
-              background: 'rgba(90,158,135,0.15)', border: `1px solid ${brand.accentBorder}`, color: brand.text,
+              background: 'rgba(139,92,246,0.15)', border: `1px solid ${brand.accentBorder}`, color: brand.text,
               padding: '0.4rem 1rem', borderRadius: 20, cursor: 'pointer', fontSize: '0.82rem', fontWeight: 500,
               transition: 'background 0.2s',
             }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(90,158,135,0.25)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(90,158,135,0.15)')}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,92,246,0.25)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(139,92,246,0.15)')}
             >Começar Grátis</button>
           </div>
           <button className="lp-nav-mobile" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{
@@ -309,9 +307,9 @@ const LandingPage: React.FC = () => {
         {mobileMenuOpen && (
           <div className="lp-mobile-menu" style={{ display: 'none', flexDirection: 'column', gap: '0.4rem', padding: '0 1rem 1rem' }}>
             {['Recursos', 'Resultados', 'Planos'].map(n => (
-              <button key={n} onClick={() => scrollTo(n.toLowerCase())} style={{ width: '100%', padding: '0.6rem', background: 'rgba(90,158,135,0.08)', border: 'none', color: brand.text, borderRadius: 8, cursor: 'pointer', fontSize: '0.9rem' }}>{n}</button>
+              <button key={n} onClick={() => scrollTo(n.toLowerCase())} style={{ width: '100%', padding: '0.6rem', background: 'rgba(139,92,246,0.08)', border: 'none', color: brand.text, borderRadius: 8, cursor: 'pointer', fontSize: '0.9rem' }}>{n}</button>
             ))}
-            <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} style={{ width: '100%', padding: '0.6rem', background: 'rgba(90,158,135,0.08)', border: 'none', color: brand.text, borderRadius: 8, cursor: 'pointer' }}>Entrar</button>
+            <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} style={{ width: '100%', padding: '0.6rem', background: 'rgba(139,92,246,0.08)', border: 'none', color: brand.text, borderRadius: 8, cursor: 'pointer' }}>Entrar</button>
             <button onClick={() => { navigate('/register'); setMobileMenuOpen(false); }} style={{ width: '100%', padding: '0.6rem', background: brand.gradient, border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>Começar Grátis</button>
           </div>
         )}
@@ -324,11 +322,11 @@ const LandingPage: React.FC = () => {
         padding: '0 clamp(1rem, 4vw, 2rem)',
         transform: `scale(${heroScale})`, transition: 'transform 0.1s linear',
       }}>
-        {/* Ambient glow — expanded palette tones */}
-        <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '90vw', maxWidth: 900, height: 600, background: 'radial-gradient(ellipse, rgba(45,125,154,0.12) 0%, rgba(139,126,184,0.08) 30%, rgba(90,158,135,0.05) 55%, transparent 80%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
+        {/* Ambient glow — purple tones */}
+        <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '90vw', maxWidth: 900, height: 600, background: 'radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, rgba(99,102,241,0.08) 35%, rgba(139,92,246,0.03) 60%, transparent 80%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(90,158,135,0.1)', border: `1px solid ${brand.borderSubtle}`, borderRadius: 20, padding: '0.3rem 0.9rem', marginBottom: '2rem', fontSize: '0.78rem', color: brand.textMuted }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(139,92,246,0.1)', border: `1px solid ${brand.borderSubtle}`, borderRadius: 20, padding: '0.3rem 0.9rem', marginBottom: '2rem', fontSize: '0.78rem', color: brand.textMuted }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: brand.buy, animation: 'lp-pulse 2s infinite' }} />
             {liveDate ? `Atualizado: ${liveDate}` : 'Dados atualizados diariamente'}
           </div>
@@ -336,7 +334,7 @@ const LandingPage: React.FC = () => {
           <h1 style={{
             fontSize: 'clamp(2.8rem, 8vw, 5.5rem)', fontWeight: 700, lineHeight: 1.0,
             letterSpacing: '-0.04em', marginBottom: '1.5rem',
-            background: 'linear-gradient(180deg, #e8f0ed 0%, #a99dd0 100%)',
+            background: 'linear-gradient(180deg, #f5f5f7 0%, #b4b0c8 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           }}>
             Inteligência preditiva.<br />Para a Bolsa brasileira.
@@ -362,12 +360,12 @@ const LandingPage: React.FC = () => {
               Começar Grátis <ArrowRight size={18} />
             </button>
             <button onClick={() => scrollTo('live-data')} style={{
-              background: 'rgba(90,158,135,0.1)', border: `1px solid ${brand.accentBorder}`, color: brand.text,
+              background: 'rgba(139,92,246,0.1)', border: `1px solid ${brand.accentBorder}`, color: brand.text,
               padding: '1rem 2.5rem', borderRadius: 980, cursor: 'pointer', fontSize: '1.05rem',
               display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'background 0.2s',
             }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(90,158,135,0.18)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(90,158,135,0.1)')}
+              onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,92,246,0.18)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'rgba(139,92,246,0.1)')}
             >
               <Eye size={18} /> Ver dados ao vivo
             </button>
@@ -419,7 +417,7 @@ const LandingPage: React.FC = () => {
               : liveDataTimedOut
                 ? renderRecsTable(fallbackRecs, false)
                 : (
-                  <div style={{ background: 'rgba(90,158,135,0.03)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, overflow: 'hidden' }}>
+                  <div style={{ background: 'rgba(139,92,246,0.03)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, overflow: 'hidden' }}>
                     <div style={{ textAlign: 'center', padding: '4rem', color: brand.textDim }}>
                       <RefreshCw size={24} style={{ animation: 'lp-spin 1s linear infinite', marginBottom: '0.5rem' }} />
                       <div>Carregando dados ao vivo...</div>
@@ -515,9 +513,9 @@ const LandingPage: React.FC = () => {
           <RevealSection delay={0.15}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', maxWidth: 700, margin: '0 auto' }}>
               {[
-                { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#2d7d9a', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
-                { icon: <Landmark size={20} />, name: 'Bancos', color: '#8b7eb8', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
-                { icon: <Zap size={20} />, name: 'Energia', color: '#4ead8a', tickers: ['ELET3', 'ENGI11', 'CPFE3'] },
+                { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#7c3aed', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
+                { icon: <Landmark size={20} />, name: 'Bancos', color: '#3b82f6', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
+                { icon: <Zap size={20} />, name: 'Energia', color: '#10b981', tickers: ['ELET3', 'ENGI11', 'CPFE3'] },
               ].map((c, i) => (
                 <div key={i} style={{
                   background: brand.surfaceCard, border: `0.5px solid ${brand.borderSubtle}`,
@@ -536,7 +534,7 @@ const LandingPage: React.FC = () => {
                   <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.5rem' }}>{c.name}</div>
                   <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
                     {c.tickers.map(t => (
-                      <span key={t} style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: 4, background: 'rgba(90,158,135,0.08)', color: brand.textMuted }}>{t}</span>
+                      <span key={t} style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: 4, background: 'rgba(139,92,246,0.08)', color: brand.textMuted }}>{t}</span>
                     ))}
                   </div>
                 </div>
@@ -561,10 +559,10 @@ const LandingPage: React.FC = () => {
           </RevealSection>
 
           <RevealSection delay={0.15}>
-            <div style={{ background: 'rgba(90,158,135,0.03)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, padding: '2rem', maxWidth: 700, margin: '0 auto' }}>
+            <div style={{ background: 'rgba(139,92,246,0.03)', border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, padding: '2rem', maxWidth: 700, margin: '0 auto' }}>
               <div style={{ fontSize: '0.78rem', color: brand.textMuted, marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>Exemplo: Por que PETR4 é Compra?</span>
-                <span style={{ padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, background: 'rgba(16,185,129,0.15)', color: '#4ead8a' }}>
+                <span style={{ padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, background: 'rgba(16,185,129,0.15)', color: '#10b981' }}>
                   <ArrowUpRight size={10} /> Compra
                 </span>
               </div>
@@ -579,7 +577,7 @@ const LandingPage: React.FC = () => {
                 ].map((s, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontSize: '0.78rem', color: brand.textMuted, width: 130, flexShrink: 0, textAlign: 'right' }}>{s.feature}</span>
-                    <div style={{ flex: 1, height: 20, background: 'rgba(90,158,135,0.05)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ flex: 1, height: 20, background: 'rgba(139,92,246,0.05)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
                       <div style={{
                         position: 'absolute', top: 0, bottom: 0,
                         left: s.positive ? '50%' : undefined,
@@ -688,14 +686,14 @@ const LandingPage: React.FC = () => {
                   background: 'transparent', color: brand.text, cursor: 'pointer', fontSize: '0.9rem', fontWeight: 600,
                   transition: 'background 0.2s',
                 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(90,158,135,0.08)')}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(139,92,246,0.08)')}
                   onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >Criar conta grátis</button>
               </div>
 
               {/* Pro */}
               <div style={{
-                background: 'rgba(90,158,135,0.06)', border: `1px solid ${brand.accentBorder}`,
+                background: 'rgba(139,92,246,0.06)', border: `1px solid ${brand.accentBorder}`,
                 borderRadius: 20, padding: '2rem', display: 'flex', flexDirection: 'column', position: 'relative',
               }}>
                 <div style={{ position: 'absolute', top: -1, left: 0, right: 0, height: 3, borderRadius: '20px 20px 0 0', background: brand.gradient }} />

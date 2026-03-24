@@ -20,12 +20,12 @@ const ProValue: React.FC<Props> = ({ isPro, children, style, placeholder = 'â€¢â
 
   return (
     <span style={{ ...style, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-      <span style={{ color: '#5a7268', filter: 'blur(4px)', userSelect: 'none', pointerEvents: 'none' }} aria-hidden="true">
+      <span style={{ color: '#64748b', filter: 'blur(4px)', userSelect: 'none', pointerEvents: 'none' }} aria-hidden="true">
         {placeholder}
       </span>
       <Lock
         size={11}
-        color="#d4a84b"
+        color="#f59e0b"
         style={{ cursor: 'pointer', flexShrink: 0, opacity: 0.8 }}
         onClick={() => { window.location.hash = '#/dashboard/upgrade'; }}
         role="link"

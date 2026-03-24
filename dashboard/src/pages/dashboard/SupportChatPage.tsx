@@ -78,7 +78,7 @@ const SupportChatPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
 
@@ -93,9 +93,9 @@ const SupportChatPage: React.FC = () => {
   };
 
   const statusLabel = (s: string) => {
-    if (s === 'answered') return { text: 'Respondido', color: '#4ead8a', bg: 'rgba(16,185,129,0.12)' };
-    if (s === 'closed') return { text: 'Encerrado', color: '#8fa89c', bg: 'rgba(148,163,184,0.12)' };
-    return { text: 'Aberto', color: '#d4a84b', bg: 'rgba(212,168,75,0.12)' };
+    if (s === 'answered') return { text: 'Respondido', color: '#10b981', bg: 'rgba(16,185,129,0.12)' };
+    if (s === 'closed') return { text: 'Encerrado', color: '#94a3b8', bg: 'rgba(148,163,184,0.12)' };
+    return { text: 'Aberto', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' };
   };
 
   const openTickets = tickets.filter(t => t.status !== 'closed');
@@ -130,10 +130,10 @@ const SupportChatPage: React.FC = () => {
                 <div style={{
                   maxWidth: '80%', padding: '0.6rem 0.85rem', borderRadius: 12,
                   borderBottomRightRadius: isUser ? 4 : 12, borderBottomLeftRadius: isUser ? 12 : 4,
-                  background: isUser ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#edf5f1'),
+                  background: isUser ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#2a2745' : '#f3f1fa'),
                   color: isUser ? 'white' : theme.text,
                 }}>
-                  {!isUser && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#4ead8a', marginBottom: '0.15rem' }}>Suporte</div>}
+                  {!isUser && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#10b981', marginBottom: '0.15rem' }}>Suporte</div>}
                   <div style={{ fontSize: '0.82rem', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{m.message}</div>
                   <div style={{ fontSize: '0.6rem', opacity: 0.7, textAlign: 'right', marginTop: '0.2rem' }}>{fmtTime(m.timestamp)}</div>
                 </div>
@@ -151,7 +151,7 @@ const SupportChatPage: React.FC = () => {
               rows={1}
               style={{
                 flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'none',
-                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
                 color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 42, maxHeight: 120,
                 fontFamily: 'inherit',
               }} />
@@ -159,7 +159,7 @@ const SupportChatPage: React.FC = () => {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 42, height: 42, borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: message.trim() ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+                background: message.trim() ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#2a2745' : '#e8e5f0'),
                 color: message.trim() ? 'white' : theme.textSecondary,
                 transition: 'all 0.2s', WebkitAppearance: 'none' as any,
                 opacity: sending ? 0.6 : 1,
@@ -173,7 +173,7 @@ const SupportChatPage: React.FC = () => {
             Este chamado foi encerrado. Abra um novo se precisar de ajuda.
           </div>
         )}
-        {error && <div style={{ color: '#e07070', fontSize: '0.78rem', marginTop: '0.3rem' }}>{error}</div>}
+        {error && <div style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: '0.3rem' }}>{error}</div>}
         <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -193,7 +193,7 @@ const SupportChatPage: React.FC = () => {
         </div>
       </div>
 
-      {error && <div style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.75rem', background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', fontSize: '0.82rem' }}>{error}</div>}
+      {error && <div style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.75rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.82rem' }}>{error}</div>}
 
       {/* New message card */}
       <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem' }}>
@@ -206,7 +206,7 @@ const SupportChatPage: React.FC = () => {
             rows={2}
             style={{
               flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'vertical',
-              border: `1px solid ${theme.border}`, background: darkMode ? '#121a1a' : '#f6faf8',
+              border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8f7fc',
               color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 60, maxHeight: 200,
               fontFamily: 'inherit',
             }} />
@@ -214,7 +214,7 @@ const SupportChatPage: React.FC = () => {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
               padding: '0.5rem 1rem', borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: message.trim() ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+              background: message.trim() ? 'linear-gradient(135deg, #7c3aed, #6366f1)' : (darkMode ? '#2a2745' : '#e8e5f0'),
               color: message.trim() ? 'white' : theme.textSecondary,
               fontSize: '0.82rem', fontWeight: 600, alignSelf: 'flex-end',
               WebkitAppearance: 'none' as any, opacity: sending ? 0.6 : 1, transition: 'all 0.2s',
@@ -243,15 +243,15 @@ const SupportChatPage: React.FC = () => {
                 return (
                   <div key={t.ticketId} onClick={() => setActiveTicket(t)}
                     style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.4rem', cursor: 'pointer', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a3d36' : '#edf5f1'}
-                    onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a2626' : '#fff')}>
+                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f3f1fa'}
+                    onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a1836' : '#fff')}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                       <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>{t.subject}</span>
                       <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 6, background: s.bg, color: s.color, fontWeight: 600 }}>{s.text}</span>
                     </div>
                     {lastMsg && (
                       <div style={{ fontSize: '0.72rem', color: theme.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {lastMsg.sender === 'admin' ? <CheckCircle size={10} style={{ verticalAlign: 'middle', marginRight: 3, color: '#4ead8a' }} /> : <Clock size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />}
+                        {lastMsg.sender === 'admin' ? <CheckCircle size={10} style={{ verticalAlign: 'middle', marginRight: 3, color: '#10b981' }} /> : <Clock size={10} style={{ verticalAlign: 'middle', marginRight: 3 }} />}
                         {lastMsg.sender === 'admin' ? 'Suporte: ' : 'Você: '}{lastMsg.message.slice(0, 80)}
                       </div>
                     )}

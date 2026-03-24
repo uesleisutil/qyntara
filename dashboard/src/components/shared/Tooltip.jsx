@@ -79,10 +79,10 @@ const Tooltip = ({
   };
 
   const arrowStyles = {
-    top: { top: '100%', left: '50%', transform: 'translateX(-50%)', borderTop: '4px solid #1a2e26', borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderBottom: '4px solid transparent' },
-    bottom: { bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderBottom: '4px solid #1a2e26', borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '4px solid transparent' },
-    left: { left: '100%', top: '50%', transform: 'translateY(-50%)', borderLeft: '4px solid #1a2e26', borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderRight: '4px solid transparent' },
-    right: { right: '100%', top: '50%', transform: 'translateY(-50%)', borderRight: '4px solid #1a2e26', borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: '4px solid transparent' }
+    top: { top: '100%', left: '50%', transform: 'translateX(-50%)', borderTop: '4px solid #1f2937', borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderBottom: '4px solid transparent' },
+    bottom: { bottom: '100%', left: '50%', transform: 'translateX(-50%)', borderBottom: '4px solid #1f2937', borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '4px solid transparent' },
+    left: { left: '100%', top: '50%', transform: 'translateY(-50%)', borderLeft: '4px solid #1f2937', borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderRight: '4px solid transparent' },
+    right: { right: '100%', top: '50%', transform: 'translateY(-50%)', borderRight: '4px solid #1f2937', borderTop: '4px solid transparent', borderBottom: '4px solid transparent', borderLeft: '4px solid transparent' }
   };
 
   if (!content) return children;
@@ -111,7 +111,7 @@ const Tooltip = ({
             padding: '0.5rem 0.75rem',
             fontSize: '0.875rem',
             color: 'white',
-            backgroundColor: '#1a2e26',
+            backgroundColor: '#1f2937',
             borderRadius: '0.5rem',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
             whiteSpace: 'nowrap',

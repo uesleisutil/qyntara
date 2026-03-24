@@ -27,13 +27,13 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
   const [errorMessage, setErrorMessage] = useState('');
 
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    accent: '#5a9e87',
-    inputBg: darkMode ? '#121a1a' : '#f6faf8',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e2e0f0',
+    accent: '#8b5cf6',
+    inputBg: darkMode ? '#0c0a1a' : '#f8f7fc',
   };
 
   const categories = [
@@ -68,7 +68,7 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
   if (submitState === 'success') {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <CheckCircle size={48} color="#4ead8a" style={{ marginBottom: '1rem' }} />
+        <CheckCircle size={48} color="#22c55e" style={{ marginBottom: '1rem' }} />
         <h3 style={{ color: theme.text, margin: '0 0 0.5rem', fontSize: '1.125rem' }}>
           Thank you!
         </h3>
@@ -108,7 +108,7 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
       {/* Star Rating */}
       <div style={{ marginBottom: '1.25rem' }}>
         <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: '600', color: theme.text, marginBottom: '0.5rem' }}>
-          Rating <span style={{ color: '#e07070' }}>*</span>
+          Rating <span style={{ color: '#ef4444' }}>*</span>
         </label>
         <div style={{ display: 'flex', gap: '0.25rem' }} role="radiogroup" aria-label="Rating">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -132,8 +132,8 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
             >
               <Star
                 size={28}
-                color="#d4a84b"
-                fill={star <= (hoveredStar || rating) ? '#d4a84b' : 'none'}
+                color="#f59e0b"
+                fill={star <= (hoveredStar || rating) ? '#f59e0b' : 'none'}
               />
             </button>
           ))}
@@ -211,15 +211,15 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
             alignItems: 'center',
             gap: '0.5rem',
             padding: '0.625rem 0.75rem',
-            backgroundColor: darkMode ? '#3a1010' : '#fdf0f0',
-            border: `1px solid ${darkMode ? '#6a2020' : '#f0c4c4'}`,
+            backgroundColor: darkMode ? '#450a0a' : '#fef2f2',
+            border: `1px solid ${darkMode ? '#7f1d1d' : '#fecaca'}`,
             borderRadius: '8px',
             marginBottom: '1rem',
           }}
           role="alert"
         >
-          <AlertCircle size={16} color="#e07070" />
-          <span style={{ color: '#e07070', fontSize: '0.8125rem' }}>{errorMessage}</span>
+          <AlertCircle size={16} color="#ef4444" />
+          <span style={{ color: '#ef4444', fontSize: '0.8125rem' }}>{errorMessage}</span>
         </div>
       )}
 
@@ -230,7 +230,7 @@ export const FeedbackWidget: React.FC<FeedbackWidgetProps> = ({ darkMode = false
         style={{
           width: '100%',
           padding: '0.75rem',
-          backgroundColor: rating === 0 ? (darkMode ? '#2a3d36' : '#d4e5dc') : theme.accent,
+          backgroundColor: rating === 0 ? (darkMode ? '#2a2745' : '#e2e0f0') : theme.accent,
           color: rating === 0 ? theme.textSecondary : 'white',
           border: 'none',
           borderRadius: '8px',

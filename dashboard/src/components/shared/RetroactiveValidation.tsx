@@ -76,7 +76,7 @@ const RetroactiveValidation: React.FC<RetroactiveValidationProps> = ({ darkMode,
   const topBuys = buyValidations.sort((a, b) => b.score - a.score).slice(0, 5);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1rem)', marginBottom: '1rem',
   };
@@ -93,7 +93,7 @@ const RetroactiveValidation: React.FC<RetroactiveValidationProps> = ({ darkMode,
           </div>
           <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: 2 }}>
             Previsões de {new Date(targetDate + 'T12:00:00').toLocaleDateString('pt-BR')} vs preços reais de hoje ·{' '}
-            <span style={{ color: accuracy >= 60 ? '#4ead8a' : accuracy >= 45 ? '#d4a84b' : '#e07070', fontWeight: 600 }}>
+            <span style={{ color: accuracy >= 60 ? '#10b981' : accuracy >= 45 ? '#f59e0b' : '#ef4444', fontWeight: 600 }}>
               {fmt(accuracy, 0)}% de acerto
             </span>
             {' '}({totalCorrect}/{totalSignals} sinais)
@@ -107,11 +107,11 @@ const RetroactiveValidation: React.FC<RetroactiveValidationProps> = ({ darkMode,
           {/* Summary KPIs */}
           <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
-              Compra: <strong style={{ color: '#4ead8a' }}>{buyCorrect}/{buyValidations.length}</strong> acertaram
+              Compra: <strong style={{ color: '#10b981' }}>{buyCorrect}/{buyValidations.length}</strong> acertaram
             </div>
             {sellValidations.length > 0 && (
               <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
-                Venda: <strong style={{ color: '#e07070' }}>{sellCorrect}/{sellValidations.length}</strong> acertaram
+                Venda: <strong style={{ color: '#ef4444' }}>{sellCorrect}/{sellValidations.length}</strong> acertaram
               </div>
             )}
           </div>
@@ -126,15 +126,15 @@ const RetroactiveValidation: React.FC<RetroactiveValidationProps> = ({ darkMode,
               borderBottom: `1px solid ${theme.border}`, fontSize: '0.78rem',
             }}>
               {v.correct
-                ? <CheckCircle size={14} color="#4ead8a" />
-                : <XCircle size={14} color="#e07070" />
+                ? <CheckCircle size={14} color="#10b981" />
+                : <XCircle size={14} color="#ef4444" />
               }
               <span style={{ fontWeight: 600, color: theme.text, width: 50 }}>{v.ticker}</span>
               <span style={{ color: theme.textSecondary }}>Score {fmt(v.score, 1)}</span>
               <span style={{ color: theme.textSecondary }}>R$ {fmt(v.priceAtPred)} → R$ {fmt(v.priceNow)}</span>
               <span style={{
                 marginLeft: 'auto', fontWeight: 600,
-                color: v.actualReturn >= 0 ? '#4ead8a' : '#e07070',
+                color: v.actualReturn >= 0 ? '#10b981' : '#ef4444',
               }}>
                 {v.actualReturn >= 0 ? '+' : ''}{fmt(v.actualReturn * 100, 1)}%
               </span>

@@ -41,8 +41,8 @@ export const OfflineIndicator: React.FC = () => {
         alignItems: 'center',
         gap: '0.75rem',
         padding: '0.75rem 1.25rem',
-        backgroundColor: isOffline ? '#fdf0f0' : '#edf5f1',
-        border: `1px solid ${isOffline ? '#f0c4c4' : '#7ed4b0'}`,
+        backgroundColor: isOffline ? '#fef2f2' : '#f0fdf4',
+        border: `1px solid ${isOffline ? '#fecaca' : '#86efac'}`,
         borderRadius: '8px',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         animation: 'slideIn 0.3s ease-out',
@@ -52,24 +52,24 @@ export const OfflineIndicator: React.FC = () => {
     >
       {isOffline ? (
         <>
-          <WifiOff size={20} color="#c04040" />
+          <WifiOff size={20} color="#dc2626" />
           <div>
-            <div style={{ fontWeight: '600', color: '#8a2020', fontSize: '0.875rem' }}>
+            <div style={{ fontWeight: '600', color: '#991b1b', fontSize: '0.875rem' }}>
               You are offline
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#a03030', marginTop: '0.125rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#b91c1c', marginTop: '0.125rem' }}>
               Showing cached data
             </div>
           </div>
         </>
       ) : (
         <>
-          <Wifi size={20} color="#3a8a6a" />
+          <Wifi size={20} color="#16a34a" />
           <div>
-            <div style={{ fontWeight: '600', color: '#1a5a3a', fontSize: '0.875rem' }}>
+            <div style={{ fontWeight: '600', color: '#166534', fontSize: '0.875rem' }}>
               Back online
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#2e7d4a', marginTop: '0.125rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#15803d', marginTop: '0.125rem' }}>
               Refreshing data...
             </div>
           </div>

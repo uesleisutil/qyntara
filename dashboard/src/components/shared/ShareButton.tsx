@@ -36,8 +36,8 @@ const ShareButton: React.FC<ShareButtonProps> = ({ text, darkMode, size = 14 }) 
     top: (btnRect?.bottom || 0) + 6,
     right: Math.max(8, window.innerWidth - (btnRect?.right || 0)),
     zIndex: 9999,
-    background: darkMode ? '#1a2626' : '#fff',
-    border: `1px solid ${darkMode ? '#2a3d36' : '#d4e5dc'}`,
+    background: darkMode ? '#1a1836' : '#fff',
+    border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
     borderRadius: 10, padding: '0.35rem', minWidth: 180,
     boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
   };
@@ -46,7 +46,7 @@ const ShareButton: React.FC<ShareButtonProps> = ({ text, darkMode, size = 14 }) 
     display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%',
     padding: '0.5rem 0.65rem', borderRadius: 6, border: 'none', cursor: 'pointer',
     fontSize: '0.8rem', background: 'transparent', textDecoration: 'none',
-    color: darkMode ? '#e8f0ed' : '#121a1a', transition: 'background 0.1s',
+    color: darkMode ? '#f1f5f9' : '#0c0a1a', transition: 'background 0.1s',
     WebkitAppearance: 'none' as any,
   };
 
@@ -55,13 +55,13 @@ const ShareButton: React.FC<ShareButtonProps> = ({ text, darkMode, size = 14 }) 
       <button onClick={handleToggle} style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
         padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-        border: `1px solid ${darkMode ? '#2a3d36' : '#d4e5dc'}`,
-        background: 'transparent', color: darkMode ? '#8fa89c' : '#5a7268',
+        border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+        background: 'transparent', color: darkMode ? '#9895b0' : '#64748b',
         cursor: 'pointer', WebkitAppearance: 'none' as any, transition: 'all 0.15s',
         minHeight: 'auto',
       }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#5a9e87'; e.currentTarget.style.color = '#5a9e87'; }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a3d36' : '#d4e5dc'; e.currentTarget.style.color = darkMode ? '#8fa89c' : '#5a7268'; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a2745' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#9895b0' : '#64748b'; }}
       >
         <Share2 size={size} /> Compartilhar
       </button>
@@ -71,22 +71,22 @@ const ShareButton: React.FC<ShareButtonProps> = ({ text, darkMode, size = 14 }) 
           <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setOpen(false)} />
           <div style={menuStyle}>
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={itemStyle}
-              onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2a3d36' : '#e8f0ed'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
               <MessageCircle size={15} color="#25d366" /> WhatsApp
             </a>
             <a href={twitterUrl} target="_blank" rel="noopener noreferrer" style={itemStyle}
-              onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2a3d36' : '#e8f0ed'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
               <Share2 size={15} color="#1da1f2" /> Twitter / X
             </a>
             <button onClick={handleCopy} style={itemStyle}
-              onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2a3d36' : '#e8f0ed'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {copied ? <Check size={15} color="#4ead8a" /> : <Copy size={15} />}
+              {copied ? <Check size={15} color="#10b981" /> : <Copy size={15} />}
               {copied ? 'Copiado!' : 'Copiar texto'}
             </button>
           </div>

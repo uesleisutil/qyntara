@@ -40,16 +40,16 @@ const ExportCSV: React.FC<ExportCSVProps> = ({ data, filename, darkMode = true, 
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
         padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-        border: `1px solid ${darkMode ? '#2a3d36' : '#d4e5dc'}`,
+        border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
         background: 'transparent',
-        color: darkMode ? '#8fa89c' : '#5a7268',
+        color: darkMode ? '#9895b0' : '#64748b',
         cursor: data.length ? 'pointer' : 'not-allowed',
         opacity: data.length ? 1 : 0.5,
         transition: 'all 0.15s',
         WebkitAppearance: 'none' as any, minHeight: 'auto',
       }}
-      onMouseEnter={e => { if (data.length) { e.currentTarget.style.borderColor = '#5a9e87'; e.currentTarget.style.color = '#5a9e87'; } }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a3d36' : '#d4e5dc'; e.currentTarget.style.color = darkMode ? '#8fa89c' : '#5a7268'; }}
+      onMouseEnter={e => { if (data.length) { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; } }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a2745' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#9895b0' : '#64748b'; }}
     >
       <Download size={13} /> {label}
     </button>

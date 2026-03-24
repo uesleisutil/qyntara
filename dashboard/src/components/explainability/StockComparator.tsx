@@ -20,10 +20,10 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
   const [open, setOpen] = useState(false);
 
   const theme = {
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
   };
 
   const addTicker = (t: string) => {
@@ -34,16 +34,16 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
   const selectedData = selected.map(s => tickers.find(t => t.ticker === s)).filter(Boolean) as TickerData[];
 
   const getSignal = (score: number) => score >= SCORE_BUY_THRESHOLD ? 'Compra' : score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
-  const getColor = (score: number) => score >= SCORE_BUY_THRESHOLD ? '#4ead8a' : score <= SCORE_SELL_THRESHOLD ? '#e07070' : '#d4a84b';
+  const getColor = (score: number) => score >= SCORE_BUY_THRESHOLD ? '#10b981' : score <= SCORE_SELL_THRESHOLD ? '#ef4444' : '#f59e0b';
 
   const metrics = [
     { label: 'Score', key: 'score', format: (v: number) => fmt(v, 2), color: (v: number) => getColor(v), tip: 'Score do modelo — quanto maior, mais forte o sinal de compra.' },
     { label: 'Sinal', key: 'signal', format: (_: number, d: TickerData) => getSignal(d.score), color: (_: number, d: TickerData) => getColor(d.score), tip: 'Sinal derivado do score.' },
     { label: 'Preço Atual', key: 'last_close', format: (v: number) => `R$ ${fmt(v)}`, color: () => theme.text, tip: 'Último preço de fechamento.' },
     { label: 'Preço Previsto', key: 'pred_price_t_plus_20', format: (v: number) => `R$ ${fmt(v)}`, color: () => theme.text, tip: 'Preço previsto pelo modelo em 20 pregões.' },
-    { label: 'Retorno Previsto', key: 'exp_return_20', format: (v: number) => `${v >= 0 ? '+' : ''}${fmt(v * 100)}%`, color: (v: number) => v >= 0 ? '#4ead8a' : '#e07070', tip: 'Retorno esperado em 20 pregões.' },
+    { label: 'Retorno Previsto', key: 'exp_return_20', format: (v: number) => `${v >= 0 ? '+' : ''}${fmt(v * 100)}%`, color: (v: number) => v >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno esperado em 20 pregões.' },
     { label: 'Volatilidade', key: 'vol_20d', format: (v: number) => `${fmt(v * 100, 1)}%`, color: () => theme.textSecondary, tip: 'Volatilidade dos últimos 20 dias.' },
-    { label: 'Risco/Retorno', key: 'rr', format: (_: number, d: TickerData) => d.vol_20d > 0 ? fmt(d.exp_return_20 / d.vol_20d, 2) : '—', color: (_: number, d: TickerData) => (d.vol_20d > 0 && d.exp_return_20 / d.vol_20d > 0.5) ? '#4ead8a' : '#d4a84b', tip: 'Razão retorno/volatilidade — quanto maior, melhor o risco-retorno.' },
+    { label: 'Risco/Retorno', key: 'rr', format: (_: number, d: TickerData) => d.vol_20d > 0 ? fmt(d.exp_return_20 / d.vol_20d, 2) : '—', color: (_: number, d: TickerData) => (d.vol_20d > 0 && d.exp_return_20 / d.vol_20d > 0.5) ? '#10b981' : '#f59e0b', tip: 'Razão retorno/volatilidade — quanto maior, melhor o risco-retorno.' },
   ];
 
   if (!open) {
@@ -51,7 +51,7 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
       <button onClick={() => setOpen(true)} style={{
         display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1rem',
         borderRadius: 8, border: `1px solid ${theme.border}`, background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
-        color: '#5a9e87', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
+        color: '#8b5cf6', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600,
         transition: 'all 0.2s', WebkitAppearance: 'none' as any,
       }}
         onMouseEnter={e => { e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.08)'; }}
@@ -89,7 +89,7 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Columns size={18} color="#5a9e87" />
+          <Columns size={18} color="#8b5cf6" />
           <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: theme.text }}>Comparador de Ações</h3>
           <InfoTooltip text="Compare até 3 ações lado a lado para facilitar sua decisão. O melhor valor de cada métrica é destacado." darkMode={darkMode} size={12} />
         </div>
@@ -106,11 +106,11 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.3rem 0.6rem', borderRadius: 8, fontSize: '0.82rem', fontWeight: 600,
             background: darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.08)',
-            color: '#5a9e87', border: '1px solid rgba(59,130,246,0.3)',
+            color: '#8b5cf6', border: '1px solid rgba(59,130,246,0.3)',
           }}>
             {s}
             <button onClick={() => removeTicker(s)} style={{
-              background: 'none', border: 'none', color: '#5a9e87', cursor: 'pointer', padding: 0,
+              background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer', padding: 0,
               display: 'flex', WebkitAppearance: 'none' as any,
             }}><X size={14} /></button>
           </span>
@@ -151,7 +151,7 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
                   <th key={d.ticker} style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 700, color: theme.text, fontSize: '0.9rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
                       {d.ticker}
-                      {d.score >= SCORE_BUY_THRESHOLD ? <ArrowUpRight size={14} color="#4ead8a" /> : d.score <= SCORE_SELL_THRESHOLD ? <ArrowDownRight size={14} color="#e07070" /> : null}
+                      {d.score >= SCORE_BUY_THRESHOLD ? <ArrowUpRight size={14} color="#10b981" /> : d.score <= SCORE_SELL_THRESHOLD ? <ArrowDownRight size={14} color="#ef4444" /> : null}
                     </div>
                   </th>
                 ))}
@@ -179,7 +179,7 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
                           borderRight: isBest ? '2px solid rgba(59,130,246,0.4)' : 'none',
                         }}>
                           {formatFn(val, d)}
-                          {isBest && <span style={{ marginLeft: 4, fontSize: '0.65rem', color: '#5a9e87' }}>★</span>}
+                          {isBest && <span style={{ marginLeft: 4, fontSize: '0.65rem', color: '#8b5cf6' }}>★</span>}
                         </td>
                       );
                     })}
@@ -200,8 +200,8 @@ const StockComparator: React.FC<StockComparatorProps> = ({ tickers, darkMode = f
                 border: '1px solid rgba(59,130,246,0.2)',
                 fontSize: '0.82rem', color: theme.textSecondary, lineHeight: 1.6,
               }}>
-                🏆 <strong style={{ color: '#5a9e87' }}>{winner.ticker}</strong> tem o melhor score ({fmt(winner.score, 2)}) com retorno previsto de{' '}
-                <strong style={{ color: winner.exp_return_20 >= 0 ? '#4ead8a' : '#e07070' }}>
+                🏆 <strong style={{ color: '#8b5cf6' }}>{winner.ticker}</strong> tem o melhor score ({fmt(winner.score, 2)}) com retorno previsto de{' '}
+                <strong style={{ color: winner.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
                   {winner.exp_return_20 >= 0 ? '+' : ''}{fmt(winner.exp_return_20 * 100, 1)}%
                 </strong> e volatilidade de {fmt(winner.vol_20d * 100, 1)}%.
               </div>

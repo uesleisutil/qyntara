@@ -305,7 +305,7 @@ const CostTrendChart: React.FC<CostTrendChartProps> = ({
             gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
             gap: '1rem',
             padding: '1rem',
-            backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
+            backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
             borderRadius: '8px',
             border: `1px solid ${colors.grid}`,
           }}

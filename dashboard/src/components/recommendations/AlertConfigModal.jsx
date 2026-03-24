@@ -114,14 +114,14 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
         {/* Header */}
         <div style={{
           padding: '1.5rem',
-          borderBottom: '1px solid #d4e5dc',
+          borderBottom: '1px solid #e2e8f0',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Bell size={24} color="#5a9e87" />
-            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: '#1a2626' }}>
+            <Bell size={24} color="#8b5cf6" />
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: '#1a1836' }}>
               {existingAlert ? 'Editar Alerta' : 'Novo Alerta'}
             </h2>
           </div>
@@ -135,7 +135,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
               borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
-              color: '#5a7268'
+              color: '#64748b'
             }}
             aria-label="Fechar modal"
           >
@@ -151,7 +151,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
               display: 'block',
               fontSize: '0.875rem',
               fontWeight: '500',
-              color: '#3a5248',
+              color: '#475569',
               marginBottom: '0.5rem'
             }}>
               Ticker *
@@ -165,14 +165,14 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: `1px solid ${errors.ticker ? '#e07070' : '#b0c8bc'}`,
+                border: `1px solid ${errors.ticker ? '#ef4444' : '#cbd5e1'}`,
                 borderRadius: '6px',
                 fontSize: '0.875rem',
-                backgroundColor: existingAlert ? '#f6faf8' : 'white'
+                backgroundColor: existingAlert ? '#f8fafc' : 'white'
               }}
             />
             {errors.ticker && (
-              <p style={{ fontSize: '0.75rem', color: '#e07070', margin: '0.25rem 0 0 0' }}>
+              <p style={{ fontSize: '0.75rem', color: '#ef4444', margin: '0.25rem 0 0 0' }}>
                 {errors.ticker}
               </p>
             )}
@@ -184,7 +184,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
               display: 'block',
               fontSize: '0.875rem',
               fontWeight: '500',
-              color: '#3a5248',
+              color: '#475569',
               marginBottom: '0.5rem'
             }}>
               Tipo de Condição *
@@ -195,7 +195,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: '1px solid #b0c8bc',
+                border: '1px solid #cbd5e1',
                 borderRadius: '6px',
                 fontSize: '0.875rem',
                 backgroundColor: 'white',
@@ -216,7 +216,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
               display: 'block',
               fontSize: '0.875rem',
               fontWeight: '500',
-              color: '#3a5248',
+              color: '#475569',
               marginBottom: '0.5rem'
             }}>
               Threshold *
@@ -230,17 +230,17 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
               style={{
                 width: '100%',
                 padding: '0.5rem',
-                border: `1px solid ${errors.threshold ? '#e07070' : '#b0c8bc'}`,
+                border: `1px solid ${errors.threshold ? '#ef4444' : '#cbd5e1'}`,
                 borderRadius: '6px',
                 fontSize: '0.875rem'
               }}
             />
             {errors.threshold && (
-              <p style={{ fontSize: '0.75rem', color: '#e07070', margin: '0.25rem 0 0 0' }}>
+              <p style={{ fontSize: '0.75rem', color: '#ef4444', margin: '0.25rem 0 0 0' }}>
                 {errors.threshold}
               </p>
             )}
-            <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: '0.25rem 0 0 0' }}>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
               {formData.conditionType === 'score_change' && 'Alerta quando o score mudar mais que este valor'}
               {formData.conditionType === 'return_change' && 'Alerta quando o retorno mudar mais que este valor (%)'}
               {formData.conditionType === 'rank_change' && 'Alerta quando o ranking mudar mais que este valor'}
@@ -261,7 +261,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
                 onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
                 style={{ cursor: 'pointer' }}
               />
-              <span style={{ fontSize: '0.875rem', color: '#3a5248' }}>
+              <span style={{ fontSize: '0.875rem', color: '#475569' }}>
                 Alerta ativo
               </span>
             </label>
@@ -282,9 +282,9 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
                   alignItems: 'center',
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#fdf0f0',
-                  color: '#c04040',
-                  border: '1px solid #f0c4c4',
+                  backgroundColor: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1px solid #fecaca',
                   borderRadius: '6px',
                   fontSize: '0.875rem',
                   fontWeight: '500',
@@ -303,8 +303,8 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: 'white',
-                  color: '#5a7268',
-                  border: '1px solid #b0c8bc',
+                  color: '#64748b',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '6px',
                   fontSize: '0.875rem',
                   fontWeight: '500',
@@ -321,7 +321,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
                   alignItems: 'center',
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#5a9e87',
+                  backgroundColor: '#8b5cf6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',

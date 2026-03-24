@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const accent = '#5a9e87';
-const gradient = 'linear-gradient(135deg, #4a8e77, #2d7d9a, #8b7eb8)';
+const accent = '#8b5cf6';
+const gradient = 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)';
 
 const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,14 +21,14 @@ const ForgotPasswordPage: React.FC = () => {
   });
 
   const t = {
-    bg: dark ? '#121a1a' : '#f6faf8',
-    card: dark ? 'rgba(90,158,135,0.03)' : 'white',
-    cardBorder: dark ? '#2a3d36' : '#d4e5dc',
-    input: dark ? '#1a2626' : '#edf5f1',
-    inputBorder: dark ? '#2a3d36' : '#bdd4c8',
-    text: dark ? '#e8f0ed' : '#0f1a16',
-    textSecondary: dark ? '#8fa89c' : '#5a7268',
-    label: dark ? '#8fa89c' : '#3a5248',
+    bg: dark ? '#0c0a1a' : '#f8f7fc',
+    card: dark ? 'rgba(139,92,246,0.03)' : 'white',
+    cardBorder: dark ? '#2a2745' : '#e8e5f0',
+    input: dark ? '#1a1836' : '#f3f1fa',
+    inputBorder: dark ? '#2a2745' : '#d1d5db',
+    text: dark ? '#f1f0f9' : '#0f0e1a',
+    textSecondary: dark ? '#9895b0' : '#64618b',
+    label: dark ? '#9895b0' : '#475569',
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +67,7 @@ const ForgotPasswordPage: React.FC = () => {
                 Digite seu email para receber o código de redefinição
               </p>
               {error && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#e89090', fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#f87171', fontSize: '0.85rem' }}>
                   <AlertCircle size={16} /> {error}
                 </div>
               )}
@@ -88,7 +88,7 @@ const ForgotPasswordPage: React.FC = () => {
             </>
           ) : (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.5rem', color: '#4ead8a', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1.5rem', color: '#10b981', fontSize: '0.85rem' }}>
                 <CheckCircle size={16} /> Se o email existir, um código foi enviado.
               </div>
               <button onClick={() => navigate('/reset-password', { state: { email } })} style={{

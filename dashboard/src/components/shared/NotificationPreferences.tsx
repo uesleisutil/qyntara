@@ -84,7 +84,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
         padding: '1.5rem',
         backgroundColor: 'white',
         borderRadius: '0.5rem',
-        border: '1px solid #d4e5dc',
+        border: '1px solid #e5e7eb',
       }}
     >
       {/* Header */}
@@ -140,7 +140,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               fontSize: '0.875rem',
               fontWeight: '500',
               marginBottom: '0.5rem',
-              color: '#2a4038',
+              color: '#374151',
             }}
           >
             Email Address
@@ -155,16 +155,16 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               width: '100%',
               padding: '0.5rem 0.75rem',
               fontSize: '0.875rem',
-              border: '1px solid #bdd4c8',
+              border: '1px solid #d1d5db',
               borderRadius: '0.375rem',
               outline: 'none',
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#5a9e87';
+              e.currentTarget.style.borderColor = '#8b5cf6';
               e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = '#bdd4c8';
+              e.currentTarget.style.borderColor = '#d1d5db';
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
@@ -178,7 +178,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               fontSize: '0.875rem',
               fontWeight: '500',
               marginBottom: '0.5rem',
-              color: '#2a4038',
+              color: '#374151',
             }}
           >
             Send email for these alert types:
@@ -192,13 +192,13 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   alignItems: 'flex-start',
                   gap: '0.75rem',
                   padding: '0.75rem',
-                  border: '1px solid #d4e5dc',
+                  border: '1px solid #e5e7eb',
                   borderRadius: '0.375rem',
                   cursor: 'pointer',
                   transition: 'background-color 0.2s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f6faf8';
+                  e.currentTarget.style.backgroundColor = '#f9fafb';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
@@ -219,7 +219,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   <div style={{ fontWeight: '500', fontSize: '0.875rem' }}>
                     {category.label}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.125rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.125rem' }}>
                     {category.description}
                   </div>
                 </div>
@@ -243,7 +243,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               fontSize: '0.875rem',
               fontWeight: '500',
               marginBottom: '0.5rem',
-              color: '#2a4038',
+              color: '#374151',
             }}
           >
             Phone Number
@@ -258,20 +258,20 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               width: '100%',
               padding: '0.5rem 0.75rem',
               fontSize: '0.875rem',
-              border: '1px solid #bdd4c8',
+              border: '1px solid #d1d5db',
               borderRadius: '0.375rem',
               outline: 'none',
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#5a9e87';
+              e.currentTarget.style.borderColor = '#8b5cf6';
               e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = '#bdd4c8';
+              e.currentTarget.style.borderColor = '#d1d5db';
               e.currentTarget.style.boxShadow = 'none';
             }}
           />
-          <p style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+          <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
             SMS notifications are limited to critical alerts only (Req 46.8)
           </p>
         </div>
@@ -284,7 +284,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               fontSize: '0.875rem',
               fontWeight: '500',
               marginBottom: '0.5rem',
-              color: '#2a4038',
+              color: '#374151',
             }}
           >
             Send SMS for these critical alert types:
@@ -298,13 +298,13 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   alignItems: 'flex-start',
                   gap: '0.75rem',
                   padding: '0.75rem',
-                  border: '1px solid #d4e5dc',
+                  border: '1px solid #e5e7eb',
                   borderRadius: '0.375rem',
                   cursor: 'pointer',
                   transition: 'background-color 0.2s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#f6faf8';
+                  e.currentTarget.style.backgroundColor = '#f9fafb';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'transparent';
@@ -325,7 +325,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   <div style={{ fontWeight: '500', fontSize: '0.875rem' }}>
                     {category.label}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.125rem' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.125rem' }}>
                     {category.description}
                   </div>
                 </div>
@@ -371,7 +371,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   fontSize: '0.875rem',
                   fontWeight: '500',
                   marginBottom: '0.5rem',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 Start Time
@@ -385,7 +385,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   width: '100%',
                   padding: '0.5rem 0.75rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '0.375rem',
                   outline: 'none',
                 }}
@@ -399,7 +399,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   fontSize: '0.875rem',
                   fontWeight: '500',
                   marginBottom: '0.5rem',
-                  color: '#2a4038',
+                  color: '#374151',
                 }}
               >
                 End Time
@@ -413,7 +413,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
                   width: '100%',
                   padding: '0.5rem 0.75rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '0.375rem',
                   outline: 'none',
                 }}
@@ -433,7 +433,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
             fontSize: '0.875rem',
             fontWeight: '500',
             color: 'white',
-            backgroundColor: saving ? '#8fa89c' : '#5a9e87',
+            backgroundColor: saving ? '#9ca3af' : '#8b5cf6',
             border: 'none',
             borderRadius: '0.375rem',
             cursor: saving ? 'not-allowed' : 'pointer',
@@ -441,12 +441,12 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
           }}
           onMouseEnter={(e) => {
             if (!saving) {
-              e.currentTarget.style.backgroundColor = '#4a8e77';
+              e.currentTarget.style.backgroundColor = '#7c3aed';
             }
           }}
           onMouseLeave={(e) => {
             if (!saving) {
-              e.currentTarget.style.backgroundColor = '#5a9e87';
+              e.currentTarget.style.backgroundColor = '#8b5cf6';
             }
           }}
         >
@@ -455,12 +455,12 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
 
         {/* Save Status (Req 46.10) */}
         {saveStatus === 'success' && (
-          <span style={{ fontSize: '0.875rem', color: '#4ead8a' }}>
+          <span style={{ fontSize: '0.875rem', color: '#10b981' }}>
             ✓ Preferences saved successfully
           </span>
         )}
         {saveStatus === 'error' && (
-          <span style={{ fontSize: '0.875rem', color: '#e07070' }}>
+          <span style={{ fontSize: '0.875rem', color: '#ef4444' }}>
             ✗ Failed to save preferences
           </span>
         )}

@@ -41,7 +41,7 @@ const UpgradePage: React.FC = () => {
   }, [searchParams, refreshPlan]);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
   const btnBase: React.CSSProperties = {
@@ -94,11 +94,11 @@ const UpgradePage: React.FC = () => {
     return (
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '2rem 1rem', textAlign: 'center' }}>
         {successMsg && (
-          <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#4ead8a', fontSize: '0.85rem' }}>
+          <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: '0.85rem' }}>
             🎉 {successMsg}
           </div>
         )}
-        <Crown size={48} color="#d4a84b" style={{ marginBottom: '1rem' }} />
+        <Crown size={48} color="#f59e0b" style={{ marginBottom: '1rem' }} />
         <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: theme.text, marginBottom: '0.5rem' }}>
           Você é Pro!
         </h2>
@@ -124,7 +124,7 @@ const UpgradePage: React.FC = () => {
             Gerenciar Assinatura
           </button>
         </div>
-        {error && <div style={{ marginTop: '0.75rem', color: '#e07070', fontSize: '0.8rem' }}>{error}</div>}
+        {error && <div style={{ marginTop: '0.75rem', color: '#ef4444', fontSize: '0.8rem' }}>{error}</div>}
         <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
@@ -142,7 +142,7 @@ const UpgradePage: React.FC = () => {
     <div style={{ maxWidth: 560, margin: '0 auto', padding: '1rem 0' }}>
       {/* Success message */}
       {successMsg && (
-        <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#4ead8a', fontSize: '0.85rem', textAlign: 'center' }}>
+        <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: '0.85rem', textAlign: 'center' }}>
           <Loader2 size={16} className="spin" style={{ verticalAlign: 'middle', marginRight: 6 }} />
           {successMsg}
         </div>
@@ -150,7 +150,7 @@ const UpgradePage: React.FC = () => {
 
       {/* Error message */}
       {error && (
-        <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', fontSize: '0.85rem', textAlign: 'center' }}>
+        <div style={{ ...cardStyle, padding: '1rem', marginBottom: '1rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.85rem', textAlign: 'center' }}>
           {error}
         </div>
       )}
@@ -158,9 +158,9 @@ const UpgradePage: React.FC = () => {
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <div style={{
           width: 64, height: 64, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #d4a84b, #b08a30)',
+          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 1rem', boxShadow: '0 4px 20px rgba(212,168,75,0.3)',
+          margin: '0 auto 1rem', boxShadow: '0 4px 20px rgba(245,158,11,0.3)',
         }}>
           <Crown size={32} color="white" />
         </div>
@@ -181,14 +181,14 @@ const UpgradePage: React.FC = () => {
           }}>
             <div style={{
               width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-              background: 'rgba(212,168,75,0.1)', color: '#d4a84b',
+              background: 'rgba(245,158,11,0.1)', color: '#f59e0b',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>{f.icon}</div>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>{f.title}</div>
               <div style={{ fontSize: '0.73rem', color: theme.textSecondary }}>{f.desc}</div>
             </div>
-            <CheckCircle size={18} color="#4ead8a" style={{ marginLeft: 'auto', flexShrink: 0, alignSelf: 'center' }} />
+            <CheckCircle size={18} color="#10b981" style={{ marginLeft: 'auto', flexShrink: 0, alignSelf: 'center' }} />
           </div>
         ))}
       </div>
@@ -196,8 +196,8 @@ const UpgradePage: React.FC = () => {
       {/* Price + CTA */}
       <div style={{
         ...cardStyle, padding: '1.5rem', textAlign: 'center', marginBottom: '1.25rem',
-        background: 'linear-gradient(135deg, rgba(212,168,75,0.1), rgba(217,119,6,0.05))',
-        border: '1px solid rgba(212,168,75,0.2)',
+        background: 'linear-gradient(135deg, rgba(245,158,11,0.1), rgba(217,119,6,0.05))',
+        border: '1px solid rgba(245,158,11,0.2)',
       }}>
         <div style={{ fontSize: '0.8rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>Plano Pro</div>
         <div style={{ marginBottom: '0.5rem' }}>
@@ -210,7 +210,7 @@ const UpgradePage: React.FC = () => {
           display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
           padding: '0.3rem 0.75rem', borderRadius: 20, marginBottom: '1rem',
           background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)',
-          fontSize: '0.72rem', color: '#4ead8a', fontWeight: 600,
+          fontSize: '0.72rem', color: '#10b981', fontWeight: 600,
         }}>
           <Shield size={12} /> 7 dias de garantia — não gostou, devolvemos
         </div>
@@ -221,8 +221,8 @@ const UpgradePage: React.FC = () => {
           onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}
           style={{
             ...btnBase,
-            background: 'linear-gradient(135deg, #d4a84b, #b08a30)', color: 'white',
-            boxShadow: '0 4px 14px rgba(212,168,75,0.3)',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white',
+            boxShadow: '0 4px 14px rgba(245,158,11,0.3)',
             opacity: loading ? 0.7 : 1,
           }}>
           {loading ? <Loader2 size={20} className="spin" /> : <CreditCard size={20} />}
@@ -242,7 +242,7 @@ const UpgradePage: React.FC = () => {
             <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
               <th style={{ padding: '0.5rem', textAlign: 'left', color: theme.textSecondary, fontWeight: 600 }}>Recurso</th>
               <th style={{ padding: '0.5rem', textAlign: 'center', color: theme.textSecondary, fontWeight: 600 }}>Free</th>
-              <th style={{ padding: '0.5rem', textAlign: 'center', color: '#d4a84b', fontWeight: 600 }}>Pro</th>
+              <th style={{ padding: '0.5rem', textAlign: 'center', color: '#f59e0b', fontWeight: 600 }}>Pro</th>
             </tr>
           </thead>
           <tbody>
@@ -262,12 +262,12 @@ const UpgradePage: React.FC = () => {
                 <td style={{ padding: '0.45rem 0.5rem', color: theme.text }}>{row.feature}</td>
                 <td style={{ padding: '0.45rem 0.5rem', textAlign: 'center' }}>
                   {row.free
-                    ? <span style={{ color: '#4ead8a' }}>✓</span>
+                    ? <span style={{ color: '#10b981' }}>✓</span>
                     : <span style={{ color: theme.textSecondary, opacity: 0.4 }}>✗</span>
                   }
                 </td>
                 <td style={{ padding: '0.45rem 0.5rem', textAlign: 'center' }}>
-                  <span style={{ color: '#4ead8a' }}>✓</span>
+                  <span style={{ color: '#10b981' }}>✓</span>
                 </td>
               </tr>
             ))}

@@ -10,11 +10,11 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 const COLORS = {
-  Lambda: '#5a9e87',
-  S3: '#4ead8a',
-  SageMaker: '#d4a84b',
-  CloudWatch: '#e07070',
-  Other: '#5a7268'
+  Lambda: '#8b5cf6',
+  S3: '#10b981',
+  SageMaker: '#f59e0b',
+  CloudWatch: '#ef4444',
+  Other: '#64748b'
 };
 
 const CostsByServiceChart = ({ data, isLoading }) => {
@@ -37,7 +37,7 @@ const CostsByServiceChart = ({ data, isLoading }) => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
         Carregando distribuição de custos...
       </div>
     );
@@ -45,7 +45,7 @@ const CostsByServiceChart = ({ data, isLoading }) => {
 
   if (chartData.length === 0) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
         Sem dados de distribuição de custos disponíveis
       </div>
     );
@@ -62,14 +62,14 @@ const CostsByServiceChart = ({ data, isLoading }) => {
         <div style={{
           backgroundColor: 'white',
           padding: '0.75rem',
-          border: '1px solid #d4e5dc',
+          border: '1px solid #e2e8f0',
           borderRadius: '8px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}>
-          <p style={{ margin: '0 0 0.25rem 0', fontWeight: '600', color: '#1a2626' }}>
+          <p style={{ margin: '0 0 0.25rem 0', fontWeight: '600', color: '#1a1836' }}>
             {data.name}
           </p>
-          <p style={{ margin: 0, fontSize: '0.875rem', color: '#5a7268' }}>
+          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
             R$ {data.value.toFixed(2)} ({percentage}%)
           </p>
         </div>
@@ -80,7 +80,7 @@ const CostsByServiceChart = ({ data, isLoading }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a2626' }}>
+      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
         Distribuição de Custos por Serviço AWS
       </h3>
 
@@ -93,7 +93,7 @@ const CostsByServiceChart = ({ data, isLoading }) => {
             labelLine={false}
             label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
             outerRadius={100}
-            fill="#5a9e87"
+            fill="#8884d8"
             dataKey="value"
           >
             {chartData.map((entry, index) => (
@@ -117,7 +117,7 @@ const CostsByServiceChart = ({ data, isLoading }) => {
           return (
             <div key={idx} style={{
               padding: '0.75rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f8fafc',
               borderRadius: '6px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -130,15 +130,15 @@ const CostsByServiceChart = ({ data, isLoading }) => {
                   borderRadius: '50%',
                   backgroundColor: item.color
                 }} />
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1a2626' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1a1836' }}>
                   {item.name}
                 </span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#1a2626' }}>
+                <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#1a1836' }}>
                   R$ {item.value.toFixed(2)}
                 </p>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: '#5a7268' }}>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
                   {percentage}%
                 </p>
               </div>

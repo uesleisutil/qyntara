@@ -151,12 +151,12 @@ describe('32.2 UAT - Accessibility', () => {
   test('color contrast ratios meet WCAG AA standards', () => {
     // Verify theme colors have sufficient contrast
     const lightTheme = {
-      text: '#0f1a16',
-      bg: '#f6faf8',
+      text: '#0f172a',
+      bg: '#f8fafc',
     };
     const darkTheme = {
-      text: '#e8f0ed',
-      bg: '#0f1a16',
+      text: '#f1f5f9',
+      bg: '#0f172a',
     };
 
     // Both themes should have defined text and background colors

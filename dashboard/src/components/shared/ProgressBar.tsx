@@ -57,7 +57,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
           )}
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             {showValues && (
-              <span className="progress-bar-values" style={{ fontSize: '0.875rem', color: '#5a7268' }}>
+              <span className="progress-bar-values" style={{ fontSize: '0.875rem', color: '#64748b' }}>
                 <strong>{value.toFixed(2)}{unit}</strong>
                 {target && ` / ${target.toFixed(2)}${unit}`}
               </span>
@@ -65,9 +65,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
             {showPercentage && (
               <span className="progress-bar-percentage" style={{ 
                 fontWeight: 600,
-                color: barColor === 'green' ? '#4ead8a' : 
-                       barColor === 'yellow' ? '#d4a84b' : 
-                       barColor === 'red' ? '#e07070' : '#5a9e87',
+                color: barColor === 'green' ? '#10b981' : 
+                       barColor === 'yellow' ? '#f59e0b' : 
+                       barColor === 'red' ? '#ef4444' : '#8b5cf6',
               }}>
                 {percentage.toFixed(0)}%
               </span>
@@ -79,7 +79,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
         className="progress-bar-track" 
         style={{
           width: '100%',
-          backgroundColor: '#d4e5dc',
+          backgroundColor: '#e5e7eb',
           borderRadius: '9999px',
           overflow: 'hidden',
           height: size === 'sm' ? '0.5rem' : size === 'lg' ? '1.5rem' : '1rem',
@@ -91,9 +91,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
             width: `${percentage}%`,
             height: '100%',
             backgroundColor: 
-              barColor === 'green' ? '#4ead8a' : 
-              barColor === 'yellow' ? '#d4a84b' : 
-              barColor === 'red' ? '#e07070' : '#5a9e87',
+              barColor === 'green' ? '#10b981' : 
+              barColor === 'yellow' ? '#f59e0b' : 
+              barColor === 'red' ? '#ef4444' : '#8b5cf6',
             transition: 'width 0.3s ease-in-out',
             borderRadius: '9999px',
           }}

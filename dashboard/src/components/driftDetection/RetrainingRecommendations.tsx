@@ -25,23 +25,23 @@ export const RetrainingRecommendations: React.FC<Props> = ({
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
 
   const theme = {
-    cardBg: darkMode ? '#1a2626' : '#fff',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    cardBg: darkMode ? '#1a1836' : '#fff',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
     priorityBg: {
-      critical: darkMode ? 'rgba(224,112,112,0.1)' : 'rgba(224,112,112,0.05)',
+      critical: darkMode ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.05)',
       high: darkMode ? 'rgba(249,115,22,0.1)' : 'rgba(249,115,22,0.05)',
-      medium: darkMode ? 'rgba(212,168,75,0.1)' : 'rgba(212,168,75,0.05)',
+      medium: darkMode ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.05)',
       low: darkMode ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
     },
     priorityBorder: {
-      critical: darkMode ? 'rgba(224,112,112,0.3)' : 'rgba(224,112,112,0.25)',
+      critical: darkMode ? 'rgba(239,68,68,0.3)' : 'rgba(239,68,68,0.25)',
       high: darkMode ? 'rgba(249,115,22,0.3)' : 'rgba(249,115,22,0.25)',
-      medium: darkMode ? 'rgba(212,168,75,0.3)' : 'rgba(212,168,75,0.25)',
+      medium: darkMode ? 'rgba(245,158,11,0.3)' : 'rgba(245,158,11,0.25)',
       low: darkMode ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.25)',
     },
-    priorityText: { critical: '#e07070', high: '#d4944b', medium: '#d4a84b', low: '#5a9e87' },
+    priorityText: { critical: '#ef4444', high: '#f97316', medium: '#f59e0b', low: '#8b5cf6' },
   };
 
   const cardStyle: React.CSSProperties = {
@@ -130,7 +130,7 @@ export const RetrainingRecommendations: React.FC<Props> = ({
   if (!recommendation) {
     return (
       <div style={{ ...cardStyle, padding: '2rem', textAlign: 'center' }}>
-        <CheckCircle size={40} color="#4ead8a" style={{ marginBottom: '0.75rem' }} />
+        <CheckCircle size={40} color="#10b981" style={{ marginBottom: '0.75rem' }} />
         <h4 style={{ margin: '0 0 0.4rem 0', fontSize: '1rem', fontWeight: 600, color: theme.text }}>Retreinamento Não Necessário</h4>
         <p style={{ margin: 0, fontSize: '0.85rem', color: theme.textSecondary }}>Performance do modelo está estável. Nenhum drift ou degradação significativa detectada.</p>
         {daysSinceLastTraining > 0 && (
@@ -213,15 +213,15 @@ export const RetrainingRecommendations: React.FC<Props> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <RefreshCw size={18} color={theme.textSecondary} />
             <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Checklist de Retreinamento</h4>
-            <span style={{ fontSize: '0.72rem', color: theme.textSecondary, background: darkMode ? '#2a3d36' : '#e8f0ed', padding: '0.1rem 0.45rem', borderRadius: 10 }}>{completedItems} / {totalItems}</span>
+            <span style={{ fontSize: '0.72rem', color: theme.textSecondary, background: darkMode ? '#2a2745' : '#f1f5f9', padding: '0.1rem 0.45rem', borderRadius: 10 }}>{completedItems} / {totalItems}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>{progress.toFixed(0)}%</span>
             <div style={{ color: theme.textSecondary }}>{showChecklist ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</div>
           </div>
         </div>
-        <div style={{ height: 4, background: darkMode ? '#2a3d36' : '#d4e5dc', position: 'relative' }}>
-          <div style={{ height: '100%', width: `${progress}%`, background: progress === 100 ? '#4ead8a' : '#5a9e87', transition: 'width 0.3s ease' }} />
+        <div style={{ height: 4, background: darkMode ? '#2a2745' : '#e2e8f0', position: 'relative' }}>
+          <div style={{ height: '100%', width: `${progress}%`, background: progress === 100 ? '#10b981' : '#8b5cf6', transition: 'width 0.3s ease' }} />
         </div>
         {showChecklist && (
           <div style={{ padding: '1rem' }}>
@@ -229,11 +229,11 @@ export const RetrainingRecommendations: React.FC<Props> = ({
               {checklist.map((item, idx) => (
                 <div key={idx} onClick={() => toggleChecklistItem(idx)} style={{
                   display: 'flex', alignItems: 'flex-start', gap: '0.6rem', padding: '0.65rem',
-                  background: darkMode ? '#121a1a' : '#f6faf8', borderRadius: 8, cursor: 'pointer',
-                  border: `1px solid ${item.completed ? '#4ead8a' : theme.border}`, transition: 'all 0.2s ease',
+                  background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 8, cursor: 'pointer',
+                  border: `1px solid ${item.completed ? '#10b981' : theme.border}`, transition: 'all 0.2s ease',
                 }}>
                   <div style={{ flexShrink: 0, marginTop: '0.1rem' }}>
-                    {item.completed ? <CheckCircle size={18} color="#4ead8a" /> : <Circle size={18} color={theme.textSecondary} />}
+                    {item.completed ? <CheckCircle size={18} color="#10b981" /> : <Circle size={18} color={theme.textSecondary} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: '0.82rem', fontWeight: 500, color: item.completed ? theme.textSecondary : theme.text, textDecoration: item.completed ? 'line-through' : 'none' }}>{item.item}</div>
@@ -242,7 +242,7 @@ export const RetrainingRecommendations: React.FC<Props> = ({
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: '0.75rem', padding: '0.65rem', background: darkMode ? '#121a1a' : '#f6faf8', borderRadius: 8, fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5 }}>
+            <div style={{ marginTop: '0.75rem', padding: '0.65rem', background: darkMode ? '#0c0a1a' : '#f8fafc', borderRadius: 8, fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5 }}>
               <strong style={{ color: theme.text }}>Nota:</strong> Este checklist fornece um fluxo recomendado para retreinamento do modelo. Ajuste os passos conforme seus requisitos e processos organizacionais.
             </div>
           </div>

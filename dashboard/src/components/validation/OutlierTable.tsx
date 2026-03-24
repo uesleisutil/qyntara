@@ -160,7 +160,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
   if (error) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#c04040' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
           <p>Error loading outlier analysis: {error.message}</p>
         </div>
       </Card>
@@ -170,7 +170,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
   if (!data || data.length === 0) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
           <p>No data available for outlier analysis</p>
         </div>
       </Card>
@@ -196,18 +196,18 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '8px',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
               Total Outliers
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#c04040' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#dc2626' }}>
               {outlierAnalysis.outliers.length}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
               {outlierAnalysis.outlierPercentage.toFixed(2)}% of predictions
             </div>
           </div>
@@ -215,18 +215,18 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '8px',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
               Over-Predictions
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#d4a84b' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>
               {outlierAnalysis.overPredictions.length}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
               Predicted too high
             </div>
           </div>
@@ -234,18 +234,18 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '8px',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
               Under-Predictions
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#5a9e87' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>
               {outlierAnalysis.underPredictions.length}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
               Predicted too low
             </div>
           </div>
@@ -253,18 +253,18 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '8px',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
               Common Sector
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1a2e26' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>
               {outlierAnalysis.commonCharacteristics.mostCommonSector}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
               Most frequent in outliers
             </div>
           </div>
@@ -284,10 +284,10 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
             style={{
               padding: '0.5rem 1rem',
               fontSize: '0.875rem',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
               borderRadius: '6px',
-              backgroundColor: filterDirection === 'all' ? '#5a9e87' : 'white',
-              color: filterDirection === 'all' ? 'white' : '#5a7268',
+              backgroundColor: filterDirection === 'all' ? '#8b5cf6' : 'white',
+              color: filterDirection === 'all' ? 'white' : '#6b7280',
               cursor: 'pointer',
               transition: 'all 0.2s',
             }}
@@ -299,10 +299,10 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
             style={{
               padding: '0.5rem 1rem',
               fontSize: '0.875rem',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
               borderRadius: '6px',
-              backgroundColor: filterDirection === 'over' ? '#d4a84b' : 'white',
-              color: filterDirection === 'over' ? 'white' : '#5a7268',
+              backgroundColor: filterDirection === 'over' ? '#f59e0b' : 'white',
+              color: filterDirection === 'over' ? 'white' : '#6b7280',
               cursor: 'pointer',
               transition: 'all 0.2s',
             }}
@@ -314,10 +314,10 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
             style={{
               padding: '0.5rem 1rem',
               fontSize: '0.875rem',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
               borderRadius: '6px',
-              backgroundColor: filterDirection === 'under' ? '#5a9e87' : 'white',
-              color: filterDirection === 'under' ? 'white' : '#5a7268',
+              backgroundColor: filterDirection === 'under' ? '#8b5cf6' : 'white',
+              color: filterDirection === 'under' ? 'white' : '#6b7280',
               cursor: 'pointer',
               transition: 'all 0.2s',
             }}
@@ -337,14 +337,14 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
               }}
             >
               <thead>
-                <tr style={{ backgroundColor: '#f6faf8', borderBottom: '2px solid #d4e5dc' }}>
+                <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
                   <th
                     onClick={() => handleSort('ticker')}
                     style={{
                       padding: '0.75rem',
                       textAlign: 'left',
                       fontWeight: '600',
-                      color: '#2a4038',
+                      color: '#374151',
                       cursor: 'pointer',
                       userSelect: 'none',
                     }}
@@ -357,7 +357,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                       padding: '0.75rem',
                       textAlign: 'left',
                       fontWeight: '600',
-                      color: '#2a4038',
+                      color: '#374151',
                       cursor: 'pointer',
                       userSelect: 'none',
                     }}
@@ -369,7 +369,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                       padding: '0.75rem',
                       textAlign: 'right',
                       fontWeight: '600',
-                      color: '#2a4038',
+                      color: '#374151',
                     }}
                   >
                     Predicted
@@ -379,7 +379,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                       padding: '0.75rem',
                       textAlign: 'right',
                       fontWeight: '600',
-                      color: '#2a4038',
+                      color: '#374151',
                     }}
                   >
                     Actual
@@ -390,7 +390,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                       padding: '0.75rem',
                       textAlign: 'right',
                       fontWeight: '600',
-                      color: '#2a4038',
+                      color: '#374151',
                       cursor: 'pointer',
                       userSelect: 'none',
                     }}
@@ -402,7 +402,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                       padding: '0.75rem',
                       textAlign: 'center',
                       fontWeight: '600',
-                      color: '#2a4038',
+                      color: '#374151',
                     }}
                   >
                     Direction
@@ -415,29 +415,29 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                     key={`${outlier.ticker}-${outlier.date}-${index}`}
                     onClick={() => onOutlierClick && onOutlierClick(outlier)}
                     style={{
-                      borderBottom: '1px solid #d4e5dc',
+                      borderBottom: '1px solid #e5e7eb',
                       cursor: onOutlierClick ? 'pointer' : 'default',
                       transition: 'background-color 0.2s',
                     }}
                     onMouseEnter={(e) => {
                       if (onOutlierClick) {
-                        e.currentTarget.style.backgroundColor = '#f6faf8';
+                        e.currentTarget.style.backgroundColor = '#f9fafb';
                       }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1a2e26' }}>
+                    <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1f2937' }}>
                       {outlier.ticker}
                     </td>
-                    <td style={{ padding: '0.75rem', color: '#5a7268' }}>
+                    <td style={{ padding: '0.75rem', color: '#6b7280' }}>
                       {new Date(outlier.date).toLocaleDateString()}
                     </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', color: '#5a7268' }}>
+                    <td style={{ padding: '0.75rem', textAlign: 'right', color: '#6b7280' }}>
                       {outlier.predicted.toFixed(2)}%
                     </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', color: '#5a7268' }}>
+                    <td style={{ padding: '0.75rem', textAlign: 'right', color: '#6b7280' }}>
                       {outlier.actual.toFixed(2)}%
                     </td>
                     <td
@@ -445,7 +445,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                         padding: '0.75rem',
                         textAlign: 'right',
                         fontWeight: 'bold',
-                        color: outlier.error > 0 ? '#d4a84b' : '#5a9e87',
+                        color: outlier.error > 0 ? '#f59e0b' : '#8b5cf6',
                       }}
                     >
                       {outlier.error > 0 ? '+' : ''}
@@ -458,8 +458,8 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                           borderRadius: '4px',
                           fontSize: '0.75rem',
                           fontWeight: '500',
-                          backgroundColor: outlier.error > 0 ? '#f5ecd0' : '#d4ede0',
-                          color: outlier.error > 0 ? '#8a5a1e' : '#4a8e77',
+                          backgroundColor: outlier.error > 0 ? '#fef3c7' : '#dbeafe',
+                          color: outlier.error > 0 ? '#92400e' : '#7c3aed',
                         }}
                       >
                         {outlier.error > 0 ? 'Over' : 'Under'}
@@ -471,7 +471,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
             </table>
           </div>
         ) : (
-          <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
             <p>No outliers found with the current filter</p>
           </div>
         )}

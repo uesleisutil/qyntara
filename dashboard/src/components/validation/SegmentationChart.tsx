@@ -60,7 +60,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
     return data.map((segment) => ({
       ...segment,
       // Highlight segments with accuracy below 50%
-      accuracyColor: segment.accuracy < 0.5 ? '#c04040' : '#4ead8a',
+      accuracyColor: segment.accuracy < 0.5 ? '#dc2626' : '#10b981',
     }));
   }, [data]);
 
@@ -95,32 +95,32 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
         <div
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid #d4e5dc',
+            border: '1px solid #e5e7eb',
             borderRadius: '8px',
             padding: '12px',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1a2e26' }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1f2937' }}>
             {segment.range}
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#5a7268' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#6b7280' }}>
             Range: {segment.minReturn.toFixed(1)}% to {segment.maxReturn.toFixed(1)}%
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#5a7268' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#6b7280' }}>
             Predictions: {segment.count}
           </p>
           <p
             style={{
               margin: '4px 0',
               fontSize: '0.875rem',
-              color: segment.accuracy < 0.5 ? '#c04040' : '#4ead8a',
+              color: segment.accuracy < 0.5 ? '#dc2626' : '#10b981',
               fontWeight: 'bold',
             }}
           >
             Accuracy: {(segment.accuracy * 100).toFixed(1)}%
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#5a7268' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#6b7280' }}>
             MAPE: {(segment.mape * 100).toFixed(1)}%
           </p>
         </div>
@@ -142,7 +142,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
   if (error) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#c04040' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
           <p>Error loading segmentation chart: {error.message}</p>
         </div>
       </Card>
@@ -152,7 +152,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
   if (!data || data.length === 0) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
           <p>No data available for segmentation chart</p>
         </div>
       </Card>
@@ -180,10 +180,10 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
             style={{
               padding: '0.5rem 1rem',
               fontSize: '0.875rem',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
               borderRadius: '6px',
               backgroundColor: 'white',
-              color: '#5a7268',
+              color: '#6b7280',
               cursor: 'pointer',
               transition: 'all 0.2s',
             }}
@@ -198,9 +198,9 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
             style={{
               marginBottom: '1rem',
               padding: '1rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '8px',
-              border: '1px solid #d4e5dc',
+              border: '1px solid #e5e7eb',
             }}
           >
             <label
@@ -209,7 +209,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
                 marginBottom: '0.5rem',
                 fontSize: '0.875rem',
                 fontWeight: '500',
-                color: '#2a4038',
+                color: '#374151',
               }}
             >
               Custom Range Boundaries (comma-separated, e.g., -10,-5,0,5,10):
@@ -224,7 +224,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
                   flex: 1,
                   padding: '0.5rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #bdd4c8',
+                  border: '1px solid #d1d5db',
                   borderRadius: '6px',
                 }}
               />
@@ -235,7 +235,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
                   fontSize: '0.875rem',
                   border: 'none',
                   borderRadius: '6px',
-                  backgroundColor: '#5a9e87',
+                  backgroundColor: '#8b5cf6',
                   color: 'white',
                   cursor: 'pointer',
                   fontWeight: '500',
@@ -259,30 +259,30 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
           <div
             style={{
               padding: '0.75rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '6px',
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
               Total Predictions
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1a2e26' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>
               {chartData.reduce((sum, s) => sum + s.count, 0)}
             </div>
           </div>
           <div
             style={{
               padding: '0.75rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '6px',
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
               Avg Accuracy
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1a2e26' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>
               {(
                 (chartData.reduce((sum, s) => sum + s.accuracy * s.count, 0) /
                   chartData.reduce((sum, s) => sum + s.count, 0)) *
@@ -294,19 +294,19 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
           <div
             style={{
               padding: '0.75rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f9fafb',
               borderRadius: '6px',
               textAlign: 'center',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
               Segments Below 50%
             </div>
             <div
               style={{
                 fontSize: '1.25rem',
                 fontWeight: 'bold',
-                color: chartData.filter((s) => s.accuracy < 0.5).length > 0 ? '#c04040' : '#4ead8a',
+                color: chartData.filter((s) => s.accuracy < 0.5).length > 0 ? '#dc2626' : '#10b981',
               }}
             >
               {chartData.filter((s) => s.accuracy < 0.5).length}
@@ -319,34 +319,34 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
             data={chartData}
             margin={{ top: 20, right: 30, bottom: 60, left: 20 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey="range"
-              tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
+              tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
               angle={-45}
               textAnchor="end"
               height={80}
             />
             <YAxis
               yAxisId="left"
-              tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
+              tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
               label={{
                 value: 'Accuracy / MAPE',
                 angle: -90,
                 position: 'insideLeft',
-                style: { fontSize: '0.875rem', fill: '#5a7268' },
+                style: { fontSize: '0.875rem', fill: '#6b7280' },
               }}
               domain={[0, 1]}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
+              tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
               label={{
                 value: 'Count',
                 angle: 90,
                 position: 'insideRight',
-                style: { fontSize: '0.875rem', fill: '#5a7268' },
+                style: { fontSize: '0.875rem', fill: '#6b7280' },
               }}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -360,12 +360,12 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
             <ReferenceLine
               yAxisId="left"
               y={0.5}
-              stroke="#c04040"
+              stroke="#dc2626"
               strokeDasharray="5 5"
               label={{
                 value: '50% Threshold',
                 position: 'insideTopRight',
-                style: { fontSize: '0.75rem', fill: '#c04040' },
+                style: { fontSize: '0.75rem', fill: '#dc2626' },
               }}
             />
 
@@ -381,7 +381,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
               yAxisId="left"
               dataKey="mape"
               name="MAPE"
-              fill="#d4a84b"
+              fill="#f59e0b"
               radius={[4, 4, 0, 0]}
             />
 
@@ -390,7 +390,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
               yAxisId="right"
               dataKey="count"
               name="Count"
-              fill="#5a7268"
+              fill="#6b7280"
               opacity={0.3}
               radius={[4, 4, 0, 0]}
             />

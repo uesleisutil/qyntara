@@ -138,14 +138,14 @@ describe('FAQ', () => {
     const { container } = render(<FAQ darkMode={true} />);
     const mainDiv = container.firstChild as HTMLElement;
     
-    expect(mainDiv).toHaveStyle({ backgroundColor: '#0f1a16' });
+    expect(mainDiv).toHaveStyle({ backgroundColor: '#0f172a' });
   });
 
   it('applies light mode styling when darkMode prop is false', () => {
     const { container } = render(<FAQ darkMode={false} />);
     const mainDiv = container.firstChild as HTMLElement;
     
-    expect(mainDiv).toHaveStyle({ backgroundColor: '#f6faf8' });
+    expect(mainDiv).toHaveStyle({ backgroundColor: '#f8fafc' });
   });
 
   it('has at least 30 FAQ entries', () => {

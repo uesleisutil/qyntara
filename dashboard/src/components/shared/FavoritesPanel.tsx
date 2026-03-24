@@ -15,12 +15,12 @@ export const FavoritesPanel: React.FC<FavoritesPanelProps> = ({
   const [removing, setRemoving] = useState<string | null>(null);
 
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    hover: darkMode ? '#2a3d36' : '#e8f0ed'
+    bg: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f1f5f9'
   };
 
   const handleRemove = async (ticker: string) => {
@@ -72,7 +72,7 @@ export const FavoritesPanel: React.FC<FavoritesPanelProps> = ({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Star size={24} fill="#e0b85c" color="#e0b85c" />
+          <Star size={24} fill="#fbbf24" color="#fbbf24" />
           <div>
             <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '700', color: theme.text }}>
               Favorite Tickers
@@ -128,8 +128,8 @@ export const FavoritesPanel: React.FC<FavoritesPanelProps> = ({
                 onClick={handleClearAll}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#fde0e0',
-                  color: '#c04040',
+                  backgroundColor: '#fee2e2',
+                  color: '#dc2626',
                   border: 'none',
                   borderRadius: '0.375rem',
                   fontSize: '0.875rem',
@@ -140,8 +140,8 @@ export const FavoritesPanel: React.FC<FavoritesPanelProps> = ({
                   gap: '0.5rem',
                   transition: 'background-color 0.2s'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0c4c4'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fde0e0'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fecaca'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
               >
                 <Trash2 size={16} />
                 Clear All
@@ -164,7 +164,7 @@ export const FavoritesPanel: React.FC<FavoritesPanelProps> = ({
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Star size={16} fill="#e0b85c" color="#e0b85c" />
+                    <Star size={16} fill="#fbbf24" color="#fbbf24" />
                     <span style={{ fontSize: '0.9375rem', fontWeight: '600', color: theme.text }}>
                       {ticker}
                     </span>
@@ -186,7 +186,7 @@ export const FavoritesPanel: React.FC<FavoritesPanelProps> = ({
                     }}
                     onMouseEnter={(e) => {
                       if (removing !== ticker) {
-                        e.currentTarget.style.backgroundColor = '#fde0e0';
+                        e.currentTarget.style.backgroundColor = '#fee2e2';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -194,7 +194,7 @@ export const FavoritesPanel: React.FC<FavoritesPanelProps> = ({
                     }}
                     aria-label={`Remove ${ticker} from favorites`}
                   >
-                    <X size={16} color="#c04040" />
+                    <X size={16} color="#dc2626" />
                   </button>
                 </li>
               ))}

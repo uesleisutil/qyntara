@@ -48,14 +48,14 @@ const ChangePasswordPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '2rem',
     maxWidth: 480, margin: '0 auto',
   };
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.65rem 2.5rem 0.65rem 0.75rem',
-    background: darkMode ? '#121a1a' : '#f6faf8', border: `1px solid ${theme.border}`,
+    background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`,
     borderRadius: 8, color: theme.text, fontSize: '0.9rem', outline: 'none',
   };
 
@@ -69,12 +69,12 @@ const ChangePasswordPage: React.FC = () => {
       <div style={cardStyle}>
         <form onSubmit={handleSubmit}>
           {error && (
-            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <AlertTriangle size={16} /> {error}
             </div>
           )}
           {success && (
-            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#4ead8a', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <CheckCircle size={16} /> {success}
             </div>
           )}
@@ -111,11 +111,11 @@ const ChangePasswordPage: React.FC = () => {
           </div>
 
           {/* Password strength checks */}
-          <div style={{ marginBottom: '1.25rem', padding: '0.75rem', borderRadius: 8, background: darkMode ? '#121a1a' : '#f6faf8', border: `1px solid ${theme.border}` }}>
+          <div style={{ marginBottom: '1.25rem', padding: '0.75rem', borderRadius: 8, background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}` }}>
             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.textSecondary, marginBottom: '0.5rem' }}>Requisitos da senha:</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
               {passwordChecks.map((c, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: c.ok ? '#4ead8a' : theme.textSecondary }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: c.ok ? '#10b981' : theme.textSecondary }}>
                   {c.ok ? <CheckCircle size={12} /> : <span style={{ width: 12, height: 12, borderRadius: '50%', border: `1.5px solid ${theme.textSecondary}`, display: 'inline-block' }} />}
                   {c.label}
                 </div>
@@ -125,7 +125,7 @@ const ChangePasswordPage: React.FC = () => {
 
           <button type="submit" disabled={!allValid || loading} style={{
             width: '100%', padding: '0.75rem', borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600,
-            background: allValid && !loading ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+            background: allValid && !loading ? 'linear-gradient(135deg, #7c3aed, #3b82f6)' : (darkMode ? '#2a2745' : '#e2e8f0'),
             color: allValid && !loading ? 'white' : theme.textSecondary, cursor: allValid && !loading ? 'pointer' : 'not-allowed',
             transition: 'all 0.2s',
           }}>

@@ -139,7 +139,7 @@ const RecommendationsPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
   const btnBase: React.CSSProperties = {
@@ -151,7 +151,7 @@ const RecommendationsPage: React.FC = () => {
 
   if (loading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -184,7 +184,7 @@ const RecommendationsPage: React.FC = () => {
           <p style={{ color: theme.textSecondary, fontSize: '0.78rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             Top ações ranqueadas por ML{date && <span> — {date}</span>}
             {lastUpdated && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.7rem', color: '#4ead8a', background: 'rgba(16,185,129,0.1)', padding: '0.12rem 0.45rem', borderRadius: 10 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.7rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '0.12rem 0.45rem', borderRadius: 10 }}>
                 <Clock size={10} /> {getRelativeTime(lastUpdated)}
               </span>
             )}
@@ -219,16 +219,16 @@ const RecommendationsPage: React.FC = () => {
             onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.96)'; }}
             onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-            style={{ ...btnBase, padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)' }}>
+            style={{ ...btnBase, padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)' }}>
             <RefreshCw size={14} /> Atualizar
           </button>
         </div>
       </div>
 
       {error && (
-        <div style={{ ...cardStyle, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', marginBottom: '0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div style={{ ...cardStyle, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', marginBottom: '0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           {error}
-          <button onClick={fetchRecommendations} style={{ ...btnBase, padding: '0.3rem 0.7rem', background: 'rgba(224,112,112,0.2)', color: '#e89090', fontSize: '0.75rem', marginLeft: 'auto' }}>
+          <button onClick={fetchRecommendations} style={{ ...btnBase, padding: '0.3rem 0.7rem', background: 'rgba(239,68,68,0.2)', color: '#f87171', fontSize: '0.75rem', marginLeft: 'auto' }}>
             <RefreshCw size={12} /> Tentar novamente
           </button>
         </div>
@@ -244,14 +244,14 @@ const RecommendationsPage: React.FC = () => {
           gap: '0.5rem', marginBottom: '0.75rem',
         }}>
           {[
-            { label: 'Compra', value: `${totalBuy}`, color: '#4ead8a', icon: <ArrowUpRight size={14} />, tip: `Ações com score ≥ ${SCORE_BUY_THRESHOLD} — sinal de compra.`, blur: false },
-            { label: 'Venda', value: `${totalSell}`, color: '#e07070', icon: <ArrowDownRight size={14} />, tip: `Ações com score ≤ ${SCORE_SELL_THRESHOLD} — sinal de venda.`, blur: false },
-            { label: 'Neutro', value: `${totalNeutral}`, color: '#8fa89c', icon: null, tip: `Ações com score entre ${SCORE_SELL_THRESHOLD} e ${SCORE_BUY_THRESHOLD}.`, blur: false },
-            { label: 'Ret. Compra', value: `${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 1)}%`, color: avgBuyReturn >= 0 ? '#4ead8a' : '#e07070', icon: null, tip: `Retorno médio previsto (20 pregões) das ${buyRecs.length} ações com sinal de compra.`, blur: true },
-            { label: 'Top Score', value: `${topTicker?.ticker || '—'} ${fmt(topScore, 1)}`, color: '#5a9e87', icon: null, tip: 'Ação com maior score do dia.', blur: false },
+            { label: 'Compra', value: `${totalBuy}`, color: '#10b981', icon: <ArrowUpRight size={14} />, tip: `Ações com score ≥ ${SCORE_BUY_THRESHOLD} — sinal de compra.`, blur: false },
+            { label: 'Venda', value: `${totalSell}`, color: '#ef4444', icon: <ArrowDownRight size={14} />, tip: `Ações com score ≤ ${SCORE_SELL_THRESHOLD} — sinal de venda.`, blur: false },
+            { label: 'Neutro', value: `${totalNeutral}`, color: '#9895b0', icon: null, tip: `Ações com score entre ${SCORE_SELL_THRESHOLD} e ${SCORE_BUY_THRESHOLD}.`, blur: false },
+            { label: 'Ret. Compra', value: `${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 1)}%`, color: avgBuyReturn >= 0 ? '#10b981' : '#ef4444', icon: null, tip: `Retorno médio previsto (20 pregões) das ${buyRecs.length} ações com sinal de compra.`, blur: true },
+            { label: 'Top Score', value: `${topTicker?.ticker || '—'} ${fmt(topScore, 1)}`, color: '#8b5cf6', icon: null, tip: 'Ação com maior score do dia.', blur: false },
             ...(simReturn && simReturn.pct !== 0 ? [{
               label: 'Sim. R$10k', value: `R$ ${Math.round(simReturn.final).toLocaleString('pt-BR')}`,
-              color: simReturn.gain >= 0 ? '#4ead8a' : '#e07070', icon: null,
+              color: simReturn.gain >= 0 ? '#10b981' : '#ef4444', icon: null,
               tip: `Se investisse R$ 10k nas ${buyRecs.length} ações de compra, retorno previsto: ${simReturn.pct >= 0 ? '+' : ''}${fmt(simReturn.pct, 1)}%. Simulação, não garantia.`,
               blur: true,
             }] : []),
@@ -280,7 +280,7 @@ const RecommendationsPage: React.FC = () => {
             onChange={e => setSearchTerm(e.target.value)}
             style={{
               width: '100%', padding: '0.55rem 0.55rem 0.55rem 2rem', borderRadius: 8,
-              border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a2626' : '#fff'),
+              border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
               color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box',
             }}
           />
@@ -288,7 +288,7 @@ const RecommendationsPage: React.FC = () => {
         <select value={signalFilter} onChange={e => setSignalFilter(e.target.value as any)}
           style={{
             padding: '0.55rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
-            background: theme.card || (darkMode ? '#1a2626' : '#fff'), color: theme.text,
+            background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text,
             fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
           }}>
           <option value="ALL">Todos</option>
@@ -300,14 +300,14 @@ const RecommendationsPage: React.FC = () => {
         <select value={sectorFilter} onChange={e => setSectorFilter(e.target.value)}
           style={{
             padding: '0.55rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
-            background: theme.card || (darkMode ? '#1a2626' : '#fff'), color: theme.text,
+            background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text,
             fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
           }}>
           <option value="ALL">Setor: Todos</option>
           {ALL_SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <button onClick={() => handleSort(sortBy === 'score' ? 'return' : sortBy === 'return' ? 'ticker' : sortBy === 'ticker' ? 'vol' : 'score')}
-          style={{ ...btnBase, padding: '0.55rem 0.75rem', background: theme.card || (darkMode ? '#1a2626' : '#fff'), color: theme.text, border: `1px solid ${theme.border}` }}>
+          style={{ ...btnBase, padding: '0.55rem 0.75rem', background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, border: `1px solid ${theme.border}` }}>
           <ArrowUpDown size={14} /> {sortBy === 'score' ? 'Score' : sortBy === 'return' ? 'Retorno' : sortBy === 'ticker' ? 'Ticker' : 'Volatilidade'}
         </button>
       </div>
@@ -351,7 +351,7 @@ const RecommendationsPage: React.FC = () => {
                     {h.label}
                     {h.tip && <InfoTooltip text={h.tip} darkMode={darkMode} size={10} />}
                   </span>
-                  {i >= 8 && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#d4a84b' }} />}
+                  {i >= 8 && !isPro && <Lock size={10} style={{ marginLeft: 3, verticalAlign: 'middle', color: '#f59e0b' }} />}
                 </th>
               ))}
             </tr>
@@ -398,8 +398,8 @@ const RecommendationsPage: React.FC = () => {
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: getSignalColor(getSignal(r.score)).text }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
                       {fmt(r.score, 2)}
-                      <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#2a3d36' : '#d4e5dc', overflow: 'hidden', flexShrink: 0 }}>
-                        <div style={{ height: '100%', borderRadius: 2, width: `${confidence}%`, background: confidence >= 70 ? '#4ead8a' : confidence >= 40 ? '#d4a84b' : '#e07070' }} />
+                      <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#2a2745' : '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                        <div style={{ height: '100%', borderRadius: 2, width: `${confidence}%`, background: confidence >= 70 ? '#10b981' : confidence >= 40 ? '#f59e0b' : '#ef4444' }} />
                       </div>
                     </div>
                   </td>
@@ -408,7 +408,7 @@ const RecommendationsPage: React.FC = () => {
                     <ProValue isPro={isPro} style={{ color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue>
                   </td>
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
-                    <ProValue isPro={isPro} style={{ fontWeight: 600, color: r.exp_return_20 >= 0 ? '#4ead8a' : '#e07070' }} placeholder="±••••%">
+                    <ProValue isPro={isPro} style={{ fontWeight: 600, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••••%">
                       {r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%
                     </ProValue>
                   </td>
@@ -418,9 +418,9 @@ const RecommendationsPage: React.FC = () => {
                   {/* #12: Merged Faixa column (Stop-Loss → Take-Profit) */}
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right' }}>
                     <ProValue isPro={isPro} style={{ color: theme.text, fontSize: '0.75rem' }} placeholder="••• → •••">
-                      <span style={{ color: '#e07070' }}>{fmt(stopLoss, 2)}</span>
+                      <span style={{ color: '#ef4444' }}>{fmt(stopLoss, 2)}</span>
                       <span style={{ color: theme.textSecondary, margin: '0 0.15rem' }}>→</span>
-                      <span style={{ color: '#4ead8a' }}>{fmt(takeProfit, 2)}</span>
+                      <span style={{ color: '#10b981' }}>{fmt(takeProfit, 2)}</span>
                     </ProValue>
                   </td>
                 </tr>
@@ -460,11 +460,11 @@ const RecommendationsPage: React.FC = () => {
                 <div><span style={{ color: theme.textSecondary }}>Score:</span> <strong style={{ color: getSignalColor(getSignal(r.score)).text }}>{fmt(r.score, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Preço:</span> <strong style={{ color: theme.text }}>R$ {fmt(r.last_close, 2)}</strong></div>
                 <div><span style={{ color: theme.textSecondary }}>Previsto:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.text }} placeholder="R$ ••••">R$ {fmt(r.pred_price_t_plus_20, 2)}</ProValue></div>
-                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: r.exp_return_20 >= 0 ? '#4ead8a' : '#e07070' }} placeholder="±••%">{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</ProValue></div>
+                <div><span style={{ color: theme.textSecondary }}>Retorno:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: r.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }} placeholder="±••%">{r.exp_return_20 >= 0 ? '+' : ''}{fmt(r.exp_return_20 * 100, 2)}%</ProValue></div>
                 <div><span style={{ color: theme.textSecondary }}>Vol:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue></div>
                 <div>
                   <span style={{ color: theme.textSecondary }}>Confiança:</span>{' '}
-                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: confidence >= 70 ? '#4ead8a' : '#8fa89c' }} placeholder="••%">{confidence}%</ProValue>
+                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: confidence >= 70 ? '#10b981' : '#9895b0' }} placeholder="••%">{confidence}%</ProValue>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem', marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: `1px solid ${theme.border}` }}>
@@ -486,10 +486,10 @@ const RecommendationsPage: React.FC = () => {
       {!isPro && (
         <div style={{
           ...cardStyle, textAlign: 'center', padding: '1.25rem',
-          background: 'linear-gradient(135deg, rgba(212,168,75,0.08), rgba(212,168,75,0.02))',
-          border: '1px solid rgba(212,168,75,0.25)',
+          background: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.02))',
+          border: '1px solid rgba(245,158,11,0.25)',
         }}>
-          <Crown size={24} color="#d4a84b" style={{ marginBottom: '0.5rem' }} />
+          <Crown size={24} color="#f59e0b" style={{ marginBottom: '0.5rem' }} />
           <div style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text, marginBottom: '0.3rem' }}>
             Desbloqueie Confiança, Stop-Loss e Take-Profit
           </div>
@@ -498,8 +498,8 @@ const RecommendationsPage: React.FC = () => {
           </div>
           <a href="#/dashboard/upgrade" style={{
             ...btnBase, padding: '0.6rem 1.5rem', textDecoration: 'none',
-            background: 'linear-gradient(135deg, #d4a84b, #b08a30)', color: 'white', fontWeight: 700,
-            boxShadow: '0 2px 10px rgba(212,168,75,0.3)', display: 'inline-flex',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white', fontWeight: 700,
+            boxShadow: '0 2px 10px rgba(245,158,11,0.3)', display: 'inline-flex',
           }}>
             <Crown size={14} /> Assinar Pro — {PRO_PRICE_LABEL}
           </a>

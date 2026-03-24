@@ -43,14 +43,14 @@ export const WatchlistButton: React.FC<WatchlistButtonProps> = ({ ticker, darkMo
       title={active ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
       style={{
         background: 'none', border: 'none', cursor: 'pointer', padding: 2,
-        color: active ? '#d4a84b' : (darkMode ? '#3a5248' : '#b0c8bc'),
+        color: active ? '#f59e0b' : (darkMode ? '#475569' : '#cbd5e1'),
         transition: 'color 0.15s, transform 0.15s',
         display: 'inline-flex', alignItems: 'center', minHeight: 'auto',
       }}
-      onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#d4a84b80'; }}
-      onMouseLeave={e => { if (!active) e.currentTarget.style.color = darkMode ? '#3a5248' : '#b0c8bc'; }}
+      onMouseEnter={e => { if (!active) e.currentTarget.style.color = '#f59e0b80'; }}
+      onMouseLeave={e => { if (!active) e.currentTarget.style.color = darkMode ? '#475569' : '#cbd5e1'; }}
     >
-      <Star size={size} fill={active ? '#d4a84b' : 'none'} />
+      <Star size={size} fill={active ? '#f59e0b' : 'none'} />
     </button>
   );
 };

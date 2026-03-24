@@ -79,13 +79,13 @@ const ActivationChecklist: React.FC<ActivationChecklistProps> = ({ darkMode, the
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: 0 }}>
-          <Sparkles size={15} color="#5a9e87" />
+          <Sparkles size={15} color="#8b5cf6" />
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>
             Primeiros passos
           </span>
           <span style={{
             fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: 10,
-            background: '#5a9e87', color: 'white', fontWeight: 600,
+            background: '#8b5cf6', color: 'white', fontWeight: 600,
           }}>
             {completed}/{total}
           </span>
@@ -107,10 +107,10 @@ const ActivationChecklist: React.FC<ActivationChecklistProps> = ({ darkMode, the
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: 4, borderRadius: 2, background: darkMode ? '#2a3d36' : '#d4e5dc', marginTop: '0.5rem', overflow: 'hidden' }}>
+      <div style={{ height: 4, borderRadius: 2, background: darkMode ? '#2a2745' : '#e2e8f0', marginTop: '0.5rem', overflow: 'hidden' }}>
         <div style={{
           height: '100%', borderRadius: 2, width: `${(completed / total) * 100}%`,
-          background: 'linear-gradient(90deg, #2d7d9a, #7ec4aa)', transition: 'width 0.5s ease',
+          background: 'linear-gradient(90deg, #3b82f6, #a78bfa)', transition: 'width 0.5s ease',
         }} />
       </div>
 
@@ -119,11 +119,11 @@ const ActivationChecklist: React.FC<ActivationChecklistProps> = ({ darkMode, the
           {items.map(item => (
             <div key={item.key} style={{
               display: 'flex', alignItems: 'center', gap: '0.4rem',
-              fontSize: '0.78rem', color: state[item.key] ? '#4ead8a' : theme.textSecondary,
+              fontSize: '0.78rem', color: state[item.key] ? '#10b981' : theme.textSecondary,
               opacity: state[item.key] ? 0.7 : 1,
             }}>
               {state[item.key]
-                ? <CheckCircle size={14} color="#4ead8a" />
+                ? <CheckCircle size={14} color="#10b981" />
                 : <Circle size={14} color={theme.textSecondary} />
               }
               <span style={{ textDecoration: state[item.key] ? 'line-through' : 'none' }}>

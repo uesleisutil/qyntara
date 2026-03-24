@@ -35,11 +35,11 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({
   const { data, loading, error } = useDataQuality(days) as any;
 
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    bg: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
   };
 
   if (loading) {
@@ -62,7 +62,7 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({
           display: 'flex', 
           alignItems: 'center', 
           gap: '0.75rem',
-          color: '#c04040' 
+          color: '#dc2626' 
         }}>
           <AlertTriangle size={20} />
           <span>Error loading data quality metrics: {error}</span>

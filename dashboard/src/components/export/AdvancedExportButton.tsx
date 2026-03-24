@@ -225,7 +225,7 @@ const AdvancedExportButton: React.FC<AdvancedExportButtonProps> = ({
           alignItems: 'center',
           gap: '0.5rem',
           padding: '0.5rem 1rem',
-          backgroundColor: '#4ead8a',
+          backgroundColor: '#10b981',
           color: 'white',
           border: 'none',
           borderRadius: '6px',
@@ -291,8 +291,8 @@ const AdvancedExportButton: React.FC<AdvancedExportButtonProps> = ({
                     justifyContent: 'center',
                     gap: '0.5rem',
                     padding: '0.75rem',
-                    border: `2px solid ${config.format === 'excel' ? '#4ead8a' : '#d4e5dc'}`,
-                    backgroundColor: config.format === 'excel' ? '#c8ede0' : 'white',
+                    border: `2px solid ${config.format === 'excel' ? '#10b981' : '#e2e8f0'}`,
+                    backgroundColor: config.format === 'excel' ? '#d1fae5' : 'white',
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontSize: '0.875rem',
@@ -311,8 +311,8 @@ const AdvancedExportButton: React.FC<AdvancedExportButtonProps> = ({
                     justifyContent: 'center',
                     gap: '0.5rem',
                     padding: '0.75rem',
-                    border: `2px solid ${config.format === 'googleSheets' ? '#4ead8a' : '#d4e5dc'}`,
-                    backgroundColor: config.format === 'googleSheets' ? '#c8ede0' : 'white',
+                    border: `2px solid ${config.format === 'googleSheets' ? '#10b981' : '#e2e8f0'}`,
+                    backgroundColor: config.format === 'googleSheets' ? '#d1fae5' : 'white',
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontSize: '0.875rem',
@@ -410,7 +410,7 @@ const AdvancedExportButton: React.FC<AdvancedExportButtonProps> = ({
                 onClick={() => setShowConfig(false)}
                 style={{
                   padding: '0.5rem 1rem',
-                  border: '1px solid #d4e5dc',
+                  border: '1px solid #e2e8f0',
                   backgroundColor: 'white',
                   borderRadius: '6px',
                   cursor: 'pointer',
@@ -424,7 +424,7 @@ const AdvancedExportButton: React.FC<AdvancedExportButtonProps> = ({
                 disabled={exporting || !config.sheets.some(s => s.enabled)}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#4ead8a',
+                  backgroundColor: '#10b981',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',

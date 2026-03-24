@@ -23,17 +23,17 @@ interface TickerData {
 
 /* ── Feature category metadata ── */
 const FEATURE_CATEGORIES = [
-  { key: 'tecnicas', icon: TrendingUp, label: 'Técnicas', count: '~25', color: '#5a9e87',
+  { key: 'tecnicas', icon: TrendingUp, label: 'Técnicas', count: '~25', color: '#8b5cf6',
     desc: 'Retornos, médias móveis, RSI, MACD, Bollinger, momentum' },
-  { key: 'volume', icon: BarChart3, label: 'Volume', count: '11', color: '#5a9e87',
+  { key: 'volume', icon: BarChart3, label: 'Volume', count: '11', color: '#8b5cf6',
     desc: 'OBV, VWAP, divergência volume-preço, z-score de volume' },
-  { key: 'fundamentalistas', icon: DollarSign, label: 'Fundamentalistas', count: '~30', color: '#4ead8a',
+  { key: 'fundamentalistas', icon: DollarSign, label: 'Fundamentalistas', count: '~30', color: '#10b981',
     desc: 'ROE, P/L, P/VP, DY, margens, dívida/PL, EBITDA, FCF (BRAPI Pro)' },
-  { key: 'macro', icon: Globe, label: 'Macroeconômicas', count: '10', color: '#d4a84b',
+  { key: 'macro', icon: Globe, label: 'Macroeconômicas', count: '10', color: '#f59e0b',
     desc: 'Selic, IPCA, câmbio USD/BRL, CDI, variações e tendências' },
-  { key: 'setoriais', icon: Building2, label: 'Setoriais', count: '5', color: '#d4a84b',
+  { key: 'setoriais', icon: Building2, label: 'Setoriais', count: '5', color: '#ec4899',
     desc: 'Correlação setorial, força relativa, dispersão do setor' },
-  { key: 'sentimento', icon: Newspaper, label: 'Sentimento', count: '2', color: '#2d7d9a',
+  { key: 'sentimento', icon: Newspaper, label: 'Sentimento', count: '2', color: '#06b6d4',
     desc: 'Score de sentimento de notícias, volume de menções' },
 ];
 
@@ -44,12 +44,12 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const isPro = useIsPro();
 
   const theme = useMemo(() => ({
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    subtle: darkMode ? '#121a1a' : '#f6faf8',
+    bg: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
   }), [darkMode]);
 
   useEffect(() => {
@@ -85,7 +85,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   if (loading) {
     return (
       <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center' }}>
-        <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} color="#5a9e87" />
+        <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} color="#8b5cf6" />
         <div style={{ color: theme.textSecondary, fontSize: '0.85rem' }}>Carregando dados do modelo...</div>
       </div>
     );
@@ -96,7 +96,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
       {/* ═══ 1. MODEL OVERVIEW — free for all ═══ */}
       <div style={{ ...cardStyle, padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Brain size={20} color="#5a9e87" />
+          <Brain size={20} color="#8b5cf6" />
           <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.2rem)', fontWeight: 700, color: theme.text }}>
             Visão Geral do Modelo
           </h2>
@@ -145,7 +145,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           border: `1px solid ${darkMode ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.08)'}`,
           display: 'flex', alignItems: 'center', gap: '0.5rem',
         }}>
-          <Layers size={14} color="#5a9e87" />
+          <Layers size={14} color="#8b5cf6" />
           <span style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5 }}>
             Pipeline: <strong style={{ color: theme.text }}>Ingestão diária</strong> (21h UTC) →
             <strong style={{ color: theme.text }}> Feature Store S3</strong> →
@@ -159,7 +159,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
       {/* ═══ 2. TICKER SELECTOR ═══ */}
       <div style={{ ...cardStyle, padding: 'clamp(0.75rem, 3vw, 1.25rem)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Info size={18} color="#5a9e87" />
+          <Info size={18} color="#8b5cf6" />
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>Selecione uma ação para explorar</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -180,7 +180,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer',
               flex: '1 1 180px', minWidth: 0, outline: 'none', transition: 'border-color 0.2s',
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#5a9e87'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#8b5cf6'; }}
             onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}>
             {tickers.map(t => {
               const s = getSignal(t.score);
@@ -219,7 +219,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               }}>{signal}</span>
               <span style={{ fontSize: '1.05rem', fontWeight: 700, color: theme.text }}>{currentTicker.ticker}</span>
               <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>
-                Score: <strong style={{ color: '#5a9e87' }}>{currentTicker.score.toFixed(2)}</strong>
+                Score: <strong style={{ color: '#8b5cf6' }}>{currentTicker.score.toFixed(2)}</strong>
               </span>
             </div>
             <div style={{
@@ -236,14 +236,14 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               {/* Previsão — Pro */}
               <div style={{ padding: '0.75rem', borderRadius: 8, backgroundColor: theme.subtle }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Previsão 20d</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: currentTicker.exp_return_20 >= 0 ? '#4ead8a' : '#e07070' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
                   <ProValue isPro={isPro} placeholder="R$ ••••">R$ {currentTicker.pred_price_t_plus_20.toFixed(2)}</ProValue>
                 </div>
               </div>
               {/* Retorno — Pro */}
               <div style={{ padding: '0.75rem', borderRadius: 8, backgroundColor: theme.subtle }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Retorno Esperado</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: currentTicker.exp_return_20 >= 0 ? '#4ead8a' : '#e07070' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: currentTicker.exp_return_20 >= 0 ? '#10b981' : '#ef4444' }}>
                   <ProValue isPro={isPro} placeholder="±••%">
                     {currentTicker.exp_return_20 >= 0 ? '+' : ''}{(currentTicker.exp_return_20 * 100).toFixed(1)}%
                   </ProValue>
@@ -252,7 +252,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               {/* Volatilidade — Pro */}
               <div style={{ padding: '0.75rem', borderRadius: 8, backgroundColor: theme.subtle }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: '0.2rem' }}>Volatilidade 20d</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#d4a84b' }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f59e0b' }}>
                   <ProValue isPro={isPro} placeholder="••%">{(currentTicker.vol_20d * 100).toFixed(1)}%</ProValue>
                 </div>
               </div>
@@ -377,13 +377,13 @@ const FundamentalsSnapshot: React.FC<SnapshotProps> = ({ ticker = '', darkMode, 
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <DollarSign size={18} color="#4ead8a" />
+        <DollarSign size={18} color="#10b981" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Dados Fundamentalistas — {ticker}
         </h3>
         <span style={{
           fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: 8,
-          background: 'rgba(16,185,129,0.12)', color: '#4ead8a',
+          background: 'rgba(16,185,129,0.12)', color: '#10b981',
         }}>BRAPI Pro</span>
       </div>
       <p style={{ margin: '0 0 1rem', fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>
@@ -431,12 +431,12 @@ const FundamentalsSnapshot: React.FC<SnapshotProps> = ({ ticker = '', darkMode, 
 
 /* ── Macro Snapshot (inline component) ── */
 const MACRO_FALLBACK = [
-  { label: 'Selic', value: '14.25%', trend: 'estável', color: '#5a9e87', desc: 'Taxa básica de juros' },
-  { label: 'IPCA 12m', value: '4.87%', trend: '↑', color: '#e07070', desc: 'Inflação acumulada' },
-  { label: 'USD/BRL', value: 'R$ 5.72', trend: '↓', color: '#4ead8a', desc: 'Câmbio dólar' },
-  { label: 'CDI', value: '14.15%', trend: 'estável', color: '#5a9e87', desc: 'Taxa interbancária' },
-  { label: 'Δ Selic 3m', value: '+0.50pp', trend: '↑', color: '#d4a84b', desc: 'Variação trimestral' },
-  { label: 'Δ Câmbio 1m', value: '-1.2%', trend: '↓', color: '#4ead8a', desc: 'Variação mensal' },
+  { label: 'Selic', value: '14.25%', trend: 'estável', color: '#8b5cf6', desc: 'Taxa básica de juros' },
+  { label: 'IPCA 12m', value: '4.87%', trend: '↑', color: '#ef4444', desc: 'Inflação acumulada' },
+  { label: 'USD/BRL', value: 'R$ 5.72', trend: '↓', color: '#10b981', desc: 'Câmbio dólar' },
+  { label: 'CDI', value: '14.15%', trend: 'estável', color: '#8b5cf6', desc: 'Taxa interbancária' },
+  { label: 'Δ Selic 3m', value: '+0.50pp', trend: '↑', color: '#f59e0b', desc: 'Variação trimestral' },
+  { label: 'Δ Câmbio 1m', value: '-1.2%', trend: '↓', color: '#10b981', desc: 'Variação mensal' },
 ];
 
 function parseMacroSeries(data: Record<string, any>): typeof MACRO_FALLBACK {
@@ -463,12 +463,12 @@ function parseMacroSeries(data: Record<string, any>): typeof MACRO_FALLBACK {
   const trendOf = (v: number | null) => v == null ? 'estável' : v > 0.001 ? '↑' : v < -0.001 ? '↓' : 'estável';
 
   return [
-    { label: 'Selic', value: selic != null ? `${selic.toFixed(2)}%` : '—', trend: trendOf(selicChange), color: '#5a9e87', desc: 'Taxa básica de juros' },
-    { label: 'IPCA 12m', value: ipca != null ? `${(ipca * 12).toFixed(2)}%` : '—', trend: trendOf(ipca != null ? ipca - 0.4 : null), color: '#e07070', desc: 'Inflação acumulada' },
-    { label: 'USD/BRL', value: cambio != null ? `R$ ${cambio.toFixed(2)}` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#4ead8a' : '#e07070', desc: 'Câmbio dólar' },
-    { label: 'CDI', value: cdi != null ? `${cdi.toFixed(2)}%` : '—', trend: 'estável', color: '#5a9e87', desc: 'Taxa interbancária' },
-    { label: 'Δ Selic 3m', value: selicChange != null ? `${selicChange > 0 ? '+' : ''}${(selicChange * 100).toFixed(2)}pp` : '—', trend: trendOf(selicChange), color: '#d4a84b', desc: 'Variação trimestral' },
-    { label: 'Δ Câmbio 1m', value: cambioChange != null ? `${(cambioChange * 100).toFixed(1)}%` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#4ead8a' : '#e07070', desc: 'Variação mensal' },
+    { label: 'Selic', value: selic != null ? `${selic.toFixed(2)}%` : '—', trend: trendOf(selicChange), color: '#8b5cf6', desc: 'Taxa básica de juros' },
+    { label: 'IPCA 12m', value: ipca != null ? `${(ipca * 12).toFixed(2)}%` : '—', trend: trendOf(ipca != null ? ipca - 0.4 : null), color: '#ef4444', desc: 'Inflação acumulada' },
+    { label: 'USD/BRL', value: cambio != null ? `R$ ${cambio.toFixed(2)}` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#10b981' : '#ef4444', desc: 'Câmbio dólar' },
+    { label: 'CDI', value: cdi != null ? `${cdi.toFixed(2)}%` : '—', trend: 'estável', color: '#8b5cf6', desc: 'Taxa interbancária' },
+    { label: 'Δ Selic 3m', value: selicChange != null ? `${selicChange > 0 ? '+' : ''}${(selicChange * 100).toFixed(2)}pp` : '—', trend: trendOf(selicChange), color: '#f59e0b', desc: 'Variação trimestral' },
+    { label: 'Δ Câmbio 1m', value: cambioChange != null ? `${(cambioChange * 100).toFixed(1)}%` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#10b981' : '#ef4444', desc: 'Variação mensal' },
   ];
 }
 
@@ -504,13 +504,13 @@ const MacroSnapshot: React.FC<Omit<SnapshotProps, 'ticker'>> = ({ darkMode, them
     boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
   }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-      <Globe size={18} color="#d4a84b" />
+      <Globe size={18} color="#f59e0b" />
       <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
         Fatores Macroeconômicos
       </h3>
       <span style={{
         fontSize: '0.6rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: 8,
-        background: 'rgba(212,168,75,0.12)', color: '#d4a84b',
+        background: 'rgba(245,158,11,0.12)', color: '#f59e0b',
       }}>BCB API</span>
     </div>
     <p style={{ margin: '0 0 1rem', fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>
@@ -528,7 +528,7 @@ const MacroSnapshot: React.FC<Omit<SnapshotProps, 'ticker'>> = ({ darkMode, them
           <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginBottom: '0.15rem' }}>{ind.desc}</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
             <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>{ind.value}</span>
-            <span style={{ fontSize: '0.65rem', color: ind.trend.includes('↑') ? '#e07070' : ind.trend.includes('↓') ? '#4ead8a' : theme.textSecondary }}>
+            <span style={{ fontSize: '0.65rem', color: ind.trend.includes('↑') ? '#ef4444' : ind.trend.includes('↓') ? '#10b981' : theme.textSecondary }}>
               {ind.trend}
             </span>
           </div>
@@ -538,7 +538,7 @@ const MacroSnapshot: React.FC<Omit<SnapshotProps, 'ticker'>> = ({ darkMode, them
     </div>
     <div style={{
       marginTop: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 8,
-      background: darkMode ? 'rgba(212,168,75,0.06)' : 'rgba(212,168,75,0.04)',
+      background: darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.04)',
       fontSize: '0.7rem', color: theme.textSecondary, lineHeight: 1.5,
     }}>
       💡 {source === 'api'

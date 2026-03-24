@@ -55,11 +55,11 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
 
   const theme = {
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    hover: darkMode ? '#2a3d36' : '#f6faf8',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f8fafc',
   };
 
   const handleSort = (field: SortField) => {
@@ -99,9 +99,9 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
   };
 
   const getCompletenessColor = (rate: number) => {
-    if (rate >= 0.95) return '#4ead8a'; // green
-    if (rate >= 0.85) return '#d4a84b'; // yellow
-    return '#c04040'; // red
+    if (rate >= 0.95) return '#10b981'; // green
+    if (rate >= 0.85) return '#f59e0b'; // yellow
+    return '#dc2626'; // red
   };
 
   return (
@@ -143,7 +143,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
             <div style={{ fontSize: '0.875rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>
               Tickers Below 95%
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#c04040' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
               {data.tickers.filter(t => t.completenessRate < 0.95).length}
             </div>
           </div>
@@ -159,7 +159,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
               data={data.trends.map(t => t.completeness * 100)}
               width={isMobile ? 300 : 600}
               height={60}
-              color="#5a9e87"
+              color="#8b5cf6"
               showTooltip={true}
             />
           </div>
@@ -258,12 +258,12 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
                     onClick={() => setExpandedTicker(isExpanded ? null : ticker.ticker)}
                     style={{ 
                       borderBottom: `1px solid ${theme.border}`,
-                      backgroundColor: isLowCompleteness ? (darkMode ? '#6a202020' : '#fdf0f0') : 'transparent',
+                      backgroundColor: isLowCompleteness ? (darkMode ? '#7f1d1d20' : '#fef2f2') : 'transparent',
                       cursor: 'pointer',
                       transition: 'background-color 0.2s'
                     }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.hover}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isLowCompleteness ? (darkMode ? '#6a202020' : '#fdf0f0') : 'transparent'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isLowCompleteness ? (darkMode ? '#7f1d1d20' : '#fef2f2') : 'transparent'}
                   >
                     <td style={{ 
                       padding: isMobile ? '0.75rem 0.5rem' : '1rem',
@@ -272,7 +272,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {ticker.ticker}
-                        {isLowCompleteness && <AlertTriangle size={16} color="#c04040" />}
+                        {isLowCompleteness && <AlertTriangle size={16} color="#dc2626" />}
                       </div>
                     </td>
                     <td style={{ 
@@ -293,7 +293,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
                     <td style={{ 
                       padding: isMobile ? '0.75rem 0.5rem' : '1rem',
                       textAlign: 'right',
-                      color: ticker.missingFeatures.length > 0 ? '#c04040' : theme.textSecondary
+                      color: ticker.missingFeatures.length > 0 ? '#dc2626' : theme.textSecondary
                     }}>
                       {ticker.missingFeatures.length}
                     </td>
@@ -322,7 +322,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
                         colSpan={isMobile ? 4 : 5} 
                         style={{ 
                           padding: isMobile ? '0.75rem 0.5rem' : '1rem',
-                          backgroundColor: darkMode ? '#121a1a' : '#f6faf8'
+                          backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc'
                         }}
                       >
                         <div style={{ fontSize: '0.8125rem', color: theme.textSecondary, marginBottom: '0.5rem' }}>
@@ -338,7 +338,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
                               key={idx}
                               style={{
                                 padding: '0.25rem 0.75rem',
-                                backgroundColor: darkMode ? '#2a3d36' : '#d4e5dc',
+                                backgroundColor: darkMode ? '#2a2745' : '#e2e8f0',
                                 color: theme.text,
                                 borderRadius: '6px',
                                 fontSize: '0.75rem',

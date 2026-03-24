@@ -22,7 +22,7 @@ const Sparkline: React.FC<SparklineProps> = ({
   const range = max - min || 1;
 
   const isUp = data[data.length - 1] >= data[0];
-  const lineColor = color || (isUp ? '#4ead8a' : '#e07070');
+  const lineColor = color || (isUp ? '#10b981' : '#ef4444');
 
   const points = data.map((v, i) => {
     const x = (i / (data.length - 1)) * (width - 4) + 2;

@@ -64,16 +64,16 @@ export const Skeleton: React.FC<SkeletonProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#f6faf8',
-          border: '1px dashed #b0c8bc',
+          backgroundColor: '#f8fafc',
+          border: '1px dashed #cbd5e1',
           padding: '2rem',
         }}
       >
         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
-        <div style={{ fontSize: '0.875rem', color: '#5a7268', textAlign: 'center' }}>
+        <div style={{ fontSize: '0.875rem', color: '#64748b', textAlign: 'center' }}>
           Loading is taking longer than expected...
         </div>
-        <div style={{ fontSize: '0.75rem', color: '#8fa89c', marginTop: '0.25rem' }}>
+        <div style={{ fontSize: '0.75rem', color: '#9895b0', marginTop: '0.25rem' }}>
           Please wait while we fetch the data
         </div>
       </div>

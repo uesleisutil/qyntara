@@ -536,7 +536,7 @@ const APIKeyManagement: React.FC<APIKeyManagementProps> = ({ apiEndpoint, authTo
 
         .key-card.disabled {
           opacity: 0.6;
-          background: #f6faf8;
+          background: #f9f9f9;
         }
 
         .key-header {
@@ -630,21 +630,21 @@ const APIKeyManagement: React.FC<APIKeyManagementProps> = ({ apiEndpoint, authTo
         }
 
         .btn-primary {
-          background: #3a7a60;
+          background: #0066cc;
           color: white;
         }
 
         .btn-primary:hover:not(:disabled) {
-          background: #2a5a48;
+          background: #0052a3;
         }
 
         .btn-secondary {
-          background: #edf5f1;
+          background: #f0f0f0;
           color: #333;
         }
 
         .btn-secondary:hover:not(:disabled) {
-          background: #d4e5dc;
+          background: #e0e0e0;
         }
 
         .btn-icon {
@@ -654,7 +654,7 @@ const APIKeyManagement: React.FC<APIKeyManagementProps> = ({ apiEndpoint, authTo
         }
 
         .btn-icon:hover {
-          background: #edf5f1;
+          background: #f0f0f0;
           color: #333;
         }
 
@@ -741,7 +741,7 @@ const APIKeyManagement: React.FC<APIKeyManagementProps> = ({ apiEndpoint, authTo
 
         .form-control:focus {
           outline: none;
-          border-color: #3a7a60;
+          border-color: #0066cc;
           box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
         }
 
@@ -756,11 +756,11 @@ const APIKeyManagement: React.FC<APIKeyManagementProps> = ({ apiEndpoint, authTo
           display: flex;
           gap: 12px;
           padding: 12px;
-          background: #edf5f1;
-          border: 1px solid #c8ede0;
+          background: #f0f8ff;
+          border: 1px solid #cce5ff;
           border-radius: 6px;
           font-size: 13px;
-          color: #1a4038;
+          color: #004085;
         }
 
         .loading {

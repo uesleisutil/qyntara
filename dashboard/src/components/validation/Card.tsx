@@ -16,7 +16,7 @@ export const Card: React.FC<CardProps> = ({ children, className = '' }) => {
       style={{
         backgroundColor: 'white',
         borderRadius: '8px',
-        border: '1px solid #d4e5dc',
+        border: '1px solid #e5e7eb',
         boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
       }}
     >

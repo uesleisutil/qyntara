@@ -7,7 +7,7 @@ interface Props { darkMode: boolean; theme: Record<string, string>; }
 interface Change { ticker: string; prevSignal: string; newSignal: string; prevScore: number; newScore: number; }
 interface RankDiff { ticker: string; currentRank: number; diff: number; currentSignal: string; }
 
-const sigColor = (s: string) => s === 'Compra' ? '#4ead8a' : s === 'Venda' ? '#e07070' : '#8fa89c';
+const sigColor = (s: string) => s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#9895b0';
 const SigIcon = ({ s, sz = 10 }: { s: string; sz?: number }) =>
   s === 'Compra' ? <ArrowUpRight size={sz} /> : s === 'Venda' ? <ArrowDownRight size={sz} /> : <Minus size={sz} />;
 
@@ -107,8 +107,8 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
     <div>
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.5rem' }}>
-        {tabBtn('signals', 'Sinais', changes.length, '#d4a84b')}
-        {tabBtn('ranking', 'Ranking', diffs.length, '#5a9e87')}
+        {tabBtn('signals', 'Sinais', changes.length, '#f59e0b')}
+        {tabBtn('ranking', 'Ranking', diffs.length, '#8b5cf6')}
       </div>
 
       {tab === 'signals' ? (
@@ -117,7 +117,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
         ) : (
           <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a2626' : '#ffffff'), zIndex: 1 }}>
+              <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a1836' : '#ffffff'), zIndex: 1 }}>
                 <tr>
                   <th style={thS}>Ação</th>
                   <th style={thS}>Anterior</th>
@@ -156,9 +156,9 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
             {[1, 3, 5, 7].filter(d => d <= maxDays).map(d => (
               <button key={d} onClick={() => setDaysBack(d)} style={{
                 padding: '0.15rem 0.45rem', borderRadius: 5, fontSize: '0.68rem', fontWeight: 600,
-                border: `1px solid ${daysBack === d ? '#5a9e87' : theme.border}`,
-                background: daysBack === d ? 'rgba(90,158,135,0.15)' : 'transparent',
-                color: daysBack === d ? '#5a9e87' : theme.textSecondary, cursor: 'pointer',
+                border: `1px solid ${daysBack === d ? '#8b5cf6' : theme.border}`,
+                background: daysBack === d ? 'rgba(139,92,246,0.15)' : 'transparent',
+                color: daysBack === d ? '#8b5cf6' : theme.textSecondary, cursor: 'pointer',
               }}>{d}d</button>
             ))}
           </div>
@@ -167,7 +167,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
           ) : (
             <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a2626' : '#ffffff'), zIndex: 1 }}>
+                <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a1836' : '#ffffff'), zIndex: 1 }}>
                   <tr>
                     <th style={thS}>Ação</th>
                     <th style={thS}>Sinal</th>
@@ -190,7 +190,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
                           {d.currentRank}
                         </td>
                         <td style={{ ...tdS, textAlign: 'right' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 600, fontSize: '0.75rem', color: d.diff > 0 ? '#4ead8a' : '#e07070' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontWeight: 600, fontSize: '0.75rem', color: d.diff > 0 ? '#10b981' : '#ef4444' }}>
                             {d.diff > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
                             {d.diff > 0 ? `+${d.diff}` : d.diff}
                           </span>

@@ -229,7 +229,7 @@ export function BaseTable<T>({
                 style={{
                   width: '60px',
                   padding: '0.25rem 0.5rem',
-                  border: '1px solid #b0c8bc',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '4px',
                   fontSize: '0.875rem',
                 }}

@@ -117,10 +117,10 @@ const RecommendationsPage = ({ recommendations }) => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: comparisonMode ? '#5a9e87' : 'white',
-              color: comparisonMode ? 'white' : '#5a7268',
+              backgroundColor: comparisonMode ? '#8b5cf6' : 'white',
+              color: comparisonMode ? 'white' : '#64748b',
               border: '1px solid',
-              borderColor: comparisonMode ? '#5a9e87' : '#b0c8bc',
+              borderColor: comparisonMode ? '#8b5cf6' : '#cbd5e1',
               borderRadius: '6px',
               fontSize: '0.875rem',
               fontWeight: '500',
@@ -135,7 +135,7 @@ const RecommendationsPage = ({ recommendations }) => {
           {/* Comparison Controls */}
           {comparisonMode && (
             <>
-              <span style={{ fontSize: '0.875rem', color: '#5a7268' }}>
+              <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
                 {selectedTickers.length} de {MAX_SELECTION} selecionados
               </span>
               
@@ -147,8 +147,8 @@ const RecommendationsPage = ({ recommendations }) => {
                   alignItems: 'center',
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
-                  backgroundColor: selectedTickers.length >= 2 ? '#4ead8a' : '#d4e5dc',
-                  color: selectedTickers.length >= 2 ? 'white' : '#8fa89c',
+                  backgroundColor: selectedTickers.length >= 2 ? '#10b981' : '#e2e8f0',
+                  color: selectedTickers.length >= 2 ? 'white' : '#9895b0',
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '0.875rem',
@@ -169,8 +169,8 @@ const RecommendationsPage = ({ recommendations }) => {
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
                   backgroundColor: 'white',
-                  color: '#5a7268',
-                  border: '1px solid #b0c8bc',
+                  color: '#64748b',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '6px',
                   fontSize: '0.875rem',
                   cursor: selectedTickers.length > 0 ? 'pointer' : 'not-allowed',
@@ -194,10 +194,10 @@ const RecommendationsPage = ({ recommendations }) => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: showAlerts ? '#5a9e87' : 'white',
-              color: showAlerts ? 'white' : '#5a7268',
+              backgroundColor: showAlerts ? '#8b5cf6' : 'white',
+              color: showAlerts ? 'white' : '#64748b',
               border: '1px solid',
-              borderColor: showAlerts ? '#5a9e87' : '#b0c8bc',
+              borderColor: showAlerts ? '#8b5cf6' : '#cbd5e1',
               borderRadius: '6px',
               fontSize: '0.875rem',
               fontWeight: '500',
@@ -221,11 +221,11 @@ const RecommendationsPage = ({ recommendations }) => {
       {comparisonMode && (
         <div style={{
           padding: '1rem',
-          backgroundColor: '#edf5f1',
-          border: '1px solid #b0d4c8',
+          backgroundColor: '#eff6ff',
+          border: '1px solid #bfdbfe',
           borderRadius: '8px'
         }}>
-          <p style={{ fontSize: '0.875rem', color: '#4a8e77', margin: 0 }}>
+          <p style={{ fontSize: '0.875rem', color: '#7c3aed', margin: 0 }}>
             <strong>Modo de comparação ativo:</strong> Clique nas caixas de seleção ao lado de cada ticker para comparar até {MAX_SELECTION} ações.
           </p>
         </div>

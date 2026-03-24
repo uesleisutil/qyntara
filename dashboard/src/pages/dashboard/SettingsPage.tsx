@@ -20,12 +20,12 @@ const SettingsPage: React.FC = () => {
   const isPro = user?.plan === 'pro';
 
   const theme = {
-    bg: darkMode ? '#121a1a' : '#f6faf8',
-    cardBg: darkMode ? '#1a2626' : 'white',
-    text: darkMode ? '#e8f0ed' : '#121a1a',
-    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
-    border: darkMode ? '#2a3d36' : '#d4e5dc',
-    hover: darkMode ? '#2a3d36' : '#edf5f1',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e2e0f0',
+    hover: darkMode ? '#2a2745' : '#f3f1fa',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -112,7 +112,7 @@ const SettingsPage: React.FC = () => {
         </h3>
         <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.75rem', lineHeight: 1.5 }}>
           Receba um resumo diário das recomendações no seu email.
-          {!isPro && <span style={{ color: '#d4a84b' }}> Disponível apenas para assinantes Pro.</span>}
+          {!isPro && <span style={{ color: '#f59e0b' }}> Disponível apenas para assinantes Pro.</span>}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
@@ -137,7 +137,7 @@ const SettingsPage: React.FC = () => {
             aria-label="Notificações por email"
             style={{
               width: 44, height: 24, borderRadius: 12, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
-              background: emailNotif && isPro ? '#4ead8a' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#2a2745' : '#e2e0f0'),
               position: 'relative', transition: 'background 0.2s', flexShrink: 0,
               opacity: isPro ? 1 : 0.5, padding: 0,
               WebkitAppearance: 'none' as any,
@@ -176,7 +176,7 @@ const SettingsPage: React.FC = () => {
               <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>{s.desc}</span>
               <kbd style={{
                 padding: '0.15rem 0.5rem', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600,
-                background: darkMode ? '#121a1a' : '#edf5f1', border: `1px solid ${theme.border}`,
+                background: darkMode ? '#0c0a1a' : '#f3f1fa', border: `1px solid ${theme.border}`,
                 color: theme.text, fontFamily: 'monospace',
               }}>{s.keys}</kbd>
             </div>
@@ -185,8 +185,8 @@ const SettingsPage: React.FC = () => {
       </div>
 
       {/* LGPD — Delete account */}
-      <div style={{ ...cardStyle, borderColor: 'rgba(224,112,112,0.3)' }}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#e89090', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+      <div style={{ ...cardStyle, borderColor: 'rgba(239,68,68,0.3)' }}>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f87171', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Trash2 size={16} /> Excluir Minha Conta
         </h3>
         <p style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.6, marginBottom: '0.75rem' }}>
@@ -195,23 +195,23 @@ const SettingsPage: React.FC = () => {
         </p>
 
         {deleteSuccess ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: 8, background: 'rgba(16,185,129,0.1)', color: '#4ead8a', fontSize: '0.85rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: 8, background: 'rgba(16,185,129,0.1)', color: '#10b981', fontSize: '0.85rem' }}>
             <CheckCircle size={16} /> Conta excluída com sucesso. Redirecionando...
           </div>
         ) : !showDeleteConfirm ? (
           <button onClick={() => setShowDeleteConfirm(true)} style={{
-            padding: '0.5rem 1rem', borderRadius: 8, border: '1px solid rgba(224,112,112,0.4)',
-            background: 'transparent', color: '#e89090', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 500,
+            padding: '0.5rem 1rem', borderRadius: 8, border: '1px solid rgba(239,68,68,0.4)',
+            background: 'transparent', color: '#f87171', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 500,
           }}>
             Solicitar exclusão de dados
           </button>
         ) : (
-          <div style={{ padding: '0.75rem', borderRadius: 8, background: darkMode ? 'rgba(224,112,112,0.08)' : 'rgba(224,112,112,0.04)', border: '1px solid rgba(224,112,112,0.2)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem', color: '#e89090', fontSize: '0.82rem', fontWeight: 600 }}>
+          <div style={{ padding: '0.75rem', borderRadius: 8, background: darkMode ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.04)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem', color: '#f87171', fontSize: '0.82rem', fontWeight: 600 }}>
               <AlertTriangle size={15} /> Confirme a exclusão
             </div>
             <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.5rem' }}>
-              Digite <strong style={{ color: '#e89090' }}>EXCLUIR</strong> para confirmar:
+              Digite <strong style={{ color: '#f87171' }}>EXCLUIR</strong> para confirmar:
             </p>
             <input
               type="text" value={deleteInput} onChange={e => setDeleteInput(e.target.value)}
@@ -222,7 +222,7 @@ const SettingsPage: React.FC = () => {
                 boxSizing: 'border-box',
               }}
             />
-            {deleteError && <p style={{ color: '#e89090', fontSize: '0.78rem', marginBottom: '0.5rem' }}>{deleteError}</p>}
+            {deleteError && <p style={{ color: '#f87171', fontSize: '0.78rem', marginBottom: '0.5rem' }}>{deleteError}</p>}
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button onClick={() => { setShowDeleteConfirm(false); setDeleteInput(''); setDeleteError(''); }} style={{
                 padding: '0.45rem 0.75rem', borderRadius: 6, border: `1px solid ${theme.border}`,
@@ -232,7 +232,7 @@ const SettingsPage: React.FC = () => {
               </button>
               <button onClick={handleDeleteAccount} disabled={deleteInput !== 'EXCLUIR' || deleting} style={{
                 padding: '0.45rem 0.75rem', borderRadius: 6, border: 'none',
-                background: deleteInput === 'EXCLUIR' ? '#e07070' : '#5a7268',
+                background: deleteInput === 'EXCLUIR' ? '#ef4444' : '#64748b',
                 color: 'white', cursor: deleteInput === 'EXCLUIR' ? 'pointer' : 'not-allowed',
                 fontSize: '0.8rem', fontWeight: 600, opacity: deleting ? 0.6 : 1,
               }}>

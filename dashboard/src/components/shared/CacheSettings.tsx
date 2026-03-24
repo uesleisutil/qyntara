@@ -58,8 +58,8 @@ export const CacheSettings: React.FC = () => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <Database size={24} color="#5a9e87" />
-        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: '#1a2626' }}>
+        <Database size={24} color="#8b5cf6" />
+        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: '#1a1836' }}>
           Cache Settings
         </h3>
       </div>
@@ -69,17 +69,17 @@ export const CacheSettings: React.FC = () => {
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f8fafc',
               borderRadius: '8px',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
               Cache Size
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1a2626' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1a1836' }}>
               {formatBytes(stats.totalSize)}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
               of {formatBytes(stats.maxSize)}
             </div>
           </div>
@@ -87,31 +87,31 @@ export const CacheSettings: React.FC = () => {
           <div
             style={{
               padding: '1rem',
-              backgroundColor: '#f6faf8',
+              backgroundColor: '#f8fafc',
               borderRadius: '8px',
             }}
           >
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
               Cached Entries
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1a2626' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1a1836' }}>
               {stats.entryCount}
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
               items
             </div>
           </div>
         </div>
 
         <div style={{ marginTop: '1rem' }}>
-          <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.5rem' }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>
             Cache Utilization
           </div>
           <div
             style={{
               width: '100%',
               height: '8px',
-              backgroundColor: '#d4e5dc',
+              backgroundColor: '#e2e8f0',
               borderRadius: '4px',
               overflow: 'hidden',
             }}
@@ -122,15 +122,15 @@ export const CacheSettings: React.FC = () => {
                 height: '100%',
                 backgroundColor:
                   stats.utilizationPercent > 90
-                    ? '#c04040'
+                    ? '#dc2626'
                     : stats.utilizationPercent > 70
-                    ? '#d4a84b'
-                    : '#4ead8a',
+                    ? '#f59e0b'
+                    : '#10b981',
                 transition: 'width 0.3s ease',
               }}
             />
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#5a7268', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
             {stats.utilizationPercent.toFixed(1)}% used
           </div>
         </div>
@@ -142,7 +142,7 @@ export const CacheSettings: React.FC = () => {
         style={{
           width: '100%',
           padding: '0.75rem 1.5rem',
-          backgroundColor: clearing ? '#b0c8bc' : '#c04040',
+          backgroundColor: clearing ? '#cbd5e1' : '#dc2626',
           color: 'white',
           border: 'none',
           borderRadius: '8px',
@@ -173,11 +173,11 @@ export const CacheSettings: React.FC = () => {
         style={{
           marginTop: '1rem',
           padding: '0.75rem',
-          backgroundColor: '#f5ecd0',
-          border: '1px solid #e0b85c',
+          backgroundColor: '#fef3c7',
+          border: '1px solid #fcd34d',
           borderRadius: '8px',
           fontSize: '0.75rem',
-          color: '#8a5a1e',
+          color: '#92400e',
         }}
       >
         <strong>Note:</strong> Clearing cache will require reloading all data from the server.

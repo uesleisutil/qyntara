@@ -37,25 +37,25 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   // Map status to colors
   const getStatusColor = (status: StatusType): { bg: string; text: string; border: string } => {
     const colorMap: Record<string, { bg: string; text: string; border: string }> = {
-      success: { bg: '#c8ede0', text: '#1a5a3a', border: '#4ead8a' },
-      good: { bg: '#c8ede0', text: '#1a5a3a', border: '#4ead8a' },
-      excellent: { bg: '#c8ede0', text: '#1a5a3a', border: '#4ead8a' },
-      current: { bg: '#c8ede0', text: '#1a5a3a', border: '#4ead8a' },
-      resolved: { bg: '#c8ede0', text: '#1a5a3a', border: '#4ead8a' },
-      'no-drift': { bg: '#c8ede0', text: '#1a5a3a', border: '#4ead8a' },
+      success: { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
+      good: { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
+      excellent: { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
+      current: { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
+      resolved: { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
+      'no-drift': { bg: '#d1fae5', text: '#065f46', border: '#10b981' },
       
-      warning: { bg: '#f5ecd0', text: '#8a5a1e', border: '#d4a84b' },
-      fair: { bg: '#f5ecd0', text: '#8a5a1e', border: '#d4a84b' },
-      acknowledged: { bg: '#f5ecd0', text: '#8a5a1e', border: '#d4a84b' },
-      stale: { bg: '#f5ecd0', text: '#8a5a1e', border: '#d4a84b' },
+      warning: { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
+      fair: { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
+      acknowledged: { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
+      stale: { bg: '#fef3c7', text: '#92400e', border: '#f59e0b' },
       
-      error: { bg: '#fde0e0', text: '#8a2020', border: '#e07070' },
-      poor: { bg: '#fde0e0', text: '#8a2020', border: '#e07070' },
-      critical: { bg: '#fde0e0', text: '#8a2020', border: '#e07070' },
-      'drift-detected': { bg: '#fde0e0', text: '#8a2020', border: '#e07070' },
+      error: { bg: '#fee2e2', text: '#991b1b', border: '#ef4444' },
+      poor: { bg: '#fee2e2', text: '#991b1b', border: '#ef4444' },
+      critical: { bg: '#fee2e2', text: '#991b1b', border: '#ef4444' },
+      'drift-detected': { bg: '#fee2e2', text: '#991b1b', border: '#ef4444' },
       
-      info: { bg: '#d4ede0', text: '#4a8e77', border: '#5a9e87' },
-      active: { bg: '#d4ede0', text: '#4a8e77', border: '#5a9e87' },
+      info: { bg: '#dbeafe', text: '#7c3aed', border: '#8b5cf6' },
+      active: { bg: '#dbeafe', text: '#7c3aed', border: '#8b5cf6' },
     };
 
     return colorMap[status] || colorMap.info;
@@ -160,7 +160,7 @@ export const StatusBadgeLegend: React.FC<StatusBadgeLegendProps> = ({ categories
   return (
     <div className="status-badge-legend" style={{ 
       padding: '1rem', 
-      background: '#f6faf8', 
+      background: '#f8fafc', 
       borderRadius: '8px',
     }}>
       <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 600 }}>
@@ -168,14 +168,14 @@ export const StatusBadgeLegend: React.FC<StatusBadgeLegendProps> = ({ categories
       </h3>
       {categories.map((category, idx) => (
         <div key={idx} style={{ marginBottom: '1rem' }}>
-          <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: 600, color: '#5a7268' }}>
+          <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: 600, color: '#64748b' }}>
             {category.title}
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {category.badges.map((badge, badgeIdx) => (
               <div key={badgeIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <StatusBadge status={badge.status} label={badge.label} size="sm" />
-                <span style={{ fontSize: '0.875rem', color: '#5a7268' }}>
+                <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
                   {badge.description}
                 </span>
               </div>
