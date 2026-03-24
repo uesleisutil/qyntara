@@ -279,7 +279,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const data = await res.json();
     setUser(prev => {
       if (!prev) return prev;
-      const updated = { ...prev, plan: (data.plan || 'free') as 'free' | 'pro', planExpiresAt: data.planExpiresAt || '', freeTicker: data.freeTicker || '' };
+      const updated = { ...prev, plan: (data.plan || 'free') as 'free' | 'pro', planExpiresAt: data.planExpiresAt || '', freeTicker: data.freeTicker || '', canViewCosts: data.canViewCosts ?? false };
       localStorage.setItem('user', JSON.stringify(updated));
       return updated;
     });

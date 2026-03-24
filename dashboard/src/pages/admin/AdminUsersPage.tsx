@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Users, Crown, RefreshCw, Search, Shield, Clock, CheckCircle, XCircle, Loader2, Trash2 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface UserItem {
@@ -15,6 +16,7 @@ interface UserItem {
 
 const AdminUsersPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
+  const { user: authUser, refreshPlan } = useAuth();
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -119,6 +121,10 @@ const AdminUsersPage: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Erro');
       fetchUsers();
+      // If toggling the logged-in user, refresh AuthContext so useCanViewCosts updates immediately
+      if (email === authUser?.email) {
+        refreshPlan().catch(() => {});
+      }
     } catch (err: any) {
       setError(err.message);
     } finally { setCostsToggleLoading(''); }
