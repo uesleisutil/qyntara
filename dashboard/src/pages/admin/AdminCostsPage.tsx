@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { DollarSign, TrendingDown, TrendingUp, RefreshCw, AlertTriangle, Clock, XCircle, CheckCircle, EyeOff } from 'lucide-react';
+import { DollarSign, TrendingDown, TrendingUp, RefreshCw, AlertTriangle, Clock, XCircle, CheckCircle, EyeOff, Calendar } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { fmt } from '../../lib/formatters';
@@ -26,6 +26,22 @@ const AdminCostsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
+  // Default to current month (days since 1st of month + 1)
+  const getDaysInCurrentMonth = () => {
+    const now = new Date();
+    return now.getDate();
+  };
+  const [costDays, setCostDays] = useState<number>(getDaysInCurrentMonth);
+
+  const periodOptions = [
+    { label: '7 dias', value: 7 },
+    { label: '14 dias', value: 14 },
+    { label: 'Mês atual', value: getDaysInCurrentMonth() },
+    { label: '30 dias', value: 30 },
+    { label: '60 dias', value: 60 },
+    { label: '90 dias', value: 90 },
+  ];
+
   /**
    * Renders real value when allowed, otherwise a blurred placeholder.
    * The real value is NEVER placed in the DOM when access is off.
@@ -38,13 +54,13 @@ const AdminCostsPage: React.FC = () => {
   const fetchCosts = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/monitoring/costs`, { headers: { 'x-api-key': API_KEY } });
+      const res = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=${costDays}`, { headers: { 'x-api-key': API_KEY } });
       if (res.ok) { setData(await res.json()); setLastUpdated(new Date()); }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchCosts(); }, []);
+  useEffect(() => { fetchCosts(); }, [costDays]);
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
@@ -108,7 +124,7 @@ const AdminCostsPage: React.FC = () => {
 
   const kpis = [
     { label: 'Projeção Mensal (BRL)', value: `R$ ${fmt(projection.brl)}`, ph: 'R$ ••••', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo total AWS para o mês atual, convertido em reais.', sensitive: true },
-    { label: 'Custo 7 dias (USD)', value: `${fmt(total7d.usd)}`, ph: '$ ••••', color: '#3b82f6', icon: <TrendingDown size={16} />, tip: 'Custo total acumulado dos últimos 7 dias em dólares.', sensitive: true },
+    { label: `Custo ${costDays}d (USD)`, value: `${fmt(total7d.usd)}`, ph: '$ ••••', color: '#3b82f6', icon: <TrendingDown size={16} />, tip: `Custo total acumulado dos últimos ${costDays} dias em dólares.`, sensitive: true },
     { label: 'Orçamento Usado', value: `${fmt(threshold.percentage, 1)}%`, ph: '••%', color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', icon: threshold.exceeded ? <TrendingUp size={16} /> : <TrendingDown size={16} />, tip: 'Percentual do orçamento mensal já consumido pela projeção atual.', sensitive: true },
     { label: 'Anomalias', value: `${anomalies.length}`, ph: '', color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Serviços com custos significativamente acima da média histórica.', sensitive: false },
   ];
@@ -131,6 +147,26 @@ const AdminCostsPage: React.FC = () => {
         <button onClick={fetchCosts} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
+      </div>
+
+      {/* Period filter */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <Calendar size={14} color={theme.textSecondary} style={{ flexShrink: 0 }} />
+        <span style={{ fontSize: '0.78rem', color: theme.textSecondary, marginRight: '0.25rem' }}>Período:</span>
+        {periodOptions.map(opt => {
+          const isActive = costDays === opt.value;
+          return (
+            <button key={opt.value} onClick={() => setCostDays(opt.value)} style={{
+              padding: '0.3rem 0.65rem', borderRadius: 6, fontSize: '0.74rem',
+              fontWeight: isActive ? 600 : 400,
+              border: `1px solid ${isActive ? '#3b82f6' : theme.border}`,
+              background: isActive ? '#3b82f6' : 'transparent',
+              color: isActive ? 'white' : theme.textSecondary,
+              cursor: 'pointer', transition: 'all 0.15s',
+              WebkitAppearance: 'none' as any,
+            }}>{opt.label}</button>
+          );
+        })}
       </div>
 
       {/* Blur notice banner */}
@@ -218,7 +254,7 @@ const AdminCostsPage: React.FC = () => {
         {sortedServices.length > 0 && (
           <div style={cardStyle}>
             <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Custo por Serviço (7 dias)
+              Custo por Serviço ({costDays} dias)
               <InfoTooltip text="Distribuição de custos por serviço AWS nos últimos 7 dias. Barras proporcionais ao maior custo." darkMode={darkMode} size={12} />
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
