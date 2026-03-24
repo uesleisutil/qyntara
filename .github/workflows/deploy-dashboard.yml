@@ -116,6 +116,11 @@ jobs:
           B3TR_SSM_PREFIX: /b3tr
           BRAPI_SECRET_ID: brapi/pro/token
           ALERT_EMAIL: ${{ vars.PROD_ALERT_EMAIL || 'production-alerts@example.com' }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM_EMAIL: ${{ secrets.SMTP_FROM_EMAIL }}
         run: |
           npx cdk deploy ${{ env.PROD_STACK_NAME }} \
             --context stage=prod \
