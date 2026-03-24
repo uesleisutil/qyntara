@@ -138,6 +138,16 @@ def get_recommendations_latest() -> Dict:
             "prediction_horizon_days": data.get("prediction_horizon_days", 20),
             "method": data.get("method"),
             "run_id": data.get("run_id")
+        },
+        # Campos raw para a página de governança de modelos
+        "data": {
+            "dt": data.get("dt", data.get("date")),
+            "method": data.get("method"),
+            "model_key": data.get("model_key"),
+            "run_id": data.get("run_id"),
+            "top_n": data.get("top_n"),
+            "count": len(items),
+            "model_metadata": data.get("model_metadata"),
         }
     }
     

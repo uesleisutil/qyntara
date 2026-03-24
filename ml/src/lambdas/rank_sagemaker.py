@@ -59,9 +59,12 @@ def load_universe(bucket: str, key: str) -> list[str]:
 
 
 def should_skip_today(now_utc: datetime, holidays: set[str]) -> bool:
-    if now_utc.weekday() >= 5:
+    # Usar horário de Brasília (UTC-3) para decidir se é fim de semana/feriado,
+    # pois o mercado B3 opera em BRT e o dt de referência é BRT.
+    brt = now_utc - timedelta(hours=3)
+    if brt.weekday() >= 5:
         return True
-    return now_utc.date().isoformat() in holidays
+    return brt.date().isoformat() in holidays
 
 
 def load_monthly_data_for_ranking(bucket: str, days: int) -> tuple[dict[str, list[float]], dict[str, list[float]]]:
@@ -236,12 +239,12 @@ def find_latest_model(bucket: str) -> tuple[str, dict]:
     raise RuntimeError(f"model.tar.gz não encontrado em {model_prefix}")
 
 
-def load_model_from_s3(bucket: str, model_key: str) -> tuple[xgb.Booster, list]:
+def load_model_from_s3(bucket: str, model_key: str) -> tuple[xgb.Booster, list, dict]:
     """
     Carrega modelo XGBoost do S3.
     
     Returns:
-        Tuple (model, selected_features)
+        Tuple (model, selected_features, metrics)
     """
     logger.info(f"Carregando modelo de s3://{bucket}/{model_key}")
     
@@ -284,7 +287,15 @@ def load_model_from_s3(bucket: str, model_key: str) -> tuple[xgb.Booster, list]:
             logger.warning("selected_features.json não encontrado, usando todas as features")
             selected_features = None
         
-        return model, selected_features
+        # Carregar métricas de treino
+        metrics = {}
+        metrics_path = os.path.join(tmpdir, 'metrics.json')
+        if os.path.exists(metrics_path):
+            with open(metrics_path, 'r') as f:
+                metrics = json.load(f)
+            logger.info(f"Métricas carregadas: {list(metrics.keys())}")
+        
+        return model, selected_features, metrics
 
 
 def predict_with_model(
@@ -499,7 +510,11 @@ def handler(event, context):
                 model_key, model_metadata = find_latest_model(bucket)
             
             # Carregar modelo
-            model, selected_features = load_model_from_s3(bucket, model_key)
+            model, selected_features, train_metrics = load_model_from_s3(bucket, model_key)
+            
+            # Usar métricas do tar.gz se disponíveis (mais confiáveis que metrics.json separado)
+            if train_metrics:
+                model_metadata = train_metrics
             
             # Fazer predições
             predictions = predict_with_model(model, features_df, selected_features)
@@ -541,12 +556,21 @@ def handler(event, context):
     
     # Adicionar métricas do modelo se disponível
     if model_metadata:
+        # Métricas podem estar em 'individual_models.xgboost' ou diretamente em 'xgboost'
+        xgb_metrics = model_metadata.get('individual_models', {}).get('xgboost', model_metadata.get('xgboost', {}))
+        wf_cv = model_metadata.get('walk_forward_cv', {})
+        ensemble = model_metadata.get('ensemble', {})
         payload['model_metadata'] = {
-            'train_rmse': model_metadata.get('xgboost', {}).get('train_rmse'),
-            'val_rmse': model_metadata.get('xgboost', {}).get('val_rmse'),
-            'val_mape': model_metadata.get('xgboost', {}).get('mape'),
-            'cv_avg_rmse': model_metadata.get('walk_forward_cv', {}).get('avg_rmse'),
-            'cv_avg_mape': model_metadata.get('walk_forward_cv', {}).get('avg_mape'),
+            'train_rmse': xgb_metrics.get('train_rmse'),
+            'val_rmse': xgb_metrics.get('val_rmse'),
+            'val_mape': xgb_metrics.get('mape') or xgb_metrics.get('val_mape'),
+            'cv_avg_rmse': wf_cv.get('avg_rmse'),
+            'cv_avg_mape': wf_cv.get('avg_mape'),
+            'ensemble_val_rmse': ensemble.get('val_rmse'),
+            'ensemble_weights': ensemble.get('weights'),
+            'n_features': model_metadata.get('feature_selection', {}).get('n_features_selected'),
+            'train_date': model_metadata.get('train_date'),
+            'train_samples': model_metadata.get('train_samples'),
         }
     
     put_json(bucket, rec_key, payload)

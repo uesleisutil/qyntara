@@ -364,9 +364,25 @@ const AdminModelsPage: React.FC = () => {
               {[
                 { label: 'Train RMSE', value: fmt(meta.train_rmse, 4), color: '#3b82f6', tip: 'Root Mean Squared Error no conjunto de treino.' },
                 { label: 'Val RMSE', value: fmt(meta.val_rmse, 4), color: '#8b5cf6', tip: 'RMSE no conjunto de validação.' },
-                { label: 'Val MAPE', value: `${fmt(meta.val_mape)}%`, color: meta.val_mape <= 15 ? '#10b981' : '#f59e0b', tip: 'Mean Absolute Percentage Error na validação.' },
+                ...(meta.val_mape != null && meta.val_mape < 1000 ? [{
+                  label: 'Val MAPE', value: `${fmt(meta.val_mape)}%`,
+                  color: meta.val_mape <= 15 ? '#10b981' : '#f59e0b',
+                  tip: 'Mean Absolute Percentage Error na validação.',
+                }] : []),
                 { label: 'CV Avg RMSE', value: fmt(meta.cv_avg_rmse, 4), color: '#3b82f6', tip: 'RMSE médio do walk-forward cross-validation.' },
-                { label: 'CV Avg MAPE', value: `${fmt(meta.cv_avg_mape)}%`, color: meta.cv_avg_mape <= 15 ? '#10b981' : '#f59e0b', tip: 'MAPE médio do walk-forward CV.' },
+                ...(meta.cv_avg_mape != null && meta.cv_avg_mape < 1000 ? [{
+                  label: 'CV Avg MAPE', value: `${fmt(meta.cv_avg_mape)}%`,
+                  color: meta.cv_avg_mape <= 15 ? '#10b981' : '#f59e0b',
+                  tip: 'MAPE médio do walk-forward CV.',
+                }] : []),
+                ...(meta.n_features != null ? [{
+                  label: 'Features', value: `${meta.n_features}`,
+                  color: '#8b5cf6', tip: 'Número de features selecionadas pelo SHAP.',
+                }] : []),
+                ...(meta.train_samples != null ? [{
+                  label: 'Amostras', value: `${meta.train_samples}`,
+                  color: '#3b82f6', tip: 'Número de amostras usadas no treino.',
+                }] : []),
               ].map((m, i) => (
                 <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0f172a' : '#f8fafc', borderRadius: 8 }}>
                   <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
