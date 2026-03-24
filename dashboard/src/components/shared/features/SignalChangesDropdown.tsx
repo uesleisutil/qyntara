@@ -1,3 +1,4 @@
+import { brand } from '../../../styles/theme';
 import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ArrowDownRight, Minus, ArrowUp, ArrowDown } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../../config';
@@ -157,7 +158,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
               <button key={d} onClick={() => setDaysBack(d)} style={{
                 padding: '0.15rem 0.45rem', borderRadius: 5, fontSize: '0.68rem', fontWeight: 600,
                 border: `1px solid ${daysBack === d ? '#3b82f6' : theme.border}`,
-                background: daysBack === d ? 'rgba(139,92,246,0.15)' : 'transparent',
+                background: daysBack === d ? brand.alpha(0.15) : 'transparent',
                 color: daysBack === d ? '#3b82f6' : theme.textSecondary, cursor: 'pointer',
               }}>{d}d</button>
             ))}

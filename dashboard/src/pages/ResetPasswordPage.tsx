@@ -1,3 +1,4 @@
+import { brand } from '../styles/theme';
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
@@ -55,7 +56,7 @@ const ResetPasswordPage: React.FC = () => {
       <div style={{ minHeight: '100vh', background: '#0f1117', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <div style={{ width: '100%', maxWidth: 420 }}>
           {logoBlock}
-          <div style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid #2a2e3a', borderRadius: 16, padding: '2rem', textAlign: 'center' }}>
+          <div style={{ background: brand.alpha(0.03), border: '1px solid #2a2e3a', borderRadius: 16, padding: '2rem', textAlign: 'center' }}>
             <CheckCircle size={48} color="#10b981" style={{ marginBottom: '1rem' }} />
             <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#f1f0f9', marginBottom: '0.5rem' }}>Senha Redefinida</h2>
             <p style={{ color: '#6b7280', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Sua senha foi alterada com sucesso.</p>
@@ -73,7 +74,7 @@ const ResetPasswordPage: React.FC = () => {
     <div style={{ minHeight: '100vh', background: '#0f1117', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         {logoBlock}
-        <div style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid #2a2e3a', borderRadius: 16, padding: '2rem' }}>
+        <div style={{ background: brand.alpha(0.03), border: '1px solid #2a2e3a', borderRadius: 16, padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f0f9', marginBottom: '0.5rem', textAlign: 'center' }}>Redefinir Senha</h2>
           <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Digite o código recebido por email e sua nova senha

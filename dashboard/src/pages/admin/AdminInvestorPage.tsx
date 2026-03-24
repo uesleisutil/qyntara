@@ -1,3 +1,4 @@
+import { brand } from '../../styles/theme';
 import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -220,9 +221,9 @@ const AdminInvestorPage: React.FC = () => {
       <div style={{
         ...card, marginBottom: '1.5rem', padding: '1.75rem 1.5rem',
         background: darkMode
-          ? 'linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(139,92,246,0.06) 100%)'
-          : 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.03) 100%)',
-        borderColor: darkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.12)',
+          ? `linear-gradient(135deg, ${brand.alpha(0.1)} 0%, ${brand.alpha(0.06)} 100%)`
+          : `linear-gradient(135deg, ${brand.alpha(0.06)} 0%, ${brand.alpha(0.03)} 100%)`,
+        borderColor: darkMode ? brand.alpha(0.2) : brand.alpha(0.12),
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', top: -40, right: -40, width: 160, height: 160, borderRadius: '50%', background: `${accent}08`, pointerEvents: 'none' }} />
@@ -587,9 +588,9 @@ const AdminInvestorPage: React.FC = () => {
       <div style={{
         ...card, textAlign: 'center', padding: '2rem 1.5rem',
         background: darkMode
-          ? 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.06))'
-          : 'linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.02))',
-        borderColor: darkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
+          ? `linear-gradient(135deg, ${brand.alpha(0.1)}, ${brand.alpha(0.06)})`
+          : `linear-gradient(135deg, ${brand.alpha(0.05)}, ${brand.alpha(0.02)})`,
+        borderColor: darkMode ? brand.alpha(0.2) : brand.alpha(0.1),
       }}>
         <div style={{ fontSize: 'clamp(1rem, 3vw, 1.25rem)', fontWeight: 800, color: theme.text, marginBottom: '0.4rem', letterSpacing: '-0.02em' }}>
           Produto em produção. Receita recorrente.

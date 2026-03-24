@@ -1,3 +1,4 @@
+import { brand } from '../../../styles/theme';
 import React, { useState, useEffect } from 'react';
 import { ArrowUp, ArrowDown, Minus, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../../config';
@@ -105,7 +106,7 @@ const TemporalComparison: React.FC<Props> = ({ darkMode, theme }) => {
             <button key={d} onClick={() => setDaysBack(d)} style={{
               padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.7rem', fontWeight: 600,
               border: `1px solid ${daysBack === d ? '#3b82f6' : theme.border}`,
-              background: daysBack === d ? 'rgba(139,92,246,0.15)' : 'transparent',
+              background: daysBack === d ? brand.alpha(0.15) : 'transparent',
               color: daysBack === d ? '#3b82f6' : theme.textSecondary, cursor: 'pointer',
             }}>
               {d}d

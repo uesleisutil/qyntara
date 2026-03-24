@@ -1,3 +1,4 @@
+import { brand } from '../styles/theme';
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
@@ -25,7 +26,7 @@ const RegisterPage: React.FC = () => {
 
   const t = {
     bg: dark ? '#0f1117' : '#f8f9fb',
-    card: dark ? 'rgba(139,92,246,0.03)' : 'white',
+    card: dark ? brand.alpha(0.03) : 'white',
     cardBorder: dark ? '#2a2e3a' : '#e0e2e8',
     input: dark ? '#1a1d27' : '#f1f2f6',
     inputBorder: dark ? '#2a2e3a' : '#d1d5db',

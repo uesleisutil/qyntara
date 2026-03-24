@@ -1,3 +1,4 @@
+import { brand } from '../../../styles/theme';
 import React, { useState, useEffect, useCallback } from 'react';
 import { TrendingUp, Brain, TestTubes, ArrowRight, X, Search, Check, Star } from 'lucide-react';
 import { UNIVERSE_SIZE_FALLBACK } from '../../../constants';
@@ -211,7 +212,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                     ? '2px solid #3b82f6'
                     : `1px solid ${darkMode ? '#2a2e3a' : '#e2e8f0'}`,
                   background: selectedTicker === t.ticker
-                    ? (darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)')
+                    ? (darkMode ? brand.alpha(0.15) : brand.alpha(0.08))
                     : 'transparent',
                   color: selectedTicker === t.ticker ? '#3b82f6' : (darkMode ? '#f1f5f9' : '#0f1117'),
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem',
@@ -265,7 +266,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                 background: isLast
                   ? 'linear-gradient(135deg, #f59e0b, #d97706)'
                   : 'linear-gradient(135deg, #2563eb, #3b82f6)',
-                color: 'white', boxShadow: '0 2px 8px rgba(124,58,237,0.25)',
+                color: 'white', boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
                 WebkitAppearance: 'none' as any,
                 opacity: (isTickerStep && !selectedTicker) ? 0.5 : 1,
               }}>

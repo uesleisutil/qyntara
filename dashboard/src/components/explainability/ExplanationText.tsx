@@ -1,3 +1,4 @@
+import { brand } from '../../styles/theme';
 import React, { useMemo } from 'react';
 import { MessageSquare, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 import InfoTooltip from '../shared/ui/InfoTooltip';
@@ -16,7 +17,7 @@ interface ExplanationTextProps {
 /* ── Category badge colors ── */
 const CAT_BADGE: Record<string, { bg: string; color: string }> = {
   'Técnica': { bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' },
-  'Volume': { bg: 'rgba(139,92,246,0.12)', color: '#3b82f6' },
+  'Volume': { bg: brand.alpha(0.12), color: '#3b82f6' },
   'Fundamental': { bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
   'Macro': { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
   'Setorial': { bg: 'rgba(236,72,153,0.12)', color: '#ec4899' },

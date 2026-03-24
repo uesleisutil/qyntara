@@ -1,3 +1,4 @@
+import { brand } from '../styles/theme';
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
@@ -124,9 +125,9 @@ const DashboardLayout: React.FC = () => {
     textSecondary: darkMode ? '#9ba1b0' : '#5f6577',
     border: darkMode ? '#2a2e3a' : '#e0e2e8',
     hover: darkMode ? '#22252f' : '#f1f2f6',
-    activeItem: darkMode ? 'rgba(139,92,246,0.20)' : 'rgba(139,92,246,0.08)',
+    activeItem: darkMode ? brand.alpha(0.20) : brand.alpha(0.08),
     accentColor: '#3b82f6',
-    accentSoft: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.06)',
+    accentSoft: darkMode ? brand.alpha(0.15) : brand.alpha(0.06),
   };
 
   const handleLogout = async () => { await logout(); navigate('/'); };

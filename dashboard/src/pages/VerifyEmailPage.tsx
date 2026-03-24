@@ -1,3 +1,4 @@
+import { brand } from '../styles/theme';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
@@ -82,7 +83,7 @@ const VerifyEmailPage: React.FC = () => {
           </div>
           <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f0f9' }}>Qyntara</span>
         </div>
-        <div style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid #2a2e3a', borderRadius: 16, padding: '2rem' }}>
+        <div style={{ background: brand.alpha(0.03), border: '1px solid #2a2e3a', borderRadius: 16, padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f0f9', marginBottom: '0.5rem', textAlign: 'center' }}>Verificar Email</h2>
           <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Enviamos um código de 6 dígitos para<br /><span style={{ color: accent }}>{email}</span>
@@ -117,7 +118,7 @@ const VerifyEmailPage: React.FC = () => {
           </form>
           <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
             <button onClick={handleResend} disabled={resending || cooldown > 0} style={{
-              background: 'none', border: 'none', color: cooldown > 0 ? '#7a7694' : accent,
+              background: 'none', border: 'none', color: cooldown > 0 ? '#6b7280' : accent,
               cursor: cooldown > 0 ? 'default' : 'pointer', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             }}>
               <RefreshCw size={14} /> {cooldown > 0 ? `Reenviar em ${cooldown}s` : 'Reenviar código'}

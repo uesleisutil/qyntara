@@ -207,7 +207,7 @@ const AdminNotificationsPage: React.FC = () => {
             display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem 0.75rem',
             borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
             color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-            boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any,
+            boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any,
           }}><Plus size={14} /> Nova Notificação</button>
         </div>
       </div>
