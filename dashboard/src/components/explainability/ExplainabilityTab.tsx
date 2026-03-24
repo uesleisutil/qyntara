@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   RefreshCw, Brain, TrendingUp, BarChart3,
   DollarSign, Globe, Building2, Newspaper, Layers, Lock,
-  Search, ChevronLeft, ChevronRight,
+  Search,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { getSignal, getSignalColor } from '../../constants';
@@ -43,7 +43,6 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const [tickers, setTickers] = useState<TickerData[]>([]);
   const [loading, setLoading] = useState(true);
   const [tickerSearch, setTickerSearch] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
   const isPro = useIsPro();
   const freeTicker = useFreeTicker();
 
@@ -174,90 +173,52 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
         const filtered = tickers.filter(t =>
           t.ticker.toLowerCase().includes(tickerSearch.toLowerCase())
         );
-        const scrollByAmount = (dir: number) => {
-          scrollRef.current?.scrollBy({ left: dir * 200, behavior: 'smooth' });
-        };
         const currentIdx = tickers.findIndex(t => t.ticker === selectedTicker);
 
         return (
           <div style={{
             ...cardStyle,
-            padding: 0,
-            border: `1.5px solid ${darkMode ? 'rgba(59,130,246,0.25)' : 'rgba(59,130,246,0.2)'}`,
-            overflow: 'hidden',
+            padding: 'clamp(0.75rem, 3vw, 1.25rem)',
+            border: `1.5px solid ${darkMode ? 'rgba(59,130,246,0.25)' : 'rgba(59,130,246,0.18)'}`,
           }}>
-            {/* Header */}
+            {/* Header row: title + search */}
             <div style={{
-              padding: 'clamp(0.75rem, 3vw, 1rem) clamp(0.75rem, 3vw, 1.25rem)',
-              background: darkMode ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.03)',
-              borderBottom: `1px solid ${darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)'}`,
-              display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              marginBottom: '0.75rem', flexWrap: 'wrap',
             }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-                background: 'rgba(59,130,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Search size={16} color="#3b82f6" />
-              </div>
-              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: theme.text, flex: '1 1 auto' }}>
+              <Search size={16} color="#3b82f6" style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>
                 Selecione uma ação para explorar
               </span>
-              <span style={{
-                fontSize: '0.7rem', color: theme.textSecondary, fontWeight: 500,
-              }}>
-                {currentIdx + 1} / {tickers.length}
+              <span style={{ fontSize: '0.68rem', color: theme.textSecondary }}>
+                {currentIdx + 1}/{tickers.length}
               </span>
-            </div>
-
-            {/* Search + nav */}
-            <div style={{
-              padding: 'clamp(0.6rem, 2vw, 0.85rem) clamp(0.75rem, 3vw, 1.25rem)',
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-            }}>
-              <div style={{ position: 'relative', flex: '1 1 auto', minWidth: 0 }}>
-                <Search size={14} style={{
-                  position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+              <div style={{ position: 'relative', marginLeft: 'auto', width: 'min(200px, 100%)' }}>
+                <Search size={13} style={{
+                  position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
                   color: theme.textSecondary, pointerEvents: 'none',
                 }} />
                 <input
                   type="text"
-                  placeholder="Buscar ticker..."
+                  placeholder="Filtrar..."
                   value={tickerSearch}
                   onChange={e => setTickerSearch(e.target.value)}
                   style={{
-                    width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem',
-                    fontSize: '0.82rem', border: `1px solid ${theme.border}`,
-                    borderRadius: 8, backgroundColor: theme.subtle, color: theme.text,
+                    width: '100%', padding: '0.35rem 0.5rem 0.35rem 1.7rem',
+                    fontSize: '0.78rem', border: `1px solid ${theme.border}`,
+                    borderRadius: 6, backgroundColor: theme.subtle, color: theme.text,
                     outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s',
                   }}
                   onFocus={e => { e.currentTarget.style.borderColor = '#3b82f6'; }}
                   onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
                 />
               </div>
-              <button onClick={() => scrollByAmount(-1)}
-                style={{
-                  width: 32, height: 32, borderRadius: 8, border: `1px solid ${theme.border}`,
-                  background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }} aria-label="Scroll esquerda"><ChevronLeft size={16} /></button>
-              <button onClick={() => scrollByAmount(1)}
-                style={{
-                  width: 32, height: 32, borderRadius: 8, border: `1px solid ${theme.border}`,
-                  background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }} aria-label="Scroll direita"><ChevronRight size={16} /></button>
             </div>
 
-            {/* Ticker chips */}
-            <div
-              ref={scrollRef}
-              style={{
-                display: 'flex', gap: '0.4rem', overflowX: 'auto',
-                padding: '0 clamp(0.75rem, 3vw, 1.25rem) clamp(0.75rem, 3vw, 1rem)',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-              }}
-            >
+            {/* Ticker chips — wrapping */}
+            <div style={{
+              display: 'flex', flexWrap: 'wrap', gap: '0.35rem',
+            }}>
               {filtered.map(t => {
                 const s = getSignal(t.score);
                 const sColor = getSignalColor(s);
@@ -268,9 +229,9 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
                     key={t.ticker}
                     onClick={() => setSelectedTicker(t.ticker)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: '0.35rem',
-                      padding: '0.4rem 0.7rem', borderRadius: 8, flexShrink: 0,
-                      fontSize: '0.78rem', fontWeight: isActive ? 700 : 500,
+                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
+                      padding: '0.3rem 0.55rem', borderRadius: 6,
+                      fontSize: '0.74rem', fontWeight: isActive ? 700 : 500,
                       cursor: 'pointer', transition: 'all 0.15s',
                       border: isActive
                         ? `1.5px solid ${sColor.text}`
@@ -278,31 +239,26 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
                       background: isActive
                         ? (darkMode ? `${sColor.text}18` : `${sColor.text}0c`)
                         : 'transparent',
-                      color: isActive ? sColor.text : theme.textSecondary,
+                      color: isActive ? theme.text : theme.textSecondary,
                       WebkitAppearance: 'none' as any,
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {locked && <Lock size={11} style={{ opacity: 0.6 }} />}
-                    <span style={{ fontWeight: isActive ? 700 : 600, color: isActive ? theme.text : theme.textSecondary }}>
-                      {t.ticker}
-                    </span>
+                    {locked && <Lock size={10} style={{ opacity: 0.5 }} />}
+                    {t.ticker}
                     <span style={{
-                      fontSize: '0.62rem', fontWeight: 700,
-                      padding: '0.08rem 0.35rem', borderRadius: 6,
-                      background: isActive ? sColor.bg : `${sColor.text}12`,
+                      fontSize: '0.6rem', fontWeight: 700,
                       color: sColor.text,
-                      border: isActive ? `1px solid ${sColor.border}` : 'none',
                     }}>
-                      {s === 'Compra' ? '▲' : s === 'Venda' ? '▼' : '—'} {t.score.toFixed(2)}
+                      {s === 'Compra' ? '▲' : s === 'Venda' ? '▼' : '—'}{t.score.toFixed(2)}
                     </span>
                   </button>
                 );
               })}
               {filtered.length === 0 && (
-                <div style={{ padding: '0.5rem', fontSize: '0.8rem', color: theme.textSecondary }}>
+                <span style={{ fontSize: '0.78rem', color: theme.textSecondary, padding: '0.25rem' }}>
                   Nenhum ticker encontrado
-                </div>
+                </span>
               )}
             </div>
           </div>
