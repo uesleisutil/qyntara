@@ -1,0 +1,18 @@
+FROM public.ecr.aws/lambda/python:3.11
+
+# Dependências ML para a Lambda de ranking
+# boto3/botocore já vem na base image da Lambda
+RUN pip install --no-cache-dir \
+    xgboost==2.1.4 \
+    numpy==1.26.4 \
+    scipy==1.12.0 \
+    pandas==2.1.4 \
+    requests>=2.31.0 \
+    python-dateutil>=2.8.2 \
+    pytz>=2023.3
+
+# Copiar código da aplicação
+COPY ml/ ${LAMBDA_TASK_ROOT}/ml/
+COPY config/ ${LAMBDA_TASK_ROOT}/config/
+
+CMD ["ml.src.lambdas.rank_sagemaker.handler"]

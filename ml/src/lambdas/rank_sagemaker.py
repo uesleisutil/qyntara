@@ -27,9 +27,9 @@ try:
     import pandas as pd
     import xgboost as xgb
     HAS_ML_LIBS = True
-except ImportError:
+except ImportError as e:
     HAS_ML_LIBS = False
-    logging.warning("Bibliotecas ML não disponíveis, usando modo fallback")
+    logging.warning(f"Bibliotecas ML não disponíveis, usando modo fallback: {e}")
 
 from ml.src.features.advanced_features import AdvancedFeatureEngineer
 from ml.src.runtime_config import load_runtime_config
@@ -195,7 +195,9 @@ def find_latest_model(bucket: str) -> tuple[str, dict]:
     model_dates = []
     for prefix in response['CommonPrefixes']:
         date_str = prefix['Prefix'].split('/')[-2]
+        # Validar que é uma data no formato YYYY-MM-DD
         try:
+            datetime.strptime(date_str, "%Y-%m-%d")
             model_dates.append(date_str)
         except ValueError:
             continue
@@ -216,7 +218,22 @@ def find_latest_model(bucket: str) -> tuple[str, dict]:
         logger.warning(f"Não foi possível carregar métricas: {e}")
         metadata = {}
     
-    return f"{model_prefix}model.tar.gz", metadata
+    # Procurar model.tar.gz — pode estar na raiz ou dentro de subdir/output/
+    direct_key = f"{model_prefix}model.tar.gz"
+    try:
+        s3.head_object(Bucket=bucket, Key=direct_key)
+        return direct_key, metadata
+    except Exception:
+        pass
+    
+    # Buscar recursivamente dentro do diretório da data
+    objs = s3.list_objects_v2(Bucket=bucket, Prefix=model_prefix)
+    for obj in objs.get('Contents', []):
+        if obj['Key'].endswith('/model.tar.gz'):
+            logger.info(f"Modelo encontrado em: {obj['Key']}")
+            return obj['Key'], metadata
+    
+    raise RuntimeError(f"model.tar.gz não encontrado em {model_prefix}")
 
 
 def load_model_from_s3(bucket: str, model_key: str) -> tuple[xgb.Booster, list]:
@@ -233,8 +250,21 @@ def load_model_from_s3(bucket: str, model_key: str) -> tuple[xgb.Booster, list]:
         tar_path = os.path.join(tmpdir, 'model.tar.gz')
         s3.download_file(bucket, model_key, tar_path)
         
-        # Extrair
-        with tarfile.open(tar_path, 'r:gz') as tar:
+        # Verificar integridade do download
+        file_size = os.path.getsize(tar_path)
+        logger.info(f"Modelo baixado: {file_size} bytes em {tar_path}")
+        
+        # Extrair — usar gzip manual para evitar erro de EOF truncado
+        import gzip
+        import io
+        
+        with open(tar_path, 'rb') as f:
+            decompressed = gzip.decompress(f.read())
+        
+        tar_io = io.BytesIO(decompressed)
+        with tarfile.open(fileobj=tar_io, mode='r:') as tar:
+            members = tar.getnames()
+            logger.info(f"Membros do tar: {members}")
             tar.extractall(tmpdir)
         
         # Carregar modelo
@@ -275,15 +305,22 @@ def predict_with_model(
     """
     logger.info("Fazendo predições in-memory...")
     
-    # Remover colunas não-numéricas
-    exclude_cols = ['ticker', 'last_close', 'last_price']
+    # Remover colunas não-numéricas (exceto as que o modelo precisa)
+    exclude_cols = ['ticker']
     
     if selected_features:
         # Usar apenas features selecionadas
         feature_cols = [f for f in selected_features if f not in exclude_cols]
     else:
         # Usar todas as features numéricas
-        feature_cols = [col for col in features_df.columns if col not in exclude_cols]
+        feature_cols = [col for col in features_df.columns if col not in exclude_cols and col not in ['last_close']]
+    
+    # Adicionar colunas ausentes com 0 (features de treino que não existem na inferência)
+    missing_cols = [c for c in feature_cols if c not in features_df.columns]
+    if missing_cols:
+        logger.warning(f"Features ausentes no DataFrame (preenchidas com 0): {missing_cols}")
+        for col in missing_cols:
+            features_df[col] = 0.0
     
     # Garantir que temos apenas features numéricas
     X = features_df[feature_cols].select_dtypes(include=[np.number])

@@ -1,0 +1,10 @@
+.git
+.venv
+.pytest_cache
+__pycache__
+*.pyc
+node_modules
+infra
+dashboard
+.DS_Store
+*.zip

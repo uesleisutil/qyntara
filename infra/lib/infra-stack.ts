@@ -288,11 +288,14 @@ export class InfraStack extends cdk.Stack {
       "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:25"
     );
 
-    // ML Dependencies Layer (XGBoost, Pandas, NumPy, SciPy)
-    const mlLayer = lambda.LayerVersion.fromLayerVersionArn(
-      this,
-      "MLDependenciesLayer",
-      "arn:aws:lambda:us-east-1:200093399689:layer:b3tr-ml-deps:2"
+    // Docker image para Lambdas ML (XGBoost + scipy + pandas + requests)
+    const mlDockerCode = lambda.DockerImageCode.fromImageAsset(
+      path.join(__dirname, "..", ".."),
+      {
+        file: "ml/Dockerfile.rank",
+        exclude: ["infra", ".git", ".venv", "node_modules", "dashboard", "**/__pycache__", "**/*.pyc"],
+        platform: cdk.aws_ecr_assets.Platform.LINUX_AMD64,
+      }
     );
 
     // -----------------------
@@ -356,21 +359,18 @@ export class InfraStack extends cdk.Stack {
       return fn;
     };
 
-    // Factory para Lambdas com ML dependencies
+    // Factory para Lambdas com ML dependencies (Docker container)
     const mkMLLambda = (
       logicalId: string,
       handlerPath: string,
       extraEnv?: Record<string, string>,
     ): lambda.Function => {
-      const fn = new lambda.Function(this, logicalId, {
-        runtime: lambda.Runtime.PYTHON_3_11,
-        code: lambdaCode,
-        handler: handlerPath,
-        timeout: cdk.Duration.minutes(15), // Mais tempo para ML
-        memorySize: 2048, // Mais memória para ML
+      const fn = new lambda.DockerImageFunction(this, logicalId, {
+        code: mlDockerCode,
+        timeout: cdk.Duration.minutes(15),
+        memorySize: 2048,
         logRetention: logs.RetentionDays.ONE_WEEK,
         environment: { ...commonEnv, ...(extraEnv ?? {}) },
-        layers: [pythonLayer], // Usar pythonLayer que tem numpy, pandas, etc
       });
 
       fn.addToRolePolicy(s3RwPolicy);
