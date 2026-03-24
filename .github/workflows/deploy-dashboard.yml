@@ -63,7 +63,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dashboard/build
-          cname: ''
+          cname: 'qyntara.tech'
 
       - name: Notify deployment
         if: always()
@@ -151,6 +151,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dashboard/build
+          cname: 'qyntara.tech'
 
       # ── Health checks ──
       - name: Health check

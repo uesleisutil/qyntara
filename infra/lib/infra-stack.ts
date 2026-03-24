@@ -1017,10 +1017,15 @@ export class InfraStack extends cdk.Stack {
       JWT_SECRET: jwtSecret,
       ADMIN_EMAIL: adminEmail,
       SES_SENDER_EMAIL: adminEmail,
+      SMTP_HOST: envOr("SMTP_HOST", ""),
+      SMTP_PORT: envOr("SMTP_PORT", "587"),
+      SMTP_USER: envOr("SMTP_USER", ""),
+      SMTP_PASSWORD: envOr("SMTP_PASSWORD", ""),
+      SMTP_FROM_EMAIL: envOr("SMTP_FROM_EMAIL", adminEmail),
       STRIPE_SECRET_KEY: envOr("STRIPE_SECRET_KEY", ""),
       STRIPE_WEBHOOK_SECRET: envOr("STRIPE_WEBHOOK_SECRET", ""),
       STRIPE_PRICE_ID: envOr("STRIPE_PRICE_ID", ""),
-      FRONTEND_URL: "https://uesleisutil.github.io/b3-tactical-ranking",
+      FRONTEND_URL: "https://qyntara.tech",
     });
     usersTable.grantReadWriteData(userAuthFn);
 

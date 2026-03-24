@@ -2,7 +2,7 @@
   "name": "qyntara-dashboard",
   "version": "2.0.3",
   "private": true,
-  "homepage": "https://uesleisutil.github.io/b3-tactical-ranking",
+  "homepage": "https://qyntara.tech",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.700.0",
     "@emotion/react": "^11.14.0",

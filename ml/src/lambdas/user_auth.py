@@ -32,7 +32,10 @@ from decimal import Decimal
 from typing import Any, Dict, Optional
 
 import random
+import smtplib
 import string
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 import boto3
 from botocore.exceptions import ClientError
@@ -42,7 +45,6 @@ logger.setLevel(logging.INFO)
 
 dynamodb = boto3.resource("dynamodb")
 secrets_client = boto3.client("secretsmanager")
-ses_client = boto3.client("ses", region_name="us-east-1")
 
 USERS_TABLE = os.environ.get("USERS_TABLE", "B3Dashboard-Users")
 AUTH_LOGS_TABLE = os.environ.get("AUTH_LOGS_TABLE", "B3Dashboard-AuthLogs")
@@ -52,11 +54,18 @@ JWT_SECRET_ENV = os.environ.get("JWT_SECRET", "")  # Fallback only
 ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "")
 SES_SENDER_EMAIL = os.environ.get("SES_SENDER_EMAIL", os.environ.get("ADMIN_EMAIL", ""))
 
+# SMTP Configuration (Locaweb or other provider)
+SMTP_HOST = os.environ.get("SMTP_HOST", "")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM_EMAIL = os.environ.get("SMTP_FROM_EMAIL", "") or SES_SENDER_EMAIL
+
 # Stripe
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICE_ID = os.environ.get("STRIPE_PRICE_ID", "")  # price_xxx for R$49/mo
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://uesleisutil.github.io/b3-tactical-ranking")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://qyntara.tech")
 
 # ── Security constants ──
 SESSION_HOURS = 24
@@ -484,11 +493,36 @@ def _delete_code(email: str, purpose: str = "email_verify") -> None:
         pass
 
 
+def _send_smtp_email(to: str, subject: str, body_html: str, body_text: str) -> bool:
+    """Send email via SMTP (Locaweb or other provider)."""
+    sender = SMTP_FROM_EMAIL
+    if not sender or not SMTP_HOST or not SMTP_USER:
+        logger.error("SMTP not configured (SMTP_HOST, SMTP_USER, SMTP_FROM_EMAIL required)")
+        return False
+
+    msg = MIMEMultipart("alternative")
+    msg["From"] = sender
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body_text, "plain", "utf-8"))
+    msg.attach(MIMEText(body_html, "html", "utf-8"))
+
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(sender, [to], msg.as_string())
+        return True
+    except Exception as e:
+        logger.error(f"SMTP send failed for {to}: {e}")
+        return False
+
+
 def _send_verification_email(email: str, code: str, purpose: str = "email_verify") -> bool:
-    """Send verification code via SES."""
-    sender = SES_SENDER_EMAIL
+    """Send verification code via SMTP."""
+    sender = SMTP_FROM_EMAIL
     if not sender:
-        logger.error("SES_SENDER_EMAIL not configured")
+        logger.error("SMTP_FROM_EMAIL not configured")
         return False
 
     if purpose == "email_verify":
@@ -520,22 +554,7 @@ def _send_verification_email(email: str, code: str, purpose: str = "email_verify
         """
         body_text = f"Código para redefinir senha B3 Tactical Ranking: {code}\nExpira em 30 minutos."
 
-    try:
-        ses_client.send_email(
-            Source=sender,
-            Destination={"ToAddresses": [email]},
-            Message={
-                "Subject": {"Data": subject, "Charset": "UTF-8"},
-                "Body": {
-                    "Html": {"Data": body_html, "Charset": "UTF-8"},
-                    "Text": {"Data": body_text, "Charset": "UTF-8"},
-                },
-            },
-        )
-        return True
-    except ClientError as e:
-        logger.error(f"SES send failed for {email}: {e}")
-        return False
+    return _send_smtp_email(email, subject, body_html, body_text)
 
 
 # ── Route handlers ──
@@ -1709,43 +1728,24 @@ def _handle_stripe_webhook(event: dict) -> dict:
 
 
 def _send_upgrade_email(email: str) -> None:
-    """Send Pro upgrade confirmation email."""
-    sender = SES_SENDER_EMAIL
-    if not sender:
-        return
-    try:
-        ses_client.send_email(
-            Source=sender,
-            Destination={"ToAddresses": [email]},
-            Message={
-                "Subject": {"Data": "🎉 Bem-vindo ao Pro — B3 Tactical Ranking", "Charset": "UTF-8"},
-                "Body": {
-                    "Html": {
-                        "Data": f"""
-                        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
-                            <h2 style="color:#f59e0b;">🎉 Você agora é Pro!</h2>
-                            <p>Seu plano Pro do B3 Tactical Ranking foi ativado com sucesso.</p>
-                            <p>Agora você tem acesso a:</p>
-                            <ul>
-                                <li>Todas as colunas desbloqueadas (Confiança, Stop-Loss, Take-Profit)</li>
-                                <li>Carteira Modelo otimizada</li>
-                                <li>Tracking por Safra</li>
-                                <li>Alertas de preço</li>
-                            </ul>
-                            <p style="color:#64748b;font-size:14px;">Qualquer dúvida, responda este email.</p>
-                        </div>
-                        """,
-                        "Charset": "UTF-8",
-                    },
-                    "Text": {
-                        "Data": "Você agora é Pro! Seu plano foi ativado. Acesse: https://uesleisutil.github.io/b3-tactical-ranking/",
-                        "Charset": "UTF-8",
-                    },
-                },
-            },
-        )
-    except Exception as e:
-        logger.warning(f"Failed to send upgrade email to {email}: {e}")
+    """Send Pro upgrade confirmation email via SMTP."""
+    subject = "🎉 Bem-vindo ao Pro — B3 Tactical Ranking"
+    body_html = f"""
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+        <h2 style="color:#f59e0b;">🎉 Você agora é Pro!</h2>
+        <p>Seu plano Pro do B3 Tactical Ranking foi ativado com sucesso.</p>
+        <p>Agora você tem acesso a:</p>
+        <ul>
+            <li>Todas as colunas desbloqueadas (Confiança, Stop-Loss, Take-Profit)</li>
+            <li>Carteira Modelo otimizada</li>
+            <li>Tracking por Safra</li>
+            <li>Alertas de preço</li>
+        </ul>
+        <p style="color:#64748b;font-size:14px;">Qualquer dúvida, responda este email.</p>
+    </div>
+    """
+    body_text = "Você agora é Pro! Seu plano foi ativado. Acesse: https://uesleisutil.github.io/b3-tactical-ranking/"
+    _send_smtp_email(email, subject, body_html, body_text)
 
 
 def _handle_check_session(event: dict) -> dict:
@@ -2326,32 +2326,19 @@ def _handle_delete_account(event: dict) -> dict:
 
         # 6. Send confirmation email
         try:
-            sender = SES_SENDER_EMAIL
-            if sender:
-                ses_client.send_email(
-                    Source=sender,
-                    Destination={"ToAddresses": [email]},
-                    Message={
-                        "Subject": {"Data": "B3 Tactical Ranking — Conta Excluída", "Charset": "UTF-8"},
-                        "Body": {
-                            "Html": {
-                                "Data": f"""
-                                <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
-                                    <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
-                                    <p>Sua conta e todos os dados associados foram excluídos com sucesso, conforme solicitado.</p>
-                                    <p style="color:#64748b;font-size:14px;">Esta ação é irreversível. Se desejar utilizar o serviço novamente, será necessário criar uma nova conta.</p>
-                                    <p style="color:#64748b;font-size:14px;">Obrigado por ter utilizado o B3 Tactical Ranking.</p>
-                                </div>
-                                """,
-                                "Charset": "UTF-8",
-                            },
-                            "Text": {
-                                "Data": "Sua conta B3 Tactical Ranking foi excluída com sucesso. Todos os dados foram removidos.",
-                                "Charset": "UTF-8",
-                            },
-                        },
-                    },
-                )
+            _send_smtp_email(
+                email,
+                "B3 Tactical Ranking — Conta Excluída",
+                f"""
+                <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
+                    <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
+                    <p>Sua conta e todos os dados associados foram excluídos com sucesso, conforme solicitado.</p>
+                    <p style="color:#64748b;font-size:14px;">Esta ação é irreversível. Se desejar utilizar o serviço novamente, será necessário criar uma nova conta.</p>
+                    <p style="color:#64748b;font-size:14px;">Obrigado por ter utilizado o B3 Tactical Ranking.</p>
+                </div>
+                """,
+                "Sua conta B3 Tactical Ranking foi excluída com sucesso. Todos os dados foram removidos.",
+            )
         except Exception as e:
             logger.warning(f"Failed to send deletion confirmation to {email}: {e}")
 
