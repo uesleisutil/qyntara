@@ -299,7 +299,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                   border: `1px solid ${theme.border}`,
                   borderLeft: `4px solid ${getSeverityColor(anomaly.severity)}`,
                   borderRadius: '8px',
-                  backgroundColor: isFalsePositive ? (darkMode ? '#1e293b80' : '#f8fafc') : theme.cardBg,
+                  backgroundColor: isFalsePositive ? (darkMode ? '#1a183680' : '#f8f7fc') : theme.cardBg,
                   opacity: isFalsePositive ? 0.6 : 1,
                   transition: 'all 0.2s'
                 }}

@@ -113,7 +113,7 @@ const AdminUsersPage: React.FC = () => {
   const totalFree = users.filter(u => u.plan === 'free' || !u.plan).length;
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
   const btnBase: React.CSSProperties = {
@@ -145,7 +145,7 @@ const AdminUsersPage: React.FC = () => {
             Gerenciar planos e acessos
           </p>
         </div>
-        <button onClick={fetchUsers} style={{ ...btnBase, background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white' }}>
+        <button onClick={fetchUsers} style={{ ...btnBase, background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', color: 'white' }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -155,9 +155,9 @@ const AdminUsersPage: React.FC = () => {
       {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
         {[
-          { label: 'Total', value: users.length, color: '#3b82f6' },
+          { label: 'Total', value: users.length, color: '#8b5cf6' },
           { label: 'Pro', value: totalPro, color: '#f59e0b' },
-          { label: 'Free', value: totalFree, color: '#94a3b8' },
+          { label: 'Free', value: totalFree, color: '#9895b0' },
         ].map((k, i) => (
           <div key={i} style={cardStyle}>
             <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{k.label}</div>
@@ -171,10 +171,10 @@ const AdminUsersPage: React.FC = () => {
         <div style={{ position: 'relative', flex: '1 1 200px' }}>
           <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
           <input type="text" placeholder="Buscar email ou nome..." value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e293b' : '#fff'), color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box' }} />
         </div>
         <select value={planFilter} onChange={e => setPlanFilter(e.target.value as any)}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e293b' : '#fff'), color: theme.text, fontSize: '0.82rem', WebkitAppearance: 'none' as any }}>
+          style={{ padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, fontSize: '0.82rem', WebkitAppearance: 'none' as any }}>
           <option value="all">Todos</option>
           <option value="pro">Pro</option>
           <option value="free">Free</option>
@@ -226,7 +226,7 @@ const AdminUsersPage: React.FC = () => {
                           display: 'inline-flex', alignItems: 'center', gap: 3,
                           padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
                           background: isPro ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
-                          color: isPro ? '#f59e0b' : '#94a3b8',
+                          color: isPro ? '#f59e0b' : '#9895b0',
                         }}>
                           {isPro ? <Crown size={10} /> : null} {isPro ? 'Pro' : 'Free'}
                         </span>
@@ -246,12 +246,12 @@ const AdminUsersPage: React.FC = () => {
                       <td style={{ padding: '0.5rem 0.4rem' }}>
                         <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                           <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
-                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#94a3b8' : '#f59e0b' }}>
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#9895b0' : '#f59e0b' }}>
                             {isPro ? 'Rebaixar' : 'Tornar Pro'}
                           </button>
                           <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
                             disabled={roleLoading === u.email}
-                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#3b82f6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
+                            style={{ ...btnBase, padding: '0.3rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#8b5cf6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
                             {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
                             {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
                           </button>
@@ -289,7 +289,7 @@ const AdminUsersPage: React.FC = () => {
                       display: 'inline-flex', alignItems: 'center', gap: 3, flexShrink: 0,
                       padding: '0.15rem 0.45rem', borderRadius: 8, fontSize: '0.7rem', fontWeight: 600,
                       background: isPro ? 'rgba(245,158,11,0.15)' : 'rgba(148,163,184,0.15)',
-                      color: isPro ? '#f59e0b' : '#94a3b8',
+                      color: isPro ? '#f59e0b' : '#9895b0',
                     }}>
                       {isPro ? <Crown size={10} /> : null} {isPro ? 'Pro' : 'Free'}
                     </span>
@@ -302,12 +302,12 @@ const AdminUsersPage: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', gap: '0.35rem' }}>
                     <button onClick={() => { setModalUser(u); setModalPlan(isPro ? 'free' : 'pro'); setModalDuration('30'); setModalMsg(''); }}
-                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#94a3b8' : '#f59e0b' }}>
+                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: isPro ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.15)', color: isPro ? '#9895b0' : '#f59e0b' }}>
                       {isPro ? 'Rebaixar' : 'Tornar Pro'}
                     </button>
                     <button onClick={() => handleSetRole(u.email, u.role === 'admin' ? 'viewer' : 'admin')}
                       disabled={roleLoading === u.email}
-                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#3b82f6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
+                      style={{ ...btnBase, flex: 1, padding: '0.4rem 0.6rem', fontSize: '0.72rem', background: u.role === 'admin' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)', color: u.role === 'admin' ? '#ef4444' : '#8b5cf6', opacity: roleLoading === u.email ? 0.5 : 1 }}>
                       {roleLoading === u.email ? <Loader2 size={11} className="spin" /> : <Shield size={11} />}
                       {u.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
                     </button>
@@ -330,7 +330,7 @@ const AdminUsersPage: React.FC = () => {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000 }} onClick={() => setModalUser(null)} />
           <div style={{
             position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-            background: theme.card || (darkMode ? '#1e293b' : '#fff'), border: `1px solid ${theme.border}`,
+            background: theme.card || (darkMode ? '#1a1836' : '#fff'), border: `1px solid ${theme.border}`,
             borderRadius: 16, padding: '1.5rem', zIndex: 1001, width: 'min(420px, 90vw)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
           }}>
@@ -339,7 +339,7 @@ const AdminUsersPage: React.FC = () => {
             </h3>
             <div style={{ fontSize: '0.82rem', color: theme.textSecondary, marginBottom: '1rem' }}>
               Usuário: <strong style={{ color: theme.text }}>{modalUser.email}</strong>
-              <br />Plano atual: <strong style={{ color: modalUser.plan === 'pro' ? '#f59e0b' : '#94a3b8' }}>{modalUser.plan === 'pro' ? 'Pro' : 'Free'}</strong>
+              <br />Plano atual: <strong style={{ color: modalUser.plan === 'pro' ? '#f59e0b' : '#9895b0' }}>{modalUser.plan === 'pro' ? 'Pro' : 'Free'}</strong>
             </div>
 
             <div style={{ marginBottom: '0.75rem' }}>
@@ -350,8 +350,8 @@ const AdminUsersPage: React.FC = () => {
                     style={{
                       ...btnBase, flex: 1,
                       background: modalPlan === p ? (p === 'pro' ? 'rgba(245,158,11,0.2)' : 'rgba(148,163,184,0.2)') : 'transparent',
-                      color: modalPlan === p ? (p === 'pro' ? '#f59e0b' : '#94a3b8') : theme.textSecondary,
-                      border: `1.5px solid ${modalPlan === p ? (p === 'pro' ? '#f59e0b' : '#94a3b8') : theme.border}`,
+                      color: modalPlan === p ? (p === 'pro' ? '#f59e0b' : '#9895b0') : theme.textSecondary,
+                      border: `1.5px solid ${modalPlan === p ? (p === 'pro' ? '#f59e0b' : '#9895b0') : theme.border}`,
                     }}>
                     {p === 'pro' ? <Crown size={14} /> : null} {p === 'pro' ? 'Pro' : 'Free'}
                   </button>
@@ -375,8 +375,8 @@ const AdminUsersPage: React.FC = () => {
                       style={{
                         ...btnBase, fontSize: '0.72rem', padding: '0.4rem 0.3rem',
                         background: modalDuration === d.value ? 'rgba(59,130,246,0.15)' : 'transparent',
-                        color: modalDuration === d.value ? '#3b82f6' : theme.textSecondary,
-                        border: `1.5px solid ${modalDuration === d.value ? '#3b82f6' : theme.border}`,
+                        color: modalDuration === d.value ? '#8b5cf6' : theme.textSecondary,
+                        border: `1.5px solid ${modalDuration === d.value ? '#8b5cf6' : theme.border}`,
                       }}>
                       {d.label}
                     </button>

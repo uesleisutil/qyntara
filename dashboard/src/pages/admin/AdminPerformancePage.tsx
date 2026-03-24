@@ -19,7 +19,7 @@ const AdminPerformancePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
@@ -141,7 +141,7 @@ const AdminPerformancePage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -174,7 +174,7 @@ const AdminPerformancePage: React.FC = () => {
             Métricas reais calculadas a partir de preços de mercado + métricas do monitor de ML
           </p>
         </div>
-        <button onClick={fetchAll} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={fetchAll} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -221,7 +221,7 @@ const AdminPerformancePage: React.FC = () => {
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                       {['Ticker', 'Sinal', 'Ret. previsto', 'Ret. real', 'Acertou?'].map(h => (
-                        <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0f172a' : '#f8fafc' }}>{h}</th>
+                        <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -263,7 +263,7 @@ const AdminPerformancePage: React.FC = () => {
             {[
               { label: 'Acurácia Direcional', value: `${fmt(latest.directional_accuracy * 100, 1)}%`, color: latest.directional_accuracy >= 0.6 ? '#10b981' : '#f59e0b', tip: 'Percentual de previsões que acertaram a direção (alta/baixa).' },
               { label: 'MAPE', value: `${fmt(latest.mape, 2)}%`, color: latest.mape <= 1 ? '#10b981' : latest.mape <= 2 ? '#f59e0b' : '#ef4444', tip: 'Erro percentual absoluto médio das previsões de preço.' },
-              { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: '#3b82f6', tip: 'Erro absoluto médio das previsões de retorno.' },
+              { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: '#8b5cf6', tip: 'Erro absoluto médio das previsões de retorno.' },
               { label: 'Hit Rate', value: `${fmt(latest.hit_rate * 100, 1)}%`, color: latest.hit_rate >= 0.5 ? '#10b981' : '#f59e0b', tip: 'Taxa de acerto geral do modelo.' },
               { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio, 2), color: latest.sharpe_ratio >= 0 ? '#10b981' : '#ef4444', tip: 'Razão retorno/risco. Negativo indica que a estratégia perdeu para o CDI.' },
               { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#8b5cf6', tip: 'Número de tickers analisados.' },
@@ -294,7 +294,7 @@ const AdminPerformancePage: React.FC = () => {
                   const h = ((d.mape || 0) / maxMape) * 100;
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }} title={`${d.date}: ${fmt(d.mape)}%`}>
-                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.mape || 0) > 2 ? '#ef4444' : (d.mape || 0) > 1 ? '#f59e0b' : '#3b82f6', transition: 'height 0.3s' }} />
+                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.mape || 0) > 2 ? '#ef4444' : (d.mape || 0) > 1 ? '#f59e0b' : '#8b5cf6', transition: 'height 0.3s' }} />
                     </div>
                   );
                 })}

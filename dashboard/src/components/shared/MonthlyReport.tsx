@@ -73,9 +73,9 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
       const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Relatório Mensal - Qyntara</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #0f172a; }
-  h1 { color: #1e293b; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; }
-  h2 { color: #334155; margin-top: 2rem; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #0c0a1a; }
+  h1 { color: #1a1836; border-bottom: 2px solid #8b5cf6; padding-bottom: 0.5rem; }
+  h2 { color: #2a2745; margin-top: 2rem; }
   table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
   th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
   .summary { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }

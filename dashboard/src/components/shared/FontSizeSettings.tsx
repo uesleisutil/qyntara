@@ -92,12 +92,12 @@ export function FontSizeSettings() {
         }
         
         .font-size-option:hover {
-          border-color: var(--primary-color, #2563eb);
+          border-color: var(--primary-color, #7c3aed);
           background: var(--hover-bg, #f3f4f6);
         }
         
         .font-size-option.selected {
-          border-color: var(--primary-color, #2563eb);
+          border-color: var(--primary-color, #7c3aed);
           background: var(--selected-bg, #eff6ff);
         }
         

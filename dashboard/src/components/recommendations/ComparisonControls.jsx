@@ -151,7 +151,7 @@ const ComparisonControls = ({ recommendations }) => {
           borderRadius: '8px',
           marginBottom: '1rem'
         }}>
-          <p style={{ fontSize: '0.875rem', color: '#1e40af', margin: 0 }}>
+          <p style={{ fontSize: '0.875rem', color: '#7c3aed', margin: 0 }}>
             <strong>Modo de comparação ativo:</strong> Clique nas caixas de seleção ao lado de cada ticker para comparar até {MAX_SELECTION} ações.
           </p>
         </div>

@@ -39,7 +39,7 @@ const RegisterPage: React.FC = () => {
     { label: 'Uma letra maiúscula', valid: /[A-Z]/.test(password) },
     { label: 'Uma letra minúscula', valid: /[a-z]/.test(password) },
     { label: 'Um número', valid: /\d/.test(password) },
-    { label: 'Um caractere especial (!@#$%...)', valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?~`]/.test(password) },
+    { label: 'Um caractere especial (!@#$%...)', valid: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/.test(password) },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

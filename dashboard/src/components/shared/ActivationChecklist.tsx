@@ -110,7 +110,7 @@ const ActivationChecklist: React.FC<ActivationChecklistProps> = ({ darkMode, the
       <div style={{ height: 4, borderRadius: 2, background: darkMode ? '#2a2745' : '#e2e8f0', marginTop: '0.5rem', overflow: 'hidden' }}>
         <div style={{
           height: '100%', borderRadius: 2, width: `${(completed / total) * 100}%`,
-          background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', transition: 'width 0.5s ease',
+          background: 'linear-gradient(90deg, #3b82f6, #a78bfa)', transition: 'width 0.5s ease',
         }} />
       </div>
 

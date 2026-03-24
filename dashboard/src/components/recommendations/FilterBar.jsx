@@ -443,7 +443,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
           <div style={{
             fontSize: '0.75rem',
             fontWeight: '600',
-            color: '#1e40af',
+            color: '#7c3aed',
             marginBottom: '0.5rem'
           }}>
             Filtros Ativos:
@@ -453,7 +453,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             flexWrap: 'wrap',
             gap: '0.5rem',
             fontSize: '0.75rem',
-            color: '#1e40af'
+            color: '#7c3aed'
           }}>
             {filters.sector && (
               <span style={{

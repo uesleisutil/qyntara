@@ -17,7 +17,7 @@ interface SensitivityAnalysisProps {
 const FACTORS: { key: string; category: string; color: string; derive: (td: TickerData) => number }[] = [
   // Técnicas
   { key: 'Momentum', category: 'Técnica', color: '#8b5cf6', derive: td => td.exp_return_20 * 50 },
-  { key: 'RSI', category: 'Técnica', color: '#60a5fa', derive: td => td.score * 0.6 },
+  { key: 'RSI', category: 'Técnica', color: '#a78bfa', derive: td => td.score * 0.6 },
   { key: 'Volatilidade', category: 'Técnica', color: '#93c5fd', derive: td => -td.vol_20d * 30 },
   // Volume
   { key: 'OBV', category: 'Volume', color: '#8b5cf6', derive: td => td.exp_return_20 * 25 },

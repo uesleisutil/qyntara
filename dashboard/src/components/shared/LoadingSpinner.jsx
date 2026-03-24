@@ -29,7 +29,7 @@ const LoadingSpinner = ({
 
   const spinnerStyle = {
     ...sizes[size],
-    border: `${sizes[size].borderWidth} solid #3b82f6`,
+    border: `${sizes[size].borderWidth} solid #8b5cf6`,
     borderTopColor: 'transparent',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',

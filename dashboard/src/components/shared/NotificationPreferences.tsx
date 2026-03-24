@@ -161,7 +161,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = '#8b5cf6';
-              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = '#d1d5db';
@@ -264,7 +264,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
             }}
             onFocus={(e) => {
               e.currentTarget.style.borderColor = '#8b5cf6';
-              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(139, 92, 246, 0.1)';
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = '#d1d5db';

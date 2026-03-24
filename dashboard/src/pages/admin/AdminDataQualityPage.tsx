@@ -29,7 +29,7 @@ const AdminDataQualityPage: React.FC = () => {
   useEffect(() => { fetchQuality(); }, []);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
@@ -43,7 +43,7 @@ const AdminDataQualityPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -113,7 +113,7 @@ const AdminDataQualityPage: React.FC = () => {
             {completeness.dateRange && <span> · {completeness.dateRange.start} a {completeness.dateRange.end}</span>}
           </p>
         </div>
-        <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -147,7 +147,7 @@ const AdminDataQualityPage: React.FC = () => {
               <span style={{ color: kpi.color, opacity: 0.7 }}>{kpi.icon}</span>
               {fmt(kpi.value * 100)}%
             </div>
-            <div style={{ marginTop: '0.4rem', height: 6, borderRadius: 3, background: darkMode ? '#334155' : '#e2e8f0' }}>
+            <div style={{ marginTop: '0.4rem', height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e8f0' }}>
               <div style={{ height: '100%', borderRadius: 3, background: kpi.color, width: `${kpi.value * 100}%`, transition: 'width 0.3s' }} />
             </div>
           </div>
@@ -210,7 +210,7 @@ const AdminDataQualityPage: React.FC = () => {
           background: 'transparent', border: 'none', cursor: 'pointer', color: theme.text, textAlign: 'left',
         }}>
           {expandedSection === 'freshness' ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          <Clock size={16} color="#3b82f6" />
+          <Clock size={16} color="#8b5cf6" />
           <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Freshness das Fontes</span>
           <span style={{ fontSize: '0.7rem', color: theme.textSecondary, marginLeft: 'auto' }}>{sources.length} fontes</span>
         </button>
@@ -324,13 +324,13 @@ const AdminDataQualityPage: React.FC = () => {
               <div style={{ position: 'relative', flex: '1 1 150px', minWidth: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
                 <input type="text" placeholder="Buscar ticker..." value={tickerSearch} onChange={e => setTickerSearch(e.target.value)}
-                  style={{ width: '100%', padding: '0.4rem 0.4rem 0.4rem 1.8rem', background: darkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '0.4rem 0.4rem 0.4rem 1.8rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box' }} />
               </div>
-              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} style={{ padding: '0.4rem 0.5rem', background: darkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} style={{ padding: '0.4rem 0.5rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
                 <option value="completeness">Ordenar: Completude</option>
                 <option value="ticker">Ordenar: Ticker</option>
               </select>
-              <button onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')} style={{ padding: '0.4rem 0.6rem', background: darkMode ? '#0f172a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', cursor: 'pointer' }}>
+              <button onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')} style={{ padding: '0.4rem 0.6rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', cursor: 'pointer' }}>
                 {sortDir === 'asc' ? '↑' : '↓'}
               </button>
               <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{filteredTickers.length} resultados</span>
@@ -342,7 +342,7 @@ const AdminDataQualityPage: React.FC = () => {
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                     {['Ticker', 'Completude', 'Esperado', 'Presente', 'Tendência (7d)', 'Status'].map(h => (
-                      <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0f172a' : '#f8fafc' }}>{h}</th>
+                      <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -353,13 +353,13 @@ const AdminDataQualityPage: React.FC = () => {
                     const trend = t.trend || [];
                     return (
                       <tr key={t.ticker} style={{ borderBottom: `1px solid ${theme.border}` }}
-                        onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#334155' : '#f1f5f9'}
+                        onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
                         <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600, color: theme.text, fontSize: '0.82rem' }}>{t.ticker}</td>
                         <td style={{ padding: '0.45rem 0.6rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <div style={{ flex: 1, height: 6, borderRadius: 3, background: darkMode ? '#334155' : '#e2e8f0', maxWidth: 80, overflow: 'hidden' }}>
+                            <div style={{ flex: 1, height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e8f0', maxWidth: 80, overflow: 'hidden' }}>
                               <div style={{ height: '100%', borderRadius: 3, background: color, width: `${pct * 100}%` }} />
                             </div>
                             <span style={{ fontSize: '0.78rem', fontWeight: 600, color, minWidth: 40 }}>{fmt(pct * 100)}%</span>

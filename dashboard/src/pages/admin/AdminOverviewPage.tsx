@@ -69,7 +69,7 @@ const AdminOverviewPage: React.FC = () => {
   useEffect(() => { fetchAll(); runHealthChecks(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -83,7 +83,7 @@ const AdminOverviewPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -139,7 +139,7 @@ const AdminOverviewPage: React.FC = () => {
     { label: 'MAPE', value: mape != null ? `${fmt(mape)}%` : '—', color: mape != null && mape <= 1 ? '#10b981' : mape != null && mape <= 2 ? '#f59e0b' : '#ef4444', icon: <Activity size={16} />, tip: 'Erro percentual absoluto médio. Quanto menor, mais preciso.' },
     { label: 'Sharpe Ratio', value: sharpe != null ? `${fmt(sharpe, 2)}` : '—', color: sharpe != null && sharpe >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Razão retorno/risco. Positivo = retorno acima do CDI ajustado ao risco.' },
     { label: 'Projeção Mensal', value: projBrl != null ? `R$ ${fmt(projBrl, 2)}` : '—', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo AWS para o mês atual em reais.' },
-    { label: 'Custo 7d (USD)', value: cost7d != null ? `$${fmt(cost7d, 2)}` : '—', color: '#3b82f6', icon: <Server size={16} />, tip: 'Custo total dos últimos 7 dias em dólares.' },
+    { label: 'Custo 7d (USD)', value: cost7d != null ? `$${fmt(cost7d, 2)}` : '—', color: '#8b5cf6', icon: <Server size={16} />, tip: 'Custo total dos últimos 7 dias em dólares.' },
     { label: 'Completude', value: overallCompleteness != null ? `${fmt(overallCompleteness * 100)}%` : '—', color: overallCompleteness != null && overallCompleteness >= 0.95 ? '#10b981' : '#f59e0b', icon: <Database size={16} />, tip: 'Percentual médio de dados presentes vs esperados.' },
     { label: 'Freshness', value: freshnessRate != null ? `${fmt(freshnessRate * 100)}%` : '—', color: freshnessRate != null && freshnessRate >= 0.9 ? '#10b981' : '#f59e0b', icon: <Clock size={16} />, tip: 'Percentual de fontes de dados atualizadas no prazo.' },
     { label: 'Anomalias Custo', value: `${anomalies.length}`, color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Picos inesperados de custo em serviços AWS.' },
@@ -161,7 +161,7 @@ const AdminOverviewPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={() => { fetchAll(); runHealthChecks(); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={() => { fetchAll(); runHealthChecks(); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -223,7 +223,7 @@ const AdminOverviewPage: React.FC = () => {
                 <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>Projeção</span>
                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981' }}>{fmt(threshold.percentage, 1)}%</span>
               </div>
-              <div style={{ height: 10, borderRadius: 5, background: darkMode ? '#334155' : '#e2e8f0' }}>
+              <div style={{ height: 10, borderRadius: 5, background: darkMode ? '#2a2745' : '#e2e8f0' }}>
                 <div style={{ height: '100%', borderRadius: 5, background: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', width: `${Math.min(threshold.percentage || 0, 100)}%`, transition: 'width 0.3s' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.3rem' }}>
@@ -241,7 +241,7 @@ const AdminOverviewPage: React.FC = () => {
 
         <div style={cardStyle}>
           <h3 style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Shield size={16} color="#3b82f6" /> Infraestrutura (Health Check)
+            <Shield size={16} color="#8b5cf6" /> Infraestrutura (Health Check)
             <InfoTooltip text="Status real dos serviços AWS verificado via chamadas HTTP. Latência em ms." darkMode={darkMode} size={12} />
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>

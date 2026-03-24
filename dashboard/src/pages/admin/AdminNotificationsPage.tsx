@@ -13,7 +13,7 @@ interface Notification {
 }
 
 const TYPE_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  manual: { label: 'Manual', color: '#3b82f6', icon: '✉️' },
+  manual: { label: 'Manual', color: '#8b5cf6', icon: '✉️' },
   auto_model_run: { label: 'Modelo Executado', color: '#10b981', icon: '🤖' },
   auto_recommendations: { label: 'Recomendações Prontas', color: '#f59e0b', icon: '📊' },
   auto_strong_signals: { label: 'Sinais Fortes', color: '#ef4444', icon: '🔔' },
@@ -37,7 +37,7 @@ const AdminNotificationsPage: React.FC = () => {
   const [whatsappResult, setWhatsappResult] = useState<{ phones: string[]; message: string } | null>(null);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -116,14 +116,14 @@ const AdminNotificationsPage: React.FC = () => {
   const manualNotifs = notifications.filter(n => n.type === 'manual');
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '0.6rem 0.75rem', backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
+    width: '100%', padding: '0.6rem 0.75rem', backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc',
     border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text,
     fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' as const,
   };
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -159,7 +159,7 @@ const AdminNotificationsPage: React.FC = () => {
           <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: 2 }}>{n.message}</div>
           <div style={{ display: 'flex', gap: '0.4rem', marginTop: 4, flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: `${typeInfo.color}15`, color: typeInfo.color }}>{typeInfo.label}</span>
-            <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: darkMode ? '#334155' : '#f1f5f9', color: theme.textSecondary }}>
+            <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 4, background: darkMode ? '#2a2745' : '#f1f5f9', color: theme.textSecondary }}>
               <Users size={9} style={{ verticalAlign: 'middle', marginRight: 2 }} />{TARGET_LABELS[n.target]}
             </span>
             {n.created_at && (
@@ -205,9 +205,9 @@ const AdminNotificationsPage: React.FC = () => {
           }}><RefreshCw size={14} /> Atualizar</button>
           <button onClick={() => { setShowForm(true); setEditingId(null); setForm({ title: '', message: '', type: 'manual', target: 'all', enabled: true }); }} style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem 0.75rem',
-            borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+            borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)',
             color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
-            boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any,
+            boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any,
           }}><Plus size={14} /> Nova Notificação</button>
         </div>
       </div>
@@ -276,7 +276,7 @@ const AdminNotificationsPage: React.FC = () => {
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button onClick={handleSave} disabled={saving} style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.6rem 1.25rem',
-              borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+              borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)',
               color: 'white', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: 600,
               WebkitAppearance: 'none' as any,
             }}>
@@ -316,9 +316,9 @@ const AdminNotificationsPage: React.FC = () => {
       {/* Manual Notifications */}
       <div style={cardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Send size={18} color="#3b82f6" />
+          <Send size={18} color="#8b5cf6" />
           <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: theme.text }}>Notificações Manuais</h2>
-          <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(59,130,246,0.1)', color: '#3b82f6', fontWeight: 600 }}>
+          <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: 10, background: 'rgba(59,130,246,0.1)', color: '#8b5cf6', fontWeight: 600 }}>
             {manualNotifs.length}
           </span>
           <InfoTooltip text="Notificações enviadas manualmente uma vez. Útil para comunicados, avisos de manutenção, etc." darkMode={darkMode} size={12} />
@@ -396,7 +396,7 @@ const AdminNotificationsPage: React.FC = () => {
           style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.6rem 1.25rem',
             borderRadius: 8, border: 'none',
-            background: whatsappMsg.trim() && !whatsappSending ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#334155' : '#e2e8f0'),
+            background: whatsappMsg.trim() && !whatsappSending ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#2a2745' : '#e2e8f0'),
             color: whatsappMsg.trim() && !whatsappSending ? 'white' : theme.textSecondary,
             cursor: whatsappMsg.trim() && !whatsappSending ? 'pointer' : 'not-allowed',
             fontSize: '0.85rem', fontWeight: 600, WebkitAppearance: 'none' as any,

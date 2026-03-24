@@ -139,7 +139,7 @@ const RecommendationsPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '1rem',
   };
   const btnBase: React.CSSProperties = {
@@ -151,7 +151,7 @@ const RecommendationsPage: React.FC = () => {
 
   if (loading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -219,7 +219,7 @@ const RecommendationsPage: React.FC = () => {
             onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.96)'; }}
             onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-            style={{ ...btnBase, padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)' }}>
+            style={{ ...btnBase, padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)' }}>
             <RefreshCw size={14} /> Atualizar
           </button>
         </div>
@@ -246,7 +246,7 @@ const RecommendationsPage: React.FC = () => {
           {[
             { label: 'Compra', value: `${totalBuy}`, color: '#10b981', icon: <ArrowUpRight size={14} />, tip: `Ações com score ≥ ${SCORE_BUY_THRESHOLD} — sinal de compra.`, blur: false },
             { label: 'Venda', value: `${totalSell}`, color: '#ef4444', icon: <ArrowDownRight size={14} />, tip: `Ações com score ≤ ${SCORE_SELL_THRESHOLD} — sinal de venda.`, blur: false },
-            { label: 'Neutro', value: `${totalNeutral}`, color: '#94a3b8', icon: null, tip: `Ações com score entre ${SCORE_SELL_THRESHOLD} e ${SCORE_BUY_THRESHOLD}.`, blur: false },
+            { label: 'Neutro', value: `${totalNeutral}`, color: '#9895b0', icon: null, tip: `Ações com score entre ${SCORE_SELL_THRESHOLD} e ${SCORE_BUY_THRESHOLD}.`, blur: false },
             { label: 'Ret. Compra', value: `${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn * 100, 1)}%`, color: avgBuyReturn >= 0 ? '#10b981' : '#ef4444', icon: null, tip: `Retorno médio previsto (20 pregões) das ${buyRecs.length} ações com sinal de compra.`, blur: true },
             { label: 'Top Score', value: `${topTicker?.ticker || '—'} ${fmt(topScore, 1)}`, color: '#8b5cf6', icon: null, tip: 'Ação com maior score do dia.', blur: false },
             ...(simReturn && simReturn.pct !== 0 ? [{
@@ -280,7 +280,7 @@ const RecommendationsPage: React.FC = () => {
             onChange={e => setSearchTerm(e.target.value)}
             style={{
               width: '100%', padding: '0.55rem 0.55rem 0.55rem 2rem', borderRadius: 8,
-              border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+              border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
               color: theme.text, fontSize: '0.82rem', outline: 'none', boxSizing: 'border-box',
             }}
           />
@@ -288,7 +288,7 @@ const RecommendationsPage: React.FC = () => {
         <select value={signalFilter} onChange={e => setSignalFilter(e.target.value as any)}
           style={{
             padding: '0.55rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
-            background: theme.card || (darkMode ? '#1e293b' : '#fff'), color: theme.text,
+            background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text,
             fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
           }}>
           <option value="ALL">Todos</option>
@@ -300,14 +300,14 @@ const RecommendationsPage: React.FC = () => {
         <select value={sectorFilter} onChange={e => setSectorFilter(e.target.value)}
           style={{
             padding: '0.55rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
-            background: theme.card || (darkMode ? '#1e293b' : '#fff'), color: theme.text,
+            background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text,
             fontSize: '0.82rem', cursor: 'pointer', WebkitAppearance: 'none' as any, minWidth: 100,
           }}>
           <option value="ALL">Setor: Todos</option>
           {ALL_SECTORS.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <button onClick={() => handleSort(sortBy === 'score' ? 'return' : sortBy === 'return' ? 'ticker' : sortBy === 'ticker' ? 'vol' : 'score')}
-          style={{ ...btnBase, padding: '0.55rem 0.75rem', background: theme.card || (darkMode ? '#1e293b' : '#fff'), color: theme.text, border: `1px solid ${theme.border}` }}>
+          style={{ ...btnBase, padding: '0.55rem 0.75rem', background: theme.card || (darkMode ? '#1a1836' : '#fff'), color: theme.text, border: `1px solid ${theme.border}` }}>
           <ArrowUpDown size={14} /> {sortBy === 'score' ? 'Score' : sortBy === 'return' ? 'Retorno' : sortBy === 'ticker' ? 'Ticker' : 'Volatilidade'}
         </button>
       </div>
@@ -398,7 +398,7 @@ const RecommendationsPage: React.FC = () => {
                   <td style={{ padding: '0.55rem 0.5rem', textAlign: 'right', fontWeight: 600, color: getSignalColor(getSignal(r.score)).text }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem' }}>
                       {fmt(r.score, 2)}
-                      <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#334155' : '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                      <div style={{ width: 28, height: 4, borderRadius: 2, background: darkMode ? '#2a2745' : '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
                         <div style={{ height: '100%', borderRadius: 2, width: `${confidence}%`, background: confidence >= 70 ? '#10b981' : confidence >= 40 ? '#f59e0b' : '#ef4444' }} />
                       </div>
                     </div>
@@ -464,7 +464,7 @@ const RecommendationsPage: React.FC = () => {
                 <div><span style={{ color: theme.textSecondary }}>Vol:</span> <ProValue isPro={isPro} style={{ fontWeight: 700, color: theme.textSecondary }} placeholder="••%">{fmt(r.vol_20d * 100, 1)}%</ProValue></div>
                 <div>
                   <span style={{ color: theme.textSecondary }}>Confiança:</span>{' '}
-                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: confidence >= 70 ? '#10b981' : '#94a3b8' }} placeholder="••%">{confidence}%</ProValue>
+                  <ProValue isPro={isPro} style={{ fontWeight: 700, color: confidence >= 70 ? '#10b981' : '#9895b0' }} placeholder="••%">{confidence}%</ProValue>
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.75rem', marginTop: '0.3rem', paddingTop: '0.3rem', borderTop: `1px solid ${theme.border}` }}>

@@ -145,8 +145,8 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
             <button onClick={handleNext} style={{
               padding: '0.5rem 1.25rem', borderRadius: 8, fontSize: '0.82rem', fontWeight: 600,
               border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem',
-              background: isLast ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #2563eb, #3b82f6)',
-              color: 'white', boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
+              background: isLast ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+              color: 'white', boxShadow: '0 2px 8px rgba(124,58,237,0.25)',
               WebkitAppearance: 'none' as any,
             }}>
               {isLast ? 'Começar' : 'Próximo'} <ArrowRight size={14} />

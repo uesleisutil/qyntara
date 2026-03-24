@@ -22,7 +22,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
-  color: #1e293b;
+  color: #0c0a1a;
   font-size: calc(16px * var(--font-size-scale, 1));
   line-height: 1.5;
 }
@@ -60,7 +60,7 @@ body {
   position: absolute;
   top: -40px;
   left: 0;
-  background: var(--primary-color, #2563eb);
+  background: var(--primary-color, #7c3aed);
   color: white;
   padding: 0.5rem 1rem;
   text-decoration: none;
@@ -131,7 +131,7 @@ body {
   font-size: calc(1.25rem * var(--font-size-scale, 1));
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #1e293b;
+  color: #0c0a1a;
   display: flex;
   align-items: center;
   gap: 0.5rem;

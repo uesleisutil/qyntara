@@ -71,8 +71,8 @@ const ICONS: Record<string, (c: string) => React.ReactNode> = {
 };
 
 const COLORS: Record<string, string> = {
-  highlight: '#f59e0b', marketPulse: '#3b82f6', topPicks: '#10b981',
-  positions: '#3b82f6', signals: '#8b5cf6',
+  highlight: '#f59e0b', marketPulse: '#8b5cf6', topPicks: '#10b981',
+  positions: '#8b5cf6', signals: '#8b5cf6',
   performance: '#10b981', carteiras: '#8b5cf6', goal: '#f59e0b', alerts: '#ef4444',
 };
 
@@ -125,14 +125,14 @@ const MarketPulse: React.FC<{
       {/* Signal bars */}
       <div style={{ display: 'flex', gap: 2, height: 6, borderRadius: 3, overflow: 'hidden', marginBottom: '0.75rem' }}>
         {buys.length > 0 && <div style={{ flex: buys.length, background: '#10b981', borderRadius: 3 }} />}
-        {neutrals > 0 && <div style={{ flex: neutrals, background: '#94a3b8', borderRadius: 3 }} />}
+        {neutrals > 0 && <div style={{ flex: neutrals, background: '#9895b0', borderRadius: 3 }} />}
         {sells.length > 0 && <div style={{ flex: sells.length, background: '#ef4444', borderRadius: 3 }} />}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.68rem' }}>
         <span style={{ color: '#10b981', fontWeight: 600 }}>
           <ArrowUpRight size={10} style={{ verticalAlign: 'middle' }} /> {buys.length} Compra
         </span>
-        <span style={{ color: '#94a3b8' }}>{neutrals} Neutro</span>
+        <span style={{ color: '#9895b0' }}>{neutrals} Neutro</span>
         <span style={{ color: '#ef4444', fontWeight: 600 }}>
           <ArrowDownRight size={10} style={{ verticalAlign: 'middle' }} /> {sells.length} Venda
         </span>
@@ -140,7 +140,7 @@ const MarketPulse: React.FC<{
       {/* Key metrics */}
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         {stat('Ret. Médio (Compra)', <ProValue isPro={isPro} placeholder="+0.0%">{`${avgBuyReturn >= 0 ? '+' : ''}${fmt(avgBuyReturn, 1)}%`}</ProValue> as any, '20 dias', avgBuyReturn >= 0 ? '#10b981' : '#ef4444')}
-        {stat('Score Médio', fmt(avgScore, 1), 'sinais compra', '#3b82f6')}
+        {stat('Score Médio', fmt(avgScore, 1), 'sinais compra', '#8b5cf6')}
         {stat('Vol. Média', <ProValue isPro={isPro} placeholder="0.0%">{`${fmt(avgVol, 1)}%`}</ProValue> as any, '20 dias', '#f59e0b')}
       </div>
     </div>
@@ -202,7 +202,7 @@ const TopPicks: React.FC<{
                       : <span style={{ color: theme.textSecondary, fontSize: '0.65rem' }}>—</span>
                     }
                   </td>
-                  <td style={{ ...tdS, textAlign: 'right', fontWeight: 600, color: '#3b82f6' }}>
+                  <td style={{ ...tdS, textAlign: 'right', fontWeight: 600, color: '#8b5cf6' }}>
                     {fmt(r.score, 1)}
                   </td>
                   <td style={{ ...tdS, textAlign: 'right' }}>
@@ -226,7 +226,7 @@ const TopPicks: React.FC<{
         color: theme.textSecondary, fontSize: '0.72rem', cursor: 'pointer',
         transition: 'all 0.15s',
       }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSecondary; }}
       >
         Ver todas as recomendações <ArrowUpRight size={12} />
@@ -279,7 +279,7 @@ const CarteirasSummary: React.FC<{
         </div>
         <button onClick={onNavigate} style={{
           padding: '0.35rem 0.75rem', borderRadius: 6, border: `1px solid ${theme.border}`,
-          background: 'transparent', color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+          background: 'transparent', color: '#8b5cf6', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
         }}>
           Criar Carteira
         </button>
@@ -445,7 +445,7 @@ const MyDashboardPage: React.FC = () => {
   const configs: WidgetConfig[] = useMemo(() => order.map(id => {
     const w = WIDGETS.find(x => x.id === id)!;
     if (!w) return null;
-    return { id, label: w.label, icon: ICONS[id]?.(COLORS[id] || '#3b82f6'), enabled: enabled[id] !== false, proOnly: w.proOnly };
+    return { id, label: w.label, icon: ICONS[id]?.(COLORS[id] || '#8b5cf6'), enabled: enabled[id] !== false, proOnly: w.proOnly };
   }).filter(Boolean) as WidgetConfig[], [order, enabled]);
 
   const renderWidget = (id: string) => {
@@ -475,7 +475,7 @@ const MyDashboardPage: React.FC = () => {
   /* ─── Loading ─── */
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e293b' : '#e2e8f0'} 25%, ${darkMode ? '#334155' : '#f1f5f9'} 50%, ${darkMode ? '#1e293b' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 12,
     };
     return (
@@ -497,7 +497,7 @@ const MyDashboardPage: React.FC = () => {
     return (
       <div style={{
         textAlign: 'center', padding: '3rem 1.5rem',
-        background: theme.card || (darkMode ? '#1e293b' : '#ffffff'),
+        background: theme.card || (darkMode ? '#1a1836' : '#ffffff'),
         borderRadius: 16, border: `1px solid ${theme.border}`,
       }}>
         <AlertCircle size={36} color="#ef4444" style={{ marginBottom: '0.75rem', opacity: 0.7 }} />
@@ -508,7 +508,7 @@ const MyDashboardPage: React.FC = () => {
         <button onClick={fetchData} style={{
           display: 'inline-flex', alignItems: 'center', gap: 6,
           padding: '0.5rem 1.2rem', borderRadius: 8, border: 'none',
-          background: '#3b82f6', color: 'white', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
+          background: '#8b5cf6', color: 'white', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer',
         }}>
           <RefreshCw size={14} /> Tentar novamente
         </button>
@@ -558,14 +558,14 @@ const MyDashboardPage: React.FC = () => {
             border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textSecondary,
             fontSize: '0.75rem', cursor: 'pointer', transition: 'all 0.15s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSecondary; }}
           >
             <Settings2 size={13} /> Personalizar
           </button>
           <button onClick={fetchData} style={{
             display: 'flex', alignItems: 'center', padding: '0.4rem 0.5rem', borderRadius: 8,
-            border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer',
+            border: 'none', background: '#8b5cf6', color: 'white', cursor: 'pointer',
           }}>
             <RefreshCw size={13} />
           </button>
@@ -613,7 +613,7 @@ const MyDashboardPage: React.FC = () => {
       {visible.length === 0 && (
         <div style={{
           textAlign: 'center', padding: '3rem 1rem',
-          background: theme.card || (darkMode ? '#1e293b' : '#ffffff'),
+          background: theme.card || (darkMode ? '#1a1836' : '#ffffff'),
           borderRadius: 16, border: `1px dashed ${theme.border}`,
         }}>
           <Settings2 size={28} style={{ opacity: 0.2, marginBottom: 10 }} color={theme.textSecondary} />

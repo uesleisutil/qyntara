@@ -99,7 +99,7 @@ const RealTimeStatusBar: React.FC = () => {
             gap: '0.5rem',
             padding: '0.25rem 0.75rem',
             backgroundColor: status.processing ? '#fef3c7' : '#dbeafe',
-            color: status.processing ? '#92400e' : '#1e40af',
+            color: status.processing ? '#92400e' : '#7c3aed',
             borderRadius: '0.25rem',
           }}
         >
