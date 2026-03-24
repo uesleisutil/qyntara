@@ -23,7 +23,7 @@ interface TickerData {
 
 /* ── Feature category metadata ── */
 const FEATURE_CATEGORIES = [
-  { key: 'tecnicas', icon: TrendingUp, label: 'Técnicas', count: '~25', color: '#3b82f6',
+  { key: 'tecnicas', icon: TrendingUp, label: 'Técnicas', count: '~25', color: '#8b5cf6',
     desc: 'Retornos, médias móveis, RSI, MACD, Bollinger, momentum' },
   { key: 'volume', icon: BarChart3, label: 'Volume', count: '11', color: '#8b5cf6',
     desc: 'OBV, VWAP, divergência volume-preço, z-score de volume' },
@@ -44,12 +44,12 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const isPro = useIsPro();
 
   const theme = useMemo(() => ({
-    bg: darkMode ? '#0f172a' : '#f8fafc',
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    subtle: darkMode ? '#0f172a' : '#f8fafc',
+    bg: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
   }), [darkMode]);
 
   useEffect(() => {
@@ -85,7 +85,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   if (loading) {
     return (
       <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center' }}>
-        <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} color="#3b82f6" />
+        <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} color="#8b5cf6" />
         <div style={{ color: theme.textSecondary, fontSize: '0.85rem' }}>Carregando dados do modelo...</div>
       </div>
     );
@@ -96,7 +96,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
       {/* ═══ 1. MODEL OVERVIEW — free for all ═══ */}
       <div style={{ ...cardStyle, padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Brain size={20} color="#3b82f6" />
+          <Brain size={20} color="#8b5cf6" />
           <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.2rem)', fontWeight: 700, color: theme.text }}>
             Visão Geral do Modelo
           </h2>
@@ -145,7 +145,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           border: `1px solid ${darkMode ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.08)'}`,
           display: 'flex', alignItems: 'center', gap: '0.5rem',
         }}>
-          <Layers size={14} color="#3b82f6" />
+          <Layers size={14} color="#8b5cf6" />
           <span style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5 }}>
             Pipeline: <strong style={{ color: theme.text }}>Ingestão diária</strong> (21h UTC) →
             <strong style={{ color: theme.text }}> Feature Store S3</strong> →
@@ -159,7 +159,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
       {/* ═══ 2. TICKER SELECTOR ═══ */}
       <div style={{ ...cardStyle, padding: 'clamp(0.75rem, 3vw, 1.25rem)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Info size={18} color="#3b82f6" />
+          <Info size={18} color="#8b5cf6" />
           <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>Selecione uma ação para explorar</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -180,7 +180,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer',
               flex: '1 1 180px', minWidth: 0, outline: 'none', transition: 'border-color 0.2s',
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#3b82f6'; }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#8b5cf6'; }}
             onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}>
             {tickers.map(t => {
               const s = getSignal(t.score);
@@ -219,7 +219,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               }}>{signal}</span>
               <span style={{ fontSize: '1.05rem', fontWeight: 700, color: theme.text }}>{currentTicker.ticker}</span>
               <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>
-                Score: <strong style={{ color: '#3b82f6' }}>{currentTicker.score.toFixed(2)}</strong>
+                Score: <strong style={{ color: '#8b5cf6' }}>{currentTicker.score.toFixed(2)}</strong>
               </span>
             </div>
             <div style={{
@@ -431,7 +431,7 @@ const FundamentalsSnapshot: React.FC<SnapshotProps> = ({ ticker = '', darkMode, 
 
 /* ── Macro Snapshot (inline component) ── */
 const MACRO_FALLBACK = [
-  { label: 'Selic', value: '14.25%', trend: 'estável', color: '#3b82f6', desc: 'Taxa básica de juros' },
+  { label: 'Selic', value: '14.25%', trend: 'estável', color: '#8b5cf6', desc: 'Taxa básica de juros' },
   { label: 'IPCA 12m', value: '4.87%', trend: '↑', color: '#ef4444', desc: 'Inflação acumulada' },
   { label: 'USD/BRL', value: 'R$ 5.72', trend: '↓', color: '#10b981', desc: 'Câmbio dólar' },
   { label: 'CDI', value: '14.15%', trend: 'estável', color: '#8b5cf6', desc: 'Taxa interbancária' },
@@ -463,7 +463,7 @@ function parseMacroSeries(data: Record<string, any>): typeof MACRO_FALLBACK {
   const trendOf = (v: number | null) => v == null ? 'estável' : v > 0.001 ? '↑' : v < -0.001 ? '↓' : 'estável';
 
   return [
-    { label: 'Selic', value: selic != null ? `${selic.toFixed(2)}%` : '—', trend: trendOf(selicChange), color: '#3b82f6', desc: 'Taxa básica de juros' },
+    { label: 'Selic', value: selic != null ? `${selic.toFixed(2)}%` : '—', trend: trendOf(selicChange), color: '#8b5cf6', desc: 'Taxa básica de juros' },
     { label: 'IPCA 12m', value: ipca != null ? `${(ipca * 12).toFixed(2)}%` : '—', trend: trendOf(ipca != null ? ipca - 0.4 : null), color: '#ef4444', desc: 'Inflação acumulada' },
     { label: 'USD/BRL', value: cambio != null ? `R$ ${cambio.toFixed(2)}` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#10b981' : '#ef4444', desc: 'Câmbio dólar' },
     { label: 'CDI', value: cdi != null ? `${cdi.toFixed(2)}%` : '—', trend: 'estável', color: '#8b5cf6', desc: 'Taxa interbancária' },

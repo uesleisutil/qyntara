@@ -3,14 +3,14 @@ import { useUI } from '../contexts/UIContext';
 // Color palettes for light and dark themes
 export const CHART_COLORS = {
   light: {
-    primary: '#3b82f6',
+    primary: '#8b5cf6',
     secondary: '#8b5cf6',
     success: '#10b981',
     warning: '#f59e0b',
     error: '#ef4444',
     info: '#06b6d4',
     neutral: '#6b7280',
-    gradient: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
+    gradient: ['#8b5cf6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
     positive: '#10b981',
     negative: '#ef4444',
     grid: '#e5e7eb',

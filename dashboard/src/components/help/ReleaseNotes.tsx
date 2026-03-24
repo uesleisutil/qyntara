@@ -48,13 +48,13 @@ const releases: ReleaseEntry[] = [
 
 export const ReleaseNotes: React.FC<ReleaseNotesProps> = ({ darkMode = false }) => {
   const theme = {
-    bg: darkMode ? '#0f172a' : '#f8fafc',
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    accent: '#3b82f6',
-    accentBg: darkMode ? '#1e3a5f' : '#eff6ff',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e2e0f0',
+    accent: '#8b5cf6',
+    accentBg: darkMode ? '#1e1a3f' : '#f3f1fa',
   };
 
   return (

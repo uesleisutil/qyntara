@@ -21,10 +21,10 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({
   darkMode = false
 }) => {
   const theme = {
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    hover: darkMode ? '#334155' : '#f1f5f9',
-    active: '#3b82f6'
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    hover: darkMode ? '#2a2745' : '#f1f5f9',
+    active: '#8b5cf6'
   };
 
   const truncateLabel = (label: string, maxLen: number): string => {

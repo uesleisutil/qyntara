@@ -67,7 +67,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
                 fontWeight: 600,
                 color: barColor === 'green' ? '#10b981' : 
                        barColor === 'yellow' ? '#f59e0b' : 
-                       barColor === 'red' ? '#ef4444' : '#3b82f6',
+                       barColor === 'red' ? '#ef4444' : '#8b5cf6',
               }}>
                 {percentage.toFixed(0)}%
               </span>
@@ -93,7 +93,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
             backgroundColor: 
               barColor === 'green' ? '#10b981' : 
               barColor === 'yellow' ? '#f59e0b' : 
-              barColor === 'red' ? '#ef4444' : '#3b82f6',
+              barColor === 'red' ? '#ef4444' : '#8b5cf6',
             transition: 'width 0.3s ease-in-out',
             borderRadius: '9999px',
           }}

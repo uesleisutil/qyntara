@@ -87,7 +87,7 @@ const TemporalComparison: React.FC<Props> = ({ darkMode, theme }) => {
   const maxDays = Math.min(dates.length - 1, 10);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '0.75rem',
     marginBottom: '0.75rem',
   };
@@ -134,7 +134,7 @@ const TemporalComparison: React.FC<Props> = ({ darkMode, theme }) => {
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.1rem', marginLeft: 'auto',
                 fontWeight: 600, fontSize: '0.75rem',
-                color: d.diff > 0 ? '#10b981' : d.diff < 0 ? '#ef4444' : '#94a3b8',
+                color: d.diff > 0 ? '#10b981' : d.diff < 0 ? '#ef4444' : '#9895b0',
               }}>
                 {d.diff > 0 ? <ArrowUp size={12} /> : d.diff < 0 ? <ArrowDown size={12} /> : <Minus size={12} />}
                 {d.diff > 0 ? `+${d.diff}` : d.diff}

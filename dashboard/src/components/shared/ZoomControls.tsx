@@ -19,10 +19,10 @@ export const ZoomControls: React.FC<ZoomControlsProps> = ({
   position = 'top-right'
 }) => {
   const theme = {
-    bg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f1f5f9'
+    bg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f1f5f9'
   };
 
   const positionStyles = {

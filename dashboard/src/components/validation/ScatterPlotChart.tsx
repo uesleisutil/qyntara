@@ -349,7 +349,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
             <Scatter
               name="Predictions"
               data={coloredData}
-              fill="#3b82f6"
+              fill="#8b5cf6"
             />
           </ScatterChart>
         </ResponsiveContainer>

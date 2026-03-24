@@ -10,12 +10,12 @@ export const CrossFilterBar: React.FC<CrossFilterBarProps> = ({ darkMode = false
   const { filters, removeFilter, clearAllFilters, filterCount } = useCrossFilter();
 
   const theme = {
-    bg: darkMode ? '#1e293b' : '#f8fafc',
-    cardBg: darkMode ? '#0f172a' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#e2e8f0'
+    bg: darkMode ? '#1a1836' : '#f8fafc',
+    cardBg: darkMode ? '#0c0a1a' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#e2e8f0'
   };
 
   if (filters.length === 0) {
@@ -51,7 +51,7 @@ export const CrossFilterBar: React.FC<CrossFilterBarProps> = ({ darkMode = false
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Filter size={16} color="#3b82f6" />
+          <Filter size={16} color="#8b5cf6" />
           <span style={{ fontSize: '0.875rem', fontWeight: '600', color: theme.text }}>
             Active Cross-Filters ({filterCount})
           </span>

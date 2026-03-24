@@ -32,8 +32,8 @@ export const DraggableKPICard: React.FC<DraggableKPICardProps> = ({
   const isVisible = cardConfig?.visible ?? true;
 
   const theme = {
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f1f5f9'
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f1f5f9'
   };
 
   const handleDragStart = (e: React.DragEvent) => {

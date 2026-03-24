@@ -53,7 +53,7 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
       // Build recommendations table
       const recRows = recs.slice(0, 20).map((r: any, i: number) => {
         const signal = getSignal(r.score);
-        const sigColor = signal === 'Compra' ? '#10b981' : signal === 'Venda' ? '#ef4444' : '#94a3b8';
+        const sigColor = signal === 'Compra' ? '#10b981' : signal === 'Venda' ? '#ef4444' : '#9895b0';
         return `<tr>
           <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">${i + 1}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600">${r.ticker}</td>
@@ -125,14 +125,14 @@ ${positions.length > 0 ? `<h2>📋 Minhas Posições</h2>
     <button onClick={generate} disabled={generating} style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
       padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-      border: `1px solid ${darkMode ? '#334155' : '#e2e8f0'}`,
+      border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
       background: 'transparent',
-      color: darkMode ? '#94a3b8' : '#64748b',
+      color: darkMode ? '#9895b0' : '#64748b',
       cursor: generating ? 'wait' : 'pointer', transition: 'all 0.15s',
       WebkitAppearance: 'none' as any, minHeight: 'auto',
     }}
-      onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; } }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#334155' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#94a3b8' : '#64748b'; }}
+      onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; } }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a2745' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#9895b0' : '#64748b'; }}
     >
       {generating ? <Loader size={13} className="spin" /> : <FileText size={13} />}
       {generating ? 'Gerando...' : 'Relatório Mensal'}

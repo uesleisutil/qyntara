@@ -54,7 +54,7 @@ const GoalTracker: React.FC<Props> = ({ darkMode, theme }) => {
           placeholder="Ex: 5" autoFocus
           style={{
             flex: 1, padding: '0.4rem 0.6rem', borderRadius: 6,
-            border: `1px solid ${theme.border}`, background: darkMode ? '#0f172a' : '#f8fafc',
+            border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8fafc',
             color: theme.text, fontSize: '0.85rem', outline: 'none',
           }} />
         <span style={{ fontSize: '0.85rem', color: theme.textSecondary }}>%</span>
@@ -93,10 +93,10 @@ const GoalTracker: React.FC<Props> = ({ darkMode, theme }) => {
           <Edit3 size={11} /> {fmt(goalPct, 1)}%
         </button>
       </div>
-      <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#334155' : '#e2e8f0', overflow: 'hidden' }}>
+      <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e8f0', overflow: 'hidden' }}>
         <div style={{
           height: '100%', borderRadius: 3, width: `${progress}%`,
-          background: reached ? '#10b981' : '#3b82f6',
+          background: reached ? '#10b981' : '#8b5cf6',
           transition: 'width 0.5s ease',
         }} />
       </div>

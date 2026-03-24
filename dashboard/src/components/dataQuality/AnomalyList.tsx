@@ -67,18 +67,18 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
   const [markedFalsePositives, setMarkedFalsePositives] = useState<Set<string>>(new Set());
 
   const theme = {
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f8fafc',
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return '#dc2626';
       case 'medium': return '#f59e0b';
-      case 'low': return '#3b82f6';
+      case 'low': return '#8b5cf6';
       default: return theme.textSecondary;
     }
   };
@@ -339,7 +339,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                       </span>
                       <span style={{
                         padding: '0.125rem 0.5rem',
-                        backgroundColor: darkMode ? '#334155' : '#e2e8f0',
+                        backgroundColor: darkMode ? '#2a2745' : '#e2e8f0',
                         color: theme.text,
                         borderRadius: '4px',
                         fontSize: '0.75rem',

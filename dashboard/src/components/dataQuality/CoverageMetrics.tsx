@@ -49,11 +49,11 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
   const [showExcluded, setShowExcluded] = useState(false);
 
   const theme = {
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f8fafc',
   };
 
   const isLowCoverage = data.coverageRate < 0.9;
@@ -182,7 +182,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
           style={{
             width: '100%',
             padding: '1rem',
-            backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
+            backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc',
             border: `1px solid ${theme.border}`,
             borderRadius: '8px',
             cursor: 'pointer',
@@ -220,7 +220,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
                   padding: isMobile ? '1rem' : '1.25rem',
                   border: `1px solid ${theme.border}`,
                   borderRadius: '8px',
-                  backgroundColor: darkMode ? '#0f172a' : '#f8fafc'
+                  backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc'
                 }}
               >
                 <div style={{ 
@@ -246,7 +246,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
                       key={ticker.ticker}
                       style={{
                         padding: '0.5rem 0.75rem',
-                        backgroundColor: darkMode ? '#334155' : '#e2e8f0',
+                        backgroundColor: darkMode ? '#2a2745' : '#e2e8f0',
                         borderRadius: '6px',
                         fontSize: '0.875rem',
                         fontWeight: '500',

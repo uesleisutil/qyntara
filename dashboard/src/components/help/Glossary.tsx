@@ -29,13 +29,13 @@ export const Glossary: React.FC<GlossaryProps> = ({ darkMode = false, onTermClic
   const [selectedLetter, setSelectedLetter] = useState<string>('all');
 
   const theme = {
-    bg: darkMode ? '#0f172a' : '#f8fafc',
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f8fafc',
-    accent: '#3b82f6',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e2e0f0',
+    hover: darkMode ? '#2a2745' : '#f3f1fa',
+    accent: '#8b5cf6',
   };
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -306,7 +306,7 @@ export const Glossary: React.FC<GlossaryProps> = ({ darkMode = false, onTermClic
                       style={{
                         marginBottom: '0.75rem',
                         padding: '0.75rem',
-                        backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
+                        backgroundColor: darkMode ? '#0c0a1a' : '#f8f7fc',
                         borderRadius: '8px',
                         border: `1px solid ${theme.border}`,
                       }}
@@ -373,7 +373,7 @@ export const Glossary: React.FC<GlossaryProps> = ({ darkMode = false, onTermClic
                         fontSize: '0.75rem',
                         color: theme.textSecondary,
                         padding: '0.25rem 0.5rem',
-                        backgroundColor: darkMode ? '#334155' : '#f1f5f9',
+                        backgroundColor: darkMode ? '#2a2745' : '#f3f1fa',
                         borderRadius: '4px',
                       }}
                     >

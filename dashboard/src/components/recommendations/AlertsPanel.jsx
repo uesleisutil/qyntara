@@ -192,8 +192,8 @@ const AlertsPanel = ({ recommendations }) => {
         marginBottom: '1rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Bell size={20} color="#3b82f6" />
-          <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1e293b' }}>
+          <Bell size={20} color="#8b5cf6" />
+          <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
             Alertas Configurados
           </h3>
         </div>
@@ -227,7 +227,7 @@ const AlertsPanel = ({ recommendations }) => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: '#3b82f6',
+              backgroundColor: '#8b5cf6',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
@@ -328,7 +328,7 @@ const AlertsPanel = ({ recommendations }) => {
                   <span style={{ 
                     fontSize: '0.875rem', 
                     fontWeight: '600', 
-                    color: '#1e293b' 
+                    color: '#1a1836' 
                   }}>
                     {alert.ticker}
                   </span>

@@ -16,7 +16,7 @@ interface SensitivityAnalysisProps {
 /* ── Sensitivity factors across all 6 categories ── */
 const FACTORS: { key: string; category: string; color: string; derive: (td: TickerData) => number }[] = [
   // Técnicas
-  { key: 'Momentum', category: 'Técnica', color: '#3b82f6', derive: td => td.exp_return_20 * 50 },
+  { key: 'Momentum', category: 'Técnica', color: '#8b5cf6', derive: td => td.exp_return_20 * 50 },
   { key: 'RSI', category: 'Técnica', color: '#60a5fa', derive: td => td.score * 0.6 },
   { key: 'Volatilidade', category: 'Técnica', color: '#93c5fd', derive: td => -td.vol_20d * 30 },
   // Volume
@@ -39,11 +39,11 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
   const [selected, setSelected] = useState<string[]>(['Momentum', 'ROE', 'Selic']);
 
   const theme = {
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    subtle: darkMode ? '#0f172a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
   };
 
   const { chartData, sensitivities } = useMemo(() => {
@@ -91,7 +91,7 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-        <Activity size={18} color="#3b82f6" />
+        <Activity size={18} color="#8b5cf6" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Análise de Sensibilidade — {ticker}
         </h3>
@@ -148,13 +148,13 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
           return (
             <div key={key} style={{
               padding: '0.65rem', backgroundColor: theme.subtle, borderRadius: 8,
-              borderLeft: `3px solid ${factor?.color || '#94a3b8'}`,
+              borderLeft: `3px solid ${factor?.color || '#9895b0'}`,
             }}>
               <div style={{ fontSize: '0.68rem', color: theme.textSecondary }}>{key}</div>
               <div style={{ fontSize: '0.95rem', fontWeight: 700, color: sensitivities[key] >= 0 ? '#10b981' : '#ef4444' }}>
                 <ProValue isPro={isPro} placeholder="±••%">{sensitivities[key] > 0 ? '+' : ''}{sensitivities[key]}%</ProValue>
               </div>
-              <div style={{ fontSize: '0.6rem', color: factor?.color || '#94a3b8', fontWeight: 600 }}>{factor?.category}</div>
+              <div style={{ fontSize: '0.6rem', color: factor?.color || '#9895b0', fontWeight: 600 }}>{factor?.category}</div>
             </div>
           );
         })}
@@ -175,7 +175,7 @@ const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, ticke
               {selected.map(key => {
                 const factor = FACTORS.find(f => f.key === key);
                 return (
-                  <Line key={key} type="monotone" dataKey={key} stroke={factor?.color || '#94a3b8'} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+                  <Line key={key} type="monotone" dataKey={key} stroke={factor?.color || '#9895b0'} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
                 );
               })}
             </LineChart>

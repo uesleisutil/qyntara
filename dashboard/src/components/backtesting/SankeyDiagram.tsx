@@ -47,14 +47,14 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => ({
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
   }), [darkMode]);
 
   const sectorColors: Record<string, string> = useMemo(() => ({
-    'Financials': '#3b82f6',
+    'Financials': '#8b5cf6',
     'Energy': '#f59e0b',
     'Materials': '#8b5cf6',
     'Industrials': '#10b981',
@@ -133,7 +133,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .attr('d', sankeyLinkHorizontal())
       .attr('stroke', d => {
         const sourceName = (d.source as any).name;
-        return sectorColors[sourceName] || '#94a3b8';
+        return sectorColors[sourceName] || '#9895b0';
       })
       .attr('stroke-width', d => Math.max(1, d.width || 0))
       .attr('fill', 'none')
@@ -161,7 +161,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .attr('y', d => d.y0 || 0)
       .attr('height', d => (d.y1 || 0) - (d.y0 || 0))
       .attr('width', d => (d.x1 || 0) - (d.x0 || 0))
-      .attr('fill', d => sectorColors[d.name] || '#94a3b8')
+      .attr('fill', d => sectorColors[d.name] || '#9895b0')
       .attr('opacity', 0.8)
       .append('title')
       .text(d => `${d.name}\nR$ ${((d.value || 0) / 1000).toFixed(1)}k`);
@@ -196,7 +196,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <GitBranch size={20} color={darkMode ? '#94a3b8' : '#64748b'} />
+        <GitBranch size={20} color={darkMode ? '#9895b0' : '#64748b'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 

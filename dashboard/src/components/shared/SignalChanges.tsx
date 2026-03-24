@@ -21,7 +21,7 @@ const getSignal = (score: number) =>
   score >= SCORE_BUY_THRESHOLD ? 'Compra' : score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
 
 const signalColor = (s: string) =>
-  s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#94a3b8';
+  s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#9895b0';
 
 const SignalIcon: React.FC<{ signal: string }> = ({ signal }) =>
   signal === 'Compra' ? <ArrowUpRight size={12} /> : signal === 'Venda' ? <ArrowDownRight size={12} /> : <Minus size={12} />;
@@ -70,7 +70,7 @@ const SignalChanges: React.FC<SignalChangesProps> = ({ darkMode, theme }) => {
   const visible = expanded ? changes : changes.slice(0, 3);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '0.75rem',
     marginBottom: '0.75rem',
   };

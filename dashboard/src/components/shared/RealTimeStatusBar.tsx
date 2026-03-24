@@ -175,7 +175,7 @@ const RealTimeStatusBar: React.FC = () => {
           fontSize: '0.875rem',
           fontWeight: '500',
           color: 'white',
-          backgroundColor: refreshing || status.processing ? '#9ca3af' : '#3b82f6',
+          backgroundColor: refreshing || status.processing ? '#9ca3af' : '#8b5cf6',
           border: 'none',
           borderRadius: '0.375rem',
           cursor: refreshing || status.processing ? 'not-allowed' : 'pointer',
@@ -183,12 +183,12 @@ const RealTimeStatusBar: React.FC = () => {
         }}
         onMouseEnter={(e) => {
           if (!refreshing && !status.processing) {
-            e.currentTarget.style.backgroundColor = '#2563eb';
+            e.currentTarget.style.backgroundColor = '#7c3aed';
           }
         }}
         onMouseLeave={(e) => {
           if (!refreshing && !status.processing) {
-            e.currentTarget.style.backgroundColor = '#3b82f6';
+            e.currentTarget.style.backgroundColor = '#8b5cf6';
           }
         }}
       >

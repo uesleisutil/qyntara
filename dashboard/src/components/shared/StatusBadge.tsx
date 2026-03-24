@@ -54,8 +54,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       critical: { bg: '#fee2e2', text: '#991b1b', border: '#ef4444' },
       'drift-detected': { bg: '#fee2e2', text: '#991b1b', border: '#ef4444' },
       
-      info: { bg: '#dbeafe', text: '#1e40af', border: '#3b82f6' },
-      active: { bg: '#dbeafe', text: '#1e40af', border: '#3b82f6' },
+      info: { bg: '#dbeafe', text: '#1e40af', border: '#8b5cf6' },
+      active: { bg: '#dbeafe', text: '#1e40af', border: '#8b5cf6' },
     };
 
     return colorMap[status] || colorMap.info;

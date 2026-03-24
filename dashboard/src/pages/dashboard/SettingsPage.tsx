@@ -20,12 +20,12 @@ const SettingsPage: React.FC = () => {
   const isPro = user?.plan === 'pro';
 
   const theme = {
-    bg: darkMode ? '#0f172a' : '#f8fafc',
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f1f5f9',
+    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64618b',
+    border: darkMode ? '#2a2745' : '#e2e0f0',
+    hover: darkMode ? '#2a2745' : '#f3f1fa',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -134,7 +134,7 @@ const SettingsPage: React.FC = () => {
             disabled={!isPro || emailNotifSaving}
             style={{
               width: 40, height: 22, borderRadius: 11, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
-              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#334155' : '#e2e8f0'),
+              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#2a2745' : '#e2e0f0'),
               position: 'relative', transition: 'background 0.2s', flexShrink: 0,
               opacity: isPro ? 1 : 0.5, padding: 0,
               WebkitAppearance: 'none' as any,
@@ -170,7 +170,7 @@ const SettingsPage: React.FC = () => {
               <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>{s.desc}</span>
               <kbd style={{
                 padding: '0.15rem 0.5rem', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600,
-                background: darkMode ? '#0f172a' : '#f1f5f9', border: `1px solid ${theme.border}`,
+                background: darkMode ? '#0c0a1a' : '#f3f1fa', border: `1px solid ${theme.border}`,
                 color: theme.text, fontFamily: 'monospace',
               }}>{s.keys}</kbd>
             </div>

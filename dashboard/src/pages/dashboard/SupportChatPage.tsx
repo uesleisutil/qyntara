@@ -78,7 +78,7 @@ const SupportChatPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
   };
 
@@ -151,7 +151,7 @@ const SupportChatPage: React.FC = () => {
               rows={1}
               style={{
                 flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'none',
-                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1e293b' : '#fff'),
+                border: `1px solid ${theme.border}`, background: theme.card || (darkMode ? '#1a1836' : '#fff'),
                 color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 42, maxHeight: 120,
                 fontFamily: 'inherit',
               }} />
@@ -206,7 +206,7 @@ const SupportChatPage: React.FC = () => {
             rows={2}
             style={{
               flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10, resize: 'vertical',
-              border: `1px solid ${theme.border}`, background: darkMode ? '#0f172a' : '#f8fafc',
+              border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8f7fc',
               color: theme.text, fontSize: '0.85rem', outline: 'none', minHeight: 60, maxHeight: 200,
               fontFamily: 'inherit',
             }} />
@@ -243,8 +243,8 @@ const SupportChatPage: React.FC = () => {
                 return (
                   <div key={t.ticketId} onClick={() => setActiveTicket(t)}
                     style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.4rem', cursor: 'pointer', transition: 'background 0.15s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#334155' : '#f1f5f9'}
-                    onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1e293b' : '#fff')}>
+                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f3f1fa'}
+                    onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a1836' : '#fff')}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                       <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>{t.subject}</span>
                       <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 6, background: s.bg, color: s.color, fontWeight: 600 }}>{s.text}</span>

@@ -42,7 +42,7 @@ jest.mock('date-fns/locale', () => ({
 // Mock chart config
 jest.mock('../../lib/chartConfig', () => ({
   useChartColors: () => ({
-    primary: '#3b82f6',
+    primary: '#8b5cf6',
     success: '#10b981',
     error: '#ef4444',
     warning: '#f59e0b',

@@ -58,8 +58,8 @@ export const CacheSettings: React.FC = () => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <Database size={24} color="#3b82f6" />
-        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: '#1e293b' }}>
+        <Database size={24} color="#8b5cf6" />
+        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '600', color: '#1a1836' }}>
           Cache Settings
         </h3>
       </div>
@@ -76,7 +76,7 @@ export const CacheSettings: React.FC = () => {
             <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
               Cache Size
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1a1836' }}>
               {formatBytes(stats.totalSize)}
             </div>
             <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
@@ -94,7 +94,7 @@ export const CacheSettings: React.FC = () => {
             <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
               Cached Entries
             </div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1e293b' }}>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#1a1836' }}>
               {stats.entryCount}
             </div>
             <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>

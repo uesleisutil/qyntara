@@ -15,7 +15,7 @@ interface ExplanationTextProps {
 
 /* ── Category badge colors ── */
 const CAT_BADGE: Record<string, { bg: string; color: string }> = {
-  'Técnica': { bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' },
+  'Técnica': { bg: 'rgba(59,130,246,0.12)', color: '#8b5cf6' },
   'Volume': { bg: 'rgba(139,92,246,0.12)', color: '#8b5cf6' },
   'Fundamental': { bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
   'Macro': { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
@@ -79,11 +79,11 @@ function deriveExplanation(td: TickerData) {
 
 const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {
   const theme = {
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    subtle: darkMode ? '#0f172a' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
   };
 
   const { confidence, posFactors, negFactors } = useMemo(() => deriveExplanation(tickerData), [tickerData]);
@@ -103,7 +103,7 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {factors.map((f, i) => {
-            const badge = CAT_BADGE[f.category] || { bg: 'rgba(148,163,184,0.12)', color: '#94a3b8' };
+            const badge = CAT_BADGE[f.category] || { bg: 'rgba(148,163,184,0.12)', color: '#9895b0' };
             return (
               <div key={i} style={{
                 display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
@@ -136,7 +136,7 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <MessageSquare size={18} color="#3b82f6" />
+        <MessageSquare size={18} color="#8b5cf6" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Explicação em Linguagem Natural — {ticker}
         </h3>
@@ -151,14 +151,14 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
         <p style={{ margin: '0 0 0.75rem', fontSize: '0.85rem', color: theme.text }}>
           O modelo ensemble analisa <strong>~83 features</strong> (técnicas, volume, fundamentalistas, macro, setoriais e sentimento)
           e prevê que <strong>{ticker}</strong> atingirá{' '}
-          <ProValue isPro={isPro} style={{ color: '#3b82f6', fontWeight: 700 }} placeholder="R$ ••••">
+          <ProValue isPro={isPro} style={{ color: '#8b5cf6', fontWeight: 700 }} placeholder="R$ ••••">
             R$ {tickerData.pred_price_t_plus_20.toFixed(2)}
           </ProValue>{' '}
           nos próximos 20 pregões (retorno de{' '}
           <ProValue isPro={isPro} style={{ color: tickerData.exp_return_20 >= 0 ? '#10b981' : '#ef4444', fontWeight: 700 }} placeholder="±••%">
             {(tickerData.exp_return_20 * 100).toFixed(1)}%
           </ProValue>).
-          Sinal: <strong>{signal}</strong> · Score: <strong style={{ color: '#3b82f6' }}>{tickerData.score.toFixed(2)}</strong> ·
+          Sinal: <strong>{signal}</strong> · Score: <strong style={{ color: '#8b5cf6' }}>{tickerData.score.toFixed(2)}</strong> ·
           Confiança: <strong style={{ color: confColor }}>{confLabel} ({(confidence * 100).toFixed(0)}%)</strong>
         </p>
 

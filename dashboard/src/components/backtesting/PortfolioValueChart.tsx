@@ -29,11 +29,11 @@ export const PortfolioValueChart: React.FC<PortfolioValueChartProps> = ({
   darkMode = false,
 }) => {
   const theme = {
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    gridColor: darkMode ? '#334155' : '#e2e8f0',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    gridColor: darkMode ? '#2a2745' : '#e2e8f0',
   };
 
   const chartData = data.map(item => ({
@@ -66,7 +66,7 @@ export const PortfolioValueChart: React.FC<PortfolioValueChartProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <TrendingUp size={20} color={darkMode ? '#94a3b8' : '#64748b'} />
+        <TrendingUp size={20} color={darkMode ? '#9895b0' : '#64748b'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 
@@ -103,7 +103,7 @@ export const PortfolioValueChart: React.FC<PortfolioValueChartProps> = ({
           <Line 
             type="monotone" 
             dataKey="value" 
-            stroke="#3b82f6" 
+            stroke="#8b5cf6" 
             strokeWidth={2}
             dot={false}
             name="Portfolio Value"

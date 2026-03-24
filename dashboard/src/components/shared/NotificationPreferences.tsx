@@ -160,7 +160,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               outline: 'none',
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#3b82f6';
+              e.currentTarget.style.borderColor = '#8b5cf6';
               e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
             }}
             onBlur={(e) => {
@@ -263,7 +263,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
               outline: 'none',
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = '#3b82f6';
+              e.currentTarget.style.borderColor = '#8b5cf6';
               e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
             }}
             onBlur={(e) => {
@@ -433,7 +433,7 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
             fontSize: '0.875rem',
             fontWeight: '500',
             color: 'white',
-            backgroundColor: saving ? '#9ca3af' : '#3b82f6',
+            backgroundColor: saving ? '#9ca3af' : '#8b5cf6',
             border: 'none',
             borderRadius: '0.375rem',
             cursor: saving ? 'not-allowed' : 'pointer',
@@ -441,12 +441,12 @@ const NotificationPreferences: React.FC<NotificationPreferencesProps> = ({ onClo
           }}
           onMouseEnter={(e) => {
             if (!saving) {
-              e.currentTarget.style.backgroundColor = '#2563eb';
+              e.currentTarget.style.backgroundColor = '#7c3aed';
             }
           }}
           onMouseLeave={(e) => {
             if (!saving) {
-              e.currentTarget.style.backgroundColor = '#3b82f6';
+              e.currentTarget.style.backgroundColor = '#8b5cf6';
             }
           }}
         >

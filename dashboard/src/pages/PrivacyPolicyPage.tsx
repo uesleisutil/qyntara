@@ -16,16 +16,16 @@ const PrivacyPolicyPage: React.FC = () => {
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 4, minHeight: 'auto' }}>
+          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#9895b0', cursor: 'pointer', padding: 4, minHeight: 'auto' }}>
             <ArrowLeft size={20} />
           </button>
-          <TrendingUp size={24} color="#3b82f6" />
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #7c3aed, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>Q</div>
           <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f1f5f9' }}>Qyntara</span>
         </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #1e293b', borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid #2a2745', borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-            <Shield size={22} color="#3b82f6" />
+            <Shield size={22} color="#8b5cf6" />
             <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Política de Privacidade</h1>
           </div>
           <p style={{ ...pStyle, marginBottom: '1.5rem' }}>Última atualização: 22 de março de 2026</p>
@@ -113,7 +113,7 @@ const PrivacyPolicyPage: React.FC = () => {
             </p>
           </div>
 
-          <div style={{ ...sectionStyle, borderTop: '1px solid #334155', paddingTop: '1rem' }}>
+          <div style={{ ...sectionStyle, borderTop: '1px solid #2a2745', paddingTop: '1rem' }}>
             <h2 style={h2Style}>9. Termos de Uso</h2>
             <p style={pStyle}>Ao criar uma conta no Qyntara, você concorda com os seguintes termos:</p>
             <ul style={{ listStyle: 'disc', paddingLeft: '1rem' }}>

@@ -7,7 +7,7 @@ interface Props { darkMode: boolean; theme: Record<string, string>; }
 interface Change { ticker: string; prevSignal: string; newSignal: string; prevScore: number; newScore: number; }
 interface RankDiff { ticker: string; currentRank: number; diff: number; currentSignal: string; }
 
-const sigColor = (s: string) => s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#94a3b8';
+const sigColor = (s: string) => s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#9895b0';
 const SigIcon = ({ s, sz = 10 }: { s: string; sz?: number }) =>
   s === 'Compra' ? <ArrowUpRight size={sz} /> : s === 'Venda' ? <ArrowDownRight size={sz} /> : <Minus size={sz} />;
 
@@ -117,7 +117,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
         ) : (
           <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1e293b' : '#ffffff'), zIndex: 1 }}>
+              <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a1836' : '#ffffff'), zIndex: 1 }}>
                 <tr>
                   <th style={thS}>Ação</th>
                   <th style={thS}>Anterior</th>
@@ -167,7 +167,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
           ) : (
             <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1e293b' : '#ffffff'), zIndex: 1 }}>
+                <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a1836' : '#ffffff'), zIndex: 1 }}>
                   <tr>
                     <th style={thS}>Ação</th>
                     <th style={thS}>Sinal</th>

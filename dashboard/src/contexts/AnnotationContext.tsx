@@ -73,7 +73,7 @@ export const AnnotationProvider: React.FC<AnnotationProviderProps> = ({ children
         updatedAt: now,
         color: annotation.category 
           ? ANNOTATION_CATEGORIES.find(c => c.value === annotation.category)?.color 
-          : '#3b82f6'
+          : '#8b5cf6'
       };
 
       const newAnnotations = [...annotations, newAnnotation];

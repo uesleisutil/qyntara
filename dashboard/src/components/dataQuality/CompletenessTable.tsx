@@ -55,11 +55,11 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
 
   const theme = {
-    cardBg: darkMode ? '#1e293b' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0f172a',
-    textSecondary: darkMode ? '#94a3b8' : '#64748b',
-    border: darkMode ? '#334155' : '#e2e8f0',
-    hover: darkMode ? '#334155' : '#f8fafc',
+    cardBg: darkMode ? '#1a1836' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0c0a1a',
+    textSecondary: darkMode ? '#9895b0' : '#64748b',
+    border: darkMode ? '#2a2745' : '#e2e8f0',
+    hover: darkMode ? '#2a2745' : '#f8fafc',
   };
 
   const handleSort = (field: SortField) => {
@@ -159,7 +159,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
               data={data.trends.map(t => t.completeness * 100)}
               width={isMobile ? 300 : 600}
               height={60}
-              color="#3b82f6"
+              color="#8b5cf6"
               showTooltip={true}
             />
           </div>
@@ -322,7 +322,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
                         colSpan={isMobile ? 4 : 5} 
                         style={{ 
                           padding: isMobile ? '0.75rem 0.5rem' : '1rem',
-                          backgroundColor: darkMode ? '#0f172a' : '#f8fafc'
+                          backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc'
                         }}
                       >
                         <div style={{ fontSize: '0.8125rem', color: theme.textSecondary, marginBottom: '0.5rem' }}>
@@ -338,7 +338,7 @@ export const CompletenessTable: React.FC<CompletenessTableProps> = ({
                               key={idx}
                               style={{
                                 padding: '0.25rem 0.75rem',
-                                backgroundColor: darkMode ? '#334155' : '#e2e8f0',
+                                backgroundColor: darkMode ? '#2a2745' : '#e2e8f0',
                                 color: theme.text,
                                 borderRadius: '6px',
                                 fontSize: '0.75rem',

@@ -10,7 +10,7 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 const COLORS = {
-  Lambda: '#3b82f6',
+  Lambda: '#8b5cf6',
   S3: '#10b981',
   SageMaker: '#f59e0b',
   CloudWatch: '#ef4444',
@@ -66,7 +66,7 @@ const CostsByServiceChart = ({ data, isLoading }) => {
           borderRadius: '8px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
         }}>
-          <p style={{ margin: '0 0 0.25rem 0', fontWeight: '600', color: '#1e293b' }}>
+          <p style={{ margin: '0 0 0.25rem 0', fontWeight: '600', color: '#1a1836' }}>
             {data.name}
           </p>
           <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
@@ -80,7 +80,7 @@ const CostsByServiceChart = ({ data, isLoading }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1e293b' }}>
+      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
         Distribuição de Custos por Serviço AWS
       </h3>
 
@@ -130,12 +130,12 @@ const CostsByServiceChart = ({ data, isLoading }) => {
                   borderRadius: '50%',
                   backgroundColor: item.color
                 }} />
-                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1e293b' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#1a1836' }}>
                   {item.name}
                 </span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#1e293b' }}>
+                <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#1a1836' }}>
                   R$ {item.value.toFixed(2)}
                 </p>
                 <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>

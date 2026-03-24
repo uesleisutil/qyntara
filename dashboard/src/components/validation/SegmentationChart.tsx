@@ -235,7 +235,7 @@ export const SegmentationChart: React.FC<SegmentationChartProps> = ({
                   fontSize: '0.875rem',
                   border: 'none',
                   borderRadius: '6px',
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: '#8b5cf6',
                   color: 'white',
                   cursor: 'pointer',
                   fontWeight: '500',

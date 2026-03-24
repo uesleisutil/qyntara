@@ -231,7 +231,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                     fontSize: '0.875rem',
                     border: '1px solid #e5e7eb',
                     borderRadius: '6px',
-                    backgroundColor: granularity === g ? '#3b82f6' : 'white',
+                    backgroundColor: granularity === g ? '#8b5cf6' : 'white',
                     color: granularity === g ? 'white' : '#6b7280',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
@@ -357,7 +357,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="correlation"
                   name="Correlation"
-                  stroke="#3b82f6"
+                  stroke="#8b5cf6"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   activeDot={{ r: 5 }}
@@ -366,7 +366,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="correlationTrend"
                   name="Correlation Trend"
-                  stroke="#3b82f6"
+                  stroke="#8b5cf6"
                   strokeWidth={1}
                   strokeDasharray="5 5"
                   dot={false}

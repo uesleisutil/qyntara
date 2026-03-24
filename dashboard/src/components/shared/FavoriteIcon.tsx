@@ -72,7 +72,7 @@ export const FavoriteIcon: React.FC<FavoriteIconProps> = ({
       <Star
         size={size}
         fill={favorite ? '#fbbf24' : 'none'}
-        color={favorite ? '#fbbf24' : '#94a3b8'}
+        color={favorite ? '#fbbf24' : '#9895b0'}
         strokeWidth={2}
       />
     </button>
