@@ -20,7 +20,7 @@ const CAT_COLORS: Record<string, string> = {
   'Fundamental': '#4ead8a',
   'Macro': '#d4a84b',
   'Setorial': '#d4a84b',
-  'Sentimento': '#5ab0a0',
+  'Sentimento': '#2d7d9a',
 };
 
 /**

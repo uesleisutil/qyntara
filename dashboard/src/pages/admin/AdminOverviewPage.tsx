@@ -161,7 +161,7 @@ const AdminOverviewPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={() => { fetchAll(); runHealthChecks(); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={() => { fetchAll(); runHealthChecks(); }} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

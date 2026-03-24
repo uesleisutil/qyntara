@@ -160,7 +160,7 @@ const DashboardLayout: React.FC = () => {
         padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
         borderBottom: `1px solid ${theme.border}`, cursor: 'pointer',
       }} onClick={() => handleNav('/dashboard')}>
-        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #4a8e77, #5ab0a0, #5ab0a0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a, #8b7eb8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>Q</span>
         </div>
         <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>Qyntara</span>
@@ -232,7 +232,7 @@ const DashboardLayout: React.FC = () => {
           borderRadius: 8, marginBottom: '0.5rem',
         }}>
           <div style={{
-            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)',
+            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.8rem', fontWeight: 600,
           }}>
             {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}

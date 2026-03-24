@@ -205,7 +205,7 @@ const AdminNotificationsPage: React.FC = () => {
           }}><RefreshCw size={14} /> Atualizar</button>
           <button onClick={() => { setShowForm(true); setEditingId(null); setForm({ title: '', message: '', type: 'manual', target: 'all', enabled: true }); }} style={{
             display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.5rem 0.75rem',
-            borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)',
+            borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
             color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
             boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any,
           }}><Plus size={14} /> Nova Notificação</button>
@@ -225,7 +225,7 @@ const AdminNotificationsPage: React.FC = () => {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <div style={{ ...cardStyle, marginBottom: '1.25rem', borderLeft: '4px solid #5ab0a0' }}>
+        <div style={{ ...cardStyle, marginBottom: '1.25rem', borderLeft: '4px solid #2d7d9a' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: theme.text }}>
               {editingId ? 'Editar Notificação' : 'Nova Notificação'}
@@ -276,7 +276,7 @@ const AdminNotificationsPage: React.FC = () => {
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <button onClick={handleSave} disabled={saving} style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.6rem 1.25rem',
-              borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)',
+              borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
               color: 'white', cursor: saving ? 'not-allowed' : 'pointer', fontSize: '0.85rem', fontWeight: 600,
               WebkitAppearance: 'none' as any,
             }}>

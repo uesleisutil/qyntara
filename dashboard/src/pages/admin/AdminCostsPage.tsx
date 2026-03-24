@@ -107,7 +107,7 @@ const AdminCostsPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={fetchCosts} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={fetchCosts} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -189,7 +189,7 @@ const AdminCostsPage: React.FC = () => {
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#d4a84b' }}>${fmt(cost)}</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a3d36' : '#d4e5dc' }}>
-                    <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(90deg, #4a8e77, #5ab0a0)', width: `${(cost / maxServiceCost) * 100}%`, transition: 'width 0.3s' }} />
+                    <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(90deg, #4a8e77, #2d7d9a)', width: `${(cost / maxServiceCost) * 100}%`, transition: 'width 0.3s' }} />
                   </div>
                 </div>
               ))}

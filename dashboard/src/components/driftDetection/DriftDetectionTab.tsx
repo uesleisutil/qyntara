@@ -181,7 +181,7 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
           <option value={90}>90 dias</option>
         </select>
         <button onClick={() => refresh()}
-          style={{ ...btnBase, padding: '0.45rem 0.9rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)' }}>
+          style={{ ...btnBase, padding: '0.45rem 0.9rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)' }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

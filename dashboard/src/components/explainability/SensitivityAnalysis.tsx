@@ -32,7 +32,7 @@ const FACTORS: { key: string; category: string; color: string; derive: (td: Tick
   // Setorial
   { key: 'Força Setor', category: 'Setorial', color: '#d4a84b', derive: td => td.exp_return_20 * 15 },
   // Sentimento
-  { key: 'Sentimento', category: 'Sentimento', color: '#5ab0a0', derive: td => td.score * 0.2 },
+  { key: 'Sentimento', category: 'Sentimento', color: '#2d7d9a', derive: td => td.score * 0.2 },
 ];
 
 const SensitivityAnalysis: React.FC<SensitivityAnalysisProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {

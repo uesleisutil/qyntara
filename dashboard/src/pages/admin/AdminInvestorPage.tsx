@@ -111,8 +111,8 @@ const AdminInvestorPage: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── Shared styles ── */
-  const accent = '#5ab0a0';
-  const accentGradient = 'linear-gradient(135deg, #5ab0a0, #5a9e87)';
+  const accent = '#2d7d9a';
+  const accentGradient = 'linear-gradient(135deg, #2d7d9a, #5a9e87)';
 
   const card: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a2e26' : '#fff'),
@@ -249,7 +249,7 @@ const AdminInvestorPage: React.FC = () => {
         <SectionTitle num={1} icon={<Activity size={16} color="#d4a84b" />} title="KPIs ao Vivo" color="#d4a84b" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))', gap: '0.75rem' }}>
           {[
-            { label: 'Usuários Ativos', value: metrics.userCount || '—', icon: <Users size={18} color="#5ab0a0" />, color: '#5ab0a0' },
+            { label: 'Usuários Ativos', value: metrics.userCount || '—', icon: <Users size={18} color="#2d7d9a" />, color: '#2d7d9a' },
             { label: 'Universo B3', value: UNIVERSE_SIZE_FALLBACK, icon: <BarChart3 size={18} color="#4ead8a" />, color: '#4ead8a' },
             { label: 'Custo AWS/mês', value: metrics.costs ? fmtUsd(metrics.costs.monthlyProjectionUsd) : '—', icon: <Server size={18} color="#d4a84b" />, color: '#d4a84b' },
             { label: 'Preço Pro', value: PRO_PRICE + '/mês', icon: <Crown size={18} color="#5a9e87" />, color: '#5a9e87' },
@@ -296,17 +296,17 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 03 — PRODUTO ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={3} icon={<Layers size={16} color="#5ab0a0" />} title="Produto" color="#5ab0a0" />
+        <SectionTitle num={3} icon={<Layers size={16} color="#2d7d9a" />} title="Produto" color="#2d7d9a" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {sectionHeaderBtn("recs", <BarChart3 size={16} color="white" />, "Recomendações Diárias", `${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de ML`, "#5ab0a0")}
+          {sectionHeaderBtn("recs", <BarChart3 size={16} color="white" />, "Recomendações Diárias", `${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de ML`, "#2d7d9a")}
           {expandedSection === 'recs' && (
-            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #5ab0a0`, borderRadius: '4px 12px 12px 4px' }}>
+            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #2d7d9a`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
                 Modelo treinado no Amazon SageMaker analisa 60 dias de contexto para prever preços nos próximos 20 pregões:
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Score compra/venda', 'Preço previsto T+20', 'Retorno esperado', 'Volatilidade 20d', 'Confiança', 'Stop-Loss', 'Take-Profit'].map(f => (
-                  pill("#5ab0a0", <><CheckCircle size={9} /> {f}</>, f)
+                  pill("#2d7d9a", <><CheckCircle size={9} /> {f}</>, f)
                 ))}
               </div>
               {navLinkBtn("/dashboard/recommendations", "Ver Recomendações", <BarChart3 size={12} />)}
@@ -359,12 +359,12 @@ const AdminInvestorPage: React.FC = () => {
             </div>
           )}
 
-          {sectionHeaderBtn("carteiras", <Briefcase size={16} color="white" />, "Carteiras & Portfólio", "Carteiras personalizadas + Carteira Modelo otimizada por Markowitz", "#5ab0a0")}
+          {sectionHeaderBtn("carteiras", <Briefcase size={16} color="white" />, "Carteiras & Portfólio", "Carteiras personalizadas + Carteira Modelo otimizada por Markowitz", "#2d7d9a")}
           {expandedSection === 'carteiras' && (
-            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #5ab0a0`, borderRadius: '4px 12px 12px 4px' }}>
+            <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #2d7d9a`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Carteiras ilimitadas', 'Carteira Modelo (Pro)', 'Markowitz', 'Tracking por safra', 'Alertas'].map(f => (
-                  pill("#5ab0a0", <><Briefcase size={9} /> {f}</>, f)
+                  pill("#2d7d9a", <><Briefcase size={9} /> {f}</>, f)
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -385,14 +385,14 @@ const AdminInvestorPage: React.FC = () => {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '0.6rem' }}>
           {[
-            { icon: <BarChart3 size={15} />, title: 'Visão Geral', desc: 'KPIs, health checks de serviços AWS, pipeline status.', path: '/admin', color: '#5ab0a0' },
+            { icon: <BarChart3 size={15} />, title: 'Visão Geral', desc: 'KPIs, health checks de serviços AWS, pipeline status.', path: '/admin', color: '#2d7d9a' },
             { icon: <Brain size={15} />, title: 'Drift Detection', desc: 'Data Drift (KS test), Concept Drift, alertas de retreinamento.', path: '/admin/drift', color: '#5a9e87' },
             { icon: <DollarSign size={15} />, title: 'Custos AWS', desc: 'Custos por serviço, anomalias, budget alerts, ROI.', path: '/admin/costs', color: '#d4a84b' },
             { icon: <Database size={15} />, title: 'Qualidade de Dados', desc: 'Completude, freshness, cobertura, anomalias.', path: '/admin/data-quality', color: '#4ead8a' },
-            { icon: <Layers size={15} />, title: 'Modelos & Features', desc: 'Versionamento, feature store, triggers de retrain.', path: '/admin/models', color: '#5ab0a0' },
+            { icon: <Layers size={15} />, title: 'Modelos & Features', desc: 'Versionamento, feature store, triggers de retrain.', path: '/admin/models', color: '#2d7d9a' },
             { icon: <CheckCircle size={15} />, title: 'Validação', desc: 'Previsto vs real, acurácia temporal, outliers.', path: '/admin/validation', color: '#d4a84b' },
             { icon: <Users size={15} />, title: 'Usuários', desc: 'Planos, roles, assinaturas, métricas de crescimento.', path: '/admin/users', color: '#e07070' },
-            { icon: <Bot size={15} />, title: 'Agentes IA & Chat', desc: 'Suporte IA, notificações inteligentes, chat admin.', path: '/admin/agents', color: '#5ab0a0' },
+            { icon: <Bot size={15} />, title: 'Agentes IA & Chat', desc: 'Suporte IA, notificações inteligentes, chat admin.', path: '/admin/agents', color: '#2d7d9a' },
           ].map((item, i) => (
             <div key={i} style={{
               display: 'flex', gap: '0.6rem', padding: '0.75rem', borderRadius: 10,
@@ -415,10 +415,10 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 05 — ARQUITETURA ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={5} icon={<Cpu size={16} color="#5ab0a0" />} title="Arquitetura Técnica" color="#5ab0a0" />
+        <SectionTitle num={5} icon={<Cpu size={16} color="#2d7d9a" />} title="Arquitetura Técnica" color="#2d7d9a" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(190px, 100%), 1fr))', gap: '0.6rem', marginBottom: '1rem' }}>
           {[
-            { layer: 'Frontend', items: ['React 18 + TypeScript', 'Recharts + D3.js', 'TanStack Table', 'React Query', 'PWA + Service Worker'], color: '#5ab0a0' },
+            { layer: 'Frontend', items: ['React 18 + TypeScript', 'Recharts + D3.js', 'TanStack Table', 'React Query', 'PWA + Service Worker'], color: '#2d7d9a' },
             { layer: 'Backend', items: ['AWS Lambda (Python)', 'API Gateway (REST)', 'Cognito (Auth)', 'Stripe (Pagamentos)', 'WebSocket'], color: '#4ead8a' },
             { layer: 'ML Pipeline', items: ['Amazon SageMaker', 'DeepAR+ (forecasting)', 'SHAP (explicabilidade)', 'Auto-retrain triggers', 'Feature Store (S3)'], color: '#5a9e87' },
             { layer: 'Dados', items: ['S3 (data lake)', 'DynamoDB', 'ElastiCache Redis', 'CloudFront CDN', 'CloudWatch (logs)'], color: '#d4a84b' },
@@ -472,7 +472,7 @@ const AdminInvestorPage: React.FC = () => {
                 {[
                   { label: 'Modelo', value: 'Freemium → Pro', sub: 'Free atrai, Pro monetiza', color: '#4ead8a' },
                   { label: 'ARPU (Pro)', value: PRO_PRICE + '/mês', sub: 'R$ 588/ano', color: '#d4a84b' },
-                  { label: 'Custo/Usuário', value: marginalCostBrl != null ? fmtBrl(marginalCostBrl) : '—', sub: 'por usuário/mês', color: '#5ab0a0' },
+                  { label: 'Custo/Usuário', value: marginalCostBrl != null ? fmtBrl(marginalCostBrl) : '—', sub: 'por usuário/mês', color: '#2d7d9a' },
                   { label: 'Margem Bruta', value: marginPct != null ? `${fmt(marginPct, 0)}%` : '—', sub: 'SaaS serverless', color: '#5a9e87' },
                 ].map((m, i) => (
                   <div key={i} style={{
@@ -503,7 +503,7 @@ const AdminInvestorPage: React.FC = () => {
           {[
             { title: 'Transparência Total (SHAP)', desc: 'Único no mercado PF a mostrar POR QUE cada ação foi recomendada.', icon: <Eye size={15} />, color: '#5a9e87' },
             { title: 'Backtesting Verificável', desc: 'Simulação com dados reais. Casas de análise não oferecem isso.', icon: <TestTubes size={15} />, color: '#4ead8a' },
-            { title: 'MLOps Enterprise', desc: 'Drift detection, auto-retrain, data quality. Infra de hedge fund, preço de app.', icon: <Activity size={15} />, color: '#5ab0a0' },
+            { title: 'MLOps Enterprise', desc: 'Drift detection, auto-retrain, data quality. Infra de hedge fund, preço de app.', icon: <Activity size={15} />, color: '#2d7d9a' },
             { title: 'Custo Irrisório', desc: metrics.costs ? `Serverless: ${fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês. Escala sem dor.` : 'Serverless puro. Escala sem dor.', icon: <DollarSign size={15} />, color: '#d4a84b' },
             { title: 'Produto Completo', desc: '11+ abas, auth, Stripe, PWA, dark mode, mobile-first. Não é MVP.', icon: <Globe size={15} />, color: '#e07070' },
             { title: 'Mercado em Expansão', desc: '+5M CPFs na B3, +35%/ano. Geração que quer dados, não opiniões.', icon: <ArrowUpRight size={15} />, color: '#d4a84b' },
@@ -526,19 +526,19 @@ const AdminInvestorPage: React.FC = () => {
 
       {/* ═══ 08 — UNIVERSO ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={8} icon={<Globe size={16} color="#5ab0a0" />} title={`Universo de Ações (${UNIVERSE_SIZE_FALLBACK})`} color="#5ab0a0" />
+        <SectionTitle num={8} icon={<Globe size={16} color="#2d7d9a" />} title={`Universo de Ações (${UNIVERSE_SIZE_FALLBACK})`} color="#2d7d9a" />
         <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6, marginBottom: '0.75rem' }}>
           Top {UNIVERSE_SIZE_FALLBACK} ações da B3 por retorno acumulado de 5 anos + liquidez. Cobertura multi-setorial:
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem 0.6rem' }}>
           {[
-            { sector: 'Tecnologia', tickers: ['MGLU3', 'LWSA3', 'PETZ3', 'VAMO3', 'RENT3'], color: '#5ab0a0' },
+            { sector: 'Tecnologia', tickers: ['MGLU3', 'LWSA3', 'PETZ3', 'VAMO3', 'RENT3'], color: '#2d7d9a' },
             { sector: 'Energia', tickers: ['PETR4', 'PETR3', 'PRIO3', 'RECV3', 'RRRP3'], color: '#d4a84b' },
             { sector: 'Mineração', tickers: ['VALE3', 'CSNA3', 'GGBR4', 'USIM5', 'GOAU4'], color: '#8fa89c' },
             { sector: 'Bancos', tickers: ['ITUB4', 'BBDC4', 'BBAS3', 'SANB11', 'BPAC11'], color: '#4ead8a' },
             { sector: 'Varejo', tickers: ['LREN3', 'ARZZ3', 'SOMA3', 'GUAR3', 'VIVA3'], color: '#d4a84b' },
             { sector: 'Construção', tickers: ['MRVE3', 'CYRE3', 'EZTC3', 'TEND3', 'JHSF3'], color: '#5a9e87' },
-            { sector: 'Utilities', tickers: ['ELET3', 'ELET6', 'TAEE11', 'CMIG4', 'CPLE6'], color: '#5ab0a0' },
+            { sector: 'Utilities', tickers: ['ELET3', 'ELET6', 'TAEE11', 'CMIG4', 'CPLE6'], color: '#2d7d9a' },
             { sector: 'Saúde', tickers: ['HAPV3', 'RDOR3', 'FLRY3', 'GNDI3', 'QUAL3'], color: '#e07070' },
             { sector: 'Agro', tickers: ['SLCE3', 'BEEF3', 'JBSS3', 'MRFG3', 'BRFS3'], color: '#4ead8a' },
             { sector: 'Infra', tickers: ['CCRO3', 'ECOR3', 'TIMS3', 'VIVT3', 'CSAN3'], color: '#5a9e87' },
@@ -563,7 +563,7 @@ const AdminInvestorPage: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.6rem' }}>
           {[
             { phase: 'Atual', badge: '✅ Live', items: ['Dashboard 11+ abas', 'ML pipeline automatizado', 'Auth + Stripe + PWA', 'Painel admin MLOps'], color: '#4ead8a' },
-            { phase: 'Próximo', badge: 'Q2 2026', items: ['App mobile (React Native)', 'Alertas WhatsApp/Telegram', 'Ensemble de modelos', 'FIIs e ETFs'], color: '#5ab0a0' },
+            { phase: 'Próximo', badge: 'Q2 2026', items: ['App mobile (React Native)', 'Alertas WhatsApp/Telegram', 'Ensemble de modelos', 'FIIs e ETFs'], color: '#2d7d9a' },
             { phase: 'Futuro', badge: 'Q4 2026+', items: ['API B2B (fintechs)', 'Outros mercados', 'Social trading', 'Plano Enterprise'], color: '#5a9e87' },
           ].map((p, i) => (
             <div key={i} style={{ padding: '0.85rem', borderRadius: 10, background: darkMode ? `${p.color}06` : `${p.color}03`, border: `1px solid ${p.color}15` }}>

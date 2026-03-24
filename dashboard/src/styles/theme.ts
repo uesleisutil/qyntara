@@ -11,8 +11,8 @@ export const getTheme = (darkMode: boolean) => ({
   green: '#4ead8a',
   red: '#e07070',
   yellow: '#d4a84b',
-  blue: '#6ba89a',
-  purple: '#7ea896',
+  blue: darkMode ? '#4da8c4' : '#2d7d9a',
+  purple: darkMode ? '#a99dd0' : '#8b7eb8',
 } as const);
 
 export type Theme = ReturnType<typeof getTheme>;

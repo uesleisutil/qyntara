@@ -145,7 +145,7 @@ const AdminUsersPage: React.FC = () => {
             Gerenciar planos e acessos
           </p>
         </div>
-        <button onClick={fetchUsers} style={{ ...btnBase, background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', color: 'white' }}>
+        <button onClick={fetchUsers} style={{ ...btnBase, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white' }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

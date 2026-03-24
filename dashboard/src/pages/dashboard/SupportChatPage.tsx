@@ -130,7 +130,7 @@ const SupportChatPage: React.FC = () => {
                 <div style={{
                   maxWidth: '80%', padding: '0.6rem 0.85rem', borderRadius: 12,
                   borderBottomRightRadius: isUser ? 4 : 12, borderBottomLeftRadius: isUser ? 12 : 4,
-                  background: isUser ? 'linear-gradient(135deg, #4a8e77, #5ab0a0)' : (darkMode ? '#2a3d36' : '#edf5f1'),
+                  background: isUser ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#edf5f1'),
                   color: isUser ? 'white' : theme.text,
                 }}>
                   {!isUser && <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#4ead8a', marginBottom: '0.15rem' }}>Suporte</div>}
@@ -159,7 +159,7 @@ const SupportChatPage: React.FC = () => {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 42, height: 42, borderRadius: 10, border: 'none', cursor: 'pointer',
-                background: message.trim() ? 'linear-gradient(135deg, #4a8e77, #5ab0a0)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+                background: message.trim() ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
                 color: message.trim() ? 'white' : theme.textSecondary,
                 transition: 'all 0.2s', WebkitAppearance: 'none' as any,
                 opacity: sending ? 0.6 : 1,
@@ -214,7 +214,7 @@ const SupportChatPage: React.FC = () => {
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
               padding: '0.5rem 1rem', borderRadius: 10, border: 'none', cursor: 'pointer',
-              background: message.trim() ? 'linear-gradient(135deg, #4a8e77, #5ab0a0)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+              background: message.trim() ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
               color: message.trim() ? 'white' : theme.textSecondary,
               fontSize: '0.82rem', fontWeight: 600, alignSelf: 'flex-end',
               WebkitAppearance: 'none' as any, opacity: sending ? 0.6 : 1, transition: 'all 0.2s',

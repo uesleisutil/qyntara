@@ -2,6 +2,8 @@
   --font-size-scale: 1;
   --focus-color: #5a9e87;
   --primary-color: #5a9e87;
+  --accent-blue: #2d7d9a;
+  --accent-purple: #8b7eb8;
   --text-primary: #1a2e26;
   --text-secondary: #5a7268;
   --bg-primary: #ffffff;
@@ -93,7 +95,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #4a8e77 0%, #5a9e87 100%);
+  background: linear-gradient(135deg, #4a8e77 0%, #2d7d9a 60%, #8b7eb8 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;

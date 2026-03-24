@@ -145,7 +145,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
             <button onClick={handleNext} style={{
               padding: '0.5rem 1.25rem', borderRadius: 8, fontSize: '0.82rem', fontWeight: 600,
               border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem',
-              background: isLast ? 'linear-gradient(135deg, #d4a84b, #b08a30)' : 'linear-gradient(135deg, #4a8e77, #5ab0a0)',
+              background: isLast ? 'linear-gradient(135deg, #d4a84b, #b08a30)' : 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
               color: 'white', boxShadow: '0 2px 8px rgba(74,142,119,0.25)',
               WebkitAppearance: 'none' as any,
             }}>

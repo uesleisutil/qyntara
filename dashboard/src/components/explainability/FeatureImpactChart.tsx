@@ -17,7 +17,7 @@ interface FeatureImpactChartProps { tickers: TickerData[]; darkMode?: boolean; }
 
 const CAT_COLORS: Record<string, string> = {
   'Técnica': '#5a9e87', 'Volume': '#5a9e87', 'Fundamental': '#4ead8a',
-  'Macro': '#d4a84b', 'Setorial': '#d4a84b', 'Sentimento': '#5ab0a0',
+  'Macro': '#d4a84b', 'Setorial': '#d4a84b', 'Sentimento': '#2d7d9a',
 };
 
 const FEATURE_EXTRACTORS: { name: string; category: string; extract: (t: TickerData) => number }[] = [

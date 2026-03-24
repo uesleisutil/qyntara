@@ -526,7 +526,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
 
           <button onClick={handleRun} disabled={loading} style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.5rem',
-            background: loading ? '#5a7268' : 'linear-gradient(135deg, #4a8e77, #5ab0a0)',
+            background: loading ? '#5a7268' : 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
             border: 'none', color: 'white', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.2s',
             boxShadow: loading ? 'none' : '0 2px 8px rgba(37,99,235,0.3)',

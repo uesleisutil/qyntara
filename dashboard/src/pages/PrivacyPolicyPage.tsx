@@ -19,7 +19,7 @@ const PrivacyPolicyPage: React.FC = () => {
           <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: '#8fa89c', cursor: 'pointer', padding: 4, minHeight: 'auto' }}>
             <ArrowLeft size={20} />
           </button>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>Q</div>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 800, color: '#fff' }}>Q</div>
           <span style={{ fontSize: '1.1rem', fontWeight: 700, color: '#e8f0ed' }}>Qyntara</span>
         </div>
 

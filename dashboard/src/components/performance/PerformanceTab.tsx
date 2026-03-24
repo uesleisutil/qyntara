@@ -26,7 +26,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
     text: darkMode ? '#e8f0ed' : '#121a1a',
     textSecondary: darkMode ? '#8fa89c' : '#5a7268',
     border: darkMode ? '#2a3d36' : '#d4e5dc',
-    green: '#4ead8a', red: '#e07070', yellow: '#d4a84b', blue: '#5a9e87', purple: '#5a9e87',
+    green: '#4ead8a', red: '#e07070', yellow: '#d4a84b', blue: darkMode ? '#4da8c4' : '#2d7d9a', purple: darkMode ? '#a99dd0' : '#8b7eb8',
   };
 
   const cardStyle: React.CSSProperties = {

@@ -102,7 +102,7 @@ const AdminValidationPage: React.FC = () => {
     { label: 'Pendentes', value: pending.toString(), color: '#d4a84b', icon: <Clock size={16} />, tip: 'Predições aguardando 20 pregões para validação contra preços reais.' },
     { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100, 1)}%` : allPending ? 'Aguardando' : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#4ead8a' : '#d4a84b', icon: <Target size={16} />, tip: 'Percentual de predições que acertaram a direção (alta/baixa).' },
     { label: 'Erro Médio Absoluto', value: mae != null ? `${fmt(mae * 100)}%` : allPending ? 'Aguardando' : '—', color: mae != null && mae < 0.05 ? '#4ead8a' : '#e07070', icon: <AlertTriangle size={16} />, tip: 'Erro médio absoluto entre retorno previsto e realizado.' },
-    { label: 'RMSE', value: rmse != null ? fmt(rmse, 4) : allPending ? 'Aguardando' : '—', color: '#5ab0a0', icon: <BarChart3 size={16} />, tip: 'Root Mean Square Error — penaliza erros grandes mais que o MAE.' },
+    { label: 'RMSE', value: rmse != null ? fmt(rmse, 4) : allPending ? 'Aguardando' : '—', color: '#2d7d9a', icon: <BarChart3 size={16} />, tip: 'Root Mean Square Error — penaliza erros grandes mais que o MAE.' },
   ];
 
   return (
@@ -120,7 +120,7 @@ const AdminValidationPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

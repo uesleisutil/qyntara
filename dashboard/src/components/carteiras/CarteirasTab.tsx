@@ -44,7 +44,7 @@ const renderIcon = (key: string, size: number, color?: string) => {
   return <Icon size={size} color={color} />;
 };
 
-const COLORS = ['#5a9e87', '#4ead8a', '#d4a84b', '#5a9e87', '#e07070', '#5ab0a0', '#d4a84b', '#6daa5a', '#d4944b', '#14b8a6'];
+const COLORS = ['#5a9e87', '#2d7d9a', '#d4a84b', '#8b7eb8', '#4ead8a', '#e07070', '#4da8c4', '#6daa5a', '#d4944b', '#a99dd0'];
 const MAX_FREE = 1;
 
 const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
@@ -79,7 +79,7 @@ const CarteirasTab: React.FC<CarteirasTabProps> = ({ darkMode = false }) => {
     text: darkMode ? '#e8f0ed' : '#121a1a',
     textSecondary: darkMode ? '#8fa89c' : '#5a7268',
     border: darkMode ? '#2a3d36' : '#d4e5dc',
-    green: '#4ead8a', red: '#e07070', yellow: '#d4a84b', blue: '#5a9e87', purple: '#5a9e87',
+    green: '#4ead8a', red: '#e07070', yellow: '#d4a84b', blue: darkMode ? '#4da8c4' : '#2d7d9a', purple: darkMode ? '#a99dd0' : '#8b7eb8',
   };
 
   const cardStyle: React.CSSProperties = {

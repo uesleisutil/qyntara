@@ -219,7 +219,7 @@ const RecommendationsPage: React.FC = () => {
             onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.96)'; }}
             onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-            style={{ ...btnBase, padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)' }}>
+            style={{ ...btnBase, padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)' }}>
             <RefreshCw size={14} /> Atualizar
           </button>
         </div>

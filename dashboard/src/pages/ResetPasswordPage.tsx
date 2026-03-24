@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const accent = '#5a9e87';
-const gradient = 'linear-gradient(135deg, #4a8e77, #5ab0a0, #5ab0a0)';
+const gradient = 'linear-gradient(135deg, #4a8e77, #2d7d9a, #8b7eb8)';
 
 const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();

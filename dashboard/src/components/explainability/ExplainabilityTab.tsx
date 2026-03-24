@@ -33,7 +33,7 @@ const FEATURE_CATEGORIES = [
     desc: 'Selic, IPCA, câmbio USD/BRL, CDI, variações e tendências' },
   { key: 'setoriais', icon: Building2, label: 'Setoriais', count: '5', color: '#d4a84b',
     desc: 'Correlação setorial, força relativa, dispersão do setor' },
-  { key: 'sentimento', icon: Newspaper, label: 'Sentimento', count: '2', color: '#5ab0a0',
+  { key: 'sentimento', icon: Newspaper, label: 'Sentimento', count: '2', color: '#2d7d9a',
     desc: 'Score de sentimento de notícias, volume de menções' },
 ];
 

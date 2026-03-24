@@ -202,7 +202,7 @@ const AdminChatPage: React.FC = () => {
             Chamados dos clientes
           </p>
         </div>
-        <button onClick={fetchTickets} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', color: 'white', WebkitAppearance: 'none' as any }}>
+        <button onClick={fetchTickets} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', padding: '0.45rem 0.75rem', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600, background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', color: 'white', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

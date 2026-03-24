@@ -172,7 +172,7 @@ describe('32.5 UI Polish - Spacing and Layout (Req 78.7-78.8)', () => {
 describe('32.5 UI Polish - Interactive Elements (Req 78.9-78.10)', () => {
   test('active tab has distinct visual style', () => {
     const activeStyle = {
-      background: '#5ab0a0',
+      background: '#2d7d9a',
       color: 'white',
       boxShadow: '0 4px 6px rgba(59, 130, 246, 0.2)',
     };

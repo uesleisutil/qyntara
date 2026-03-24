@@ -213,7 +213,7 @@ const AdminModelsPage: React.FC = () => {
         </div>
         <button onClick={fetchData} style={{
           display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem',
-          background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', border: 'none', color: 'white',
+          background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)', border: 'none', color: 'white',
           borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
         }}>
           <RefreshCw size={14} /> Atualizar

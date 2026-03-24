@@ -42,7 +42,7 @@ jest.mock('../../lib/chartConfig', () => ({
     success: '#4ead8a',
     warning: '#d4a84b',
     error: '#e07070',
-    info: '#5ab0a0',
+    info: '#2d7d9a',
     neutral: '#5a7268',
     gradient: ['#5a9e87', '#5a9e87', '#d4a84b', '#d4a84b', '#4ead8a'],
     positive: '#4ead8a',

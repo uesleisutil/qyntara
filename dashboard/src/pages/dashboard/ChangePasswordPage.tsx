@@ -125,7 +125,7 @@ const ChangePasswordPage: React.FC = () => {
 
           <button type="submit" disabled={!allValid || loading} style={{
             width: '100%', padding: '0.75rem', borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600,
-            background: allValid && !loading ? 'linear-gradient(135deg, #4a8e77, #5ab0a0)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
+            background: allValid && !loading ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)' : (darkMode ? '#2a3d36' : '#d4e5dc'),
             color: allValid && !loading ? 'white' : theme.textSecondary, cursor: allValid && !loading ? 'pointer' : 'not-allowed',
             transition: 'all 0.2s',
           }}>

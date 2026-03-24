@@ -261,7 +261,7 @@ const AdminAgentsPage: React.FC = () => {
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                 maxWidth: '85%', padding: '0.6rem 0.8rem', borderRadius: 10,
                 background: msg.role === 'user'
-                  ? 'linear-gradient(135deg, #4a8e77, #5ab0a0)'
+                  ? 'linear-gradient(135deg, #4a8e77, #2d7d9a)'
                   : (darkMode ? '#121a1a' : '#e8f0ed'),
                 color: msg.role === 'user' ? 'white' : theme.text,
                 fontSize: '0.8rem', lineHeight: 1.5, whiteSpace: 'pre-wrap',
@@ -326,7 +326,7 @@ const AdminAgentsPage: React.FC = () => {
         </div>
         <button onClick={fetchAgents} style={{
           display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem',
-          borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)',
+          borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #4a8e77, #2d7d9a)',
           color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600,
           WebkitAppearance: 'none' as any,
         }}>

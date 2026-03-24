@@ -14,13 +14,15 @@ interface LiveRec { ticker: string; score: number; last_close: number; exp_retur
 const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
 
 const brand = {
-  gradient: 'linear-gradient(135deg, #4a8e77, #5a9e87, #5ab0a0)',
-  gradientSoft: 'linear-gradient(135deg, rgba(74,142,119,0.08), rgba(90,176,160,0.06), rgba(90,158,135,0.04))',
+  gradient: 'linear-gradient(135deg, #4a8e77, #2d7d9a, #8b7eb8)',
+  gradientSoft: 'linear-gradient(135deg, rgba(74,142,119,0.08), rgba(45,125,154,0.06), rgba(139,126,184,0.04))',
   accent: '#5a9e87',
+  accentBlue: '#2d7d9a',
+  accentPurple: '#8b7eb8',
   accentSoft: 'rgba(90,158,135,0.12)',
   accentBorder: 'rgba(90,158,135,0.25)',
   glow: 'rgba(90,158,135,0.15)',
-  glowStrong: 'rgba(90,176,160,0.25)',
+  glowStrong: 'rgba(45,125,154,0.25)',
   surface: '#121a1a',
   surfaceAlt: '#152020',
   surfaceCard: 'rgba(90,158,135,0.04)',
@@ -322,8 +324,8 @@ const LandingPage: React.FC = () => {
         padding: '0 clamp(1rem, 4vw, 2rem)',
         transform: `scale(${heroScale})`, transition: 'transform 0.1s linear',
       }}>
-        {/* Ambient glow — purple tones */}
-        <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '90vw', maxWidth: 900, height: 600, background: 'radial-gradient(ellipse, rgba(74,142,119,0.15) 0%, rgba(90,176,160,0.08) 35%, rgba(90,158,135,0.03) 60%, transparent 80%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
+        {/* Ambient glow — expanded palette tones */}
+        <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '90vw', maxWidth: 900, height: 600, background: 'radial-gradient(ellipse, rgba(45,125,154,0.12) 0%, rgba(139,126,184,0.08) 30%, rgba(90,158,135,0.05) 55%, transparent 80%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(90,158,135,0.1)', border: `1px solid ${brand.borderSubtle}`, borderRadius: 20, padding: '0.3rem 0.9rem', marginBottom: '2rem', fontSize: '0.78rem', color: brand.textMuted }}>
@@ -334,7 +336,7 @@ const LandingPage: React.FC = () => {
           <h1 style={{
             fontSize: 'clamp(2.8rem, 8vw, 5.5rem)', fontWeight: 700, lineHeight: 1.0,
             letterSpacing: '-0.04em', marginBottom: '1.5rem',
-            background: 'linear-gradient(180deg, #e8f0ed 0%, #8fa89c 100%)',
+            background: 'linear-gradient(180deg, #e8f0ed 0%, #a99dd0 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
           }}>
             Inteligência preditiva.<br />Para a Bolsa brasileira.
@@ -513,8 +515,8 @@ const LandingPage: React.FC = () => {
           <RevealSection delay={0.15}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', maxWidth: 700, margin: '0 auto' }}>
               {[
-                { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#4a8e77', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
-                { icon: <Landmark size={20} />, name: 'Bancos', color: '#5ab0a0', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
+                { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#2d7d9a', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
+                { icon: <Landmark size={20} />, name: 'Bancos', color: '#8b7eb8', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
                 { icon: <Zap size={20} />, name: 'Energia', color: '#4ead8a', tickers: ['ELET3', 'ENGI11', 'CPFE3'] },
               ].map((c, i) => (
                 <div key={i} style={{

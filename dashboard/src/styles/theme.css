@@ -1,4 +1,4 @@
-/* Theme Variables — Lavender-Green palette */
+/* Theme Variables — Lavender-Green palette (expanded with teal-blue & soft purple) */
 :root {
   /* Light theme colors */
   --color-primary: #5a9e87;
@@ -6,7 +6,9 @@
   --color-success: #4ead8a;
   --color-warning: #d4a84b;
   --color-error: #e07070;
-  --color-info: #5ab0a0;
+  --color-info: #2d7d9a;
+  --color-accent-blue: #2d7d9a;
+  --color-accent-purple: #8b7eb8;
   
   /* Background colors */
   --color-bg-primary: #ffffff;
@@ -66,7 +68,9 @@
   --color-success: #6dcaa5;
   --color-warning: #e0b85c;
   --color-error: #e89090;
-  --color-info: #6dc4b4;
+  --color-info: #4da8c4;
+  --color-accent-blue: #4da8c4;
+  --color-accent-purple: #a99dd0;
   
   --color-bg-primary: #1a2626;
   --color-bg-secondary: #152020;
