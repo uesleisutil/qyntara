@@ -72,17 +72,21 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({ darkMode = false }) => 
     Object.values(history).forEach(entries => entries.forEach(e => allDates.add(e.date)));
     const sortedDates = Array.from(allDates).sort();
 
-    // Get all price dates
+    // Get the last date that actually has price data
     const allPriceDates = new Set<string>();
     Object.values(prices).forEach(tp => Object.keys(tp).forEach(d => allPriceDates.add(d)));
+    const lastPriceDate = Array.from(allPriceDates).sort().pop() || '';
+
+    // Only use prediction dates where we have price data for both predDate and nextDate
+    const usableDates = sortedDates.filter(d => d <= lastPriceDate);
 
     // For each prediction date, calculate what the "buy signal" portfolio would have returned
     // by the next available price date
     const dailyReturns: { date: string; buyReturn: number; sellReturn: number; ibovReturn: number; buyCount: number; sellCount: number }[] = [];
 
-    for (let i = 0; i < sortedDates.length - 1; i++) {
-      const predDate = sortedDates[i];
-      const nextDate = sortedDates[i + 1];
+    for (let i = 0; i < usableDates.length - 1; i++) {
+      const predDate = usableDates[i];
+      const nextDate = usableDates[i + 1];
 
       let buyReturns: number[] = [];
       let sellReturns: number[] = [];
