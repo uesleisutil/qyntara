@@ -1,12 +1,12 @@
 :root {
   --font-size-scale: 1;
-  --focus-color: #fbbf24;
-  --primary-color: #8b5cf6;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
+  --focus-color: #5a9e87;
+  --primary-color: #5a9e87;
+  --text-primary: #1a2e26;
+  --text-secondary: #5a7268;
   --bg-primary: #ffffff;
-  --bg-secondary: #f9fafb;
-  --border-color: #e5e7eb;
+  --bg-secondary: #f6faf8;
+  --border-color: #d4e5dc;
 }
 
 * {
@@ -21,8 +21,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc;
-  color: #0c0a1a;
+  background-color: #f6faf8;
+  color: #0f1a16;
   font-size: calc(16px * var(--font-size-scale, 1));
   line-height: 1.5;
 }
@@ -42,7 +42,7 @@ body {
 
 /* Accessibility: Focus indicators */
 *:focus {
-  outline: 3px solid var(--focus-color, #fbbf24);
+  outline: 3px solid var(--focus-color, #5a9e87);
   outline-offset: 2px;
 }
 
@@ -51,7 +51,7 @@ body {
 }
 
 *:focus-visible {
-  outline: 3px solid var(--focus-color, #fbbf24);
+  outline: 3px solid var(--focus-color, #5a9e87);
   outline-offset: 2px;
 }
 
@@ -60,7 +60,7 @@ body {
   position: absolute;
   top: -40px;
   left: 0;
-  background: var(--primary-color, #7c3aed);
+  background: var(--primary-color, #4a8e77);
   color: white;
   padding: 0.5rem 1rem;
   text-decoration: none;
@@ -93,7 +93,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #4a8e77 0%, #5a9e87 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
@@ -124,14 +124,14 @@ body {
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d4e5dc;
 }
 
 .card h3 {
   font-size: calc(1.25rem * var(--font-size-scale, 1));
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #0c0a1a;
+  color: #0f1a16;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -145,9 +145,9 @@ body {
   margin-left: 0.5rem;
 }
 
-.status-good { background-color: #10b981; }
-.status-warning { background-color: #f59e0b; }
-.status-critical { background-color: #ef4444; }
+.status-good { background-color: #4ead8a; }
+.status-warning { background-color: #d4a84b; }
+.status-critical { background-color: #e07070; }
 
 .metric-grid {
   display: grid;
@@ -159,43 +159,43 @@ body {
 .metric {
   text-align: center;
   padding: 1rem;
-  background: #f8fafc;
+  background: #f6faf8;
   border-radius: 8px;
 }
 
 .metric-value {
   font-size: calc(1.5rem * var(--font-size-scale, 1));
   font-weight: 700;
-  color: #7c3aed;
+  color: #4a8e77;
 }
 
 .metric-label {
   font-size: calc(0.875rem * var(--font-size-scale, 1));
-  color: #64748b;
+  color: #5a7268;
   margin-top: 0.25rem;
 }
 
 .loading {
   text-align: center;
   padding: 2rem;
-  color: #64748b;
+  color: #5a7268;
 }
 
 .error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  background: #fdf0f0;
+  border: 1px solid #f0c4c4;
+  color: #c04040;
   padding: 1rem;
   border-radius: 8px;
   margin: 1rem 0;
 }
 
 .error-banner {
-  background: #fef2f2;
-  border: 2px solid #fecaca;
+  background: #fdf0f0;
+  border: 2px solid #f0c4c4;
   border-radius: 8px;
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(224, 112, 112, 0.1);
 }
 
 .error-banner-content {
@@ -206,7 +206,7 @@ body {
 }
 
 .error-banner-icon {
-  color: #dc2626;
+  color: #c04040;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -214,7 +214,7 @@ body {
 
 .error-banner-message {
   flex: 1;
-  color: #991b1b;
+  color: #8a2020;
   font-size: 0.95rem;
   line-height: 1.5;
 }
@@ -222,7 +222,7 @@ body {
 .error-banner-dismiss {
   background: transparent;
   border: none;
-  color: #dc2626;
+  color: #c04040;
   cursor: pointer;
   padding: 0.25rem;
   display: flex;
@@ -233,11 +233,11 @@ body {
 }
 
 .error-banner-dismiss:hover {
-  background: #fee2e2;
+  background: #fde0e0;
 }
 
 .error-banner-dismiss:focus {
-  outline: 2px solid #dc2626;
+  outline: 2px solid #c04040;
   outline-offset: 2px;
 }
 
@@ -256,22 +256,22 @@ body {
 .recommendations-table td {
   padding: 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #d4e5dc;
 }
 
 .recommendations-table th {
-  background: #f8fafc;
+  background: #f6faf8;
   font-weight: 600;
-  color: #374151;
+  color: #2a4038;
 }
 
 .recommendations-table tr:hover {
-  background: #f8fafc;
+  background: #f6faf8;
 }
 
 .rank-badge {
   display: inline-block;
-  background: #7c3aed;
+  background: #4a8e77;
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -279,8 +279,8 @@ body {
   font-weight: 600;
 }
 
-.positive { color: #10b981; }
-.negative { color: #ef4444; }
+.positive { color: #4ead8a; }
+.negative { color: #e07070; }
 
 .chart-container {
   height: 300px;
@@ -289,13 +289,13 @@ body {
 
 .last-updated {
   text-align: center;
-  color: #64748b;
+  color: #5a7268;
   font-size: calc(0.875rem * var(--font-size-scale, 1));
   margin-top: 2rem;
   padding: 1rem;
   background: white;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #d4e5dc;
 }
 
 /* Tabs Navigation */
@@ -303,7 +303,7 @@ body {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid #d4e5dc;
   padding: 0 1rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -314,7 +314,7 @@ body {
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  color: #64748b;
+  color: #5a7268;
   font-weight: normal;
   cursor: pointer;
   display: flex;
@@ -325,12 +325,12 @@ body {
 }
 
 .tab-button:hover {
-  color: #8b5cf6;
+  color: #5a9e87;
 }
 
 .tab-button.active {
-  border-bottom-color: #8b5cf6;
-  color: #8b5cf6;
+  border-bottom-color: #5a9e87;
+  color: #5a9e87;
   font-weight: bold;
 }
 
@@ -377,7 +377,7 @@ body {
 }
 
 .skeleton {
-  background-color: #e2e8f0;
+  background-color: #d4e5dc;
   position: relative;
   overflow: hidden;
 }
@@ -389,9 +389,9 @@ body {
 .skeleton-wave {
   background: linear-gradient(
     90deg,
-    #e2e8f0 0%,
-    #f1f5f9 50%,
-    #e2e8f0 100%
+    #d4e5dc 0%,
+    #edf5f1 50%,
+    #d4e5dc 100%
   );
   background-size: 200% 100%;
   animation: skeleton-wave 1.5s ease-in-out infinite;
@@ -399,15 +399,15 @@ body {
 
 /* Dark mode skeleton */
 .dark-mode .skeleton {
-  background-color: #2a2745;
+  background-color: #2a3d36;
 }
 
 .dark-mode .skeleton-wave {
   background: linear-gradient(
     90deg,
-    #2a2745 0%,
-    #3d3a5c 50%,
-    #2a2745 100%
+    #2a3d36 0%,
+    #3a5248 50%,
+    #2a3d36 100%
   );
   background-size: 200% 100%;
 }

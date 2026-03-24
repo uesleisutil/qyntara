@@ -325,7 +325,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
       <div
         style={{
           padding: '1.5rem',
-          backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+          backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
           borderRadius: '8px',
           border: `1px solid ${colors.grid}`,
         }}
@@ -392,7 +392,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
                 fontSize: '0.75rem',
                 fontWeight: '500',
                 color: colors.text,
-                backgroundColor: colors.background === '#ffffff' ? '#e5e7eb' : '#4b5563',
+                backgroundColor: colors.background === '#ffffff' ? '#d4e5dc' : '#3a5248',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
@@ -421,7 +421,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+              backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
               borderRadius: '8px',
               border: `1px solid ${colors.grid}`,
             }}
@@ -441,7 +441,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+              backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
               borderRadius: '8px',
               border: `1px solid ${colors.grid}`,
             }}
@@ -461,7 +461,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+              backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
               borderRadius: '8px',
               border: `1px solid ${colors.grid}`,
             }}
@@ -481,7 +481,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
           <div
             style={{
               padding: '1rem',
-              backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+              backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
               borderRadius: '8px',
               border: `1px solid ${colors.grid}`,
             }}
@@ -510,7 +510,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
       <div
         style={{
           padding: '1.5rem',
-          backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+          backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
           borderRadius: '8px',
           border: `1px solid ${colors.grid}`,
         }}
@@ -627,7 +627,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         <div
           style={{
             padding: '1.5rem',
-            backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+            backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
             borderRadius: '8px',
             border: `1px solid ${colors.grid}`,
           }}
@@ -767,7 +767,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
         <div
           style={{
             padding: '1.5rem',
-            backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#374151',
+            backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#2a4038',
             borderRadius: '8px',
             border: `1px solid ${colors.grid}`,
           }}
@@ -791,7 +791,7 @@ const ROICalculator: React.FC<ROICalculatorProps> = ({
               style={{
                 width: '100%',
                 height: '24px',
-                backgroundColor: colors.background === '#ffffff' ? '#e5e7eb' : '#4b5563',
+                backgroundColor: colors.background === '#ffffff' ? '#d4e5dc' : '#3a5248',
                 borderRadius: '12px',
                 overflow: 'hidden',
                 position: 'relative',

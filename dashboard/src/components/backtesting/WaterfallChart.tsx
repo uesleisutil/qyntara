@@ -38,10 +38,10 @@ export const WaterfallChart: React.FC<WaterfallChartProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => ({
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
   }), [darkMode]);
 
   useEffect(() => {
@@ -154,8 +154,8 @@ export const WaterfallChart: React.FC<WaterfallChartProps> = ({
       .attr('width', x.bandwidth())
       .attr('height', d => Math.abs(y(d.start) - y(d.end)))
       .attr('fill', d => {
-        if (d.isTotal) return '#8b5cf6';
-        return d.value >= 0 ? '#10b981' : '#dc2626';
+        if (d.isTotal) return '#5a9e87';
+        return d.value >= 0 ? '#4ead8a' : '#c04040';
       })
       .attr('opacity', 0.8);
 
@@ -193,7 +193,7 @@ export const WaterfallChart: React.FC<WaterfallChartProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <BarChart3 size={20} color={darkMode ? '#9895b0' : '#64748b'} />
+        <BarChart3 size={20} color={darkMode ? '#8fa89c' : '#5a7268'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 

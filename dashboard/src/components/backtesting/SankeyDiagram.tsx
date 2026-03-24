@@ -47,23 +47,23 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => ({
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
   }), [darkMode]);
 
   const sectorColors: Record<string, string> = useMemo(() => ({
-    'Financials': '#8b5cf6',
-    'Energy': '#f59e0b',
-    'Materials': '#8b5cf6',
-    'Industrials': '#10b981',
-    'Consumer': '#ec4899',
-    'Healthcare': '#06b6d4',
-    'Technology': '#6366f1',
+    'Financials': '#5a9e87',
+    'Energy': '#d4a84b',
+    'Materials': '#5a9e87',
+    'Industrials': '#4ead8a',
+    'Consumer': '#d4a84b',
+    'Healthcare': '#5ab0a0',
+    'Technology': '#5ab0a0',
     'Utilities': '#14b8a6',
-    'Real Estate': '#f97316',
-    'Telecom': '#a855f7',
+    'Real Estate': '#d4944b',
+    'Telecom': '#5a9e87',
   }), []);
 
   useEffect(() => {
@@ -133,7 +133,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .attr('d', sankeyLinkHorizontal())
       .attr('stroke', d => {
         const sourceName = (d.source as any).name;
-        return sectorColors[sourceName] || '#9895b0';
+        return sectorColors[sourceName] || '#8fa89c';
       })
       .attr('stroke-width', d => Math.max(1, d.width || 0))
       .attr('fill', 'none')
@@ -161,7 +161,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .attr('y', d => d.y0 || 0)
       .attr('height', d => (d.y1 || 0) - (d.y0 || 0))
       .attr('width', d => (d.x1 || 0) - (d.x0 || 0))
-      .attr('fill', d => sectorColors[d.name] || '#9895b0')
+      .attr('fill', d => sectorColors[d.name] || '#8fa89c')
       .attr('opacity', 0.8)
       .append('title')
       .text(d => `${d.name}\nR$ ${((d.value || 0) / 1000).toFixed(1)}k`);
@@ -196,7 +196,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <GitBranch size={20} color={darkMode ? '#9895b0' : '#64748b'} />
+        <GitBranch size={20} color={darkMode ? '#8fa89c' : '#5a7268'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 

@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const accent = '#8b5cf6';
-const gradient = 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)';
+const accent = '#5a9e87';
+const gradient = 'linear-gradient(135deg, #4a8e77, #5ab0a0, #5ab0a0)';
 
 const VerifyEmailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -70,30 +70,30 @@ const VerifyEmailPage: React.FC = () => {
   const inputStyle: React.CSSProperties = {
     width: 'clamp(38px, 10vw, 48px)', height: 'clamp(44px, 12vw, 56px)', textAlign: 'center',
     fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', fontWeight: 700,
-    background: '#1a1836', border: '1px solid #2a2745', borderRadius: 8, color: '#f1f0f9', outline: 'none',
+    background: '#1a2626', border: '1px solid #2a3d36', borderRadius: 8, color: '#e8f0ed', outline: 'none',
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: '#121a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ color: 'white', fontWeight: 800, fontSize: '0.95rem' }}>Q</span>
           </div>
-          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f0f9' }}>Qyntara</span>
+          <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#e8f0ed' }}>Qyntara</span>
         </div>
-        <div style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid #2a2745', borderRadius: 16, padding: '2rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f0f9', marginBottom: '0.5rem', textAlign: 'center' }}>Verificar Email</h2>
-          <p style={{ color: '#9895b0', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+        <div style={{ background: 'rgba(90,158,135,0.03)', border: '1px solid #2a3d36', borderRadius: 16, padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#e8f0ed', marginBottom: '0.5rem', textAlign: 'center' }}>Verificar Email</h2>
+          <p style={{ color: '#8fa89c', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Enviamos um código de 6 dígitos para<br /><span style={{ color: accent }}>{email}</span>
           </p>
           {error && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#f87171', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#e89090', fontSize: '0.85rem' }}>
               <AlertCircle size={16} /> {error}
             </div>
           )}
           {success && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#10b981', fontSize: '0.85rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '0.75rem 1rem', marginBottom: '1rem', color: '#4ead8a', fontSize: '0.85rem' }}>
               <CheckCircle size={16} /> {success}
             </div>
           )}
@@ -102,8 +102,8 @@ const VerifyEmailPage: React.FC = () => {
               {code.map((digit, i) => (
                 <input key={i} ref={el => { inputRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1}
                   value={digit} onChange={e => handleChange(i, e.target.value)} onKeyDown={e => handleKeyDown(i, e)}
-                  style={{ ...inputStyle, borderColor: digit ? accent : '#2a2745' }}
-                  onFocus={e => e.currentTarget.style.borderColor = accent} onBlur={e => { if (!digit) e.currentTarget.style.borderColor = '#2a2745'; }}
+                  style={{ ...inputStyle, borderColor: digit ? accent : '#2a3d36' }}
+                  onFocus={e => e.currentTarget.style.borderColor = accent} onBlur={e => { if (!digit) e.currentTarget.style.borderColor = '#2a3d36'; }}
                   aria-label={`Dígito ${i + 1}`} />
               ))}
             </div>
@@ -117,7 +117,7 @@ const VerifyEmailPage: React.FC = () => {
           </form>
           <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
             <button onClick={handleResend} disabled={resending || cooldown > 0} style={{
-              background: 'none', border: 'none', color: cooldown > 0 ? '#7a7694' : accent,
+              background: 'none', border: 'none', color: cooldown > 0 ? '#6a8a7c' : accent,
               cursor: cooldown > 0 ? 'default' : 'pointer', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             }}>
               <RefreshCw size={14} /> {cooldown > 0 ? `Reenviar em ${cooldown}s` : 'Reenviar código'}

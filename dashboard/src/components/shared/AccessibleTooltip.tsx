@@ -166,7 +166,7 @@ export function AccessibleTooltip({
         .tooltip {
           position: absolute;
           z-index: 1000;
-          background: var(--tooltip-bg, #1a1a1a);
+          background: var(--tooltip-bg, #121a1a);
           color: var(--tooltip-text, #ffffff);
           padding: 0.75rem;
           border-radius: 0.375rem;
@@ -231,12 +231,12 @@ export function AccessibleTooltip({
         }
         
         .tooltip-link {
-          color: var(--tooltip-link, #a78bfa);
+          color: var(--tooltip-link, #7ec4aa);
           text-decoration: underline;
         }
         
         .tooltip-link:hover {
-          color: var(--tooltip-link-hover, #93c5fd);
+          color: var(--tooltip-link-hover, #7ec4aa);
         }
         
         .tooltip-pin-button {

@@ -1,17 +1,18 @@
 /* Shared theme constants — extracted from inline styles for better perf (#7) */
+/* Palette: Lavender-Green — soft, calming tones for confident decision-making */
 
 export const getTheme = (darkMode: boolean) => ({
-  bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-  cardBg: darkMode ? '#1a1836' : 'white',
-  text: darkMode ? '#f1f5f9' : '#0c0a1a',
-  textSecondary: darkMode ? '#9895b0' : '#64618b',
-  border: darkMode ? '#2a2745' : '#e2e0f0',
-  hover: darkMode ? '#2a2745' : '#f3f1fa',
-  green: '#10b981',
-  red: '#ef4444',
-  yellow: '#f59e0b',
-  blue: '#8b5cf6',
-  purple: '#8b5cf6',
+  bg: darkMode ? '#121a1a' : '#f6faf8',
+  cardBg: darkMode ? '#1a2626' : 'white',
+  text: darkMode ? '#e8f0ed' : '#0f1a16',
+  textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+  border: darkMode ? '#2a3d36' : '#d4e5dc',
+  hover: darkMode ? '#223330' : '#edf5f1',
+  green: '#4ead8a',
+  red: '#e07070',
+  yellow: '#d4a84b',
+  blue: '#6ba89a',
+  purple: '#7ea896',
 } as const);
 
 export type Theme = ReturnType<typeof getTheme>;

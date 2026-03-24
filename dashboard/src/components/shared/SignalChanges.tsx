@@ -21,7 +21,7 @@ const getSignal = (score: number) =>
   score >= SCORE_BUY_THRESHOLD ? 'Compra' : score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
 
 const signalColor = (s: string) =>
-  s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#9895b0';
+  s === 'Compra' ? '#4ead8a' : s === 'Venda' ? '#e07070' : '#8fa89c';
 
 const SignalIcon: React.FC<{ signal: string }> = ({ signal }) =>
   signal === 'Compra' ? <ArrowUpRight size={12} /> : signal === 'Venda' ? <ArrowDownRight size={12} /> : <Minus size={12} />;
@@ -70,7 +70,7 @@ const SignalChanges: React.FC<SignalChangesProps> = ({ darkMode, theme }) => {
   const visible = expanded ? changes : changes.slice(0, 3);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '0.75rem',
     marginBottom: '0.75rem',
   };
@@ -79,11 +79,11 @@ const SignalChanges: React.FC<SignalChangesProps> = ({ darkMode, theme }) => {
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <RefreshCw size={14} color="#f59e0b" />
+          <RefreshCw size={14} color="#d4a84b" />
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>
             Mudanças de Sinal Hoje
           </span>
-          <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: 8, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontWeight: 600 }}>
+          <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', borderRadius: 8, background: 'rgba(212,168,75,0.15)', color: '#d4a84b', fontWeight: 600 }}>
             {changes.length}
           </span>
           <InfoTooltip text="Ações que mudaram de sinal entre ontem e hoje. Ex: Neutro → Compra." darkMode={darkMode} size={11} />

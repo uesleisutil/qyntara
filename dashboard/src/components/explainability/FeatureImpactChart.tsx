@@ -16,8 +16,8 @@ interface TickerData {
 interface FeatureImpactChartProps { tickers: TickerData[]; darkMode?: boolean; }
 
 const CAT_COLORS: Record<string, string> = {
-  'Técnica': '#8b5cf6', 'Volume': '#8b5cf6', 'Fundamental': '#10b981',
-  'Macro': '#f59e0b', 'Setorial': '#ec4899', 'Sentimento': '#06b6d4',
+  'Técnica': '#5a9e87', 'Volume': '#5a9e87', 'Fundamental': '#4ead8a',
+  'Macro': '#d4a84b', 'Setorial': '#d4a84b', 'Sentimento': '#5ab0a0',
 };
 
 const FEATURE_EXTRACTORS: { name: string; category: string; extract: (t: TickerData) => number }[] = [
@@ -52,11 +52,11 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
   const [filterCat, setFilterCat] = useState<string>('all');
 
   const theme = {
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    subtle: darkMode ? '#121a1a' : '#f6faf8',
   };
 
   const data = useMemo(() => {
@@ -68,7 +68,7 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
       return {
         feature: fe.name, category: fe.category,
         meanImpact: parseFloat(mean.toFixed(4)),
-        color: CAT_COLORS[fe.category] || '#9895b0',
+        color: CAT_COLORS[fe.category] || '#8fa89c',
       };
     })
     .sort((a, b) => b.meanImpact - a.meanImpact)
@@ -90,7 +90,7 @@ const FeatureImpactChart: React.FC<FeatureImpactChartProps> = ({ tickers, darkMo
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <BarChart3 size={18} color="#8b5cf6" />
+          <BarChart3 size={18} color="#5a9e87" />
           <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
             Impacto Agregado dos Fatores
           </h3>

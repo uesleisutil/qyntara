@@ -271,13 +271,13 @@ export const FAQ: React.FC<FAQProps> = ({ darkMode = false }) => {
   const [ratings, setRatings] = useState<Record<string, 'helpful' | 'not-helpful' | null>>({});
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e2e0f0',
-    hover: darkMode ? '#2a2745' : '#f3f1fa',
-    accent: '#8b5cf6',
+    bg: darkMode ? '#121a1a' : '#f6faf8',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    hover: darkMode ? '#2a3d36' : '#edf5f1',
+    accent: '#5a9e87',
   };
 
   const filteredFAQs = useMemo(() => {
@@ -472,7 +472,7 @@ export const FAQ: React.FC<FAQProps> = ({ darkMode = false }) => {
                             fontSize: '0.75rem',
                             color: theme.textSecondary,
                             padding: '0.125rem 0.5rem',
-                            backgroundColor: darkMode ? '#2a2745' : '#f3f1fa',
+                            backgroundColor: darkMode ? '#2a3d36' : '#edf5f1',
                             borderRadius: '4px',
                           }}
                         >
@@ -511,7 +511,7 @@ export const FAQ: React.FC<FAQProps> = ({ darkMode = false }) => {
                                   fontSize: '0.8125rem',
                                   color: theme.accent,
                                   padding: '0.25rem 0.75rem',
-                                  backgroundColor: darkMode ? '#1e3a5f' : '#eff6ff',
+                                  backgroundColor: darkMode ? '#1e3a5f' : '#edf5f1',
                                   borderRadius: '6px',
                                   cursor: 'pointer',
                                 }}
@@ -531,8 +531,8 @@ export const FAQ: React.FC<FAQProps> = ({ darkMode = false }) => {
                             onClick={() => handleRating(faq.id, 'helpful')}
                             style={{
                               padding: '0.5rem',
-                              backgroundColor: userRating === 'helpful' ? '#10b981' : 'transparent',
-                              border: `1px solid ${userRating === 'helpful' ? '#10b981' : theme.border}`,
+                              backgroundColor: userRating === 'helpful' ? '#4ead8a' : 'transparent',
+                              border: `1px solid ${userRating === 'helpful' ? '#4ead8a' : theme.border}`,
                               borderRadius: '6px',
                               cursor: 'pointer',
                               display: 'flex',
@@ -546,8 +546,8 @@ export const FAQ: React.FC<FAQProps> = ({ darkMode = false }) => {
                             onClick={() => handleRating(faq.id, 'not-helpful')}
                             style={{
                               padding: '0.5rem',
-                              backgroundColor: userRating === 'not-helpful' ? '#ef4444' : 'transparent',
-                              border: `1px solid ${userRating === 'not-helpful' ? '#ef4444' : theme.border}`,
+                              backgroundColor: userRating === 'not-helpful' ? '#e07070' : 'transparent',
+                              border: `1px solid ${userRating === 'not-helpful' ? '#e07070' : theme.border}`,
                               borderRadius: '6px',
                               cursor: 'pointer',
                               display: 'flex',

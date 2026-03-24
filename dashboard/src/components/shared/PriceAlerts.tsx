@@ -62,7 +62,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
   const done = alerts.filter(a => a.triggered);
   const inputS: React.CSSProperties = {
     padding: '0.4rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`,
-    background: darkMode ? '#0c0a1a' : '#f8fafc', color: theme.text, fontSize: '0.8rem', outline: 'none',
+    background: darkMode ? '#121a1a' : '#f6faf8', color: theme.text, fontSize: '0.8rem', outline: 'none',
   };
 
   return (
@@ -74,7 +74,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
           background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)',
           display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem',
         }}>
-          <CheckCircle size={14} color="#10b981" />
+          <CheckCircle size={14} color="#4ead8a" />
           <span style={{ color: theme.text, fontWeight: 600 }}>{t.ticker}</span>
           <span style={{ color: theme.textSecondary }}>atingiu R$ {fmt(t.targetPrice)}</span>
           <button onClick={() => setTriggered(p => p.filter(x => x.id !== t.id))} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer', padding: 2 }}>
@@ -87,7 +87,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
         <button onClick={() => setShowForm(!showForm)} style={{
           display: 'flex', alignItems: 'center', gap: 4, padding: '0.35rem 0.65rem',
-          borderRadius: 6, border: 'none', background: '#8b5cf6', color: 'white',
+          borderRadius: 6, border: 'none', background: '#5a9e87', color: 'white',
           cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
         }}>
           <Plus size={13} /> Novo
@@ -112,7 +112,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
             placeholder="R$" style={{ ...inputS, flex: '1 1 70px' }} />
           <button onClick={add} disabled={!form.ticker || !form.targetPrice} style={{
             padding: '0.4rem 0.7rem', borderRadius: 6, border: 'none',
-            background: form.ticker && form.targetPrice ? '#10b981' : (darkMode ? '#2a2745' : '#e2e8f0'),
+            background: form.ticker && form.targetPrice ? '#4ead8a' : (darkMode ? '#2a3d36' : '#d4e5dc'),
             color: form.ticker && form.targetPrice ? 'white' : theme.textSecondary,
             cursor: form.ticker && form.targetPrice ? 'pointer' : 'not-allowed',
             fontSize: '0.78rem', fontWeight: 600,
@@ -132,14 +132,14 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
               display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.25rem',
               borderRadius: 6, fontSize: '0.8rem',
             }}>
-              {a.type === 'above' ? <ArrowUp size={12} color="#10b981" /> : <ArrowDown size={12} color="#ef4444" />}
+              {a.type === 'above' ? <ArrowUp size={12} color="#4ead8a" /> : <ArrowDown size={12} color="#e07070" />}
               <span style={{ fontWeight: 700, color: theme.text }}>{a.ticker}</span>
               <span style={{ color: theme.textSecondary, fontSize: '0.75rem' }}>R$ {fmt(a.targetPrice)}</span>
               <button onClick={() => remove(a.id)} style={{
                 marginLeft: 'auto', background: 'none', border: 'none', color: theme.textSecondary,
                 cursor: 'pointer', padding: 2, opacity: 0.4,
               }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#ef4444'; }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = '#e07070'; }}
                 onMouseLeave={e => { e.currentTarget.style.opacity = '0.4'; e.currentTarget.style.color = theme.textSecondary; }}
               ><Trash2 size={12} /></button>
             </div>
@@ -149,9 +149,9 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
               display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.25rem',
               borderRadius: 6, fontSize: '0.78rem', opacity: 0.5,
             }}>
-              <CheckCircle size={12} color="#10b981" />
+              <CheckCircle size={12} color="#4ead8a" />
               <span style={{ fontWeight: 600, color: theme.text }}>{a.ticker}</span>
-              <span style={{ color: '#10b981' }}>R$ {fmt(a.targetPrice)}</span>
+              <span style={{ color: '#4ead8a' }}>R$ {fmt(a.targetPrice)}</span>
               <button onClick={() => remove(a.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: theme.textSecondary, cursor: 'pointer', padding: 2 }}>
                 <Trash2 size={11} />
               </button>

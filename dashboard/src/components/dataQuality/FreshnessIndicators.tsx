@@ -43,17 +43,17 @@ export const FreshnessIndicators: React.FC<FreshnessIndicatorsProps> = ({
   isMobile = false 
 }) => {
   const theme = {
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'current': return '#10b981';
-      case 'warning': return '#f59e0b';
-      case 'critical': return '#dc2626';
+      case 'current': return '#4ead8a';
+      case 'warning': return '#d4a84b';
+      case 'critical': return '#c04040';
       default: return theme.textSecondary;
     }
   };
@@ -126,7 +126,7 @@ export const FreshnessIndicators: React.FC<FreshnessIndicatorsProps> = ({
               border: `1px solid ${theme.border}`,
               borderLeft: `4px solid ${getStatusColor(source.status)}`,
               borderRadius: '8px',
-              backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc'
+              backgroundColor: darkMode ? '#121a1a' : '#f6faf8'
             }}
           >
             <div style={{ 

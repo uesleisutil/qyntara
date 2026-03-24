@@ -127,14 +127,14 @@ describe('Glossary', () => {
     const { container } = render(<Glossary darkMode={true} />);
     const mainDiv = container.firstChild as HTMLElement;
     
-    expect(mainDiv).toHaveStyle({ backgroundColor: '#0f172a' });
+    expect(mainDiv).toHaveStyle({ backgroundColor: '#0f1a16' });
   });
 
   it('applies light mode styling when darkMode prop is false', () => {
     const { container } = render(<Glossary darkMode={false} />);
     const mainDiv = container.firstChild as HTMLElement;
     
-    expect(mainDiv).toHaveStyle({ backgroundColor: '#f8fafc' });
+    expect(mainDiv).toHaveStyle({ backgroundColor: '#f6faf8' });
   });
 
   it('has at least 100 glossary entries', () => {

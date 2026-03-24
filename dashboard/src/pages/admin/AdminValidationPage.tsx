@@ -28,7 +28,7 @@ const AdminValidationPage: React.FC = () => {
   useEffect(() => { fetchValidation(); }, []);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -42,7 +42,7 @@ const AdminValidationPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -97,12 +97,12 @@ const AdminValidationPage: React.FC = () => {
   const pendingCount = validations.length - validatedCount;
 
   const kpis = [
-    { label: 'Total Predições', value: total.toString(), color: '#8b5cf6', icon: <BarChart3 size={16} />, tip: 'Número total de predições feitas pelo modelo no período.' },
-    { label: 'Validadas', value: completed.toString(), color: '#10b981', icon: <CheckCircle size={16} />, tip: 'Predições que já podem ser comparadas com preços reais (20+ dias passados).' },
-    { label: 'Pendentes', value: pending.toString(), color: '#f59e0b', icon: <Clock size={16} />, tip: 'Predições aguardando 20 pregões para validação contra preços reais.' },
-    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100, 1)}%` : allPending ? 'Aguardando' : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de predições que acertaram a direção (alta/baixa).' },
-    { label: 'Erro Médio Absoluto', value: mae != null ? `${fmt(mae * 100)}%` : allPending ? 'Aguardando' : '—', color: mae != null && mae < 0.05 ? '#10b981' : '#ef4444', icon: <AlertTriangle size={16} />, tip: 'Erro médio absoluto entre retorno previsto e realizado.' },
-    { label: 'RMSE', value: rmse != null ? fmt(rmse, 4) : allPending ? 'Aguardando' : '—', color: '#06b6d4', icon: <BarChart3 size={16} />, tip: 'Root Mean Square Error — penaliza erros grandes mais que o MAE.' },
+    { label: 'Total Predições', value: total.toString(), color: '#5a9e87', icon: <BarChart3 size={16} />, tip: 'Número total de predições feitas pelo modelo no período.' },
+    { label: 'Validadas', value: completed.toString(), color: '#4ead8a', icon: <CheckCircle size={16} />, tip: 'Predições que já podem ser comparadas com preços reais (20+ dias passados).' },
+    { label: 'Pendentes', value: pending.toString(), color: '#d4a84b', icon: <Clock size={16} />, tip: 'Predições aguardando 20 pregões para validação contra preços reais.' },
+    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100, 1)}%` : allPending ? 'Aguardando' : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#4ead8a' : '#d4a84b', icon: <Target size={16} />, tip: 'Percentual de predições que acertaram a direção (alta/baixa).' },
+    { label: 'Erro Médio Absoluto', value: mae != null ? `${fmt(mae * 100)}%` : allPending ? 'Aguardando' : '—', color: mae != null && mae < 0.05 ? '#4ead8a' : '#e07070', icon: <AlertTriangle size={16} />, tip: 'Erro médio absoluto entre retorno previsto e realizado.' },
+    { label: 'RMSE', value: rmse != null ? fmt(rmse, 4) : allPending ? 'Aguardando' : '—', color: '#5ab0a0', icon: <BarChart3 size={16} />, tip: 'Root Mean Square Error — penaliza erros grandes mais que o MAE.' },
   ];
 
   return (
@@ -114,13 +114,13 @@ const AdminValidationPage: React.FC = () => {
             Predicted vs Actual — análise de acurácia
             {data?.period && <span>— {data.period.start_date} a {data.period.end_date}</span>}
             {lastUpdated && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '0.15rem 0.5rem', borderRadius: 10 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.72rem', color: '#4ead8a', background: 'rgba(16,185,129,0.1)', padding: '0.15rem 0.5rem', borderRadius: 10 }}>
                 <Clock size={10} /> {getRelativeTime(lastUpdated)}
               </span>
             )}
           </p>
         </div>
-        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(74,142,119,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -133,9 +133,9 @@ const AdminValidationPage: React.FC = () => {
           borderColor: 'rgba(59,130,246,0.2)',
           display: 'flex', alignItems: 'center', gap: '0.75rem',
         }}>
-          <Clock size={20} color="#8b5cf6" style={{ flexShrink: 0 }} />
+          <Clock size={20} color="#5a9e87" style={{ flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#8b5cf6' }}>Aguardando validação</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#5a9e87' }}>Aguardando validação</div>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
               {pending} predições precisam de ~20 pregões para serem validadas contra preços reais. As métricas de acurácia serão calculadas automaticamente.
             </div>
@@ -144,13 +144,13 @@ const AdminValidationPage: React.FC = () => {
       ) : completed > 0 && (
         <div style={{
           ...cardStyle, marginBottom: '1rem', padding: '0.85rem 1rem',
-          background: dirAcc != null && dirAcc >= 0.6 ? (darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.03)') : (darkMode ? 'rgba(245,158,11,0.06)' : 'rgba(245,158,11,0.03)'),
-          borderColor: dirAcc != null && dirAcc >= 0.6 ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)',
+          background: dirAcc != null && dirAcc >= 0.6 ? (darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.03)') : (darkMode ? 'rgba(212,168,75,0.06)' : 'rgba(212,168,75,0.03)'),
+          borderColor: dirAcc != null && dirAcc >= 0.6 ? 'rgba(16,185,129,0.2)' : 'rgba(212,168,75,0.2)',
           display: 'flex', alignItems: 'center', gap: '0.75rem',
         }}>
-          {dirAcc != null && dirAcc >= 0.6 ? <CheckCircle size={20} color="#10b981" style={{ flexShrink: 0 }} /> : <AlertTriangle size={20} color="#f59e0b" style={{ flexShrink: 0 }} />}
+          {dirAcc != null && dirAcc >= 0.6 ? <CheckCircle size={20} color="#4ead8a" style={{ flexShrink: 0 }} /> : <AlertTriangle size={20} color="#d4a84b" style={{ flexShrink: 0 }} />}
           <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: dirAcc != null && dirAcc >= 0.6 ? '#4ead8a' : '#d4a84b' }}>
               {dirAcc != null && dirAcc >= 0.6 ? 'Modelo com boa acurácia' : 'Acurácia abaixo do ideal'}
             </div>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
@@ -193,16 +193,16 @@ const AdminValidationPage: React.FC = () => {
             <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 0 }}>
               <Search size={16} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
               <input type="text" placeholder="Buscar ticker..." value={tickerSearch} onChange={e => setTickerSearch(e.target.value)}
-                style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }}
-                onFocus={e => { e.currentTarget.style.borderColor = '#8b5cf6'; }}
+                style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', background: darkMode ? '#121a1a' : '#f6faf8', border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#5a9e87'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
               />
             </div>
             <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
               {([
-                { key: 'ALL', label: 'Todos', count: validations.length, color: '#8b5cf6' },
-                { key: 'validated', label: 'Validados', count: validatedCount, color: '#10b981' },
-                { key: 'pending', label: 'Pendentes', count: pendingCount, color: '#f59e0b' },
+                { key: 'ALL', label: 'Todos', count: validations.length, color: '#5a9e87' },
+                { key: 'validated', label: 'Validados', count: validatedCount, color: '#4ead8a' },
+                { key: 'pending', label: 'Pendentes', count: pendingCount, color: '#d4a84b' },
               ] as const).map(chip => {
                 const active = statusFilter === chip.key;
                 return (
@@ -242,7 +242,7 @@ const AdminValidationPage: React.FC = () => {
                       { label: 'Direção', tip: 'Se o modelo acertou a direção (alta/baixa).' },
                       { label: 'Status', tip: 'Validado = preço real disponível. Pendente = aguardando.' },
                     ].map((h, idx) => (
-                      <th key={idx} style={{ padding: '0.6rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc', whiteSpace: 'nowrap', position: 'sticky', top: 0 }}>
+                      <th key={idx} style={{ padding: '0.6rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#121a1a' : '#f6faf8', whiteSpace: 'nowrap', position: 'sticky', top: 0 }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           {h.label} <InfoTooltip text={h.tip} darkMode={darkMode} size={11} />
                         </span>
@@ -264,25 +264,25 @@ const AdminValidationPage: React.FC = () => {
                       >
                         <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.8rem', color: theme.textSecondary }}>{v.prediction_date || v.date || '—'}</td>
                         <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600, color: theme.text, fontSize: '0.82rem' }}>{v.ticker}</td>
-                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: predRet != null && predRet >= 0 ? '#10b981' : '#ef4444' }}>
+                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: predRet != null && predRet >= 0 ? '#4ead8a' : '#e07070' }}>
                           {predRet != null ? `${predRet >= 0 ? '+' : ''}${fmt(predRet * 100)}%` : '—'}
                         </td>
-                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', fontWeight: hasActual ? 600 : 400, color: hasActual ? (actRet >= 0 ? '#10b981' : '#ef4444') : theme.textSecondary }}>
+                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', fontWeight: hasActual ? 600 : 400, color: hasActual ? (actRet >= 0 ? '#4ead8a' : '#e07070') : theme.textSecondary }}>
                           {hasActual ? `${actRet >= 0 ? '+' : ''}${fmt(actRet * 100)}%` : '—'}
                         </td>
-                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: error != null ? (error > 0.1 ? '#ef4444' : '#10b981') : theme.textSecondary }}>
+                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: error != null ? (error > 0.1 ? '#e07070' : '#4ead8a') : theme.textSecondary }}>
                           {error != null ? `${fmt(error * 100)}%` : '—'}
                         </td>
                         <td style={{ padding: '0.45rem 0.6rem' }}>
                           {dirCorrect != null ? (
-                            dirCorrect ? <span style={{ color: '#10b981', fontSize: '0.78rem' }}>✅ Acertou</span> : <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>❌ Errou</span>
+                            dirCorrect ? <span style={{ color: '#4ead8a', fontSize: '0.78rem' }}>✅ Acertou</span> : <span style={{ color: '#e07070', fontSize: '0.78rem' }}>❌ Errou</span>
                           ) : <span style={{ color: theme.textSecondary, fontSize: '0.78rem' }}>—</span>}
                         </td>
                         <td style={{ padding: '0.45rem 0.6rem' }}>
                           <span style={{
                             padding: '0.15rem 0.5rem', borderRadius: 10, fontSize: '0.7rem', fontWeight: 600,
-                            background: hasActual ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
-                            color: hasActual ? '#10b981' : '#f59e0b',
+                            background: hasActual ? 'rgba(16,185,129,0.15)' : 'rgba(212,168,75,0.15)',
+                            color: hasActual ? '#4ead8a' : '#d4a84b',
                           }}>
                             {hasActual ? '✓ Validado' : '⏳ Pendente'}
                           </span>

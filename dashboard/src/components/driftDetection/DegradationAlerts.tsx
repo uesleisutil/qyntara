@@ -31,24 +31,24 @@ export const DegradationAlerts: React.FC<DegradationAlertsProps> = ({
   const [expandedAlert, setExpandedAlert] = useState<string | null>(null);
 
   const theme = {
-    cardBg: darkMode ? '#1a1836' : '#fff',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
+    cardBg: darkMode ? '#1a2626' : '#fff',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
     alertBg: {
-      critical: darkMode ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.05)',
+      critical: darkMode ? 'rgba(224,112,112,0.1)' : 'rgba(224,112,112,0.05)',
       high: darkMode ? 'rgba(249,115,22,0.1)' : 'rgba(249,115,22,0.05)',
-      medium: darkMode ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.05)',
+      medium: darkMode ? 'rgba(212,168,75,0.1)' : 'rgba(212,168,75,0.05)',
       low: darkMode ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.05)',
     },
     alertBorder: {
-      critical: darkMode ? 'rgba(239,68,68,0.3)' : 'rgba(239,68,68,0.25)',
+      critical: darkMode ? 'rgba(224,112,112,0.3)' : 'rgba(224,112,112,0.25)',
       high: darkMode ? 'rgba(249,115,22,0.3)' : 'rgba(249,115,22,0.25)',
-      medium: darkMode ? 'rgba(245,158,11,0.3)' : 'rgba(245,158,11,0.25)',
+      medium: darkMode ? 'rgba(212,168,75,0.3)' : 'rgba(212,168,75,0.25)',
       low: darkMode ? 'rgba(59,130,246,0.3)' : 'rgba(59,130,246,0.25)',
     },
     alertText: {
-      critical: '#ef4444', high: '#f97316', medium: '#f59e0b', low: '#8b5cf6',
+      critical: '#e07070', high: '#d4944b', medium: '#d4a84b', low: '#5a9e87',
     },
   };
 
@@ -99,10 +99,10 @@ export const DegradationAlerts: React.FC<DegradationAlertsProps> = ({
       <div style={cardStyle}>
         <div style={{ padding: '1rem', borderBottom: `1px solid ${theme.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertTriangle size={18} color={hasActiveAlerts ? '#ef4444' : theme.textSecondary} />
+            <AlertTriangle size={18} color={hasActiveAlerts ? '#e07070' : theme.textSecondary} />
             <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Alertas de Performance Ativos</h4>
             {hasActiveAlerts && (
-              <span style={{ background: '#ef4444', color: 'white', fontSize: '0.7rem', fontWeight: 600, padding: '0.1rem 0.45rem', borderRadius: 10 }}>{activeAlerts.length}</span>
+              <span style={{ background: '#e07070', color: 'white', fontSize: '0.7rem', fontWeight: 600, padding: '0.1rem 0.45rem', borderRadius: 10 }}>{activeAlerts.length}</span>
             )}
           </div>
         </div>

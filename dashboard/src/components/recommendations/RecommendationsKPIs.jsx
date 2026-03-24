@@ -43,7 +43,7 @@ const RecommendationsKPIs = ({ recommendations }) => {
     }}>
       <div className="kpi-card" style={{
         padding: '1.5rem',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(135deg, #5a9e87 0%, #5a9e87 100%)',
         borderRadius: '8px',
         color: 'white'
       }}>
@@ -58,7 +58,7 @@ const RecommendationsKPIs = ({ recommendations }) => {
 
       <div className="kpi-card" style={{
         padding: '1.5rem',
-        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        background: 'linear-gradient(135deg, #7ec4aa 0%, #e07070 100%)',
         borderRadius: '8px',
         color: 'white'
       }}>
@@ -73,7 +73,7 @@ const RecommendationsKPIs = ({ recommendations }) => {
 
       <div className="kpi-card" style={{
         padding: '1.5rem',
-        background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        background: 'linear-gradient(135deg, #5ab0a0 0%, #6dc4b4 100%)',
         borderRadius: '8px',
         color: 'white'
       }}>

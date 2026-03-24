@@ -124,7 +124,7 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({
       .each(function(d) {
         const candle = d3.select(this);
         const isUp = d.close >= d.open;
-        const color = isUp ? '#10b981' : '#ef4444';
+        const color = isUp ? '#4ead8a' : '#e07070';
 
         // High-low line
         candle.append('line')
@@ -156,11 +156,11 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({
       .attr('y', d => yVolumeScale(d.volume))
       .attr('width', candleWidth)
       .attr('height', d => volumeHeight - yVolumeScale(d.volume))
-      .attr('fill', d => d.close >= d.open ? '#10b98180' : '#ef444480');
+      .attr('fill', d => d.close >= d.open ? '#4ead8a80' : '#e0707080');
 
     // Draw moving averages
     if (showMovingAverages) {
-      const maColors = ['#8b5cf6', '#f59e0b', '#8b5cf6'];
+      const maColors = ['#5a9e87', '#d4a84b', '#5a9e87'];
       
       movingAveragePeriods.forEach((period, idx) => {
         const ma = calculateMovingAverage(parsedData, period);
@@ -192,7 +192,7 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({
             .attr('cx', (xScale(rec.date) || 0) + candleWidth / 2)
             .attr('cy', yPriceScale(dataPoint.high) - 10)
             .attr('r', 5)
-            .attr('fill', '#8b5cf6')
+            .attr('fill', '#5a9e87')
             .attr('stroke', '#fff')
             .attr('stroke-width', 2)
             .append('title')
@@ -296,8 +296,8 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({
             className={`time-range-btn ${timeRange === range ? 'active' : ''}`}
             style={{
               padding: '0.5rem 1rem',
-              background: timeRange === range ? '#8b5cf6' : '#f1f5f9',
-              color: timeRange === range ? 'white' : '#64748b',
+              background: timeRange === range ? '#5a9e87' : '#e8f0ed',
+              color: timeRange === range ? 'white' : '#5a7268',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
@@ -339,7 +339,7 @@ export const CandlestickChart: React.FC<CandlestickChartProps> = ({
         <div className="ma-legend" style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
           <strong>Moving Averages:</strong>
           {movingAveragePeriods.map((period, idx) => {
-            const colors = ['#8b5cf6', '#f59e0b', '#8b5cf6'];
+            const colors = ['#5a9e87', '#d4a84b', '#5a9e87'];
             return (
               <span key={period} style={{ marginLeft: '1rem' }}>
                 <span style={{ color: colors[idx % colors.length] }}>●</span> {period}-day

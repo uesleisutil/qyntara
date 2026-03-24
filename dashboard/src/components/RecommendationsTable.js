@@ -91,7 +91,7 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
   };
 
   if (sortedRecommendations.length === 0) {
-    return <p style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Nenhuma recomendação disponível</p>;
+    return <p style={{ textAlign: 'center', padding: '2rem', color: '#5a7268' }}>Nenhuma recomendação disponível</p>;
   }
 
   return (
@@ -99,7 +99,7 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
       <div className="recommendations-table-wrapper" style={{ overflowX: 'auto' }}>
         <table className="recommendations-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+            <tr style={{ backgroundColor: '#f6faf8', borderBottom: '2px solid #d4e5dc' }}>
               {comparisonMode && (
                 <th style={{ padding: '0.75rem', textAlign: 'center', width: '50px' }}>
                   <input type="checkbox" disabled style={{ opacity: 0 }} />
@@ -156,13 +156,13 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
                   key={idx}
                   onClick={(e) => handleTickerClick(rec, e)}
                   style={{ 
-                    borderBottom: '1px solid #e2e8f0',
+                    borderBottom: '1px solid #d4e5dc',
                     cursor: 'pointer',
                     transition: 'background-color 0.2s',
-                    backgroundColor: selected ? '#eff6ff' : 'transparent'
+                    backgroundColor: selected ? '#edf5f1' : 'transparent'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = selected ? '#eff6ff' : '#f8fafc'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selected ? '#eff6ff' : 'transparent'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = selected ? '#edf5f1' : '#f6faf8'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selected ? '#edf5f1' : 'transparent'}
                 >
                   {comparisonMode && (
                     <td style={{ padding: '0.75rem', textAlign: 'center' }}>
@@ -179,8 +179,8 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
                     <span style={{
                       display: 'inline-block',
                       padding: '0.25rem 0.5rem',
-                      backgroundColor: globalRank <= 10 ? '#fef3c7' : '#e2e8f0',
-                      color: globalRank <= 10 ? '#92400e' : '#475569',
+                      backgroundColor: globalRank <= 10 ? '#f5ecd0' : '#d4e5dc',
+                      color: globalRank <= 10 ? '#8a5a1e' : '#3a5248',
                       borderRadius: '4px',
                       fontSize: '0.875rem',
                       fontWeight: '600'
@@ -189,20 +189,20 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
                     </span>
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    <strong style={{ color: '#1a1836' }}>{rec.ticker}</strong>
+                    <strong style={{ color: '#1a2626' }}>{rec.ticker}</strong>
                   </td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', color: '#475569' }}>
+                  <td style={{ padding: '0.75rem', textAlign: 'right', color: '#3a5248' }}>
                     {scoreValue.toFixed(1)}
                   </td>
                   <td style={{ 
                     padding: '0.75rem', 
                     textAlign: 'right',
-                    color: returnValue >= 0 ? '#10b981' : '#ef4444',
+                    color: returnValue >= 0 ? '#4ead8a' : '#e07070',
                     fontWeight: '600'
                   }}>
                     {(returnValue * 100).toFixed(2)}%
                   </td>
-                  <td style={{ padding: '0.75rem', color: '#64748b', fontSize: '0.875rem' }}>
+                  <td style={{ padding: '0.75rem', color: '#5a7268', fontSize: '0.875rem' }}>
                     {rec.sector || '-'}
                   </td>
                 </tr>
@@ -220,9 +220,9 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
           alignItems: 'center',
           marginTop: '1rem',
           padding: '0.75rem',
-          borderTop: '1px solid #e2e8f0'
+          borderTop: '1px solid #d4e5dc'
         }}>
-          <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
+          <p style={{ margin: 0, color: '#5a7268', fontSize: '0.875rem' }}>
             Mostrando {startIndex + 1} a {Math.min(endIndex, sortedRecommendations.length)} de {sortedRecommendations.length} recomendações
           </p>
           
@@ -232,9 +232,9 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
               disabled={currentPage === 1}
               style={{
                 padding: '0.5rem',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #d4e5dc',
                 borderRadius: '4px',
-                background: currentPage === 1 ? '#f8fafc' : 'white',
+                background: currentPage === 1 ? '#f6faf8' : 'white',
                 cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center'
@@ -247,7 +247,7 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
               padding: '0.5rem 1rem',
               display: 'flex',
               alignItems: 'center',
-              color: '#475569',
+              color: '#3a5248',
               fontSize: '0.875rem'
             }}>
               Página {currentPage} de {totalPages}
@@ -258,9 +258,9 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
               disabled={currentPage === totalPages}
               style={{
                 padding: '0.5rem',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #d4e5dc',
                 borderRadius: '4px',
-                background: currentPage === totalPages ? '#f8fafc' : 'white',
+                background: currentPage === totalPages ? '#f6faf8' : 'white',
                 cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center'

@@ -66,7 +66,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
     },
     branding: {
       companyName: 'Qyntara',
-      primaryColor: '#8b5cf6',
+      primaryColor: '#5a9e87',
     },
   });
 
@@ -97,7 +97,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
       // Add header with branding
       if (config.branding?.companyName) {
         doc.setFontSize(20);
-        doc.setTextColor(config.branding.primaryColor || '#8b5cf6');
+        doc.setTextColor(config.branding.primaryColor || '#5a9e87');
         doc.text(config.branding.companyName, pageWidth / 2, yPosition, { align: 'center' });
         yPosition += 10;
       }
@@ -111,7 +111,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
 
       // Add date
       doc.setFontSize(10);
-      doc.setTextColor('#666666');
+      doc.setTextColor('#5a7268');
       doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 15;
 
@@ -123,7 +123,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
         yPosition += 8;
 
         doc.setFontSize(10);
-        doc.setTextColor('#333333');
+        doc.setTextColor('#2a4038');
         const summaryLines = doc.splitTextToSize(data.summary, pageWidth - 40);
         doc.text(summaryLines, 20, yPosition);
         yPosition += summaryLines.length * 5 + 10;
@@ -152,7 +152,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
           head: [['Metric', 'Value', 'Change']],
           body: kpiData,
           theme: 'striped',
-          headStyles: { fillColor: config.branding?.primaryColor || '#8b5cf6' },
+          headStyles: { fillColor: config.branding?.primaryColor || '#5a9e87' },
           margin: { left: 20, right: 20 },
         });
 
@@ -183,7 +183,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
           head: [['Metric', 'Current', 'Target', 'Status']],
           body: metricsData,
           theme: 'striped',
-          headStyles: { fillColor: config.branding?.primaryColor || '#8b5cf6' },
+          headStyles: { fillColor: config.branding?.primaryColor || '#5a9e87' },
           margin: { left: 20, right: 20 },
         });
 
@@ -203,7 +203,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
         yPosition += 10;
 
         doc.setFontSize(10);
-        doc.setTextColor('#666666');
+        doc.setTextColor('#5a7268');
         doc.text('Charts would be captured and embedded here', 20, yPosition);
         yPosition += 10;
       }
@@ -213,7 +213,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
-        doc.setTextColor('#999999');
+        doc.setTextColor('#8fa89c');
         doc.text(
           `Page ${i} of ${pageCount}`,
           pageWidth / 2,
@@ -281,7 +281,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
           alignItems: 'center',
           gap: '0.5rem',
           padding: '0.5rem 1rem',
-          backgroundColor: '#8b5cf6',
+          backgroundColor: '#5a9e87',
           color: 'white',
           border: 'none',
           borderRadius: '6px',
@@ -345,8 +345,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                     style={{
                       flex: 1,
                       padding: '0.5rem',
-                      border: `2px solid ${config.type === type ? '#8b5cf6' : '#e2e8f0'}`,
-                      backgroundColor: config.type === type ? '#eff6ff' : 'white',
+                      border: `2px solid ${config.type === type ? '#5a9e87' : '#d4e5dc'}`,
+                      backgroundColor: config.type === type ? '#edf5f1' : 'white',
                       borderRadius: '6px',
                       cursor: 'pointer',
                       fontSize: '0.875rem',
@@ -415,7 +415,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                     style={{
                       width: '100%',
                       padding: '0.5rem',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid #d4e5dc',
                       borderRadius: '6px',
                       fontSize: '0.875rem',
                       marginBottom: '0.5rem',
@@ -443,7 +443,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                         style={{
                           flex: 1,
                           padding: '0.5rem',
-                          border: '1px solid #e2e8f0',
+                          border: '1px solid #d4e5dc',
                           borderRadius: '6px',
                           fontSize: '0.875rem',
                         }}
@@ -458,7 +458,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                             alignItems: 'center',
                             gap: '0.25rem',
                             padding: '0.25rem 0.5rem',
-                            backgroundColor: '#eff6ff',
+                            backgroundColor: '#edf5f1',
                             borderRadius: '4px',
                             fontSize: '0.75rem',
                           }}
@@ -490,7 +490,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                 onClick={() => setShowConfig(false)}
                 style={{
                   padding: '0.5rem 1rem',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid #d4e5dc',
                   backgroundColor: 'white',
                   borderRadius: '6px',
                   cursor: 'pointer',
@@ -504,7 +504,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                 disabled={generating}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#8b5cf6',
+                  backgroundColor: '#5a9e87',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',

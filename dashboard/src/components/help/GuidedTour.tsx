@@ -145,12 +145,12 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
       disableCloseOnEsc={false}
       callback={handleJoyrideCallback}
       styles={{
-        options: { primaryColor: '#8b5cf6', zIndex: 10000 },
+        options: { primaryColor: '#5a9e87', zIndex: 10000 },
         tooltip: { borderRadius: '12px', fontSize: '14px' },
         tooltipContainer: { textAlign: 'left' as const },
         buttonNext: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', fontWeight: '600' },
         buttonBack: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', marginRight: '8px' },
-        buttonSkip: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', color: '#64748b' },
+        buttonSkip: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', color: '#5a7268' },
       }}
       locale={{ back: 'Voltar', close: 'Fechar', last: 'Finalizar', next: 'Próximo', skip: 'Pular Tour' }}
     />

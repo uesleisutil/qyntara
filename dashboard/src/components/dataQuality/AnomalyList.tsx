@@ -67,18 +67,18 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
   const [markedFalsePositives, setMarkedFalsePositives] = useState<Set<string>>(new Set());
 
   const theme = {
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    hover: darkMode ? '#2a2745' : '#f8fafc',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    hover: darkMode ? '#2a3d36' : '#f6faf8',
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return '#dc2626';
-      case 'medium': return '#f59e0b';
-      case 'low': return '#8b5cf6';
+      case 'high': return '#c04040';
+      case 'medium': return '#d4a84b';
+      case 'low': return '#5a9e87';
       default: return theme.textSecondary;
     }
   };
@@ -159,7 +159,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
             <div style={{ fontSize: '0.875rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>
               High Severity
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#c04040' }}>
               {data.bySeverity.high}
             </div>
           </div>
@@ -185,7 +185,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
               xKey="date"
               yKeys={['count']}
               height={150}
-              colors={['#dc2626']}
+              colors={['#c04040']}
               showLegend={false}
               showGrid={true}
             />
@@ -299,7 +299,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                   border: `1px solid ${theme.border}`,
                   borderLeft: `4px solid ${getSeverityColor(anomaly.severity)}`,
                   borderRadius: '8px',
-                  backgroundColor: isFalsePositive ? (darkMode ? '#1a183680' : '#f8f7fc') : theme.cardBg,
+                  backgroundColor: isFalsePositive ? (darkMode ? '#1a262680' : '#f6faf8') : theme.cardBg,
                   opacity: isFalsePositive ? 0.6 : 1,
                   transition: 'all 0.2s'
                 }}
@@ -339,7 +339,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                       </span>
                       <span style={{
                         padding: '0.125rem 0.5rem',
-                        backgroundColor: darkMode ? '#2a2745' : '#e2e8f0',
+                        backgroundColor: darkMode ? '#2a3d36' : '#d4e5dc',
                         color: theme.text,
                         borderRadius: '4px',
                         fontSize: '0.75rem',
@@ -350,8 +350,8 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                       {isFalsePositive && (
                         <span style={{
                           padding: '0.125rem 0.5rem',
-                          backgroundColor: '#10b98120',
-                          color: '#10b981',
+                          backgroundColor: '#4ead8a20',
+                          color: '#4ead8a',
                           borderRadius: '4px',
                           fontSize: '0.75rem',
                           fontWeight: '600'
@@ -391,8 +391,8 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                     onClick={() => handleMarkFalsePositive(anomaly.id)}
                     style={{
                       padding: '0.5rem',
-                      backgroundColor: isFalsePositive ? '#10b981' : 'transparent',
-                      border: `1px solid ${isFalsePositive ? '#10b981' : theme.border}`,
+                      backgroundColor: isFalsePositive ? '#4ead8a' : 'transparent',
+                      border: `1px solid ${isFalsePositive ? '#4ead8a' : theme.border}`,
                       borderRadius: '6px',
                       cursor: 'pointer',
                       display: 'flex',

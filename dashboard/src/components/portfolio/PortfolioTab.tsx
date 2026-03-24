@@ -14,19 +14,19 @@ type Profile = 'conservador' | 'moderado' | 'arrojado';
 
 const PROFILES: Record<Profile, { label: string; icon: React.ReactNode; color: string; desc: string; maxVol: number; minScore: number; topN: number; stopMult: number; sortBy: 'risk_adjusted' | 'return' | 'score'; weightBy: 'inv_vol' | 'equal' | 'score' }> = {
   conservador: {
-    label: 'Conservador', icon: <ShieldCheck size={16} />, color: '#8b5cf6',
+    label: 'Conservador', icon: <ShieldCheck size={16} />, color: '#5a9e87',
     desc: 'Prioriza baixa volatilidade e alta confiança. Menos ações, mais proteção.',
     maxVol: 0.025, minScore: 2.5, topN: 3, stopMult: 1.5,
     sortBy: 'risk_adjusted', weightBy: 'inv_vol',
   },
   moderado: {
-    label: 'Moderado', icon: <Scale size={16} />, color: '#f59e0b',
+    label: 'Moderado', icon: <Scale size={16} />, color: '#d4a84b',
     desc: 'Equilíbrio entre risco e retorno. Diversificação média.',
     maxVol: 0.045, minScore: 1.5, topN: 5, stopMult: 2.0,
     sortBy: 'risk_adjusted', weightBy: 'inv_vol',
   },
   arrojado: {
-    label: 'Arrojado', icon: <Flame size={16} />, color: '#ef4444',
+    label: 'Arrojado', icon: <Flame size={16} />, color: '#e07070',
     desc: 'Busca maior retorno, aceita mais volatilidade. Mais ações, peso por retorno.',
     maxVol: 1.0, minScore: 1.0, topN: 8, stopMult: 2.5,
     sortBy: 'return', weightBy: 'score',
@@ -34,7 +34,7 @@ const PROFILES: Record<Profile, { label: string; icon: React.ReactNode; color: s
 };
 
 const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) : '—';
-const pieColors = ['#8b5cf6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16'];
+const pieColors = ['#5a9e87', '#4ead8a', '#d4a84b', '#5a9e87', '#e07070', '#5ab0a0', '#d4a84b', '#6daa5a'];
 
 const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
   const [recs, setRecs] = useState<Rec[]>([]);
@@ -45,12 +45,12 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
   const [simCapital, setSimCapital] = useState(10000);
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8fafc',
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#8b5cf6', purple: '#8b5cf6',
+    bg: darkMode ? '#121a1a' : '#f6faf8',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    green: '#4ead8a', red: '#e07070', yellow: '#d4a84b', blue: '#5a9e87', purple: '#5a9e87',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -127,7 +127,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
 
   if (loading) {
     const pulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -145,7 +145,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
     <div>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-        <Crown size={20} color="#f59e0b" />
+        <Crown size={20} color="#d4a84b" />
         <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, margin: 0 }}>
           Carteira Modelo
         </h1>
@@ -156,7 +156,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
       </p>
 
       {error && (
-        <div style={{ ...cardStyle, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+        <div style={{ ...cardStyle, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
           {error}
         </div>
       )}
@@ -177,7 +177,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
                   ...btnBase,
                   background: active
                     ? `${pr.color}20`
-                    : (darkMode ? '#0c0a1a' : '#f8fafc'),
+                    : (darkMode ? '#121a1a' : '#f6faf8'),
                   color: active ? pr.color : theme.textSecondary,
                   border: `1.5px solid ${active ? pr.color : theme.border}`,
                   transform: active ? 'scale(1.02)' : 'scale(1)',
@@ -243,7 +243,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
               <input type="number" value={simCapital} onChange={e => setSimCapital(Math.max(100, +e.target.value))}
                 style={{
                   width: 100, padding: '0.3rem 0.5rem', borderRadius: 6, fontSize: '0.78rem',
-                  border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8fafc',
+                  border: `1px solid ${theme.border}`, background: darkMode ? '#121a1a' : '#f6faf8',
                   color: theme.text, outline: 'none',
                 }} />
             </div>
@@ -313,7 +313,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
                     ].map(h => (
                       <th key={h.l} style={{
                         padding: '0.55rem 0.45rem', textAlign: 'left', fontSize: '0.68rem', fontWeight: 600,
-                        color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc', whiteSpace: 'nowrap',
+                        color: theme.textSecondary, background: darkMode ? '#121a1a' : '#f6faf8', whiteSpace: 'nowrap',
                       }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                           {h.l} {h.t && <InfoTooltip text={h.t} darkMode={darkMode} size={10} />}
@@ -327,7 +327,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
                     const rr = q.vol_20d > 0 ? q.exp_return_20 / q.vol_20d : 0;
                     return (
                       <tr key={q.ticker} style={{ borderBottom: `1px solid ${theme.border}` }}
-                        onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'}
+                        onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a3d36' : '#e8f0ed'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
                         <td style={{ padding: '0.5rem 0.45rem', color: theme.textSecondary, fontSize: '0.72rem', fontWeight: 600 }}>{i + 1}</td>
@@ -350,7 +350,7 @@ const PortfolioTab: React.FC<PortfolioTabProps> = ({ darkMode = false }) => {
                         </td>
                         <td style={{ padding: '0.5rem 0.45rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <div style={{ flex: 1, height: 5, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e8f0', maxWidth: 50, overflow: 'hidden' }}>
+                            <div style={{ flex: 1, height: 5, borderRadius: 3, background: darkMode ? '#2a3d36' : '#d4e5dc', maxWidth: 50, overflow: 'hidden' }}>
                               <div style={{ height: '100%', borderRadius: 3, width: `${q.confidence}%`, background: q.confidence >= 70 ? theme.green : q.confidence >= 50 ? theme.yellow : theme.red }} />
                             </div>
                             <span style={{ fontSize: '0.72rem', fontWeight: 600, color: q.confidence >= 70 ? theme.green : q.confidence >= 50 ? theme.yellow : theme.red }}>

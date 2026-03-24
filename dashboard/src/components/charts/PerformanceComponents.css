@@ -12,11 +12,11 @@
 }
 
 .model-breakdown-table th {
-  background-color: #f8f9fa;
+  background-color: #f6faf8;
   padding: 0.75rem 1rem;
   text-align: left;
   font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid #d4e5dc;
   white-space: nowrap;
 }
 
@@ -27,7 +27,7 @@
 }
 
 .model-breakdown-table th.sortable:hover {
-  background-color: #e9ecef;
+  background-color: #edf5f1;
 }
 
 .model-breakdown-table th.numeric {
@@ -36,7 +36,7 @@
 
 .model-breakdown-table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid #d4e5dc;
 }
 
 .model-breakdown-table td.numeric {
@@ -49,14 +49,14 @@
 }
 
 .model-breakdown-table td.best-metric {
-  background-color: #d4edda;
+  background-color: #d4ede0;
   font-weight: 600;
-  color: #155724;
+  color: #1a5a3a;
 }
 
 .best-badge {
   margin-left: 0.5rem;
-  color: #ffc107;
+  color: #d4a84b;
   font-size: 1rem;
 }
 
@@ -69,7 +69,7 @@
 .empty-state {
   padding: 2rem;
   text-align: center;
-  color: #6c757d;
+  color: #5a7268;
 }
 
 /* ConfusionMatrixChart Styles */
@@ -89,7 +89,7 @@
 .error-tooltip {
   background: white;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #bdd4c8;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
@@ -104,12 +104,12 @@
 .tooltip-percentage {
   font-size: 12px;
   margin: 2px 0;
-  color: #666;
+  color: #5a7268;
 }
 
 .tooltip-outlier {
   margin-top: 6px;
-  color: #d32f2f;
+  color: #c04040;
   font-size: 12px;
   font-weight: 600;
 }
@@ -123,7 +123,7 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  border-bottom: 2px solid #e0e0e0;
+  border-bottom: 2px solid #d4e5dc;
 }
 
 .view-toggle button {
@@ -134,17 +134,17 @@
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #666;
+  color: #5a7268;
   transition: all 0.2s;
 }
 
 .view-toggle button:hover {
-  color: #333;
+  color: #2a4038;
 }
 
 .view-toggle button.active {
-  color: #8884d8;
-  border-bottom-color: #8884d8;
+  color: #5a9e87;
+  border-bottom-color: #5a9e87;
 }
 
 .metrics-table-container {
@@ -158,16 +158,16 @@
 }
 
 .metrics-table th {
-  background-color: #f8f9fa;
+  background-color: #f6faf8;
   padding: 0.75rem;
   text-align: left;
   font-weight: 600;
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid #d4e5dc;
 }
 
 .metrics-table td {
   padding: 0.75rem;
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid #d4e5dc;
 }
 
 .metrics-table td.metric-name {
@@ -180,14 +180,14 @@
 }
 
 .metrics-table td.metric-value.model {
-  background-color: #e3f2fd;
+  background-color: #e3f2ed;
   font-weight: 600;
 }
 
 .alpha-section {
   margin-top: 2rem;
   padding: 1rem;
-  background-color: #f8f9fa;
+  background-color: #f6faf8;
   border-radius: 8px;
   text-align: center;
 }
@@ -195,7 +195,7 @@
 .alpha-section h4 {
   margin: 0 0 0.5rem 0;
   font-size: 0.875rem;
-  color: #666;
+  color: #5a7268;
 }
 
 .alpha-value {
@@ -205,23 +205,23 @@
 }
 
 .alpha-value.positive {
-  color: #2e7d32;
+  color: #2e7d4a;
 }
 
 .alpha-value.negative {
-  color: #d32f2f;
+  color: #c04040;
 }
 
 .alpha-description {
   font-size: 0.875rem;
-  color: #666;
+  color: #5a7268;
   margin: 0.5rem 0 0 0;
 }
 
 .benchmark-tooltip {
   background: white;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #bdd4c8;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
@@ -245,7 +245,7 @@
 
 .model-selector select {
   padding: 0.5rem;
-  border: 1px solid #dee2e6;
+  border: 1px solid #d4e5dc;
   border-radius: 4px;
   font-size: 0.875rem;
   background-color: white;
@@ -254,14 +254,14 @@
 
 .model-selector select:focus {
   outline: none;
-  border-color: #8884d8;
+  border-color: #5a9e87;
   box-shadow: 0 0 0 3px rgba(136, 132, 216, 0.1);
 }
 
 .feature-tooltip {
   background: white;
   padding: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid #bdd4c8;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   max-width: 300px;
@@ -269,7 +269,7 @@
 
 .tooltip-description {
   font-size: 11px;
-  color: #999;
+  color: #8fa89c;
   margin-top: 8px;
   line-height: 1.4;
 }
@@ -293,7 +293,7 @@
   display: none;
   background: white;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid #bdd4c8;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   pointer-events: none;
@@ -305,77 +305,77 @@
 /* Dark Mode Styles */
 @media (prefers-color-scheme: dark) {
   .model-breakdown-table th {
-    background-color: #2d3748;
-    border-bottom-color: #4a5568;
+    background-color: #1e3030;
+    border-bottom-color: #2a3d36;
   }
 
   .model-breakdown-table th.sortable:hover {
-    background-color: #374151;
+    background-color: #2a4038;
   }
 
   .model-breakdown-table td {
-    border-bottom-color: #4a5568;
+    border-bottom-color: #2a3d36;
   }
 
   .model-breakdown-table td.best-metric {
-    background-color: #2d5016;
-    color: #9ae6b4;
+    background-color: #1e4030;
+    color: #6dcaa5;
   }
 
   .error-tooltip,
   .benchmark-tooltip,
   .feature-tooltip,
   .correlation-tooltip {
-    background: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
+    background: #1e3030;
+    border-color: #2a3d36;
+    color: #d4e5dc;
   }
 
   .tooltip-value,
   .tooltip-percentage {
-    color: #cbd5e0;
+    color: #b0c8bc;
   }
 
   .tooltip-outlier {
-    color: #fc8181;
+    color: #e89090;
   }
 
   .tooltip-description {
-    color: #a0aec0;
+    color: #8fa89c;
   }
 
   .view-toggle {
-    border-bottom-color: #4a5568;
+    border-bottom-color: #2a3d36;
   }
 
   .view-toggle button {
-    color: #cbd5e0;
+    color: #b0c8bc;
   }
 
   .view-toggle button:hover {
-    color: #e2e8f0;
+    color: #d4e5dc;
   }
 
   .metrics-table th {
-    background-color: #2d3748;
-    border-bottom-color: #4a5568;
+    background-color: #1e3030;
+    border-bottom-color: #2a3d36;
   }
 
   .metrics-table td {
-    border-bottom-color: #4a5568;
+    border-bottom-color: #2a3d36;
   }
 
   .metrics-table td.metric-value.model {
-    background-color: #2c5282;
+    background-color: #2c6252;
   }
 
   .alpha-section {
-    background-color: #2d3748;
+    background-color: #1e3030;
   }
 
   .model-selector select {
-    background-color: #2d3748;
-    border-color: #4a5568;
-    color: #e2e8f0;
+    background-color: #1e3030;
+    border-color: #2a3d36;
+    color: #d4e5dc;
   }
 }

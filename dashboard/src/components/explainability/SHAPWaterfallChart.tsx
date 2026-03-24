@@ -15,12 +15,12 @@ interface SHAPWaterfallChartProps {
 
 /* ── Category colors ── */
 const CAT_COLORS: Record<string, string> = {
-  'Técnica': '#8b5cf6',
-  'Volume': '#8b5cf6',
-  'Fundamental': '#10b981',
-  'Macro': '#f59e0b',
-  'Setorial': '#ec4899',
-  'Sentimento': '#06b6d4',
+  'Técnica': '#5a9e87',
+  'Volume': '#5a9e87',
+  'Fundamental': '#4ead8a',
+  'Macro': '#d4a84b',
+  'Setorial': '#d4a84b',
+  'Sentimento': '#5ab0a0',
 };
 
 /**
@@ -76,11 +76,11 @@ function deriveContributions(td: TickerData) {
 
 const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {
   const theme = useMemo(() => ({
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    subtle: darkMode ? '#121a1a' : '#f6faf8',
   }), [darkMode]);
 
   const chartData = useMemo(() => deriveContributions(tickerData), [tickerData]);
@@ -102,7 +102,7 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <TrendingUp size={18} color="#8b5cf6" />
+        <TrendingUp size={18} color="#5a9e87" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Contribuição dos Fatores (SHAP) — {ticker}
         </h3>
@@ -123,13 +123,13 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
         </div>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '0.68rem', color: theme.textSecondary }}>Previsão 20d</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: prediction >= baseValue ? '#4ead8a' : '#e07070' }}>
             <ProValue isPro={isPro} placeholder="R$ ••••">R$ {prediction.toFixed(2)}</ProValue>
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '0.68rem', color: theme.textSecondary }}>Diferença</div>
-          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: prediction >= baseValue ? '#10b981' : '#ef4444' }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: prediction >= baseValue ? '#4ead8a' : '#e07070' }}>
             <ProValue isPro={isPro} placeholder="±R$ ••">{prediction >= baseValue ? '+' : ''}R$ {(prediction - baseValue).toFixed(2)}</ProValue>
           </div>
         </div>
@@ -141,13 +141,13 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
           <span key={cs.category} style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.25rem 0.6rem', borderRadius: 20, fontSize: '0.7rem', fontWeight: 600,
-            background: `${CAT_COLORS[cs.category] || '#9895b0'}15`,
-            color: CAT_COLORS[cs.category] || '#9895b0',
-            border: `1px solid ${CAT_COLORS[cs.category] || '#9895b0'}30`,
+            background: `${CAT_COLORS[cs.category] || '#8fa89c'}15`,
+            color: CAT_COLORS[cs.category] || '#8fa89c',
+            border: `1px solid ${CAT_COLORS[cs.category] || '#8fa89c'}30`,
           }}>
             <span style={{
               width: 8, height: 8, borderRadius: '50%',
-              backgroundColor: CAT_COLORS[cs.category] || '#9895b0',
+              backgroundColor: CAT_COLORS[cs.category] || '#8fa89c',
             }} />
             {cs.category}: {cs.value >= 0 ? '+' : ''}R$ {cs.value.toFixed(2)}
           </span>
@@ -173,7 +173,7 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
               <ReferenceLine x={0} stroke={theme.textSecondary} strokeDasharray="3 3" />
               <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                 {chartData.map((entry, i) => (
-                  <Cell key={i} fill={CAT_COLORS[entry.category] || '#9895b0'} opacity={0.85} />
+                  <Cell key={i} fill={CAT_COLORS[entry.category] || '#8fa89c'} opacity={0.85} />
                 ))}
               </Bar>
             </BarChart>

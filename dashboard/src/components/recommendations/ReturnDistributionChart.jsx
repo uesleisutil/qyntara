@@ -42,14 +42,14 @@ const ReturnDistributionChart = ({ recommendations }) => {
   }, [recommendations]);
 
   if (chartData.length === 0) {
-    return <p style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Sem dados disponíveis</p>;
+    return <p style={{ textAlign: 'center', padding: '2rem', color: '#5a7268' }}>Sem dados disponíveis</p>;
   }
 
   return (
     <div style={{ width: '100%', height: '300px' }}>
       <ResponsiveContainer>
         <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
           <XAxis 
             dataKey="range" 
             angle={-45}
@@ -64,7 +64,7 @@ const ReturnDistributionChart = ({ recommendations }) => {
           <Tooltip 
             contentStyle={{ 
               backgroundColor: 'white', 
-              border: '1px solid #e2e8f0',
+              border: '1px solid #d4e5dc',
               borderRadius: '8px',
               padding: '8px'
             }}
@@ -74,7 +74,7 @@ const ReturnDistributionChart = ({ recommendations }) => {
             {chartData.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
-                fill={entry.binStart >= 0 ? '#10b981' : '#ef4444'} 
+                fill={entry.binStart >= 0 ? '#4ead8a' : '#e07070'} 
               />
             ))}
           </Bar>

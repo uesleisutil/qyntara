@@ -34,7 +34,7 @@ export function SkipLink({ targetId, label }: SkipLinkProps) {
           position: absolute;
           top: -40px;
           left: 0;
-          background: var(--primary-color, #7c3aed);
+          background: var(--primary-color, #4a8e77);
           color: white;
           padding: 0.5rem 1rem;
           text-decoration: none;
@@ -46,7 +46,7 @@ export function SkipLink({ targetId, label }: SkipLinkProps) {
         
         .skip-link:focus {
           top: 0;
-          outline: 3px solid var(--focus-color, #fbbf24);
+          outline: 3px solid var(--focus-color, #e0b85c);
           outline-offset: 2px;
         }
       `}</style>

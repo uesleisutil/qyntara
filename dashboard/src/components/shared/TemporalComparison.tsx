@@ -48,9 +48,9 @@ export const TemporalComparisonToggle: React.FC = () => {
       gap: '1rem', 
       alignItems: 'center',
       padding: '0.75rem',
-      background: '#f8fafc',
+      background: '#f6faf8',
       borderRadius: '8px',
-      border: '1px solid #e2e8f0',
+      border: '1px solid #d4e5dc',
     }}>
       <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
         <input
@@ -66,16 +66,16 @@ export const TemporalComparisonToggle: React.FC = () => {
 
       {enabled && (
         <>
-          <span style={{ color: '#cbd5e1' }}>|</span>
+          <span style={{ color: '#b0c8bc' }}>|</span>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <label style={{ fontSize: '0.875rem', color: '#64748b' }}>Compare to:</label>
+            <label style={{ fontSize: '0.875rem', color: '#5a7268' }}>Compare to:</label>
             <select
               value={comparisonPeriod}
               onChange={(e) => setComparisonPeriod(e.target.value as any)}
               style={{
                 padding: '0.25rem 0.5rem',
                 fontSize: '0.875rem',
-                border: '1px solid #cbd5e1',
+                border: '1px solid #b0c8bc',
                 borderRadius: '4px',
                 background: 'white',
                 cursor: 'pointer',
@@ -117,7 +117,7 @@ export const ComparisonValue: React.FC<ComparisonValueProps> = ({
   if (!enabled) {
     return (
       <div className="comparison-value">
-        {label && <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>{label}</div>}
+        {label && <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.25rem' }}>{label}</div>}
         <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>
           {format(current)}{unit}
         </div>
@@ -131,12 +131,12 @@ export const ComparisonValue: React.FC<ComparisonValueProps> = ({
   const isImprovement = reverseColors ? absoluteChange < 0 : absoluteChange > 0;
   const isDecline = reverseColors ? absoluteChange > 0 : absoluteChange < 0;
   
-  const changeColor = isImprovement ? '#10b981' : isDecline ? '#ef4444' : '#64748b';
+  const changeColor = isImprovement ? '#4ead8a' : isDecline ? '#e07070' : '#5a7268';
   const ChangeIcon = isImprovement ? ArrowUp : isDecline ? ArrowDown : Minus;
 
   return (
     <div className="comparison-value">
-      {label && <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>{label}</div>}
+      {label && <div style={{ fontSize: '0.75rem', color: '#5a7268', marginBottom: '0.25rem' }}>{label}</div>}
       
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
         <div style={{ fontSize: '1.5rem', fontWeight: 600 }}>
@@ -158,7 +158,7 @@ export const ComparisonValue: React.FC<ComparisonValueProps> = ({
 
       <div style={{ 
         fontSize: '0.75rem', 
-        color: '#64748b',
+        color: '#5a7268',
         marginTop: '0.25rem',
         display: 'flex',
         gap: '0.5rem',
@@ -197,13 +197,13 @@ export const TemporalKPICard: React.FC<TemporalKPICardProps> = ({
     <div style={{
       padding: '1.5rem',
       background: 'white',
-      border: '1px solid #e5e7eb',
+      border: '1px solid #d4e5dc',
       borderRadius: '8px',
       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-        {icon && <span style={{ color: '#64748b' }}>{icon}</span>}
-        <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: '#64748b' }}>
+        {icon && <span style={{ color: '#5a7268' }}>{icon}</span>}
+        <h3 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600, color: '#5a7268' }}>
           {title}
         </h3>
       </div>

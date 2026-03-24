@@ -87,7 +87,7 @@ const TemporalComparison: React.FC<Props> = ({ darkMode, theme }) => {
   const maxDays = Math.min(dates.length - 1, 10);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '0.75rem',
     marginBottom: '0.75rem',
   };
@@ -96,7 +96,7 @@ const TemporalComparison: React.FC<Props> = ({ darkMode, theme }) => {
     <div style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.4rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Calendar size={14} color="#8b5cf6" />
+          <Calendar size={14} color="#5a9e87" />
           <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>Comparação Temporal</span>
           <InfoTooltip text="Mostra como o ranking mudou em relação a dias anteriores. Setas indicam posições ganhas/perdidas." darkMode={darkMode} size={11} />
         </div>
@@ -104,9 +104,9 @@ const TemporalComparison: React.FC<Props> = ({ darkMode, theme }) => {
           {[1, 3, 5, 7].filter(d => d <= maxDays).map(d => (
             <button key={d} onClick={() => setDaysBack(d)} style={{
               padding: '0.2rem 0.5rem', borderRadius: 6, fontSize: '0.7rem', fontWeight: 600,
-              border: `1px solid ${daysBack === d ? '#8b5cf6' : theme.border}`,
-              background: daysBack === d ? 'rgba(139,92,246,0.15)' : 'transparent',
-              color: daysBack === d ? '#8b5cf6' : theme.textSecondary, cursor: 'pointer',
+              border: `1px solid ${daysBack === d ? '#5a9e87' : theme.border}`,
+              background: daysBack === d ? 'rgba(90,158,135,0.15)' : 'transparent',
+              color: daysBack === d ? '#5a9e87' : theme.textSecondary, cursor: 'pointer',
             }}>
               {d}d
             </button>
@@ -134,7 +134,7 @@ const TemporalComparison: React.FC<Props> = ({ darkMode, theme }) => {
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '0.1rem', marginLeft: 'auto',
                 fontWeight: 600, fontSize: '0.75rem',
-                color: d.diff > 0 ? '#10b981' : d.diff < 0 ? '#ef4444' : '#9895b0',
+                color: d.diff > 0 ? '#4ead8a' : d.diff < 0 ? '#e07070' : '#8fa89c',
               }}>
                 {d.diff > 0 ? <ArrowUp size={12} /> : d.diff < 0 ? <ArrowDown size={12} /> : <Minus size={12} />}
                 {d.diff > 0 ? `+${d.diff}` : d.diff}

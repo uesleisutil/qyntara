@@ -19,15 +19,15 @@ interface NotificationCenterProps {
 }
 
 const TYPE_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
-  auto_model_run: { icon: <Activity size={16} />, color: '#8b5cf6' },
-  auto_recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
-  auto_strong_signals: { icon: <AlertTriangle size={16} />, color: '#f59e0b' },
-  auto_history: { icon: <Clock size={16} />, color: '#8b5cf6' },
-  manual: { icon: <Send size={16} />, color: '#8b5cf6' },
-  system: { icon: <CheckCircle size={16} />, color: '#10b981' },
-  recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
-  model_run: { icon: <Activity size={16} />, color: '#8b5cf6' },
-  alert: { icon: <AlertTriangle size={16} />, color: '#f59e0b' },
+  auto_model_run: { icon: <Activity size={16} />, color: '#5a9e87' },
+  auto_recommendations: { icon: <TrendingUp size={16} />, color: '#4ead8a' },
+  auto_strong_signals: { icon: <AlertTriangle size={16} />, color: '#d4a84b' },
+  auto_history: { icon: <Clock size={16} />, color: '#5a9e87' },
+  manual: { icon: <Send size={16} />, color: '#5a9e87' },
+  system: { icon: <CheckCircle size={16} />, color: '#4ead8a' },
+  recommendations: { icon: <TrendingUp size={16} />, color: '#4ead8a' },
+  model_run: { icon: <Activity size={16} />, color: '#5a9e87' },
+  alert: { icon: <AlertTriangle size={16} />, color: '#d4a84b' },
 };
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => {
@@ -35,11 +35,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const theme = {
-    bg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    hover: darkMode ? '#2a2745' : '#f1f5f9',
+    bg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    hover: darkMode ? '#2a3d36' : '#e8f0ed',
   };
 
   const generateNotifications = useCallback(async () => {
@@ -94,7 +94,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
           title: 'Recomendações do dia prontas',
           message: `${recs.length} ações analisadas: ${buyCount} compra, ${sellCount} venda${topBuy ? `. Destaque: ${topBuy.ticker} (score ${topBuy.score.toFixed(1)})` : ''}`,
           time: new Date(recDate + 'T09:30:00'), read: readIds.includes(`rec-${recDate}`),
-          icon: <TrendingUp size={16} />, color: '#10b981',
+          icon: <TrendingUp size={16} />, color: '#4ead8a',
         });
 
         notes.push({
@@ -102,7 +102,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
           title: 'Modelo executado com sucesso',
           message: `Pipeline ML concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
           time: new Date(recDate + 'T08:00:00'), read: readIds.includes(`model-${recDate}`),
-          icon: <Activity size={16} />, color: '#8b5cf6',
+          icon: <Activity size={16} />, color: '#5a9e87',
         });
 
         const strongBuys = recs.filter((r: any) => r.score >= 4);
@@ -112,7 +112,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
             title: 'Sinais fortes detectados',
             message: `${strongBuys.length} ação(ões) com score acima de 4: ${strongBuys.map((r: any) => r.ticker).join(', ')}`,
             time: new Date(recDate + 'T09:35:00'), read: readIds.includes(`strong-${recDate}`),
-            icon: <AlertTriangle size={16} />, color: '#f59e0b',
+            icon: <AlertTriangle size={16} />, color: '#d4a84b',
           });
         }
       }
@@ -130,7 +130,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
             title: 'Dados históricos atualizados',
             message: `${sortedDates.length} dias de histórico disponíveis. Último: ${new Date(sortedDates[0] + 'T12:00:00').toLocaleDateString('pt-BR')}.`,
             time: new Date(sortedDates[0] + 'T07:00:00'), read: readIds.includes(`history-${sortedDates[0]}`),
-            icon: <Clock size={16} />, color: '#8b5cf6',
+            icon: <Clock size={16} />, color: '#5a9e87',
           });
         }
       }
@@ -142,7 +142,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
       title: 'Bem-vindo ao Qyntara',
       message: 'Explore as recomendações, acompanhe safras e analise a explicabilidade do modelo.',
       time: new Date(now.getTime() - 86400000), read: readIds.includes('welcome'),
-      icon: <CheckCircle size={16} />, color: '#10b981',
+      icon: <CheckCircle size={16} />, color: '#4ead8a',
     });
 
     // Signal change notifications (compare last 2 days from history)
@@ -173,7 +173,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
               title: `${signalChanges.length} mudança(s) de sinal`,
               message: signalChanges.slice(0, 5).join(', ') + (signalChanges.length > 5 ? ` e mais ${signalChanges.length - 5}` : ''),
               time: new Date(todayD + 'T09:40:00'), read: readIds.includes(`signal-change-${todayD}`),
-              icon: <AlertTriangle size={16} />, color: '#f59e0b',
+              icon: <AlertTriangle size={16} />, color: '#d4a84b',
             });
           }
         }
@@ -227,7 +227,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         {unreadCount > 0 && (
           <span style={{
             position: 'absolute', top: 2, right: 2, width: 16, height: 16, borderRadius: '50%',
-            background: '#ef4444', color: 'white', fontSize: '0.6rem', fontWeight: 700,
+            background: '#e07070', color: 'white', fontSize: '0.6rem', fontWeight: 700,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
         )}
@@ -249,7 +249,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {unreadCount > 0 && (
                   <button onClick={markAllRead} style={{
-                    background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer',
+                    background: 'none', border: 'none', color: '#5a9e87', cursor: 'pointer',
                     fontSize: '0.72rem', fontWeight: 500, padding: 0,
                   }}>Marcar todas como lidas</button>
                 )}
@@ -282,7 +282,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: n.read ? 400 : 600, color: theme.text }}>{n.title}</span>
-                      {!n.read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6', flexShrink: 0, marginTop: 5 }} />}
+                      {!n.read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#5a9e87', flexShrink: 0, marginTop: 5 }} />}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.4, marginTop: 2 }}>{n.message}</div>
                     <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginTop: 3, opacity: 0.7 }}>{timeAgo(n.time)}</div>

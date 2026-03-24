@@ -74,10 +74,10 @@ const ComparisonControls = ({ recommendations }) => {
             alignItems: 'center',
             gap: '0.5rem',
             padding: '0.5rem 1rem',
-            backgroundColor: comparisonMode ? '#8b5cf6' : 'white',
-            color: comparisonMode ? 'white' : '#64748b',
+            backgroundColor: comparisonMode ? '#5a9e87' : 'white',
+            color: comparisonMode ? 'white' : '#5a7268',
             border: '1px solid',
-            borderColor: comparisonMode ? '#8b5cf6' : '#cbd5e1',
+            borderColor: comparisonMode ? '#5a9e87' : '#b0c8bc',
             borderRadius: '6px',
             fontSize: '0.875rem',
             fontWeight: '500',
@@ -92,7 +92,7 @@ const ComparisonControls = ({ recommendations }) => {
         {/* Compare Button (Req 4.3) */}
         {comparisonMode && (
           <>
-            <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+            <span style={{ fontSize: '0.875rem', color: '#5a7268' }}>
               {selectedTickers.length} de {MAX_SELECTION} selecionados
             </span>
             
@@ -104,8 +104,8 @@ const ComparisonControls = ({ recommendations }) => {
                 alignItems: 'center',
                 gap: '0.5rem',
                 padding: '0.5rem 1rem',
-                backgroundColor: selectedTickers.length >= 2 ? '#10b981' : '#e2e8f0',
-                color: selectedTickers.length >= 2 ? 'white' : '#9895b0',
+                backgroundColor: selectedTickers.length >= 2 ? '#4ead8a' : '#d4e5dc',
+                color: selectedTickers.length >= 2 ? 'white' : '#8fa89c',
                 border: 'none',
                 borderRadius: '6px',
                 fontSize: '0.875rem',
@@ -126,8 +126,8 @@ const ComparisonControls = ({ recommendations }) => {
                 gap: '0.5rem',
                 padding: '0.5rem 1rem',
                 backgroundColor: 'white',
-                color: '#64748b',
-                border: '1px solid #cbd5e1',
+                color: '#5a7268',
+                border: '1px solid #b0c8bc',
                 borderRadius: '6px',
                 fontSize: '0.875rem',
                 cursor: selectedTickers.length > 0 ? 'pointer' : 'not-allowed',
@@ -146,12 +146,12 @@ const ComparisonControls = ({ recommendations }) => {
       {comparisonMode && (
         <div style={{
           padding: '1rem',
-          backgroundColor: '#eff6ff',
-          border: '1px solid #bfdbfe',
+          backgroundColor: '#edf5f1',
+          border: '1px solid #b0d4c8',
           borderRadius: '8px',
           marginBottom: '1rem'
         }}>
-          <p style={{ fontSize: '0.875rem', color: '#7c3aed', margin: 0 }}>
+          <p style={{ fontSize: '0.875rem', color: '#4a8e77', margin: 0 }}>
             <strong>Modo de comparação ativo:</strong> Clique nas caixas de seleção ao lado de cada ticker para comparar até {MAX_SELECTION} ações.
           </p>
         </div>

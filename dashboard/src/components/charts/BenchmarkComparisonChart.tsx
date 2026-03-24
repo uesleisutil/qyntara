@@ -137,7 +137,7 @@ export const BenchmarkComparisonChart: React.FC<BenchmarkComparisonChartProps> =
               data={timeSeriesData}
               margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
               <XAxis
                 dataKey="date"
                 tick={{ fontSize: 11 }}
@@ -164,7 +164,7 @@ export const BenchmarkComparisonChart: React.FC<BenchmarkComparisonChartProps> =
                 type="monotone"
                 dataKey="model"
                 name="Model"
-                stroke="#8884d8"
+                stroke="#5a9e87"
                 strokeWidth={2}
                 dot={false}
               />
@@ -172,7 +172,7 @@ export const BenchmarkComparisonChart: React.FC<BenchmarkComparisonChartProps> =
                 type="monotone"
                 dataKey="ibovespa"
                 name="Ibovespa"
-                stroke="#82ca9d"
+                stroke="#6dcaa5"
                 strokeWidth={2}
                 dot={false}
               />
@@ -180,7 +180,7 @@ export const BenchmarkComparisonChart: React.FC<BenchmarkComparisonChartProps> =
                 type="monotone"
                 dataKey="movingAverage"
                 name="Moving Average"
-                stroke="#ffc658"
+                stroke="#e0b85c"
                 strokeWidth={2}
                 dot={false}
               />
@@ -189,7 +189,7 @@ export const BenchmarkComparisonChart: React.FC<BenchmarkComparisonChartProps> =
                   type="monotone"
                   dataKey="cdi"
                   name="CDI"
-                  stroke="#ff7c7c"
+                  stroke="#e89090"
                   strokeWidth={2}
                   dot={false}
                   strokeDasharray="5 5"

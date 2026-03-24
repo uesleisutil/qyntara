@@ -143,13 +143,13 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
         <div
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid #e5e7eb',
+            border: '1px solid #d4e5dc',
             borderRadius: '8px',
             padding: '12px',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1f2937' }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1a2e26' }}>
             {new Date(label).toLocaleDateString()}
           </p>
           {payload.map((entry: any, index: number) => {
@@ -186,7 +186,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
   if (error) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#c04040' }}>
           <p>Error loading temporal accuracy chart: {error.message}</p>
         </div>
       </Card>
@@ -196,7 +196,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
   if (!data || data.length === 0) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
           <p>No data available for temporal accuracy chart</p>
         </div>
       </Card>
@@ -229,10 +229,10 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   style={{
                     padding: '0.5rem 1rem',
                     fontSize: '0.875rem',
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid #d4e5dc',
                     borderRadius: '6px',
-                    backgroundColor: granularity === g ? '#8b5cf6' : 'white',
-                    color: granularity === g ? 'white' : '#6b7280',
+                    backgroundColor: granularity === g ? '#5a9e87' : 'white',
+                    color: granularity === g ? 'white' : '#5a7268',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
                   }}
@@ -249,10 +249,10 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
               style={{
                 padding: '0.5rem 1rem',
                 fontSize: '0.875rem',
-                border: '1px solid #e5e7eb',
+                border: '1px solid #d4e5dc',
                 borderRadius: '6px',
                 backgroundColor: 'white',
-                color: '#6b7280',
+                color: '#5a7268',
                 cursor: 'pointer',
               }}
             >
@@ -269,10 +269,10 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
             data={dataWithTrends}
             margin={{ top: 20, right: 30, bottom: 20, left: 20 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
+              tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
               tickFormatter={(value) => {
                 const date = new Date(value);
                 return granularity === 'monthly'
@@ -281,7 +281,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
               }}
             />
             <YAxis
-              tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
+              tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
               domain={[0, 1]}
             />
             <Tooltip content={<CustomTooltip />} />
@@ -293,12 +293,12 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
             {/* Threshold line for acceptable accuracy (50%) */}
             <ReferenceLine
               y={0.5}
-              stroke="#dc2626"
+              stroke="#c04040"
               strokeDasharray="5 5"
               label={{
                 value: 'Min Acceptable (50%)',
                 position: 'insideTopRight',
-                style: { fontSize: '0.75rem', fill: '#dc2626' },
+                style: { fontSize: '0.75rem', fill: '#c04040' },
               }}
             />
 
@@ -309,7 +309,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="accuracy"
                   name="Accuracy"
-                  stroke="#10b981"
+                  stroke="#4ead8a"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   activeDot={{ r: 5 }}
@@ -318,7 +318,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="accuracyTrend"
                   name="Accuracy Trend"
-                  stroke="#10b981"
+                  stroke="#4ead8a"
                   strokeWidth={1}
                   strokeDasharray="5 5"
                   dot={false}
@@ -333,7 +333,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="mape"
                   name="MAPE"
-                  stroke="#f59e0b"
+                  stroke="#d4a84b"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   activeDot={{ r: 5 }}
@@ -342,7 +342,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="mapeTrend"
                   name="MAPE Trend"
-                  stroke="#f59e0b"
+                  stroke="#d4a84b"
                   strokeWidth={1}
                   strokeDasharray="5 5"
                   dot={false}
@@ -357,7 +357,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="correlation"
                   name="Correlation"
-                  stroke="#8b5cf6"
+                  stroke="#5a9e87"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   activeDot={{ r: 5 }}
@@ -366,7 +366,7 @@ export const TemporalAccuracyChart: React.FC<TemporalAccuracyChartProps> = ({
                   type="monotone"
                   dataKey="correlationTrend"
                   name="Correlation Trend"
-                  stroke="#8b5cf6"
+                  stroke="#5a9e87"
                   strokeWidth={1}
                   strokeDasharray="5 5"
                   dot={false}

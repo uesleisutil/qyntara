@@ -61,13 +61,13 @@ const SystemHealthIndicator: React.FC = () => {
   const getStatusColor = (status: 'green' | 'yellow' | 'red'): string => {
     switch (status) {
       case 'green':
-        return '#10b981'; // green
+        return '#4ead8a'; // green
       case 'yellow':
-        return '#f59e0b'; // amber
+        return '#d4a84b'; // amber
       case 'red':
-        return '#ef4444'; // red
+        return '#e07070'; // red
       default:
-        return '#6b7280'; // gray
+        return '#5a7268'; // gray
     }
   };
 
@@ -99,7 +99,7 @@ const SystemHealthIndicator: React.FC = () => {
           gap: '0.5rem',
           padding: '0.5rem 0.75rem',
           background: 'transparent',
-          border: '1px solid #e5e7eb',
+          border: '1px solid #d4e5dc',
           borderRadius: '0.375rem',
           cursor: 'pointer',
           transition: 'background-color 0.2s',
@@ -140,7 +140,7 @@ const SystemHealthIndicator: React.FC = () => {
             width: '20rem',
             maxWidth: '90vw',
             backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
+            border: '1px solid #d4e5dc',
             borderRadius: '0.5rem',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             zIndex: 50,
@@ -153,14 +153,14 @@ const SystemHealthIndicator: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '1rem',
-              borderBottom: '1px solid #e5e7eb',
+              borderBottom: '1px solid #d4e5dc',
             }}
           >
             <div>
               <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600' }}>
                 System Status
               </h3>
-              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#6b7280' }}>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.75rem', color: '#5a7268' }}>
                 Last checked {formatLastCheck(health.lastCheck)}
               </p>
             </div>
@@ -173,12 +173,12 @@ const SystemHealthIndicator: React.FC = () => {
                 background: 'transparent',
                 border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                color: '#6b7280',
+                color: '#5a7268',
                 borderRadius: '0.25rem',
               }}
               onMouseEnter={(e) => {
                 if (!loading) {
-                  e.currentTarget.style.backgroundColor = '#f3f4f6';
+                  e.currentTarget.style.backgroundColor = '#edf5f1';
                 }
               }}
               onMouseLeave={(e) => {
@@ -235,8 +235,8 @@ const SystemHealthIndicator: React.FC = () => {
           <div
             style={{
               padding: '1rem',
-              borderTop: '1px solid #e5e7eb',
-              backgroundColor: '#f9fafb',
+              borderTop: '1px solid #d4e5dc',
+              backgroundColor: '#f6faf8',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -293,13 +293,13 @@ const ComponentStatusItem: React.FC<ComponentStatusItemProps> = ({ label, compon
   const getComponentStatusColor = (status: ComponentHealth['status']): string => {
     switch (status) {
       case 'healthy':
-        return '#10b981';
+        return '#4ead8a';
       case 'warning':
-        return '#f59e0b';
+        return '#d4a84b';
       case 'failing':
-        return '#ef4444';
+        return '#e07070';
       default:
-        return '#6b7280';
+        return '#5a7268';
     }
   };
 
@@ -324,7 +324,7 @@ const ComponentStatusItem: React.FC<ComponentStatusItemProps> = ({ label, compon
         gap: '0.75rem',
         padding: '0.75rem',
         marginBottom: '0.5rem',
-        border: '1px solid #e5e7eb',
+        border: '1px solid #d4e5dc',
         borderRadius: '0.375rem',
       }}
     >
@@ -349,11 +349,11 @@ const ComponentStatusItem: React.FC<ComponentStatusItemProps> = ({ label, compon
         <div style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.125rem' }}>
           {label}
         </div>
-        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+        <div style={{ fontSize: '0.75rem', color: '#5a7268' }}>
           {component.message}
         </div>
         {component.details && (
-          <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.125rem' }}>
+          <div style={{ fontSize: '0.75rem', color: '#8fa89c', marginTop: '0.125rem' }}>
             {component.details}
           </div>
         )}

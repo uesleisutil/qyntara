@@ -15,11 +15,11 @@ interface ExplanationTextProps {
 
 /* ── Category badge colors ── */
 const CAT_BADGE: Record<string, { bg: string; color: string }> = {
-  'Técnica': { bg: 'rgba(59,130,246,0.12)', color: '#8b5cf6' },
-  'Volume': { bg: 'rgba(139,92,246,0.12)', color: '#8b5cf6' },
-  'Fundamental': { bg: 'rgba(16,185,129,0.12)', color: '#10b981' },
-  'Macro': { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b' },
-  'Setorial': { bg: 'rgba(236,72,153,0.12)', color: '#ec4899' },
+  'Técnica': { bg: 'rgba(59,130,246,0.12)', color: '#5a9e87' },
+  'Volume': { bg: 'rgba(90,158,135,0.12)', color: '#5a9e87' },
+  'Fundamental': { bg: 'rgba(16,185,129,0.12)', color: '#4ead8a' },
+  'Macro': { bg: 'rgba(212,168,75,0.12)', color: '#d4a84b' },
+  'Setorial': { bg: 'rgba(236,72,153,0.12)', color: '#d4a84b' },
 };
 
 interface Factor { name: string; detail: string; impact: string; category: string; }
@@ -79,22 +79,22 @@ function deriveExplanation(td: TickerData) {
 
 const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {
   const theme = {
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    subtle: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    subtle: darkMode ? '#121a1a' : '#f6faf8',
   };
 
   const { confidence, posFactors, negFactors } = useMemo(() => deriveExplanation(tickerData), [tickerData]);
-  const confColor = confidence >= 0.7 ? '#10b981' : confidence >= 0.5 ? '#f59e0b' : '#ef4444';
+  const confColor = confidence >= 0.7 ? '#4ead8a' : confidence >= 0.5 ? '#d4a84b' : '#e07070';
   const confLabel = confidence >= 0.7 ? 'alta' : confidence >= 0.5 ? 'moderada' : 'baixa';
   const signal = tickerData.score >= SCORE_BUY_THRESHOLD ? 'Compra' : tickerData.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
 
   const renderFactors = (factors: Factor[], positive: boolean) => {
     if (!factors.length) return null;
     const Icon = positive ? TrendingUp : TrendingDown;
-    const color = positive ? '#10b981' : '#ef4444';
+    const color = positive ? '#4ead8a' : '#e07070';
     return (
       <div style={{ marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
@@ -103,7 +103,7 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {factors.map((f, i) => {
-            const badge = CAT_BADGE[f.category] || { bg: 'rgba(148,163,184,0.12)', color: '#9895b0' };
+            const badge = CAT_BADGE[f.category] || { bg: 'rgba(148,163,184,0.12)', color: '#8fa89c' };
             return (
               <div key={i} style={{
                 display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
@@ -136,7 +136,7 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <MessageSquare size={18} color="#8b5cf6" />
+        <MessageSquare size={18} color="#5a9e87" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Explicação em Linguagem Natural — {ticker}
         </h3>
@@ -151,14 +151,14 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
         <p style={{ margin: '0 0 0.75rem', fontSize: '0.85rem', color: theme.text }}>
           O modelo ensemble analisa <strong>~83 features</strong> (técnicas, volume, fundamentalistas, macro, setoriais e sentimento)
           e prevê que <strong>{ticker}</strong> atingirá{' '}
-          <ProValue isPro={isPro} style={{ color: '#8b5cf6', fontWeight: 700 }} placeholder="R$ ••••">
+          <ProValue isPro={isPro} style={{ color: '#5a9e87', fontWeight: 700 }} placeholder="R$ ••••">
             R$ {tickerData.pred_price_t_plus_20.toFixed(2)}
           </ProValue>{' '}
           nos próximos 20 pregões (retorno de{' '}
-          <ProValue isPro={isPro} style={{ color: tickerData.exp_return_20 >= 0 ? '#10b981' : '#ef4444', fontWeight: 700 }} placeholder="±••%">
+          <ProValue isPro={isPro} style={{ color: tickerData.exp_return_20 >= 0 ? '#4ead8a' : '#e07070', fontWeight: 700 }} placeholder="±••%">
             {(tickerData.exp_return_20 * 100).toFixed(1)}%
           </ProValue>).
-          Sinal: <strong>{signal}</strong> · Score: <strong style={{ color: '#8b5cf6' }}>{tickerData.score.toFixed(2)}</strong> ·
+          Sinal: <strong>{signal}</strong> · Score: <strong style={{ color: '#5a9e87' }}>{tickerData.score.toFixed(2)}</strong> ·
           Confiança: <strong style={{ color: confColor }}>{confLabel} ({(confidence * 100).toFixed(0)}%)</strong>
         </p>
 

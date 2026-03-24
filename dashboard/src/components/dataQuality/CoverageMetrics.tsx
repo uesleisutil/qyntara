@@ -49,15 +49,15 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
   const [showExcluded, setShowExcluded] = useState(false);
 
   const theme = {
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    hover: darkMode ? '#2a2745' : '#f8fafc',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    hover: darkMode ? '#2a3d36' : '#f6faf8',
   };
 
   const isLowCoverage = data.coverageRate < 0.9;
-  const coverageColor = data.coverageRate >= 0.9 ? '#10b981' : data.coverageRate >= 0.8 ? '#f59e0b' : '#dc2626';
+  const coverageColor = data.coverageRate >= 0.9 ? '#4ead8a' : data.coverageRate >= 0.8 ? '#d4a84b' : '#c04040';
 
   // Group excluded tickers by reason
   const excludedByReason = data.excludedTickers.reduce((acc, ticker) => {
@@ -95,7 +95,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
             <div style={{ fontSize: '0.875rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>
               Covered Tickers
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#10b981' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#4ead8a' }}>
               {data.coveredTickers}
             </div>
           </div>
@@ -104,7 +104,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
             <div style={{ fontSize: '0.875rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>
               Excluded Tickers
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#c04040' }}>
               {data.excludedTickers.length}
             </div>
           </div>
@@ -145,11 +145,11 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
               gap: '0.5rem',
               marginTop: '0.5rem',
               padding: '0.75rem',
-              backgroundColor: '#dc262620',
+              backgroundColor: '#c0404020',
               borderRadius: '6px'
             }}>
-              <AlertTriangle size={16} color="#dc2626" />
-              <span style={{ fontSize: '0.875rem', color: '#dc2626', fontWeight: '500' }}>
+              <AlertTriangle size={16} color="#c04040" />
+              <span style={{ fontSize: '0.875rem', color: '#c04040', fontWeight: '500' }}>
                 Coverage below 90% threshold
               </span>
             </div>
@@ -182,7 +182,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
           style={{
             width: '100%',
             padding: '1rem',
-            backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc',
+            backgroundColor: darkMode ? '#121a1a' : '#f6faf8',
             border: `1px solid ${theme.border}`,
             borderRadius: '8px',
             cursor: 'pointer',
@@ -200,7 +200,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
             fontWeight: '600',
             color: theme.text
           }}>
-            <TrendingDown size={20} color="#dc2626" />
+            <TrendingDown size={20} color="#c04040" />
             Excluded Tickers ({data.excludedTickers.length})
           </div>
           {showExcluded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -220,7 +220,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
                   padding: isMobile ? '1rem' : '1.25rem',
                   border: `1px solid ${theme.border}`,
                   borderRadius: '8px',
-                  backgroundColor: darkMode ? '#0c0a1a' : '#f8fafc'
+                  backgroundColor: darkMode ? '#121a1a' : '#f6faf8'
                 }}
               >
                 <div style={{ 
@@ -232,7 +232,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
-                  <AlertTriangle size={16} color="#f59e0b" />
+                  <AlertTriangle size={16} color="#d4a84b" />
                   {reason} ({tickers.length})
                 </div>
                 
@@ -246,7 +246,7 @@ export const CoverageMetrics: React.FC<CoverageMetricsProps> = ({
                       key={ticker.ticker}
                       style={{
                         padding: '0.5rem 0.75rem',
-                        backgroundColor: darkMode ? '#2a2745' : '#e2e8f0',
+                        backgroundColor: darkMode ? '#2a3d36' : '#d4e5dc',
                         borderRadius: '6px',
                         fontSize: '0.875rem',
                         fontWeight: '500',

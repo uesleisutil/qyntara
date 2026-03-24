@@ -122,7 +122,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
         {/* Header */}
         <div style={{
           padding: '1.5rem',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: '1px solid #d4e5dc',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -131,7 +131,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
           backgroundColor: 'white',
           zIndex: 1
         }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#1a1836' }}>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#1a2626' }}>
             Comparação de Tickers
           </h2>
           <button
@@ -144,7 +144,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
               borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
-              color: '#64748b'
+              color: '#5a7268'
             }}
             aria-label="Fechar modal"
           >
@@ -164,15 +164,15 @@ const ComparisonModal = ({ tickers, onClose }) => {
             {tickers.map((ticker, idx) => (
               <div key={idx} style={{
                 padding: '1.5rem',
-                border: '2px solid #e2e8f0',
+                border: '2px solid #d4e5dc',
                 borderRadius: '12px',
-                backgroundColor: '#f8fafc'
+                backgroundColor: '#f6faf8'
               }}>
                 <h3 style={{ 
                   margin: '0 0 1rem 0', 
                   fontSize: '1.25rem', 
                   fontWeight: 'bold', 
-                  color: '#1a1836',
+                  color: '#1a2626',
                   textAlign: 'center'
                 }}>
                   {ticker.ticker}
@@ -185,14 +185,14 @@ const ComparisonModal = ({ tickers, onClose }) => {
                     borderRadius: '8px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <BarChart3 size={14} color="#64748b" />
-                      <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>Score</p>
+                      <BarChart3 size={14} color="#5a7268" />
+                      <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: 0 }}>Score</p>
                     </div>
                     <p style={{ 
                       fontSize: '1.5rem', 
                       fontWeight: 'bold', 
                       margin: 0,
-                      color: (ticker.confidence_score || ticker.score || 0) === bestScore ? '#10b981' : '#1a1836'
+                      color: (ticker.confidence_score || ticker.score || 0) === bestScore ? '#4ead8a' : '#1a2626'
                     }}>
                       {(ticker.confidence_score || ticker.score || 0).toFixed(1)}
                     </p>
@@ -204,15 +204,15 @@ const ComparisonModal = ({ tickers, onClose }) => {
                     borderRadius: '8px'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                      <TrendingUp size={14} color="#64748b" />
-                      <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>Retorno Esperado</p>
+                      <TrendingUp size={14} color="#5a7268" />
+                      <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: 0 }}>Retorno Esperado</p>
                     </div>
                     <p style={{ 
                       fontSize: '1.5rem', 
                       fontWeight: 'bold', 
                       margin: 0,
-                      color: ((ticker.expected_return || ticker.exp_return_20 || 0) * 100) === bestReturn ? '#10b981' : 
-                             ((ticker.expected_return || ticker.exp_return_20 || 0) >= 0 ? '#1a1836' : '#ef4444')
+                      color: ((ticker.expected_return || ticker.exp_return_20 || 0) * 100) === bestReturn ? '#4ead8a' : 
+                             ((ticker.expected_return || ticker.exp_return_20 || 0) >= 0 ? '#1a2626' : '#e07070')
                     }}>
                       {((ticker.expected_return || ticker.exp_return_20 || 0) * 100).toFixed(2)}%
                     </p>
@@ -223,8 +223,8 @@ const ComparisonModal = ({ tickers, onClose }) => {
                     backgroundColor: 'white',
                     borderRadius: '8px'
                   }}>
-                    <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Setor</p>
-                    <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0, color: '#1a1836' }}>
+                    <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: '0 0 0.25rem 0' }}>Setor</p>
+                    <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0, color: '#1a2626' }}>
                       {ticker.sector || '-'}
                     </p>
                   </div>
@@ -239,7 +239,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
               fontSize: '1.125rem', 
               fontWeight: '600', 
               marginBottom: '1rem', 
-              color: '#1a1836',
+              color: '#1a2626',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem'
@@ -254,19 +254,19 @@ const ComparisonModal = ({ tickers, onClose }) => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 padding: '3rem',
-                backgroundColor: '#f8fafc',
+                backgroundColor: '#f6faf8',
                 borderRadius: '8px'
               }}>
-                <Loader size={24} className="animate-spin" style={{ color: '#8b5cf6' }} />
-                <span style={{ marginLeft: '0.5rem', color: '#64748b' }}>Carregando histórico...</span>
+                <Loader size={24} className="animate-spin" style={{ color: '#5a9e87' }} />
+                <span style={{ marginLeft: '0.5rem', color: '#5a7268' }}>Carregando histórico...</span>
               </div>
             ) : historicalData.length === 0 ? (
               <div style={{
                 padding: '2rem',
                 textAlign: 'center',
-                backgroundColor: '#f8fafc',
+                backgroundColor: '#f6faf8',
                 borderRadius: '8px',
-                color: '#9895b0',
+                color: '#8fa89c',
                 fontSize: '0.85rem'
               }}>
                 Histórico de desempenho não disponível via API.
@@ -274,32 +274,32 @@ const ComparisonModal = ({ tickers, onClose }) => {
             ) : (
               <div style={{
                 padding: '1rem',
-                backgroundColor: '#f8fafc',
+                backgroundColor: '#f6faf8',
                 borderRadius: '8px',
-                border: '1px solid #e2e8f0'
+                border: '1px solid #d4e5dc'
               }}>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={historicalData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
                     <XAxis 
                       dataKey="date" 
-                      tick={{ fontSize: 12, fill: '#64748b' }}
-                      stroke="#cbd5e1"
+                      tick={{ fontSize: 12, fill: '#5a7268' }}
+                      stroke="#b0c8bc"
                     />
                     <YAxis 
-                      tick={{ fontSize: 12, fill: '#64748b' }}
-                      stroke="#cbd5e1"
+                      tick={{ fontSize: 12, fill: '#5a7268' }}
+                      stroke="#b0c8bc"
                       label={{ 
                         value: 'Retorno (%)', 
                         angle: -90, 
                         position: 'insideLeft',
-                        style: { fontSize: 12, fill: '#64748b' }
+                        style: { fontSize: 12, fill: '#5a7268' }
                       }}
                     />
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: 'white',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid #d4e5dc',
                         borderRadius: '6px',
                         fontSize: '0.875rem'
                       }}
@@ -311,7 +311,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                     />
                     {tickers.map((ticker, idx) => {
                       // Generate distinct colors for each ticker
-                      const colors = ['#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                      const colors = ['#5a9e87', '#4ead8a', '#d4a84b', '#e07070', '#5a9e87'];
                       return (
                         <Line
                           key={ticker.ticker}
@@ -328,7 +328,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                 </ResponsiveContainer>
                 <p style={{ 
                   fontSize: '0.75rem', 
-                  color: '#64748b', 
+                  color: '#5a7268', 
                   marginTop: '0.5rem',
                   textAlign: 'center'
                 }}>
@@ -344,7 +344,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
               fontSize: '1.125rem', 
               fontWeight: '600', 
               marginBottom: '1rem', 
-              color: '#1a1836',
+              color: '#1a2626',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem'
@@ -355,19 +355,19 @@ const ComparisonModal = ({ tickers, onClose }) => {
             
             <div style={{ 
               overflowX: 'auto',
-              border: '1px solid #e2e8f0',
+              border: '1px solid #d4e5dc',
               borderRadius: '8px'
             }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ backgroundColor: '#f8fafc' }}>
+                <thead style={{ backgroundColor: '#f6faf8' }}>
                   <tr>
                     <th style={{ 
                       padding: '0.75rem', 
                       textAlign: 'left', 
                       fontSize: '0.875rem', 
                       fontWeight: '600',
-                      color: '#64748b',
-                      borderBottom: '2px solid #e2e8f0'
+                      color: '#5a7268',
+                      borderBottom: '2px solid #d4e5dc'
                     }}>
                       Métrica
                     </th>
@@ -377,8 +377,8 @@ const ComparisonModal = ({ tickers, onClose }) => {
                         textAlign: 'center', 
                         fontSize: '0.875rem', 
                         fontWeight: '600',
-                        color: '#1a1836',
-                        borderBottom: '2px solid #e2e8f0'
+                        color: '#1a2626',
+                        borderBottom: '2px solid #d4e5dc'
                       }}>
                         {m.ticker}
                       </th>
@@ -391,8 +391,8 @@ const ComparisonModal = ({ tickers, onClose }) => {
                       padding: '0.75rem', 
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#64748b',
-                      borderBottom: '1px solid #e2e8f0'
+                      color: '#5a7268',
+                      borderBottom: '1px solid #d4e5dc'
                     }}>
                       Score de Confiança
                     </td>
@@ -402,9 +402,9 @@ const ComparisonModal = ({ tickers, onClose }) => {
                         textAlign: 'center',
                         fontSize: '0.875rem',
                         fontWeight: '600',
-                        color: m.score === bestScore ? '#10b981' : '#1a1836',
-                        backgroundColor: m.score === bestScore ? '#f0fdf4' : 'transparent',
-                        borderBottom: '1px solid #e2e8f0'
+                        color: m.score === bestScore ? '#4ead8a' : '#1a2626',
+                        backgroundColor: m.score === bestScore ? '#edf5f1' : 'transparent',
+                        borderBottom: '1px solid #d4e5dc'
                       }}>
                         {m.score.toFixed(1)}
                       </td>
@@ -415,8 +415,8 @@ const ComparisonModal = ({ tickers, onClose }) => {
                       padding: '0.75rem', 
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#64748b',
-                      borderBottom: '1px solid #e2e8f0'
+                      color: '#5a7268',
+                      borderBottom: '1px solid #d4e5dc'
                     }}>
                       Retorno Esperado
                     </td>
@@ -426,9 +426,9 @@ const ComparisonModal = ({ tickers, onClose }) => {
                         textAlign: 'center',
                         fontSize: '0.875rem',
                         fontWeight: '600',
-                        color: m.expectedReturn === bestReturn ? '#10b981' : (m.expectedReturn >= 0 ? '#1a1836' : '#ef4444'),
-                        backgroundColor: m.expectedReturn === bestReturn ? '#f0fdf4' : 'transparent',
-                        borderBottom: '1px solid #e2e8f0'
+                        color: m.expectedReturn === bestReturn ? '#4ead8a' : (m.expectedReturn >= 0 ? '#1a2626' : '#e07070'),
+                        backgroundColor: m.expectedReturn === bestReturn ? '#edf5f1' : 'transparent',
+                        borderBottom: '1px solid #d4e5dc'
                       }}>
                         {m.expectedReturn.toFixed(2)}%
                       </td>
@@ -439,7 +439,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                       padding: '0.75rem', 
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      color: '#64748b'
+                      color: '#5a7268'
                     }}>
                       Setor
                     </td>
@@ -448,7 +448,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                         padding: '0.75rem', 
                         textAlign: 'center',
                         fontSize: '0.875rem',
-                        color: '#64748b'
+                        color: '#5a7268'
                       }}>
                         {m.sector}
                       </td>
@@ -463,11 +463,11 @@ const ComparisonModal = ({ tickers, onClose }) => {
           <div style={{
             marginTop: '1.5rem',
             padding: '1rem',
-            backgroundColor: '#f0fdf4',
-            border: '1px solid #bbf7d0',
+            backgroundColor: '#edf5f1',
+            border: '1px solid #b0e8c8',
             borderRadius: '8px'
           }}>
-            <p style={{ fontSize: '0.875rem', color: '#166534', margin: 0 }}>
+            <p style={{ fontSize: '0.875rem', color: '#1a5a3a', margin: 0 }}>
               <strong>Destaque verde:</strong> Melhor valor na métrica
             </p>
           </div>

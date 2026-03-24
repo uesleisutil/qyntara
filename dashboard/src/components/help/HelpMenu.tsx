@@ -22,13 +22,13 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
   });
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8f7fc',
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64618b',
-    border: darkMode ? '#2a2745' : '#e2e0f0',
-    hover: darkMode ? '#2a2745' : '#f3f1fa',
-    accent: '#8b5cf6',
+    bg: darkMode ? '#121a1a' : '#f6faf8',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    hover: darkMode ? '#2a3d36' : '#edf5f1',
+    accent: '#5a9e87',
   };
 
   // Check if this is the first visit
@@ -84,7 +84,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
         }}
         style={{
           padding: '0.75rem',
-          backgroundColor: darkMode ? '#2a2745' : '#f3f1fa',
+          backgroundColor: darkMode ? '#2a3d36' : '#edf5f1',
           border: 'none',
           borderRadius: '12px',
           cursor: 'pointer',
@@ -108,7 +108,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
               right: '-4px',
               width: '12px',
               height: '12px',
-              backgroundColor: '#ef4444',
+              backgroundColor: '#e07070',
               borderRadius: '50%',
               border: `2px solid ${theme.cardBg}`,
             }}
@@ -186,7 +186,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
                 <div
                   style={{
                     padding: '0.5rem',
-                    backgroundColor: darkMode ? '#1e3a5f' : '#eff6ff',
+                    backgroundColor: darkMode ? '#1e3a5f' : '#edf5f1',
                     borderRadius: '8px',
                   }}
                 >
@@ -225,7 +225,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
                 <div
                   style={{
                     padding: '0.5rem',
-                    backgroundColor: darkMode ? '#1e3a5f' : '#eff6ff',
+                    backgroundColor: darkMode ? '#1e3a5f' : '#edf5f1',
                     borderRadius: '8px',
                   }}
                 >
@@ -265,7 +265,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
                 <div
                   style={{
                     padding: '0.5rem',
-                    backgroundColor: darkMode ? '#1e3a5f' : '#eff6ff',
+                    backgroundColor: darkMode ? '#1e3a5f' : '#edf5f1',
                     borderRadius: '8px',
                   }}
                 >
@@ -305,7 +305,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
                 <div
                   style={{
                     padding: '0.5rem',
-                    backgroundColor: darkMode ? '#1e3a5f' : '#eff6ff',
+                    backgroundColor: darkMode ? '#1e3a5f' : '#edf5f1',
                     borderRadius: '8px',
                   }}
                 >
@@ -345,7 +345,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
                 <div
                   style={{
                     padding: '0.5rem',
-                    backgroundColor: darkMode ? '#1e3a5f' : '#eff6ff',
+                    backgroundColor: darkMode ? '#1e3a5f' : '#edf5f1',
                     borderRadius: '8px',
                   }}
                 >
@@ -385,7 +385,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
                 <div
                   style={{
                     padding: '0.5rem',
-                    backgroundColor: darkMode ? '#1e3a5f' : '#eff6ff',
+                    backgroundColor: darkMode ? '#1e3a5f' : '#edf5f1',
                     borderRadius: '8px',
                   }}
                 >

@@ -139,12 +139,12 @@ export function AccessibilitySettings() {
           font-size: calc(2rem * var(--font-size-scale, 1));
           font-weight: 700;
           margin-bottom: 0.5rem;
-          color: var(--text-primary, #111827);
+          color: var(--text-primary, #1a2e26);
         }
         
         .settings-intro {
           font-size: calc(1rem * var(--font-size-scale, 1));
-          color: var(--text-secondary, #6b7280);
+          color: var(--text-secondary, #5a7268);
           margin-bottom: 2rem;
         }
         
@@ -156,12 +156,12 @@ export function AccessibilitySettings() {
           font-size: calc(1.5rem * var(--font-size-scale, 1));
           font-weight: 600;
           margin-bottom: 1rem;
-          color: var(--text-primary, #111827);
+          color: var(--text-primary, #1a2e26);
         }
         
         .section-description {
           font-size: calc(1rem * var(--font-size-scale, 1));
-          color: var(--text-secondary, #6b7280);
+          color: var(--text-secondary, #5a7268);
           margin-bottom: 1rem;
         }
         
@@ -176,17 +176,17 @@ export function AccessibilitySettings() {
         .features-list li {
           padding: 0.75rem;
           margin-bottom: 0.5rem;
-          background: var(--bg-secondary, #f9fafb);
+          background: var(--bg-secondary, #f6faf8);
           border-radius: 0.375rem;
           font-size: calc(0.875rem * var(--font-size-scale, 1));
-          color: var(--text-primary, #111827);
+          color: var(--text-primary, #1a2e26);
         }
         
         kbd {
           display: inline-block;
           padding: 0.125rem 0.375rem;
           background: var(--bg-primary, #ffffff);
-          border: 1px solid var(--border-color, #e5e7eb);
+          border: 1px solid var(--border-color, #d4e5dc);
           border-radius: 0.25rem;
           font-family: monospace;
           font-size: 0.875em;
@@ -196,7 +196,7 @@ export function AccessibilitySettings() {
         
         .audit-button {
           padding: 0.75rem 1.5rem;
-          background: var(--primary-color, #7c3aed);
+          background: var(--primary-color, #4a8e77);
           color: white;
           border: none;
           border-radius: 0.375rem;
@@ -207,7 +207,7 @@ export function AccessibilitySettings() {
         }
         
         .audit-button:hover:not(:disabled) {
-          background: #1d4ed8;
+          background: #4a9e90;
         }
         
         .audit-button:disabled {
@@ -216,23 +216,23 @@ export function AccessibilitySettings() {
         }
         
         .audit-button:focus {
-          outline: 3px solid var(--focus-color, #fbbf24);
+          outline: 3px solid var(--focus-color, #e0b85c);
           outline-offset: 2px;
         }
         
         .audit-results {
           margin-top: 1.5rem;
           padding: 1.5rem;
-          background: var(--bg-secondary, #f9fafb);
+          background: var(--bg-secondary, #f6faf8);
           border-radius: 0.5rem;
-          border: 1px solid var(--border-color, #e5e7eb);
+          border: 1px solid var(--border-color, #d4e5dc);
         }
         
         .audit-results h4 {
           font-size: calc(1.125rem * var(--font-size-scale, 1));
           font-weight: 600;
           margin-bottom: 1rem;
-          color: var(--text-primary, #111827);
+          color: var(--text-primary, #1a2e26);
         }
         
         .results-summary {
@@ -253,27 +253,27 @@ export function AccessibilitySettings() {
         
         .result-label {
           font-size: calc(0.875rem * var(--font-size-scale, 1));
-          color: var(--text-secondary, #6b7280);
+          color: var(--text-secondary, #5a7268);
           margin-bottom: 0.5rem;
         }
         
         .result-value {
           font-size: calc(1.5rem * var(--font-size-scale, 1));
           font-weight: 700;
-          color: var(--text-primary, #111827);
+          color: var(--text-primary, #1a2e26);
         }
         
         .result-value.success {
-          color: #10b981;
+          color: #4ead8a;
         }
         
         .result-value.error {
-          color: #ef4444;
+          color: #e07070;
         }
         
         .audit-note {
           font-size: calc(0.875rem * var(--font-size-scale, 1));
-          color: var(--text-secondary, #6b7280);
+          color: var(--text-secondary, #5a7268);
           font-style: italic;
         }
         

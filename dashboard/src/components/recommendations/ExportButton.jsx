@@ -127,7 +127,7 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
           alignItems: 'center',
           gap: '0.5rem',
           padding: '0.5rem 1rem',
-          backgroundColor: '#8b5cf6',
+          backgroundColor: '#5a9e87',
           color: 'white',
           border: 'none',
           borderRadius: '6px',
@@ -139,11 +139,11 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
         }}
         onMouseEnter={(e) => {
           if (data.length > 0 && !exporting) {
-            e.currentTarget.style.backgroundColor = '#7c3aed';
+            e.currentTarget.style.backgroundColor = '#4a8e77';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#8b5cf6';
+          e.currentTarget.style.backgroundColor = '#5a9e87';
         }}
       >
         <Download size={16} />
@@ -157,7 +157,7 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
           top: 'calc(100% + 0.5rem)',
           right: 0,
           backgroundColor: 'white',
-          border: '1px solid #e2e8f0',
+          border: '1px solid #d4e5dc',
           borderRadius: '6px',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
           zIndex: 10,
@@ -175,15 +175,15 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
               backgroundColor: 'transparent',
               border: 'none',
               fontSize: '0.875rem',
-              color: '#1a1836',
+              color: '#1a2626',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'background-color 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f6faf8'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <FileText size={16} color="#64748b" />
+            <FileText size={16} color="#5a7268" />
             Exportar como CSV
           </button>
           
@@ -197,17 +197,17 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
               padding: '0.75rem 1rem',
               backgroundColor: 'transparent',
               border: 'none',
-              borderTop: '1px solid #e2e8f0',
+              borderTop: '1px solid #d4e5dc',
               fontSize: '0.875rem',
-              color: '#1a1836',
+              color: '#1a2626',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'background-color 0.2s'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f6faf8'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <FileSpreadsheet size={16} color="#64748b" />
+            <FileSpreadsheet size={16} color="#5a7268" />
             Exportar como Excel
           </button>
         </div>

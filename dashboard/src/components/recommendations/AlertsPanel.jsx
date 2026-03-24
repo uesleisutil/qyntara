@@ -180,7 +180,7 @@ const AlertsPanel = ({ recommendations }) => {
   return (
     <div style={{
       backgroundColor: 'white',
-      border: '1px solid #e2e8f0',
+      border: '1px solid #d4e5dc',
       borderRadius: '8px',
       padding: '1.5rem'
     }}>
@@ -192,8 +192,8 @@ const AlertsPanel = ({ recommendations }) => {
         marginBottom: '1rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Bell size={20} color="#8b5cf6" />
-          <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
+          <Bell size={20} color="#5a9e87" />
+          <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a2626' }}>
             Alertas Configurados
           </h3>
         </div>
@@ -208,8 +208,8 @@ const AlertsPanel = ({ recommendations }) => {
               gap: '0.5rem',
               padding: '0.5rem',
               backgroundColor: 'white',
-              color: '#64748b',
-              border: '1px solid #cbd5e1',
+              color: '#5a7268',
+              border: '1px solid #b0c8bc',
               borderRadius: '6px',
               fontSize: '0.875rem',
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -227,7 +227,7 @@ const AlertsPanel = ({ recommendations }) => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: '#8b5cf6',
+              backgroundColor: '#5a9e87',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
@@ -247,11 +247,11 @@ const AlertsPanel = ({ recommendations }) => {
         <div style={{
           padding: '0.75rem',
           marginBottom: '1rem',
-          backgroundColor: '#fef2f2',
-          border: '1px solid #fecaca',
+          backgroundColor: '#fdf0f0',
+          border: '1px solid #f0c4c4',
           borderRadius: '6px',
           fontSize: '0.875rem',
-          color: '#dc2626'
+          color: '#c04040'
         }}>
           {error}
         </div>
@@ -263,7 +263,7 @@ const AlertsPanel = ({ recommendations }) => {
           <h4 style={{ 
             fontSize: '0.875rem', 
             fontWeight: '600', 
-            color: '#dc2626',
+            color: '#c04040',
             marginBottom: '0.5rem',
             display: 'flex',
             alignItems: 'center',
@@ -276,14 +276,14 @@ const AlertsPanel = ({ recommendations }) => {
             {triggeredAlerts.map((alert, idx) => (
               <div key={idx} style={{
                 padding: '0.75rem',
-                backgroundColor: '#fef2f2',
-                border: '1px solid #fecaca',
+                backgroundColor: '#fdf0f0',
+                border: '1px solid #f0c4c4',
                 borderRadius: '6px'
               }}>
-                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#991b1b', margin: '0 0 0.25rem 0' }}>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#8a2020', margin: '0 0 0.25rem 0' }}>
                   {alert.ticker}
                 </p>
-                <p style={{ fontSize: '0.75rem', color: '#dc2626', margin: 0 }}>
+                <p style={{ fontSize: '0.75rem', color: '#c04040', margin: 0 }}>
                   {alert.message}
                 </p>
               </div>
@@ -296,7 +296,7 @@ const AlertsPanel = ({ recommendations }) => {
       {loading && (
         <div style={{ 
           textAlign: 'center', 
-          color: '#64748b', 
+          color: '#5a7268', 
           fontSize: '0.875rem', 
           padding: '2rem 0' 
         }}>
@@ -306,7 +306,7 @@ const AlertsPanel = ({ recommendations }) => {
 
       {/* Active Alerts List (Req 5.8) */}
       {!loading && alerts.length === 0 && (
-        <p style={{ textAlign: 'center', color: '#64748b', fontSize: '0.875rem', padding: '2rem 0' }}>
+        <p style={{ textAlign: 'center', color: '#5a7268', fontSize: '0.875rem', padding: '2rem 0' }}>
           Nenhum alerta configurado. Clique em "Novo Alerta" para criar um.
         </p>
       )}
@@ -316,19 +316,19 @@ const AlertsPanel = ({ recommendations }) => {
           {alerts.map(alert => (
             <div key={alert.id} style={{
               padding: '1rem',
-              border: '1px solid #e2e8f0',
+              border: '1px solid #d4e5dc',
               borderRadius: '8px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              backgroundColor: alert.enabled ? 'white' : '#f8fafc'
+              backgroundColor: alert.enabled ? 'white' : '#f6faf8'
             }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                   <span style={{ 
                     fontSize: '0.875rem', 
                     fontWeight: '600', 
-                    color: '#1a1836' 
+                    color: '#1a2626' 
                   }}>
                     {alert.ticker}
                   </span>
@@ -336,15 +336,15 @@ const AlertsPanel = ({ recommendations }) => {
                     <span style={{
                       fontSize: '0.75rem',
                       padding: '0.125rem 0.5rem',
-                      backgroundColor: '#e2e8f0',
-                      color: '#64748b',
+                      backgroundColor: '#d4e5dc',
+                      color: '#5a7268',
                       borderRadius: '4px'
                     }}>
                       Inativo
                     </span>
                   )}
                 </div>
-                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
+                <p style={{ fontSize: '0.75rem', color: '#5a7268', margin: 0 }}>
                   {CONDITION_TYPES.find(t => t.value === alert.conditionType)?.label || alert.conditionType} • 
                   Threshold: {alert.threshold}
                 </p>
@@ -357,7 +357,7 @@ const AlertsPanel = ({ recommendations }) => {
                   backgroundColor: 'transparent',
                   border: 'none',
                   cursor: 'pointer',
-                  color: '#64748b',
+                  color: '#5a7268',
                   borderRadius: '4px'
                 }}
                 aria-label="Editar alerta"

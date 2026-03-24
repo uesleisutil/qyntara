@@ -52,7 +52,7 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, isLoading, user } = useAuth();
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0c0a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9895b0' }}>
+      <div style={{ minHeight: '100vh', background: '#121a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8fa89c' }}>
         Carregando...
       </div>
     );
@@ -67,7 +67,7 @@ const RequireAdmin: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const { user, isAuthenticated, isLoading } = useAuth();
   if (isLoading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0c0a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9895b0' }}>
+      <div style={{ minHeight: '100vh', background: '#121a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8fa89c' }}>
         Carregando...
       </div>
     );

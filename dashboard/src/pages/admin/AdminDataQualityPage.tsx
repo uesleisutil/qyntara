@@ -29,21 +29,21 @@ const AdminDataQualityPage: React.FC = () => {
   useEffect(() => { fetchQuality(); }, []);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
   const getStatusIcon = (value: number) => {
-    if (value >= 0.95) return <CheckCircle size={16} color="#10b981" />;
-    if (value >= 0.8) return <AlertTriangle size={16} color="#f59e0b" />;
-    return <XCircle size={16} color="#ef4444" />;
+    if (value >= 0.95) return <CheckCircle size={16} color="#4ead8a" />;
+    if (value >= 0.8) return <AlertTriangle size={16} color="#d4a84b" />;
+    return <XCircle size={16} color="#e07070" />;
   };
 
-  const getStatusColor = (value: number) => value >= 0.95 ? '#10b981' : value >= 0.8 ? '#f59e0b' : '#ef4444';
+  const getStatusColor = (value: number) => value >= 0.95 ? '#4ead8a' : value >= 0.8 ? '#d4a84b' : '#e07070';
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -113,7 +113,7 @@ const AdminDataQualityPage: React.FC = () => {
             {completeness.dateRange && <span> · {completeness.dateRange.start} a {completeness.dateRange.end}</span>}
           </p>
         </div>
-        <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -147,7 +147,7 @@ const AdminDataQualityPage: React.FC = () => {
               <span style={{ color: kpi.color, opacity: 0.7 }}>{kpi.icon}</span>
               {fmt(kpi.value * 100)}%
             </div>
-            <div style={{ marginTop: '0.4rem', height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e8f0' }}>
+            <div style={{ marginTop: '0.4rem', height: 6, borderRadius: 3, background: darkMode ? '#2a3d36' : '#d4e5dc' }}>
               <div style={{ height: '100%', borderRadius: 3, background: kpi.color, width: `${kpi.value * 100}%`, transition: 'width 0.3s' }} />
             </div>
           </div>
@@ -158,9 +158,9 @@ const AdminDataQualityPage: React.FC = () => {
             <span style={{ fontSize: '0.75rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               Anomalias <InfoTooltip text="Número total de anomalias detectadas nos dados (gaps, outliers, inconsistências)." darkMode={darkMode} size={12} />
             </span>
-            {totalAnomalies > 0 ? <AlertTriangle size={16} color="#ef4444" /> : <CheckCircle size={16} color="#10b981" />}
+            {totalAnomalies > 0 ? <AlertTriangle size={16} color="#e07070" /> : <CheckCircle size={16} color="#4ead8a" />}
           </div>
-          <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 700, color: totalAnomalies > 0 ? '#ef4444' : '#10b981' }}>
+          <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 700, color: totalAnomalies > 0 ? '#e07070' : '#4ead8a' }}>
             {totalAnomalies}
           </div>
           {totalAnomalies > 0 && (
@@ -172,12 +172,12 @@ const AdminDataQualityPage: React.FC = () => {
         {/* Extra stats */}
         <div style={cardStyle}>
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.4rem' }}>Tickers 100%</div>
-          <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 700, color: '#10b981' }}>{perfectTickers.length}</div>
+          <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 700, color: '#4ead8a' }}>{perfectTickers.length}</div>
           <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginTop: '0.3rem' }}>de {tickers.length} total</div>
         </div>
         <div style={cardStyle}>
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.4rem' }}>Tickers {'<'} 95%</div>
-          <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 700, color: lowCompleteness.length > 0 ? '#ef4444' : '#10b981' }}>{lowCompleteness.length}</div>
+          <div style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 700, color: lowCompleteness.length > 0 ? '#e07070' : '#4ead8a' }}>{lowCompleteness.length}</div>
           <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginTop: '0.3rem' }}>precisam atenção</div>
         </div>
       </div>
@@ -210,7 +210,7 @@ const AdminDataQualityPage: React.FC = () => {
           background: 'transparent', border: 'none', cursor: 'pointer', color: theme.text, textAlign: 'left',
         }}>
           {expandedSection === 'freshness' ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          <Clock size={16} color="#8b5cf6" />
+          <Clock size={16} color="#5a9e87" />
           <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Freshness das Fontes</span>
           <span style={{ fontSize: '0.7rem', color: theme.textSecondary, marginLeft: 'auto' }}>{sources.length} fontes</span>
         </button>
@@ -218,7 +218,7 @@ const AdminDataQualityPage: React.FC = () => {
           <div style={{ borderTop: `1px solid ${theme.border}`, padding: '0.75rem 1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {sources.map((s: any, i: number) => {
-                const statusColor = s.status === 'fresh' ? '#10b981' : s.status === 'warning' ? '#f59e0b' : '#ef4444';
+                const statusColor = s.status === 'fresh' ? '#4ead8a' : s.status === 'warning' ? '#d4a84b' : '#e07070';
                 const statusLabel = s.status === 'fresh' ? 'Atualizado' : s.status === 'warning' ? 'Atenção' : 'Desatualizado';
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`, flexWrap: 'wrap' }}>
@@ -245,7 +245,7 @@ const AdminDataQualityPage: React.FC = () => {
           background: 'transparent', border: 'none', cursor: 'pointer', color: theme.text, textAlign: 'left',
         }}>
           {expandedSection === 'coverage' ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          <Shield size={16} color="#8b5cf6" />
+          <Shield size={16} color="#5a9e87" />
           <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Cobertura do Universo</span>
           <span style={{ fontSize: '0.7rem', color: theme.textSecondary, marginLeft: 'auto' }}>{coverage.coveredTickers || 0}/{coverage.universeSize || 0} cobertos</span>
         </button>
@@ -260,7 +260,7 @@ const AdminDataQualityPage: React.FC = () => {
                   {excludedTickers.map((t: any, i: number) => (
                     <div key={i} style={{
                       padding: '0.25rem 0.5rem', borderRadius: 6, fontSize: '0.72rem',
-                      background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)',
+                      background: 'rgba(224,112,112,0.1)', color: '#e07070', border: '1px solid rgba(224,112,112,0.2)',
                     }} title={t.reason}>
                       {t.ticker} <span style={{ opacity: 0.7, fontSize: '0.65rem' }}>({t.reason})</span>
                     </div>
@@ -280,9 +280,9 @@ const AdminDataQualityPage: React.FC = () => {
             background: 'transparent', border: 'none', cursor: 'pointer', color: theme.text, textAlign: 'left',
           }}>
             {expandedSection === 'anomalies' ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            <AlertTriangle size={16} color="#ef4444" />
+            <AlertTriangle size={16} color="#e07070" />
             <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Anomalias Detectadas</span>
-            <span style={{ fontSize: '0.7rem', color: '#ef4444', marginLeft: 'auto' }}>{totalAnomalies}</span>
+            <span style={{ fontSize: '0.7rem', color: '#e07070', marginLeft: 'auto' }}>{totalAnomalies}</span>
           </button>
           {expandedSection === 'anomalies' && (
             <div style={{ borderTop: `1px solid ${theme.border}`, padding: '0.75rem 1rem' }}>
@@ -295,7 +295,7 @@ const AdminDataQualityPage: React.FC = () => {
                     <div key={i} style={{ padding: '0.4rem 0.6rem', borderRadius: 6, border: `1px solid ${theme.border}`, fontSize: '0.75rem', color: theme.text }}>
                       <span style={{ fontWeight: 600 }}>{a.ticker || a.feature || '—'}</span>
                       {a.type && <span style={{ color: theme.textSecondary }}> · {a.type}</span>}
-                      {a.severity && <span style={{ color: a.severity === 'high' ? '#ef4444' : a.severity === 'medium' ? '#f59e0b' : theme.textSecondary }}> · {a.severity}</span>}
+                      {a.severity && <span style={{ color: a.severity === 'high' ? '#e07070' : a.severity === 'medium' ? '#d4a84b' : theme.textSecondary }}> · {a.severity}</span>}
                       {a.description && <span style={{ color: theme.textSecondary }}> — {a.description}</span>}
                     </div>
                   ))}
@@ -313,7 +313,7 @@ const AdminDataQualityPage: React.FC = () => {
           background: 'transparent', border: 'none', cursor: 'pointer', color: theme.text, textAlign: 'left',
         }}>
           {expandedSection === 'completeness' ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          <Database size={16} color="#10b981" />
+          <Database size={16} color="#4ead8a" />
           <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Completude por Ticker</span>
           <span style={{ fontSize: '0.7rem', color: theme.textSecondary, marginLeft: 'auto' }}>{tickers.length} tickers</span>
         </button>
@@ -324,13 +324,13 @@ const AdminDataQualityPage: React.FC = () => {
               <div style={{ position: 'relative', flex: '1 1 150px', minWidth: 0 }}>
                 <Search size={14} style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
                 <input type="text" placeholder="Buscar ticker..." value={tickerSearch} onChange={e => setTickerSearch(e.target.value)}
-                  style={{ width: '100%', padding: '0.4rem 0.4rem 0.4rem 1.8rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '0.4rem 0.4rem 0.4rem 1.8rem', background: darkMode ? '#121a1a' : '#f6faf8', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.8rem', outline: 'none', boxSizing: 'border-box' }} />
               </div>
-              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} style={{ padding: '0.4rem 0.5rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
+              <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} style={{ padding: '0.4rem 0.5rem', background: darkMode ? '#121a1a' : '#f6faf8', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', outline: 'none', cursor: 'pointer' }}>
                 <option value="completeness">Ordenar: Completude</option>
                 <option value="ticker">Ordenar: Ticker</option>
               </select>
-              <button onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')} style={{ padding: '0.4rem 0.6rem', background: darkMode ? '#0c0a1a' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', cursor: 'pointer' }}>
+              <button onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')} style={{ padding: '0.4rem 0.6rem', background: darkMode ? '#121a1a' : '#f6faf8', border: `1px solid ${theme.border}`, borderRadius: 6, color: theme.text, fontSize: '0.78rem', cursor: 'pointer' }}>
                 {sortDir === 'asc' ? '↑' : '↓'}
               </button>
               <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{filteredTickers.length} resultados</span>
@@ -342,7 +342,7 @@ const AdminDataQualityPage: React.FC = () => {
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                     {['Ticker', 'Completude', 'Esperado', 'Presente', 'Tendência (7d)', 'Status'].map(h => (
-                      <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc' }}>{h}</th>
+                      <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#121a1a' : '#f6faf8' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -353,13 +353,13 @@ const AdminDataQualityPage: React.FC = () => {
                     const trend = t.trend || [];
                     return (
                       <tr key={t.ticker} style={{ borderBottom: `1px solid ${theme.border}` }}
-                        onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2745' : '#f1f5f9'}
+                        onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a3d36' : '#e8f0ed'}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                       >
                         <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600, color: theme.text, fontSize: '0.82rem' }}>{t.ticker}</td>
                         <td style={{ padding: '0.45rem 0.6rem' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <div style={{ flex: 1, height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e8f0', maxWidth: 80, overflow: 'hidden' }}>
+                            <div style={{ flex: 1, height: 6, borderRadius: 3, background: darkMode ? '#2a3d36' : '#d4e5dc', maxWidth: 80, overflow: 'hidden' }}>
                               <div style={{ height: '100%', borderRadius: 3, background: color, width: `${pct * 100}%` }} />
                             </div>
                             <span style={{ fontSize: '0.78rem', fontWeight: 600, color, minWidth: 40 }}>{fmt(pct * 100)}%</span>
@@ -383,11 +383,11 @@ const AdminDataQualityPage: React.FC = () => {
                         </td>
                         <td style={{ padding: '0.45rem 0.6rem' }}>
                           {pct >= 0.95 ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.68rem', color: '#10b981' }}><CheckCircle size={12} /> OK</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.68rem', color: '#4ead8a' }}><CheckCircle size={12} /> OK</span>
                           ) : pct >= 0.5 ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.68rem', color: '#f59e0b' }}><AlertTriangle size={12} /> Parcial</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.68rem', color: '#d4a84b' }}><AlertTriangle size={12} /> Parcial</span>
                           ) : (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.68rem', color: '#ef4444' }}><XCircle size={12} /> Baixa</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: '0.68rem', color: '#e07070' }}><XCircle size={12} /> Baixa</span>
                           )}
                         </td>
                       </tr>

@@ -19,7 +19,7 @@ const AdminPerformancePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1a1836' : '#fff'),
+    background: theme.card || (darkMode ? '#1a2626' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
@@ -141,7 +141,7 @@ const AdminPerformancePage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1a1836' : '#e2e8f0'} 25%, ${darkMode ? '#2a2745' : '#f1f5f9'} 50%, ${darkMode ? '#1a1836' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a2626' : '#d4e5dc'} 25%, ${darkMode ? '#2a3d36' : '#e8f0ed'} 50%, ${darkMode ? '#1a2626' : '#d4e5dc'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -174,7 +174,7 @@ const AdminPerformancePage: React.FC = () => {
             Métricas reais calculadas a partir de preços de mercado + métricas do monitor de ML
           </p>
         </div>
-        <button onClick={fetchAll} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={fetchAll} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #4a8e77, #5ab0a0)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -189,14 +189,14 @@ const AdminPerformancePage: React.FC = () => {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { label: 'Retorno realizado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn)}%`, color: perfData.totalReturn >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Retorno real acumulado seguindo sinais de Compra.' },
+              { label: 'Retorno realizado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn)}%`, color: perfData.totalReturn >= 0 ? '#4ead8a' : '#e07070', icon: <TrendingUp size={16} />, tip: 'Retorno real acumulado seguindo sinais de Compra.' },
               { label: 'Média do universo', value: `${perfData.universeReturn >= 0 ? '+' : ''}${fmt(perfData.universeReturn)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />, tip: `Retorno acumulado de todas as ${UNIVERSE_SIZE_FALLBACK} ações com peso igual.` },
-              { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha)}pp`, color: perfData.alpha >= 0 ? '#10b981' : '#ef4444', icon: <Award size={16} />, tip: 'Diferença entre retorno da estratégia e média do universo.' },
-              { label: 'Win rate (Compra)', value: `${fmt(perfData.buyWinRate * 100, 0)}%`, color: perfData.buyWinRate >= 0.55 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno positivo nos sinais de Compra.' },
-              { label: 'Win rate (Venda)', value: `${fmt(perfData.sellWinRate * 100, 0)}%`, color: perfData.sellWinRate >= 0.55 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno negativo nos sinais de Venda (acerto).' },
-              { label: 'Pregões', value: `${perfData.totalDays}`, color: '#8b5cf6', icon: <Calendar size={16} />, tip: 'Número de pregões analisados.' },
-              { label: 'Média compras/dia', value: fmt(perfData.avgBuyCount, 0), color: '#10b981', icon: <TrendingUp size={16} />, tip: 'Média de ações com sinal de Compra por dia.' },
-              { label: 'Média vendas/dia', value: fmt(perfData.avgSellCount, 0), color: '#ef4444', icon: <TrendingUp size={16} />, tip: 'Média de ações com sinal de Venda por dia.' },
+              { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha)}pp`, color: perfData.alpha >= 0 ? '#4ead8a' : '#e07070', icon: <Award size={16} />, tip: 'Diferença entre retorno da estratégia e média do universo.' },
+              { label: 'Win rate (Compra)', value: `${fmt(perfData.buyWinRate * 100, 0)}%`, color: perfData.buyWinRate >= 0.55 ? '#4ead8a' : '#d4a84b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno positivo nos sinais de Compra.' },
+              { label: 'Win rate (Venda)', value: `${fmt(perfData.sellWinRate * 100, 0)}%`, color: perfData.sellWinRate >= 0.55 ? '#4ead8a' : '#d4a84b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno negativo nos sinais de Venda (acerto).' },
+              { label: 'Pregões', value: `${perfData.totalDays}`, color: '#5a9e87', icon: <Calendar size={16} />, tip: 'Número de pregões analisados.' },
+              { label: 'Média compras/dia', value: fmt(perfData.avgBuyCount, 0), color: '#4ead8a', icon: <TrendingUp size={16} />, tip: 'Média de ações com sinal de Compra por dia.' },
+              { label: 'Média vendas/dia', value: fmt(perfData.avgSellCount, 0), color: '#e07070', icon: <TrendingUp size={16} />, tip: 'Média de ações com sinal de Venda por dia.' },
             ].map((kpi, i) => (
               <div key={i} style={cardStyle}>
                 <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -221,7 +221,7 @@ const AdminPerformancePage: React.FC = () => {
                   <thead>
                     <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
                       {['Ticker', 'Sinal', 'Ret. previsto', 'Ret. real', 'Acertou?'].map(h => (
-                        <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0c0a1a' : '#f8fafc' }}>{h}</th>
+                        <th key={h} style={{ padding: '0.5rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#121a1a' : '#f6faf8' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -230,12 +230,12 @@ const AdminPerformancePage: React.FC = () => {
                       <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
                         <td style={{ padding: '0.45rem 0.6rem', fontWeight: 600, color: theme.text, fontSize: '0.82rem' }}>{t.ticker}</td>
                         <td style={{ padding: '0.45rem 0.6rem' }}>
-                          <span style={{ padding: '0.15rem 0.4rem', borderRadius: 10, fontSize: '0.68rem', fontWeight: 600, background: t.signal === 'Compra' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: t.signal === 'Compra' ? '#10b981' : '#ef4444' }}>{t.signal}</span>
+                          <span style={{ padding: '0.15rem 0.4rem', borderRadius: 10, fontSize: '0.68rem', fontWeight: 600, background: t.signal === 'Compra' ? 'rgba(16,185,129,0.15)' : 'rgba(224,112,112,0.15)', color: t.signal === 'Compra' ? '#4ead8a' : '#e07070' }}>{t.signal}</span>
                         </td>
-                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: t.predReturn >= 0 ? '#10b981' : '#ef4444' }}>{t.predReturn >= 0 ? '+' : ''}{fmt(t.predReturn * 100)}%</td>
-                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', fontWeight: 600, color: t.actualReturn >= 0 ? '#10b981' : '#ef4444' }}>{t.actualReturn >= 0 ? '+' : ''}{fmt(t.actualReturn * 100)}%</td>
+                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', color: t.predReturn >= 0 ? '#4ead8a' : '#e07070' }}>{t.predReturn >= 0 ? '+' : ''}{fmt(t.predReturn * 100)}%</td>
+                        <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem', fontWeight: 600, color: t.actualReturn >= 0 ? '#4ead8a' : '#e07070' }}>{t.actualReturn >= 0 ? '+' : ''}{fmt(t.actualReturn * 100)}%</td>
                         <td style={{ padding: '0.45rem 0.6rem', fontSize: '0.82rem' }}>
-                          {t.correct ? <span style={{ color: '#10b981' }}>✅ Sim</span> : <span style={{ color: '#ef4444' }}>❌ Não</span>}
+                          {t.correct ? <span style={{ color: '#4ead8a' }}>✅ Sim</span> : <span style={{ color: '#e07070' }}>❌ Não</span>}
                         </td>
                       </tr>
                     ))}
@@ -261,12 +261,12 @@ const AdminPerformancePage: React.FC = () => {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { label: 'Acurácia Direcional', value: `${fmt(latest.directional_accuracy * 100, 1)}%`, color: latest.directional_accuracy >= 0.6 ? '#10b981' : '#f59e0b', tip: 'Percentual de previsões que acertaram a direção (alta/baixa).' },
-              { label: 'MAPE', value: `${fmt(latest.mape, 2)}%`, color: latest.mape <= 1 ? '#10b981' : latest.mape <= 2 ? '#f59e0b' : '#ef4444', tip: 'Erro percentual absoluto médio das previsões de preço.' },
-              { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: '#8b5cf6', tip: 'Erro absoluto médio das previsões de retorno.' },
-              { label: 'Hit Rate', value: `${fmt(latest.hit_rate * 100, 1)}%`, color: latest.hit_rate >= 0.5 ? '#10b981' : '#f59e0b', tip: 'Taxa de acerto geral do modelo.' },
-              { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio, 2), color: latest.sharpe_ratio >= 0 ? '#10b981' : '#ef4444', tip: 'Razão retorno/risco. Negativo indica que a estratégia perdeu para o CDI.' },
-              { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#8b5cf6', tip: 'Número de tickers analisados.' },
+              { label: 'Acurácia Direcional', value: `${fmt(latest.directional_accuracy * 100, 1)}%`, color: latest.directional_accuracy >= 0.6 ? '#4ead8a' : '#d4a84b', tip: 'Percentual de previsões que acertaram a direção (alta/baixa).' },
+              { label: 'MAPE', value: `${fmt(latest.mape, 2)}%`, color: latest.mape <= 1 ? '#4ead8a' : latest.mape <= 2 ? '#d4a84b' : '#e07070', tip: 'Erro percentual absoluto médio das previsões de preço.' },
+              { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: '#5a9e87', tip: 'Erro absoluto médio das previsões de retorno.' },
+              { label: 'Hit Rate', value: `${fmt(latest.hit_rate * 100, 1)}%`, color: latest.hit_rate >= 0.5 ? '#4ead8a' : '#d4a84b', tip: 'Taxa de acerto geral do modelo.' },
+              { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio, 2), color: latest.sharpe_ratio >= 0 ? '#4ead8a' : '#e07070', tip: 'Razão retorno/risco. Negativo indica que a estratégia perdeu para o CDI.' },
+              { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#5a9e87', tip: 'Número de tickers analisados.' },
             ].map((kpi, i) => (
               <div key={i} style={cardStyle}>
                 <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -278,9 +278,9 @@ const AdminPerformancePage: React.FC = () => {
           </div>
 
           {!latest.using_real_prices && (
-            <div style={{ ...cardStyle, marginBottom: '1rem', padding: '0.6rem 1rem', background: 'rgba(245,158,11,0.08)', borderColor: 'rgba(245,158,11,0.2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <AlertTriangle size={16} color="#f59e0b" />
-              <span style={{ fontSize: '0.78rem', color: '#f59e0b' }}>Monitor usando preços estimados (preços reais de mercado ainda não disponíveis para todas as datas-alvo).</span>
+            <div style={{ ...cardStyle, marginBottom: '1rem', padding: '0.6rem 1rem', background: 'rgba(212,168,75,0.08)', borderColor: 'rgba(212,168,75,0.2)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertTriangle size={16} color="#d4a84b" />
+              <span style={{ fontSize: '0.78rem', color: '#d4a84b' }}>Monitor usando preços estimados (preços reais de mercado ainda não disponíveis para todas as datas-alvo).</span>
             </div>
           )}
 
@@ -294,7 +294,7 @@ const AdminPerformancePage: React.FC = () => {
                   const h = ((d.mape || 0) / maxMape) * 100;
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }} title={`${d.date}: ${fmt(d.mape)}%`}>
-                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.mape || 0) > 2 ? '#ef4444' : (d.mape || 0) > 1 ? '#f59e0b' : '#8b5cf6', transition: 'height 0.3s' }} />
+                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.mape || 0) > 2 ? '#e07070' : (d.mape || 0) > 1 ? '#d4a84b' : '#5a9e87', transition: 'height 0.3s' }} />
                     </div>
                   );
                 })}
@@ -315,7 +315,7 @@ const AdminPerformancePage: React.FC = () => {
                   const h = (d.accuracy || 0) * 100;
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }} title={`${d.date}: ${fmt((d.accuracy || 0) * 100, 1)}%`}>
-                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.accuracy || 0) >= 0.7 ? '#10b981' : (d.accuracy || 0) >= 0.5 ? '#f59e0b' : '#ef4444', transition: 'height 0.3s' }} />
+                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.accuracy || 0) >= 0.7 ? '#4ead8a' : (d.accuracy || 0) >= 0.5 ? '#d4a84b' : '#e07070', transition: 'height 0.3s' }} />
                     </div>
                   );
                 })}

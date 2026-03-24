@@ -365,13 +365,13 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
   });
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8fafc',
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    inputBg: darkMode ? '#0c0a1a' : '#f8fafc',
-    hover: darkMode ? '#2a2745' : '#f1f5f9',
+    bg: darkMode ? '#121a1a' : '#f6faf8',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    inputBg: darkMode ? '#121a1a' : '#f6faf8',
+    hover: darkMode ? '#2a3d36' : '#e8f0ed',
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -456,8 +456,8 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.55rem 0.85rem',
               borderRadius: 8, border: 'none', cursor: tab.disabled ? 'default' : 'pointer',
               fontSize: '0.8rem', fontWeight: activeTab === tab.id ? 600 : 400, whiteSpace: 'nowrap',
-              background: activeTab === tab.id ? (darkMode ? '#2a2745' : 'white') : 'transparent',
-              color: tab.disabled ? (darkMode ? '#475569' : '#cbd5e1') : activeTab === tab.id ? '#8b5cf6' : theme.textSecondary,
+              background: activeTab === tab.id ? (darkMode ? '#2a3d36' : 'white') : 'transparent',
+              color: tab.disabled ? (darkMode ? '#3a5248' : '#b0c8bc') : activeTab === tab.id ? '#5a9e87' : theme.textSecondary,
               boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
               transition: 'all 0.15s', opacity: tab.disabled ? 0.5 : 1,
             }}
@@ -471,7 +471,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       {activeTab === 'config' && (
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <Settings size={18} color="#8b5cf6" />
+            <Settings size={18} color="#5a9e87" />
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: theme.text }}>Configuração do Backtest</h3>
           </div>
           <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
@@ -488,12 +488,12 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             ].map((preset, i) => (
               <button key={i} onClick={() => setConfig(prev => ({ ...prev, ...preset.cfg }))} style={{
                 padding: '0.4rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-                border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8fafc',
+                border: `1px solid ${theme.border}`, background: darkMode ? '#121a1a' : '#f6faf8',
                 color: theme.text, cursor: 'pointer', transition: 'all 0.15s',
                 WebkitAppearance: 'none' as any,
               }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = darkMode ? '#0c0a1a' : '#f8fafc'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#5a9e87'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = darkMode ? '#121a1a' : '#f6faf8'; }}
               >
                 {preset.label}
               </button>
@@ -519,14 +519,14 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           </div>
 
           {error && (
-            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ padding: '0.75rem', borderRadius: 8, background: 'rgba(224,112,112,0.1)', border: '1px solid rgba(224,112,112,0.3)', color: '#e89090', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <AlertTriangle size={16} /> {error}
             </div>
           )}
 
           <button onClick={handleRun} disabled={loading} style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.5rem',
-            background: loading ? '#64748b' : 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+            background: loading ? '#5a7268' : 'linear-gradient(135deg, #4a8e77, #5ab0a0)',
             border: 'none', color: 'white', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.2s',
             boxShadow: loading ? 'none' : '0 2px 8px rgba(37,99,235,0.3)',
@@ -541,11 +541,11 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Data source badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem', color: theme.textSecondary, flexWrap: 'wrap' }}>
-            <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(16,185,129,0.1)', color: '#10b981', fontWeight: 600 }}>
+            <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(16,185,129,0.1)', color: '#4ead8a', fontWeight: 600 }}>
               ✓ Dados reais
             </span>
             {savedLabel && (
-              <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(59,130,246,0.1)', color: '#8b5cf6', fontWeight: 500 }}>
+              <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(59,130,246,0.1)', color: '#5a9e87', fontWeight: 500 }}>
                 💾 {savedLabel}
               </span>
             )}
@@ -567,28 +567,28 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               // Red: negative return — losing money is never "beating the market"
               verdictIcon = '📉';
               verdictTitle = 'Retorno negativo no período';
-              verdictColor = '#ef4444';
-              verdictBg = 'rgba(239,68,68,0.08)';
-              verdictBorder = 'rgba(239,68,68,0.25)';
+              verdictColor = '#e07070';
+              verdictBg = 'rgba(224,112,112,0.08)';
+              verdictBorder = 'rgba(224,112,112,0.25)';
             } else if (!beatCDI) {
               // Yellow: positive but below CDI (risk-free rate)
               verdictIcon = '⚠️';
               verdictTitle = 'Retorno positivo, mas abaixo do CDI';
-              verdictColor = '#f59e0b';
-              verdictBg = 'rgba(245,158,11,0.08)';
-              verdictBorder = 'rgba(245,158,11,0.25)';
+              verdictColor = '#d4a84b';
+              verdictBg = 'rgba(212,168,75,0.08)';
+              verdictBorder = 'rgba(212,168,75,0.25)';
             } else if (!beatBench) {
               // Yellow-green: beat CDI but not the universe average
               verdictIcon = '📊';
               verdictTitle = 'Superou o CDI, mas ficou abaixo da média do universo';
-              verdictColor = '#f59e0b';
-              verdictBg = 'rgba(245,158,11,0.08)';
-              verdictBorder = 'rgba(245,158,11,0.25)';
+              verdictColor = '#d4a84b';
+              verdictBg = 'rgba(212,168,75,0.08)';
+              verdictBorder = 'rgba(212,168,75,0.25)';
             } else {
               // Green: positive, beat CDI AND beat universe average
               verdictIcon = '🏆';
               verdictTitle = 'Sua estratégia superou a média do mercado!';
-              verdictColor = '#10b981';
+              verdictColor = '#4ead8a';
               verdictBg = 'rgba(16,185,129,0.08)';
               verdictBorder = 'rgba(16,185,129,0.25)';
             }
@@ -599,10 +599,10 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                   {verdictIcon} {verdictTitle}
                 </div>
                 <div style={{ fontSize: '0.82rem', color: theme.textSecondary, lineHeight: 1.6 }}>
-                  Retorno da carteira: <strong style={{ color: ret >= 0 ? '#10b981' : '#ef4444' }}>{fmtPct(ret)}</strong>
-                  {' · Média do universo: '}<strong style={{ color: '#f59e0b' }}>{fmtPct(benchRet)}</strong>
+                  Retorno da carteira: <strong style={{ color: ret >= 0 ? '#4ead8a' : '#e07070' }}>{fmtPct(ret)}</strong>
+                  {' · Média do universo: '}<strong style={{ color: '#d4a84b' }}>{fmtPct(benchRet)}</strong>
                   {' '}({beatBench ? '+' : ''}{diff} p.p.)
-                  {' · CDI: '}<strong style={{ color: '#10b981' }}>{fmtPct(cdiRet)}</strong>
+                  {' · CDI: '}<strong style={{ color: '#4ead8a' }}>{fmtPct(cdiRet)}</strong>
                   {beatCDI ? ' ✓' : ' ✗'}
                 </div>
               </div>
@@ -612,10 +612,10 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.6rem' }}>
             {[
               { label: 'Capital Inicial', value: fmtBRL(config.initialCapital), color: theme.text, tip: 'Valor investido no início.' },
-              { label: 'Valor Final', value: fmtBRL(result.portfolioValue[result.portfolioValue.length - 1].value), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Valor final da carteira.' },
-              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Ganho ou perda total no período.' },
-              { label: 'Sharpe', value: fmt(result.metrics.sharpeRatio), color: '#8b5cf6', tip: 'Retorno ajustado ao risco. Acima de 1.0 é bom.' },
-              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444', tip: 'Maior queda do pico ao vale.' },
+              { label: 'Valor Final', value: fmtBRL(result.portfolioValue[result.portfolioValue.length - 1].value), color: result.metrics.totalReturn >= 0 ? '#4ead8a' : '#e07070', tip: 'Valor final da carteira.' },
+              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#4ead8a' : '#e07070', tip: 'Ganho ou perda total no período.' },
+              { label: 'Sharpe', value: fmt(result.metrics.sharpeRatio), color: '#5a9e87', tip: 'Retorno ajustado ao risco. Acima de 1.0 é bom.' },
+              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#e07070', tip: 'Maior queda do pico ao vale.' },
             ].map((kpi, i) => (
               <div key={i} style={cardStyle}>
                 <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
@@ -629,7 +629,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           {/* Portfolio Value Chart */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <TrendingUp size={16} color="#8b5cf6" />
+              <TrendingUp size={16} color="#5a9e87" />
               <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Evolução do Portfólio</h3>
             </div>
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -640,7 +640,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                     <XAxis dataKey="date" stroke={theme.textSecondary} style={{ fontSize: 10 }} tickFormatter={(d: string) => { const dt = new Date(d + 'T12:00:00'); return `${dt.getDate()}/${dt.getMonth() + 1}`; }} />
                     <YAxis stroke={theme.textSecondary} style={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
                     <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [fmtBRL(v), 'Portfólio']} labelFormatter={(d: string) => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR')} />
-                    <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="value" stroke="#5a9e87" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -650,15 +650,15 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           {/* Benchmark Comparison */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <BarChart3 size={16} color="#f59e0b" />
+              <BarChart3 size={16} color="#d4a84b" />
               <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Comparação com Benchmarks</h3>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(120px, 100%), 1fr))', gap: '0.5rem', marginBottom: '0.75rem' }}>
               {[
-                { label: 'Alpha', value: fmtPct(result.benchmarks.alpha), color: result.benchmarks.alpha >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno extra acima do mercado.' },
+                { label: 'Alpha', value: fmtPct(result.benchmarks.alpha), color: result.benchmarks.alpha >= 0 ? '#4ead8a' : '#e07070', tip: 'Retorno extra acima do mercado.' },
                 { label: 'Beta', value: fmt(result.benchmarks.beta), color: theme.text, tip: 'Sensibilidade ao mercado. 1.0 = acompanha o mercado.' },
-                { label: 'Info Ratio', value: fmt(result.benchmarks.informationRatio), color: '#8b5cf6', tip: 'Retorno extra por unidade de risco adicional.' },
-                { label: 'Tracking Error', value: fmtPct(result.benchmarks.trackingError), color: '#f59e0b', tip: 'Quanto sua carteira desvia do mercado.' },
+                { label: 'Info Ratio', value: fmt(result.benchmarks.informationRatio), color: '#5a9e87', tip: 'Retorno extra por unidade de risco adicional.' },
+                { label: 'Tracking Error', value: fmtPct(result.benchmarks.trackingError), color: '#d4a84b', tip: 'Quanto sua carteira desvia do mercado.' },
               ].map((m, i) => (
                 <div key={i} style={{ padding: '0.5rem', backgroundColor: theme.bg, borderRadius: 6 }}>
                   <div style={{ fontSize: '0.65rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
@@ -670,9 +670,9 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem' }}>
               {[
-                { label: 'Portfólio', ret: fmtPct(result.metrics.totalReturn), color: '#8b5cf6' },
-                { label: 'Média do universo', ret: fmtPct(result.benchmarks.ibovespa.totalReturn), color: '#f59e0b' },
-                { label: 'CDI', ret: fmtPct(result.benchmarks.cdi.totalReturn), color: '#10b981' },
+                { label: 'Portfólio', ret: fmtPct(result.metrics.totalReturn), color: '#5a9e87' },
+                { label: 'Média do universo', ret: fmtPct(result.benchmarks.ibovespa.totalReturn), color: '#d4a84b' },
+                { label: 'CDI', ret: fmtPct(result.benchmarks.cdi.totalReturn), color: '#4ead8a' },
               ].map((b, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', backgroundColor: theme.bg, borderRadius: 6, borderLeft: `3px solid ${b.color}` }}>
                   <span style={{ fontSize: '0.8rem', color: theme.textSecondary, flex: 1 }}>{b.label}</span>
@@ -694,9 +694,9 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: 600, color: theme.text, width: 55, flexShrink: 0 }}>{d.ticker}</span>
                       <div style={{ flex: 1, height: 16, backgroundColor: theme.bg, borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, backgroundColor: d.contribution >= 0 ? '#10b981' : '#ef4444', borderRadius: 4, transition: 'width 0.3s' }} />
+                        <div style={{ height: '100%', width: `${pct}%`, backgroundColor: d.contribution >= 0 ? '#4ead8a' : '#e07070', borderRadius: 4, transition: 'width 0.3s' }} />
                       </div>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: d.contribution >= 0 ? '#10b981' : '#ef4444', width: 65, textAlign: 'right', flexShrink: 0 }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: d.contribution >= 0 ? '#4ead8a' : '#e07070', width: 65, textAlign: 'right', flexShrink: 0 }}>
                         {d.contribution >= 0 ? '+' : ''}{fmtBRL(Math.round(d.contribution))}
                       </span>
                     </div>
@@ -713,16 +713,16 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: '0.6rem' }}>
             {[
-              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Ganho ou perda total no período.' },
-              { label: 'Retorno Anualizado', value: fmtPct(result.metrics.annualizedReturn), color: result.metrics.annualizedReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno convertido para base anual.' },
-              { label: 'Volatilidade Anual', value: fmtPct(result.metrics.volatility), color: '#f59e0b', tip: 'Oscilação anualizada da carteira.' },
-              { label: 'Sharpe Ratio', value: fmt(result.metrics.sharpeRatio), color: '#8b5cf6', tip: 'Retorno por unidade de risco. Acima de 1.0 é bom.' },
-              { label: 'Sortino Ratio', value: fmt(result.metrics.sortinoRatio), color: '#8b5cf6', tip: 'Similar ao Sharpe, mas só penaliza quedas.' },
-              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444', tip: 'Maior queda do pico ao vale.' },
+              { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#4ead8a' : '#e07070', tip: 'Ganho ou perda total no período.' },
+              { label: 'Retorno Anualizado', value: fmtPct(result.metrics.annualizedReturn), color: result.metrics.annualizedReturn >= 0 ? '#4ead8a' : '#e07070', tip: 'Retorno convertido para base anual.' },
+              { label: 'Volatilidade Anual', value: fmtPct(result.metrics.volatility), color: '#d4a84b', tip: 'Oscilação anualizada da carteira.' },
+              { label: 'Sharpe Ratio', value: fmt(result.metrics.sharpeRatio), color: '#5a9e87', tip: 'Retorno por unidade de risco. Acima de 1.0 é bom.' },
+              { label: 'Sortino Ratio', value: fmt(result.metrics.sortinoRatio), color: '#5a9e87', tip: 'Similar ao Sharpe, mas só penaliza quedas.' },
+              { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#e07070', tip: 'Maior queda do pico ao vale.' },
               { label: 'Duração Média DD', value: `${result.metrics.averageDrawdownDuration}d`, color: theme.text, tip: 'Tempo médio de recuperação de quedas.' },
-              { label: 'Win Rate', value: fmtPct(result.metrics.winRate), color: '#10b981', tip: 'Percentual de dias com retorno positivo.' },
-              { label: 'Ganho Médio', value: fmtPct(result.metrics.averageGain), color: '#10b981', tip: 'Retorno médio nos dias positivos.' },
-              { label: 'Perda Média', value: fmtPct(result.metrics.averageLoss), color: '#ef4444', tip: 'Retorno médio nos dias negativos.' },
+              { label: 'Win Rate', value: fmtPct(result.metrics.winRate), color: '#4ead8a', tip: 'Percentual de dias com retorno positivo.' },
+              { label: 'Ganho Médio', value: fmtPct(result.metrics.averageGain), color: '#4ead8a', tip: 'Retorno médio nos dias positivos.' },
+              { label: 'Perda Média', value: fmtPct(result.metrics.averageLoss), color: '#e07070', tip: 'Retorno médio nos dias negativos.' },
               { label: 'Turnover', value: fmtPct(result.metrics.turnoverRate), color: theme.textSecondary, tip: 'Custo estimado de rotação da carteira.' },
             ].map((m, i) => (
               <div key={i} style={cardStyle}>
@@ -755,8 +755,8 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                   ].map((row, i) => (
                     <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
                       <td style={{ padding: '0.5rem', fontSize: '0.8rem', color: theme.textSecondary }}>{row.label}</td>
-                      <td style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#8b5cf6' }}>{row.p}</td>
-                      <td style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#f59e0b' }}>{row.b}</td>
+                      <td style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#5a9e87' }}>{row.p}</td>
+                      <td style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#d4a84b' }}>{row.b}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -771,11 +771,11 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.6rem' }}>
             {[
-              { label: 'VaR 95%', value: fmtPct(result.riskMetrics.var95), color: '#ef4444', tip: 'Em 95% dos dias, a perda não ultrapassa este valor.' },
-              { label: 'VaR 99%', value: fmtPct(result.riskMetrics.var99), color: '#ef4444', tip: 'VaR mais conservador — cenário quase extremo.' },
-              { label: 'CVaR 95%', value: fmtPct(result.riskMetrics.cvar95), color: '#dc2626', tip: 'Perda média nos piores 5% dos dias.' },
-              { label: 'CVaR 99%', value: fmtPct(result.riskMetrics.cvar99), color: '#dc2626', tip: 'Perda média nos piores 1% dos dias.' },
-              { label: 'Desvio Downside', value: fmtPct(result.riskMetrics.downsideDeviation), color: '#f59e0b', tip: 'Volatilidade apenas dos retornos negativos.' },
+              { label: 'VaR 95%', value: fmtPct(result.riskMetrics.var95), color: '#e07070', tip: 'Em 95% dos dias, a perda não ultrapassa este valor.' },
+              { label: 'VaR 99%', value: fmtPct(result.riskMetrics.var99), color: '#e07070', tip: 'VaR mais conservador — cenário quase extremo.' },
+              { label: 'CVaR 95%', value: fmtPct(result.riskMetrics.cvar95), color: '#c04040', tip: 'Perda média nos piores 5% dos dias.' },
+              { label: 'CVaR 99%', value: fmtPct(result.riskMetrics.cvar99), color: '#c04040', tip: 'Perda média nos piores 1% dos dias.' },
+              { label: 'Desvio Downside', value: fmtPct(result.riskMetrics.downsideDeviation), color: '#d4a84b', tip: 'Volatilidade apenas dos retornos negativos.' },
               { label: 'Perdas Consecutivas', value: `${result.riskMetrics.maxConsecutiveLosses} dias`, color: theme.text, tip: 'Maior sequência de dias com perda.' },
             ].map((m, i) => (
               <div key={i} style={cardStyle}>
@@ -789,12 +789,12 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
 
           {/* Worst Drawdown */}
           {result.drawdowns?.[0] && (
-            <div style={{ ...cardStyle, borderLeft: '3px solid #ef4444' }}>
+            <div style={{ ...cardStyle, borderLeft: '3px solid #e07070' }}>
               <h3 style={{ margin: '0 0 0.5rem', fontSize: '0.9rem', fontWeight: 600, color: theme.text }}>Pior Drawdown</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(120px, 100%), 1fr))', gap: '0.5rem' }}>
                 <div><div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Início</div><div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>{result.drawdowns[0].start}</div></div>
                 <div><div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Fim</div><div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>{result.drawdowns[0].end}</div></div>
-                <div><div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Profundidade</div><div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ef4444' }}>{fmtPct(result.drawdowns[0].depth)}</div></div>
+                <div><div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Profundidade</div><div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#e07070' }}>{fmtPct(result.drawdowns[0].depth)}</div></div>
                 <div><div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>Duração</div><div style={{ fontSize: '0.85rem', fontWeight: 600, color: theme.text }}>{result.drawdowns[0].duration} dias</div></div>
               </div>
             </div>
@@ -812,7 +812,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                       <XAxis dataKey="date" stroke={theme.textSecondary} style={{ fontSize: 10 }} tickFormatter={(d: string) => { const dt = new Date(d + 'T12:00:00'); return `${dt.getDate()}/${dt.getMonth() + 1}`; }} />
                       <YAxis stroke={theme.textSecondary} style={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} />
                       <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [`${(v * 100).toFixed(1)}%`, 'Volatilidade']} />
-                      <Area type="monotone" dataKey="volatility" stroke="#f59e0b" fill="rgba(245,158,11,0.15)" />
+                      <Area type="monotone" dataKey="volatility" stroke="#d4a84b" fill="rgba(212,168,75,0.15)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>

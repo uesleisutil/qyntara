@@ -42,25 +42,25 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
         const cur = prices[p.ticker] || p.entryPrice;
         const ret = ((cur - p.entryPrice) / p.entryPrice) * 100;
         return `<tr>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">${p.ticker}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">${getSector(p.ticker).sector}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">R$ ${fmt(p.entryPrice)}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">R$ ${fmt(cur)}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:${ret >= 0 ? '#10b981' : '#ef4444'};font-weight:600">${ret >= 0 ? '+' : ''}${fmt(ret, 1)}%</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc">${p.ticker}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc">${getSector(p.ticker).sector}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc">R$ ${fmt(p.entryPrice)}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc">R$ ${fmt(cur)}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc;color:${ret >= 0 ? '#4ead8a' : '#e07070'};font-weight:600">${ret >= 0 ? '+' : ''}${fmt(ret, 1)}%</td>
         </tr>`;
       }).join('');
 
       // Build recommendations table
       const recRows = recs.slice(0, 20).map((r: any, i: number) => {
         const signal = getSignal(r.score);
-        const sigColor = signal === 'Compra' ? '#10b981' : signal === 'Venda' ? '#ef4444' : '#9895b0';
+        const sigColor = signal === 'Compra' ? '#4ead8a' : signal === 'Venda' ? '#e07070' : '#8fa89c';
         return `<tr>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">${i + 1}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600">${r.ticker}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:${sigColor};font-weight:600">${signal}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">${fmt(r.score, 2)}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">R$ ${fmt(r.last_close)}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:${r.exp_return_20 >= 0 ? '#10b981' : '#ef4444'}">${r.exp_return_20 >= 0 ? '+' : ''}${fmt(r.exp_return_20 * 100, 1)}%</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc">${i + 1}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc;font-weight:600">${r.ticker}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc;color:${sigColor};font-weight:600">${signal}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc">${fmt(r.score, 2)}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc">R$ ${fmt(r.last_close)}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #d4e5dc;color:${r.exp_return_20 >= 0 ? '#4ead8a' : '#e07070'}">${r.exp_return_20 >= 0 ? '+' : ''}${fmt(r.exp_return_20 * 100, 1)}%</td>
         </tr>`;
       }).join('');
 
@@ -73,25 +73,25 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
       const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Relatório Mensal - Qyntara</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #0c0a1a; }
-  h1 { color: #1a1836; border-bottom: 2px solid #8b5cf6; padding-bottom: 0.5rem; }
-  h2 { color: #2a2745; margin-top: 2rem; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #121a1a; }
+  h1 { color: #1a2626; border-bottom: 2px solid #5a9e87; padding-bottom: 0.5rem; }
+  h2 { color: #2a3d36; margin-top: 2rem; }
   table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
-  th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+  th { background: #e8f0ed; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #d4e5dc; }
   .summary { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }
-  .summary-card { flex: 1; min-width: 120px; padding: 1rem; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; text-align: center; }
-  .summary-card .label { font-size: 0.75rem; color: #64748b; }
+  .summary-card { flex: 1; min-width: 120px; padding: 1rem; border-radius: 8px; background: #f6faf8; border: 1px solid #d4e5dc; text-align: center; }
+  .summary-card .label { font-size: 0.75rem; color: #5a7268; }
   .summary-card .value { font-size: 1.3rem; font-weight: 700; margin-top: 0.25rem; }
-  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #94a3b8; text-align: center; }
+  .footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #d4e5dc; font-size: 0.75rem; color: #8fa89c; text-align: center; }
   @media print { body { padding: 0; } }
 </style></head><body>
 <h1>📊 Relatório Mensal — Qyntara</h1>
-<p style="color:#64748b">${monthName} · Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
+<p style="color:#5a7268">${monthName} · Gerado em ${now.toLocaleDateString('pt-BR')} às ${now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
 
 <div class="summary">
   <div class="summary-card"><div class="label">Total Ações</div><div class="value">${recs.length}</div></div>
-  <div class="summary-card"><div class="label">Compra</div><div class="value" style="color:#10b981">${buys.length}</div></div>
-  <div class="summary-card"><div class="label">Venda</div><div class="value" style="color:#ef4444">${sells.length}</div></div>
+  <div class="summary-card"><div class="label">Compra</div><div class="value" style="color:#4ead8a">${buys.length}</div></div>
+  <div class="summary-card"><div class="label">Venda</div><div class="value" style="color:#e07070">${sells.length}</div></div>
   <div class="summary-card"><div class="label">Dias Analisados</div><div class="value">${allDates.size}</div></div>
   <div class="summary-card"><div class="label">Posições Seguidas</div><div class="value">${positions.length}</div></div>
 </div>
@@ -125,14 +125,14 @@ ${positions.length > 0 ? `<h2>📋 Minhas Posições</h2>
     <button onClick={generate} disabled={generating} style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
       padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-      border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+      border: `1px solid ${darkMode ? '#2a3d36' : '#d4e5dc'}`,
       background: 'transparent',
-      color: darkMode ? '#9895b0' : '#64748b',
+      color: darkMode ? '#8fa89c' : '#5a7268',
       cursor: generating ? 'wait' : 'pointer', transition: 'all 0.15s',
       WebkitAppearance: 'none' as any, minHeight: 'auto',
     }}
-      onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; } }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a2745' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#9895b0' : '#64748b'; }}
+      onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#5a9e87'; e.currentTarget.style.color = '#5a9e87'; } }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a3d36' : '#d4e5dc'; e.currentTarget.style.color = darkMode ? '#8fa89c' : '#5a7268'; }}
     >
       {generating ? <Loader size={13} className="spin" /> : <FileText size={13} />}
       {generating ? 'Gerando...' : 'Relatório Mensal'}

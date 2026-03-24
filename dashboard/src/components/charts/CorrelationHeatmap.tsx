@@ -67,7 +67,7 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
     // Color scale: red (-1) to white (0) to blue (+1)
     const colorScale = d3.scaleLinear<string>()
       .domain([-1, 0, 1])
-      .range(['#d32f2f', '#ffffff', '#1976d2']);
+      .range(['#c04040', '#ffffff', '#4a9e90']);
 
     // Prepare cell data
     const cellData: Array<{
@@ -102,7 +102,7 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
       .attr('width', xScale.bandwidth())
       .attr('height', yScale.bandwidth())
       .attr('fill', d => colorScale(d.value))
-      .attr('stroke', d => Math.abs(d.value) > 0.7 ? '#ff9800' : 'none')
+      .attr('stroke', d => Math.abs(d.value) > 0.7 ? '#d4944b' : 'none')
       .attr('stroke-width', 2)
       .attr('rx', 2)
       .style('cursor', onCellClick ? 'pointer' : 'default')
@@ -118,7 +118,7 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
             .html(`
               <strong>${d.x}</strong> vs <strong>${d.y}</strong><br/>
               Correlation: <strong>${d.value.toFixed(3)}</strong>
-              ${Math.abs(d.value) > 0.7 ? '<br/><span style="color: #ff9800;">⚠️ Strong correlation</span>' : ''}
+              ${Math.abs(d.value) > 0.7 ? '<br/><span style="color: #d4944b;">⚠️ Strong correlation</span>' : ''}
             `);
         }
       })
@@ -202,7 +202,7 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
 
     legendGradient.append('stop')
       .attr('offset', '0%')
-      .attr('stop-color', '#d32f2f');
+      .attr('stop-color', '#c04040');
 
     legendGradient.append('stop')
       .attr('offset', '50%')
@@ -210,7 +210,7 @@ export const CorrelationHeatmap: React.FC<CorrelationHeatmapProps> = ({
 
     legendGradient.append('stop')
       .attr('offset', '100%')
-      .attr('stop-color', '#1976d2');
+      .attr('stop-color', '#4a9e90');
 
     const legend = g.append('g')
       .attr('transform', `translate(${legendX},${legendY})`);

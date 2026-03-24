@@ -54,14 +54,14 @@ const GoalTracker: React.FC<Props> = ({ darkMode, theme }) => {
           placeholder="Ex: 5" autoFocus
           style={{
             flex: 1, padding: '0.4rem 0.6rem', borderRadius: 6,
-            border: `1px solid ${theme.border}`, background: darkMode ? '#0c0a1a' : '#f8fafc',
+            border: `1px solid ${theme.border}`, background: darkMode ? '#121a1a' : '#f6faf8',
             color: theme.text, fontSize: '0.85rem', outline: 'none',
           }} />
         <span style={{ fontSize: '0.85rem', color: theme.textSecondary }}>%</span>
-        <button onClick={save} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#10b981', padding: 4 }}>
+        <button onClick={save} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4ead8a', padding: 4 }}>
           <Check size={16} />
         </button>
-        <button onClick={() => setEditing(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: 4 }}>
+        <button onClick={() => setEditing(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e07070', padding: 4 }}>
           <X size={16} />
         </button>
       </div>
@@ -85,7 +85,7 @@ const GoalTracker: React.FC<Props> = ({ darkMode, theme }) => {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.4rem' }}>
-        <span style={{ fontSize: '1.15rem', fontWeight: 700, color: reached ? '#10b981' : theme.text, letterSpacing: '-0.02em' }}>
+        <span style={{ fontSize: '1.15rem', fontWeight: 700, color: reached ? '#4ead8a' : theme.text, letterSpacing: '-0.02em' }}>
           {fmt(currentReturn, 1)}%
         </span>
         <button onClick={() => { setEditing(true); setInput(goalPct.toString()); }}
@@ -93,15 +93,15 @@ const GoalTracker: React.FC<Props> = ({ darkMode, theme }) => {
           <Edit3 size={11} /> {fmt(goalPct, 1)}%
         </button>
       </div>
-      <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a2745' : '#e2e8f0', overflow: 'hidden' }}>
+      <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a3d36' : '#d4e5dc', overflow: 'hidden' }}>
         <div style={{
           height: '100%', borderRadius: 3, width: `${progress}%`,
-          background: reached ? '#10b981' : '#8b5cf6',
+          background: reached ? '#4ead8a' : '#5a9e87',
           transition: 'width 0.5s ease',
         }} />
       </div>
       {reached && (
-        <div style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 600, marginTop: '0.3rem', textAlign: 'center' }}>
+        <div style={{ fontSize: '0.7rem', color: '#4ead8a', fontWeight: 600, marginTop: '0.3rem', textAlign: 'center' }}>
           🎉 Meta atingida
         </div>
       )}

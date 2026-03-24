@@ -25,13 +25,13 @@ export const AnnotationModal: React.FC<AnnotationModalProps> = ({
   const [category, setCategory] = useState(initialCategory || 'note');
 
   const theme = {
-    bg: darkMode ? '#0c0a1a' : '#f8fafc',
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    hover: darkMode ? '#2a2745' : '#f1f5f9',
-    inputBg: darkMode ? '#0c0a1a' : 'white'
+    bg: darkMode ? '#121a1a' : '#f6faf8',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    hover: darkMode ? '#2a3d36' : '#e8f0ed',
+    inputBg: darkMode ? '#121a1a' : 'white'
   };
 
   if (!isOpen) return null;
@@ -240,7 +240,7 @@ export const AnnotationModal: React.FC<AnnotationModalProps> = ({
             disabled={!text.trim()}
             style={{
               padding: '0.625rem 1.25rem',
-              backgroundColor: text.trim() ? '#8b5cf6' : theme.border,
+              backgroundColor: text.trim() ? '#5a9e87' : theme.border,
               color: 'white',
               border: 'none',
               borderRadius: '0.5rem',
@@ -255,12 +255,12 @@ export const AnnotationModal: React.FC<AnnotationModalProps> = ({
             }}
             onMouseEnter={(e) => {
               if (text.trim()) {
-                e.currentTarget.style.backgroundColor = '#7c3aed';
+                e.currentTarget.style.backgroundColor = '#4a8e77';
               }
             }}
             onMouseLeave={(e) => {
               if (text.trim()) {
-                e.currentTarget.style.backgroundColor = '#8b5cf6';
+                e.currentTarget.style.backgroundColor = '#5a9e87';
               }
             }}
           >

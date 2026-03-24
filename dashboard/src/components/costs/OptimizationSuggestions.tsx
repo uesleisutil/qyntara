@@ -387,7 +387,7 @@ const OptimizationSuggestions: React.FC<OptimizationSuggestionsProps> = ({
                 ? `${colors.success}05`
                 : colors.background === '#ffffff'
                 ? '#ffffff'
-                : '#374151',
+                : '#2a4038',
               borderRadius: '8px',
               border: `1px solid ${
                 suggestion.implemented
@@ -486,7 +486,7 @@ const OptimizationSuggestions: React.FC<OptimizationSuggestionsProps> = ({
             <div
               style={{
                 padding: '0.5rem',
-                backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#1f2937',
+                backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#1a2e26',
                 borderRadius: '4px',
                 marginBottom: '0.75rem',
               }}
@@ -525,7 +525,7 @@ const OptimizationSuggestions: React.FC<OptimizationSuggestionsProps> = ({
                   style={{
                     marginTop: '0.5rem',
                     padding: '0.75rem',
-                    backgroundColor: colors.background === '#ffffff' ? '#f8fafc' : '#1f2937',
+                    backgroundColor: colors.background === '#ffffff' ? '#f6faf8' : '#1a2e26',
                     borderRadius: '4px',
                   }}
                 >

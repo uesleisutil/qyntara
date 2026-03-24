@@ -12,15 +12,15 @@ import BudgetIndicator from './BudgetIndicator';
 // Mock chart config
 jest.mock('../../lib/chartConfig', () => ({
   useChartColors: () => ({
-    primary: '#8b5cf6',
-    secondary: '#8b5cf6',
-    success: '#10b981',
-    warning: '#f59e0b',
-    error: '#ef4444',
-    info: '#06b6d4',
-    neutral: '#6b7280',
-    grid: '#e5e7eb',
-    text: '#1f2937',
+    primary: '#5a9e87',
+    secondary: '#5a9e87',
+    success: '#4ead8a',
+    warning: '#d4a84b',
+    error: '#e07070',
+    info: '#5ab0a0',
+    neutral: '#5a7268',
+    grid: '#d4e5dc',
+    text: '#1a2e26',
     background: '#ffffff',
   }),
   formatters: {

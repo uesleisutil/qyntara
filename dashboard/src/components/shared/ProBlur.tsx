@@ -33,28 +33,28 @@ const ProBlur: React.FC<Props> = ({ isPro, darkMode, label = 'Disponível no pla
       }}>
         <div style={{
           textAlign: 'center', padding: '1.5rem 2rem', borderRadius: 12, position: 'relative',
-          background: darkMode ? '#1a1836' : '#ffffff',
-          border: `1px solid ${darkMode ? '#2a2745' : '#e2e8f0'}`,
+          background: darkMode ? '#1a2626' : '#ffffff',
+          border: `1px solid ${darkMode ? '#2a3d36' : '#d4e5dc'}`,
           boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
           maxWidth: 320,
         }}>
           <button onClick={close} style={{
             position: 'absolute', top: 8, right: 8, background: 'none', border: 'none',
-            color: darkMode ? '#64748b' : '#9895b0', cursor: 'pointer', padding: 2,
+            color: darkMode ? '#5a7268' : '#8fa89c', cursor: 'pointer', padding: 2,
           }} aria-label="Fechar">
             <X size={16} />
           </button>
-          <Lock size={24} color="#f59e0b" style={{ marginBottom: 8 }} />
-          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: darkMode ? '#f1f5f9' : '#0c0a1a', marginBottom: 4 }}>
+          <Lock size={24} color="#d4a84b" style={{ marginBottom: 8 }} />
+          <div style={{ fontSize: '0.9rem', fontWeight: 700, color: darkMode ? '#e8f0ed' : '#121a1a', marginBottom: 4 }}>
             {label}
           </div>
-          <div style={{ fontSize: '0.75rem', color: darkMode ? '#9895b0' : '#64748b', lineHeight: 1.5, marginBottom: 12 }}>
+          <div style={{ fontSize: '0.75rem', color: darkMode ? '#8fa89c' : '#5a7268', lineHeight: 1.5, marginBottom: 12 }}>
             Assine o plano Pro para desbloquear este conteúdo.
           </div>
           <button onClick={() => { window.location.hash = '#/dashboard/upgrade'; }} style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
             padding: '0.45rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: 'white',
+            background: 'linear-gradient(135deg, #d4a84b, #b08a30)', color: 'white',
             fontSize: '0.78rem', fontWeight: 600,
           }}>
             Ver planos <ArrowRight size={13} />

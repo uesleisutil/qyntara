@@ -42,16 +42,16 @@ jest.mock('date-fns/locale', () => ({
 // Mock chart config
 jest.mock('../../lib/chartConfig', () => ({
   useChartColors: () => ({
-    primary: '#8b5cf6',
-    success: '#10b981',
-    error: '#ef4444',
-    warning: '#f59e0b',
-    info: '#06b6d4',
-    neutral: '#6b7280',
-    text: '#1f2937',
+    primary: '#5a9e87',
+    success: '#4ead8a',
+    error: '#e07070',
+    warning: '#d4a84b',
+    info: '#5ab0a0',
+    neutral: '#5a7268',
+    text: '#1a2e26',
     background: '#ffffff',
-    grid: '#e5e7eb',
-    secondary: '#8b5cf6',
+    grid: '#d4e5dc',
+    secondary: '#5a9e87',
   }),
   formatters: {
     currency: (value: number) => `R$ ${value.toFixed(2)}`,

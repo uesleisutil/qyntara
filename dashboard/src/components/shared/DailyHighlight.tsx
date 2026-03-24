@@ -19,7 +19,7 @@ const fmt = (v: number, d = 2) => v != null && !isNaN(v) ? Number(v).toFixed(d) 
 const DailyHighlight: React.FC<Props> = ({ theme, topTicker, isPro = false }) => {
   if (!topTicker) return null;
   const signal = topTicker.score >= SCORE_BUY_THRESHOLD ? 'Compra' : topTicker.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
-  const color = signal === 'Compra' ? '#10b981' : signal === 'Venda' ? '#ef4444' : '#f59e0b';
+  const color = signal === 'Compra' ? '#4ead8a' : signal === 'Venda' ? '#e07070' : '#d4a84b';
   const Icon = signal === 'Compra' ? ArrowUpRight : signal === 'Venda' ? ArrowDownRight : Minus;
   const retPct = topTicker.exp_return_20 * 100;
 

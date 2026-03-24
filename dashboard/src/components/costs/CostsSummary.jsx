@@ -16,7 +16,7 @@ import { DollarSign, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react
 const CostsSummary = ({ data, isLoading }) => {
   if (isLoading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
         Carregando resumo de custos...
       </div>
     );
@@ -24,7 +24,7 @@ const CostsSummary = ({ data, isLoading }) => {
 
   if (!data || !data.latest) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
         Sem dados de custos disponíveis
       </div>
     );
@@ -41,26 +41,26 @@ const CostsSummary = ({ data, isLoading }) => {
     if (percentOfLimit >= 100) {
       return {
         level: 'critical',
-        color: '#ef4444',
-        bgColor: '#fef2f2',
-        icon: <AlertTriangle size={24} color="#ef4444" />,
+        color: '#e07070',
+        bgColor: '#fdf0f0',
+        icon: <AlertTriangle size={24} color="#e07070" />,
         message: 'Limite excedido! Ação imediata necessária.'
       };
     }
     if (percentOfLimit >= 80) {
       return {
         level: 'warning',
-        color: '#f59e0b',
-        bgColor: '#fffbeb',
-        icon: <AlertTriangle size={24} color="#f59e0b" />,
+        color: '#d4a84b',
+        bgColor: '#f8f4e8',
+        icon: <AlertTriangle size={24} color="#d4a84b" />,
         message: 'Atenção: Projeção próxima do limite.'
       };
     }
     return {
       level: 'good',
-      color: '#10b981',
-      bgColor: '#f0fdf4',
-      icon: <CheckCircle size={24} color="#10b981" />,
+      color: '#4ead8a',
+      bgColor: '#edf5f1',
+      icon: <CheckCircle size={24} color="#4ead8a" />,
       message: 'Custos dentro do limite esperado.'
     };
   };
@@ -79,10 +79,10 @@ const CostsSummary = ({ data, isLoading }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {alertStatus.icon}
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
+            <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a2626' }}>
               Status de Custos
             </h3>
-            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>
+            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#5a7268' }}>
               {alertStatus.message}
             </p>
           </div>
@@ -94,7 +94,7 @@ const CostsSummary = ({ data, isLoading }) => {
         {/* Custo total (últimos 7 dias) */}
         <div style={{
           padding: '1.5rem',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #5a9e87 0%, #5a9e87 100%)',
           borderRadius: '8px',
           color: 'white'
         }}>
@@ -113,7 +113,7 @@ const CostsSummary = ({ data, isLoading }) => {
         {/* Projeção mensal */}
         <div style={{
           padding: '1.5rem',
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+          background: 'linear-gradient(135deg, #7ec4aa 0%, #e07070 100%)',
           borderRadius: '8px',
           color: 'white'
         }}>
@@ -154,10 +154,10 @@ const CostsSummary = ({ data, isLoading }) => {
         padding: '1.5rem',
         backgroundColor: 'white',
         borderRadius: '8px',
-        border: '1px solid #e2e8f0'
+        border: '1px solid #d4e5dc'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1a1836' }}>
+          <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1a2626' }}>
             Progresso do Limite Mensal
           </span>
           <span style={{ fontSize: '0.875rem', fontWeight: '600', color: alertStatus.color }}>
@@ -168,7 +168,7 @@ const CostsSummary = ({ data, isLoading }) => {
         <div style={{
           width: '100%',
           height: '24px',
-          backgroundColor: '#e2e8f0',
+          backgroundColor: '#d4e5dc',
           borderRadius: '12px',
           overflow: 'hidden',
           position: 'relative'
@@ -197,11 +197,11 @@ const CostsSummary = ({ data, isLoading }) => {
           justifyContent: 'space-between', 
           marginTop: '0.5rem',
           fontSize: '0.75rem',
-          color: '#64748b'
+          color: '#5a7268'
         }}>
           <span>R$ 0</span>
-          <span style={{ color: '#f59e0b' }}>80% (R$ 400)</span>
-          <span style={{ color: '#ef4444' }}>100% (R$ 500)</span>
+          <span style={{ color: '#d4a84b' }}>80% (R$ 400)</span>
+          <span style={{ color: '#e07070' }}>100% (R$ 500)</span>
         </div>
       </div>
 
@@ -209,14 +209,14 @@ const CostsSummary = ({ data, isLoading }) => {
       {latest.threshold?.exceeded && (
         <div style={{
           padding: '1rem',
-          backgroundColor: '#fef2f2',
+          backgroundColor: '#fdf0f0',
           borderRadius: '8px',
-          border: '1px solid #fecaca'
+          border: '1px solid #f0c4c4'
         }}>
-          <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#991b1b', margin: '0 0 0.5rem 0' }}>
+          <p style={{ fontSize: '0.875rem', fontWeight: '600', color: '#8a2020', margin: '0 0 0.5rem 0' }}>
             ⚠️ Alerta de Custo
           </p>
-          <p style={{ fontSize: '0.875rem', color: '#7f1d1d', margin: 0 }}>
+          <p style={{ fontSize: '0.875rem', color: '#6a2020', margin: 0 }}>
             {latest.threshold.message || 'Limite de custo mensal excedido. Revise os gastos imediatamente.'}
           </p>
         </div>

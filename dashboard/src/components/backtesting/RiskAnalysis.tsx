@@ -41,12 +41,12 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
   darkMode = false,
 }) => {
   const theme = {
-    cardBg: darkMode ? '#1a1836' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#9895b0' : '#64748b',
-    border: darkMode ? '#2a2745' : '#e2e8f0',
-    gridColor: darkMode ? '#2a2745' : '#e2e8f0',
-    tableBg: darkMode ? '#0c0a1a' : '#f8fafc',
+    cardBg: darkMode ? '#1a2626' : 'white',
+    text: darkMode ? '#e8f0ed' : '#121a1a',
+    textSecondary: darkMode ? '#8fa89c' : '#5a7268',
+    border: darkMode ? '#2a3d36' : '#d4e5dc',
+    gridColor: darkMode ? '#2a3d36' : '#d4e5dc',
+    tableBg: darkMode ? '#121a1a' : '#f6faf8',
   };
 
   const formatPercent = (value: number) => {
@@ -82,7 +82,7 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <AlertTriangle size={20} color={darkMode ? '#9895b0' : '#64748b'} />
+        <AlertTriangle size={20} color={darkMode ? '#8fa89c' : '#5a7268'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 
@@ -104,7 +104,7 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
           <div style={{ fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, marginBottom: '0.5rem' }}>
             VaR (95%)
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#c04040' }}>
             {formatPercent(riskMetrics.var95)}
           </div>
         </div>
@@ -112,7 +112,7 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
           <div style={{ fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, marginBottom: '0.5rem' }}>
             VaR (99%)
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#c04040' }}>
             {formatPercent(riskMetrics.var99)}
           </div>
         </div>
@@ -120,7 +120,7 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
           <div style={{ fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, marginBottom: '0.5rem' }}>
             CVaR (95%)
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#c04040' }}>
             {formatPercent(riskMetrics.cvar95)}
           </div>
         </div>
@@ -128,7 +128,7 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
           <div style={{ fontSize: '0.75rem', fontWeight: '600', color: theme.textSecondary, marginBottom: '0.5rem' }}>
             CVaR (99%)
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#dc2626' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#c04040' }}>
             {formatPercent(riskMetrics.cvar99)}
           </div>
         </div>
@@ -176,7 +176,7 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.25rem' }}>Depth</div>
-            <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: '#dc2626' }}>
+            <div style={{ fontSize: '0.9375rem', fontWeight: '600', color: '#c04040' }}>
               {formatPercent(worstDrawdown.depth)}
             </div>
           </div>
@@ -219,8 +219,8 @@ export const RiskAnalysis: React.FC<RiskAnalysisProps> = ({
             <Area 
               type="monotone" 
               dataKey="volatility" 
-              stroke="#f59e0b" 
-              fill="#fef3c7"
+              stroke="#d4a84b" 
+              fill="#f5ecd0"
               fillOpacity={0.6}
             />
           </AreaChart>

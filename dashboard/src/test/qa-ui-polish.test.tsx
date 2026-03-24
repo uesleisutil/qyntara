@@ -36,15 +36,15 @@ describe('32.5 UI Polish - Error Messages (Req 76.2)', () => {
         data-testid="error-banner"
         style={{
           padding: '1rem 1.25rem',
-          backgroundColor: '#fef2f2',
-          border: '1px solid #fecaca',
+          backgroundColor: '#fdf0f0',
+          border: '1px solid #f0c4c4',
           borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
         }}
       >
-        <span style={{ color: '#991b1b', fontSize: '0.875rem', fontWeight: '500' }}>
+        <span style={{ color: '#8a2020', fontSize: '0.875rem', fontWeight: '500' }}>
           {message}
         </span>
       </div>
@@ -63,13 +63,13 @@ describe('32.5 UI Polish - Error Messages (Req 76.2)', () => {
 describe('32.5 UI Polish - Theme Consistency (Req 78.1-78.3)', () => {
   test('light theme colors are consistent', () => {
     const lightTheme = {
-      bg: '#f8fafc',
+      bg: '#f6faf8',
       cardBg: 'white',
-      text: '#0f172a',
-      textSecondary: '#64748b',
-      border: '#e2e8f0',
-      hover: '#f8fafc',
-      tableBg: '#f8fafc',
+      text: '#0f1a16',
+      textSecondary: '#5a7268',
+      border: '#d4e5dc',
+      hover: '#f6faf8',
+      tableBg: '#f6faf8',
     };
 
     // All colors should be defined
@@ -84,13 +84,13 @@ describe('32.5 UI Polish - Theme Consistency (Req 78.1-78.3)', () => {
 
   test('dark theme colors are consistent', () => {
     const darkTheme = {
-      bg: '#0f172a',
-      cardBg: '#1e293b',
-      text: '#f1f5f9',
-      textSecondary: '#94a3b8',
-      border: '#334155',
-      hover: '#334155',
-      tableBg: '#0f172a',
+      bg: '#0f1a16',
+      cardBg: '#1a2e26',
+      text: '#e8f0ed',
+      textSecondary: '#8fa89c',
+      border: '#2a4038',
+      hover: '#2a4038',
+      tableBg: '#0f1a16',
     };
 
     Object.values(darkTheme).forEach(color => {
@@ -172,14 +172,14 @@ describe('32.5 UI Polish - Spacing and Layout (Req 78.7-78.8)', () => {
 describe('32.5 UI Polish - Interactive Elements (Req 78.9-78.10)', () => {
   test('active tab has distinct visual style', () => {
     const activeStyle = {
-      background: '#3b82f6',
+      background: '#5ab0a0',
       color: 'white',
       boxShadow: '0 4px 6px rgba(59, 130, 246, 0.2)',
     };
 
     const inactiveStyle = {
       background: 'transparent',
-      color: '#64748b',
+      color: '#5a7268',
       boxShadow: 'none',
     };
 

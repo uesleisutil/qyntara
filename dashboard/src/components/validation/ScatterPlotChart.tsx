@@ -101,13 +101,13 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
 
       let fill: string;
       if (errorMagnitude > 3) {
-        fill = '#dc2626'; // Red - outlier (>3 std devs)
+        fill = '#c04040'; // Red - outlier (>3 std devs)
       } else if (errorMagnitude > 2) {
-        fill = '#f59e0b'; // Orange - high error (>2 std devs)
+        fill = '#d4a84b'; // Orange - high error (>2 std devs)
       } else if (errorMagnitude > 1) {
-        fill = '#fbbf24'; // Yellow - medium error (>1 std dev)
+        fill = '#e0b85c'; // Yellow - medium error (>1 std dev)
       } else {
-        fill = '#10b981'; // Green - low error
+        fill = '#4ead8a'; // Green - low error
       }
 
       return {
@@ -144,29 +144,29 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
         <div
           style={{
             backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            border: '1px solid #e5e7eb',
+            border: '1px solid #d4e5dc',
             borderRadius: '8px',
             padding: '12px',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
           }}
         >
-          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1f2937' }}>
+          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#1a2e26' }}>
             {point.ticker}
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#5a7268' }}>
             Date: {point.date}
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#5a7268' }}>
             Predicted: {point.predicted.toFixed(2)}%
           </p>
-          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#6b7280' }}>
+          <p style={{ margin: '4px 0', fontSize: '0.875rem', color: '#5a7268' }}>
             Actual: {point.actual.toFixed(2)}%
           </p>
           <p
             style={{
               margin: '4px 0',
               fontSize: '0.875rem',
-              color: point.error > 0 ? '#dc2626' : '#10b981',
+              color: point.error > 0 ? '#c04040' : '#4ead8a',
               fontWeight: 'bold',
             }}
           >
@@ -191,7 +191,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
   if (error) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#c04040' }}>
           <p>Error loading scatter plot: {error.message}</p>
         </div>
       </Card>
@@ -201,7 +201,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
   if (!data || data.length === 0) {
     return (
       <Card>
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#5a7268' }}>
           <p>No data available for scatter plot</p>
         </div>
       </Card>
@@ -224,14 +224,14 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
           </h3>
           <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem' }}>
             <div>
-              <span style={{ color: '#6b7280' }}>Correlation: </span>
-              <span style={{ fontWeight: 'bold', color: '#1f2937' }}>
+              <span style={{ color: '#5a7268' }}>Correlation: </span>
+              <span style={{ fontWeight: 'bold', color: '#1a2e26' }}>
                 {statistics.correlation.toFixed(3)}
               </span>
             </div>
             <div>
-              <span style={{ color: '#6b7280' }}>R²: </span>
-              <span style={{ fontWeight: 'bold', color: '#1f2937' }}>
+              <span style={{ color: '#5a7268' }}>R²: </span>
+              <span style={{ fontWeight: 'bold', color: '#1a2e26' }}>
                 {statistics.rSquared.toFixed(3)}
               </span>
             </div>
@@ -242,7 +242,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
           <ScatterChart
             margin={{ top: 20, right: 30, bottom: 60, left: 60 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#d4e5dc" />
             <XAxis
               type="number"
               dataKey="predicted"
@@ -252,9 +252,9 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
                 value: 'Predicted Return (%)',
                 position: 'bottom',
                 offset: 40,
-                style: { fontSize: '0.875rem', fill: '#6b7280' },
+                style: { fontSize: '0.875rem', fill: '#5a7268' },
               }}
-              tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
+              tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
             />
             <YAxis
               type="number"
@@ -266,9 +266,9 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
                 angle: -90,
                 position: 'left',
                 offset: 40,
-                style: { fontSize: '0.875rem', fill: '#6b7280' },
+                style: { fontSize: '0.875rem', fill: '#5a7268' },
               }}
-              tick={{ fontSize: '0.75rem', fill: '#6b7280' }}
+              tick={{ fontSize: '0.75rem', fill: '#5a7268' }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Legend
@@ -290,7 +290,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
                         width: '12px',
                         height: '12px',
                         borderRadius: '50%',
-                        backgroundColor: '#10b981',
+                        backgroundColor: '#4ead8a',
                       }}
                     />
                     <span>Low Error (&lt;1σ)</span>
@@ -301,7 +301,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
                         width: '12px',
                         height: '12px',
                         borderRadius: '50%',
-                        backgroundColor: '#fbbf24',
+                        backgroundColor: '#e0b85c',
                       }}
                     />
                     <span>Medium Error (1-2σ)</span>
@@ -312,7 +312,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
                         width: '12px',
                         height: '12px',
                         borderRadius: '50%',
-                        backgroundColor: '#f59e0b',
+                        backgroundColor: '#d4a84b',
                       }}
                     />
                     <span>High Error (2-3σ)</span>
@@ -323,7 +323,7 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
                         width: '12px',
                         height: '12px',
                         borderRadius: '50%',
-                        backgroundColor: '#dc2626',
+                        backgroundColor: '#c04040',
                       }}
                     />
                     <span>Outlier (&gt;3σ)</span>
@@ -337,19 +337,19 @@ export const ScatterPlotChart: React.FC<ScatterPlotChartProps> = ({
                 { x: axisRange.min, y: axisRange.min },
                 { x: axisRange.max, y: axisRange.max },
               ]}
-              stroke="#9ca3af"
+              stroke="#8fa89c"
               strokeWidth={2}
               strokeDasharray="5 5"
               label={{
                 value: 'Perfect Prediction',
                 position: 'insideTopRight',
-                style: { fontSize: '0.75rem', fill: '#6b7280' },
+                style: { fontSize: '0.75rem', fill: '#5a7268' },
               }}
             />
             <Scatter
               name="Predictions"
               data={coloredData}
-              fill="#8b5cf6"
+              fill="#5a9e87"
             />
           </ScatterChart>
         </ResponsiveContainer>

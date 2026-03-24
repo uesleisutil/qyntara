@@ -24,9 +24,9 @@ export interface AnnotationContextType {
 }
 
 export const ANNOTATION_CATEGORIES = [
-  { value: 'event', label: 'Market Event', color: '#8b5cf6' },
-  { value: 'decision', label: 'Trading Decision', color: '#10b981' },
-  { value: 'note', label: 'General Note', color: '#f59e0b' },
-  { value: 'alert', label: 'Alert', color: '#ef4444' },
-  { value: 'milestone', label: 'Milestone', color: '#8b5cf6' }
+  { value: 'event', label: 'Market Event', color: '#5a9e87' },
+  { value: 'decision', label: 'Trading Decision', color: '#4ead8a' },
+  { value: 'note', label: 'General Note', color: '#d4a84b' },
+  { value: 'alert', label: 'Alert', color: '#e07070' },
+  { value: 'milestone', label: 'Milestone', color: '#5a9e87' }
 ];
