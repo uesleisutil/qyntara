@@ -270,22 +270,29 @@ const AdminUsersPage: React.FC = () => {
                             opacity: costsToggleLoading === u.email ? 0.5 : 1,
                           }}
                         >
-                          <span style={{ position: 'relative', display: 'inline-block', width: 34, height: 18 }}>
+                          <span style={{ position: 'relative', display: 'inline-block', width: 34, height: 18, cursor: u.role === 'admin' ? 'default' : 'pointer' }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (u.role !== 'admin' && costsToggleLoading !== u.email) {
+                                handleToggleCosts(u.email, !!u.canViewCosts);
+                              }
+                            }}
+                          >
                             <input
                               type="checkbox"
                               checked={u.role === 'admin' || !!u.canViewCosts}
                               disabled={costsToggleLoading === u.email || u.role === 'admin'}
-                              onChange={() => handleToggleCosts(u.email, !!u.canViewCosts)}
+                              readOnly
                               style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
                             />
                             <span style={{
-                              position: 'absolute', inset: 0, borderRadius: 9,
+                              position: 'absolute', inset: 0, borderRadius: 9, pointerEvents: 'none',
                               background: (u.role === 'admin' || u.canViewCosts) ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
                               transition: 'background 0.2s',
                             }} />
                             <span style={{
                               position: 'absolute', top: 2, left: (u.role === 'admin' || u.canViewCosts) ? 18 : 2,
-                              width: 14, height: 14, borderRadius: '50%', background: 'white',
+                              width: 14, height: 14, borderRadius: '50%', background: 'white', pointerEvents: 'none',
                               transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                             }} />
                           </span>
@@ -359,22 +366,29 @@ const AdminUsersPage: React.FC = () => {
                           opacity: costsToggleLoading === u.email ? 0.5 : 1,
                         }}
                       >
-                        <span style={{ position: 'relative', display: 'inline-block', width: 30, height: 16 }}>
+                        <span style={{ position: 'relative', display: 'inline-block', width: 30, height: 16, cursor: u.role === 'admin' ? 'default' : 'pointer' }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (u.role !== 'admin' && costsToggleLoading !== u.email) {
+                              handleToggleCosts(u.email, !!u.canViewCosts);
+                            }
+                          }}
+                        >
                           <input
                             type="checkbox"
                             checked={u.role === 'admin' || !!u.canViewCosts}
                             disabled={costsToggleLoading === u.email || u.role === 'admin'}
-                            onChange={() => handleToggleCosts(u.email, !!u.canViewCosts)}
+                            readOnly
                             style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
                           />
                           <span style={{
-                            position: 'absolute', inset: 0, borderRadius: 8,
+                            position: 'absolute', inset: 0, borderRadius: 8, pointerEvents: 'none',
                             background: (u.role === 'admin' || u.canViewCosts) ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
                             transition: 'background 0.2s',
                           }} />
                           <span style={{
                             position: 'absolute', top: 2, left: (u.role === 'admin' || u.canViewCosts) ? 16 : 2,
-                            width: 12, height: 12, borderRadius: '50%', background: 'white',
+                            width: 12, height: 12, borderRadius: '50%', background: 'white', pointerEvents: 'none',
                             transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                           }} />
                         </span>
