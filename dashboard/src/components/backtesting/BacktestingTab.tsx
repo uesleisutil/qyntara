@@ -95,11 +95,24 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
   let totalCommission = 0;
   let lastRebalanceIdx = -999;
 
+  // Track last known price per ticker (carry forward when data is missing)
+  const lastKnownPrice: Record<string, number> = {};
+
   const rebalanceInterval = config.rebalanceFrequency === 'daily' ? 1
     : config.rebalanceFrequency === 'weekly' ? 5 : 20;
 
   for (let i = 0; i < allDates.length; i++) {
     const date = allDates[i];
+
+    // Update last known prices for all tickers on this date
+    Object.keys(priceMap).forEach(ticker => {
+      const p = priceMap[ticker]?.[date];
+      if (p) lastKnownPrice[ticker] = p;
+    });
+
+    const getPrice = (ticker: string): number | undefined =>
+      priceMap[ticker]?.[date] ?? lastKnownPrice[ticker];
+
     const needsRebalance = !invested || (i - lastRebalanceIdx >= rebalanceInterval);
 
     if (needsRebalance) {
@@ -107,7 +120,7 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
       if (invested) {
         // eslint-disable-next-line no-loop-func
         Object.entries(holdings).forEach(([ticker, shares]) => {
-          const price = priceMap[ticker]?.[date];
+          const price = getPrice(ticker);
           if (price && shares > 0) {
             const proceeds = shares * price;
             const commission = proceeds * config.commissionRate;
@@ -118,8 +131,8 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
         holdings = {};
       }
 
-      // Buy top N tickers
-      const availableTickers = topTickers.filter(t => priceMap[t.ticker]?.[date]);
+      // Buy top N tickers — only those with a known price
+      const availableTickers = topTickers.filter(t => getPrice(t.ticker));
       if (availableTickers.length > 0) {
         // Recalculate weights for available tickers
         const availWeights: Record<string, number> = {};
@@ -132,7 +145,7 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
 
         // eslint-disable-next-line no-loop-func
         availableTickers.forEach(t => {
-          const price = priceMap[t.ticker][date];
+          const price = getPrice(t.ticker)!;
           const allocation = cash * availWeights[t.ticker];
           const commission = allocation * config.commissionRate;
           const shares = (allocation - commission) / price;
@@ -145,10 +158,10 @@ function runBacktest(config: Config, tickers: any[], allPrices: PriceRow[]) {
       }
     }
 
-    // Calculate portfolio value
+    // Calculate portfolio value using last known price when current is missing
     let portValue = cash;
     Object.entries(holdings).forEach(([ticker, shares]) => {
-      const price = priceMap[ticker]?.[date];
+      const price = getPrice(ticker);
       if (price) portValue += shares * price;
     });
     portfolioValue.push({ date, value: Math.round(portValue * 100) / 100 });
