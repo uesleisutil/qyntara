@@ -42,7 +42,9 @@ const AdminInvestorPage: React.FC = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const canViewCosts = useCanViewCosts();
-  const blurCost: React.CSSProperties = canViewCosts ? {} : { filter: 'blur(8px)', userSelect: 'none', pointerEvents: 'none' };
+  /** When access is off, real values never reach the DOM — only blurred placeholders */
+  const redactedStyle: React.CSSProperties = { filter: 'blur(8px)', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'none', clipPath: 'inset(0)' };
+  const redact = (real: string, ph: string) => canViewCosts ? real : ph;
   const [metrics, setMetrics] = useState<LiveMetrics>({
     userCount: 0, totalReturn: null, winRate: null,
     modelAccuracy: null, dataQuality: null, costs: null,
@@ -252,7 +254,7 @@ const AdminInvestorPage: React.FC = () => {
           {[
             { label: 'Usuários Ativos', value: metrics.userCount || '—', icon: <Users size={18} color="#3b82f6" />, color: '#3b82f6' },
             { label: 'Universo B3', value: UNIVERSE_SIZE_FALLBACK, icon: <BarChart3 size={18} color="#10b981" />, color: '#10b981' },
-            ...[{ label: 'Custo AWS/mês', value: metrics.costs ? fmtUsd(metrics.costs.monthlyProjectionUsd) : '—', icon: <Server size={18} color="#f59e0b" />, color: '#f59e0b', blur: true }],
+            ...[{ label: 'Custo AWS/mês', value: redact(metrics.costs ? fmtUsd(metrics.costs.monthlyProjectionUsd) : '—', '$ ••••'), icon: <Server size={18} color="#f59e0b" />, color: '#f59e0b', blur: true }],
             { label: 'Preço Pro', value: PRO_PRICE + '/mês', icon: <Crown size={18} color="#8b5cf6" />, color: '#8b5cf6' },
           ].map((kpi, i) => (
             <div key={i} style={{
@@ -261,7 +263,7 @@ const AdminInvestorPage: React.FC = () => {
               border: `1px solid ${kpi.color}18`,
             }}>
               <div style={{ marginBottom: '0.4rem', opacity: 0.9 }}>{kpi.icon}</div>
-              <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, color: kpi.color, letterSpacing: '-0.02em', ...((kpi as any).blur ? blurCost : {}) }}>{kpi.value}</div>
+              <div style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)', fontWeight: 800, color: kpi.color, letterSpacing: '-0.02em', ...((kpi as any).blur && !canViewCosts ? redactedStyle : {}) }}>{kpi.value}</div>
               <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginTop: '0.15rem', fontWeight: 500 }}>{kpi.label}</div>
             </div>
           ))}
@@ -444,14 +446,11 @@ const AdminInvestorPage: React.FC = () => {
         }}>
           <span style={{ color: theme.text, fontWeight: 600 }}>Custo operacional ultra-baixo:</span>{' '}
           {metrics.costs ? (
-              <span style={blurCost}>
-                {fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês
-                {' '}(Lambda {fmtUsd(metrics.costs.byComponent.compute)},
-                {' '}S3 {fmtUsd(metrics.costs.byComponent.storage)},
-                {' '}CloudWatch {fmtUsd(metrics.costs.byComponent.monitoring)}
-                {metrics.costs.byComponent.training > 0 && <>, SageMaker {fmtUsd(metrics.costs.byComponent.training + metrics.costs.byComponent.inference)}</>}
-                {' '}— últimos 7 dias).
-                {metrics.costs.sagemakerPerExec > 0 && <> Treino SageMaker: {fmtUsd(metrics.costs.sagemakerPerExec, 4)}/execução.</>}
+              <span style={canViewCosts ? {} : redactedStyle}>
+                {redact(
+                  `${fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês (Lambda ${fmtUsd(metrics.costs.byComponent.compute)}, S3 ${fmtUsd(metrics.costs.byComponent.storage)}, CloudWatch ${fmtUsd(metrics.costs.byComponent.monitoring)}${metrics.costs.byComponent.training > 0 ? `, SageMaker ${fmtUsd(metrics.costs.byComponent.training + metrics.costs.byComponent.inference)}` : ''} — últimos 7 dias).${metrics.costs.sagemakerPerExec > 0 ? ` Treino SageMaker: ${fmtUsd(metrics.costs.sagemakerPerExec, 4)}/execução.` : ''}`,
+                  '$••••/mês (Lambda $••••, S3 $••••, CloudWatch $•••• — últimos 7 dias).'
+                )}
               </span>
             ) : 'Carregando dados reais...'}
           <span style={{ color: '#10b981', fontWeight: 600 }}> 1 assinante Pro já cobre a infra de centenas de usuários.</span>
@@ -474,8 +473,8 @@ const AdminInvestorPage: React.FC = () => {
                   { label: 'Modelo', value: 'Freemium → Pro', sub: 'Free atrai, Pro monetiza', color: '#10b981' },
                   { label: 'ARPU (Pro)', value: PRO_PRICE + '/mês', sub: 'R$ 588/ano', color: '#f59e0b' },
                   ...[
-                    { label: 'Custo/Usuário', value: marginalCostBrl != null ? fmtBrl(marginalCostBrl) : '—', sub: 'por usuário/mês', color: '#3b82f6', blur: true },
-                    { label: 'Margem Bruta', value: marginPct != null ? `${fmt(marginPct, 0)}%` : '—', sub: 'SaaS serverless', color: '#8b5cf6', blur: true },
+                    { label: 'Custo/Usuário', value: redact(marginalCostBrl != null ? fmtBrl(marginalCostBrl) : '—', 'R$ ••••'), sub: 'por usuário/mês', color: '#3b82f6', blur: true },
+                    { label: 'Margem Bruta', value: redact(marginPct != null ? `${fmt(marginPct, 0)}%` : '—', '••%'), sub: 'SaaS serverless', color: '#8b5cf6', blur: true },
                   ],
                 ].map((m, i) => (
                   <div key={i} style={{
@@ -483,7 +482,7 @@ const AdminInvestorPage: React.FC = () => {
                     background: darkMode ? `${m.color}06` : `${m.color}03`, border: `1px solid ${m.color}15`,
                   }}>
                     <div style={{ fontSize: '0.65rem', color: theme.textSecondary, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{m.label}</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: m.color, margin: '0.25rem 0 0.1rem', letterSpacing: '-0.02em', ...((m as any).blur ? blurCost : {}) }}>{m.value}</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: m.color, margin: '0.25rem 0 0.1rem', letterSpacing: '-0.02em', ...((m as any).blur && !canViewCosts ? redactedStyle : {}) }}>{m.value}</div>
                     <div style={{ fontSize: '0.68rem', color: theme.textSecondary }}>{m.sub}</div>
                   </div>
                 ))}
@@ -491,7 +490,7 @@ const AdminInvestorPage: React.FC = () => {
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7 }}>
                 <span style={{ color: theme.text, fontWeight: 600 }}>Projeção conservadora:</span> 5% conversão Free→Pro com 1.000 usuários
                 = 50 × R$ 49 = <span style={{ color: '#10b981', fontWeight: 700 }}>R$ 2.450/mês MRR</span>
-                {c && <> (custo infra <span style={blurCost}>{fmtBrl(c.monthlyProjectionBrl)}</span>)</>}.
+                {c && <> (custo infra <span style={canViewCosts ? {} : redactedStyle}>{redact(fmtBrl(c.monthlyProjectionBrl), 'R$ ••••')}</span>)</>}.
                 Com 10.000 usuários: <span style={{ color: '#10b981', fontWeight: 700 }}>R$ 24.500/mês MRR</span>.
               </div>
             </>
@@ -507,7 +506,7 @@ const AdminInvestorPage: React.FC = () => {
             { title: 'Transparência Total (SHAP)', desc: 'Único no mercado PF a mostrar POR QUE cada ação foi recomendada.', icon: <Eye size={15} />, color: '#8b5cf6' },
             { title: 'Backtesting Verificável', desc: 'Simulação com dados reais. Casas de análise não oferecem isso.', icon: <TestTubes size={15} />, color: '#10b981' },
             { title: 'MLOps Enterprise', desc: 'Drift detection, auto-retrain, data quality. Infra de hedge fund, preço de app.', icon: <Activity size={15} />, color: '#3b82f6' },
-            { title: 'Custo Irrisório', desc: metrics.costs ? `Serverless: ${fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês. Escala sem dor.` : 'Serverless puro. Escala sem dor.', icon: <DollarSign size={15} />, color: '#f59e0b', blurDesc: true },
+            { title: 'Custo Irrisório', desc: redact(metrics.costs ? `Serverless: ${fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês. Escala sem dor.` : 'Serverless puro. Escala sem dor.', 'Serverless: $••••/mês. Escala sem dor.'), icon: <DollarSign size={15} />, color: '#f59e0b', blurDesc: true },
             { title: 'Produto Completo', desc: '11+ abas, auth, Stripe, PWA, dark mode, mobile-first. Não é MVP.', icon: <Globe size={15} />, color: '#ef4444' },
             { title: 'Mercado em Expansão', desc: '+5M CPFs na B3, +35%/ano. Geração que quer dados, não opiniões.', icon: <ArrowUpRight size={15} />, color: '#ec4899' },
           ].map((d, i) => (
@@ -520,7 +519,7 @@ const AdminInvestorPage: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.text, marginBottom: '0.15rem' }}>{d.title}</div>
-                <div style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5, ...((d as any).blurDesc ? blurCost : {}) }}>{d.desc}</div>
+                <div style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5, ...((d as any).blurDesc && !canViewCosts ? redactedStyle : {}) }}>{d.desc}</div>
               </div>
             </div>
           ))}

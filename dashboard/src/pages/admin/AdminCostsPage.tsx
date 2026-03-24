@@ -8,7 +8,16 @@ import { useCanViewCosts } from '../../components/shared/pro/ProGate';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
-const blurStyle: React.CSSProperties = { filter: 'blur(8px)', userSelect: 'none', pointerEvents: 'none' };
+/** Style applied to redacted placeholders — blur + block selection/copy */
+const redactedStyle: React.CSSProperties = {
+  filter: 'blur(8px)',
+  userSelect: 'none',
+  WebkitUserSelect: 'none',
+  pointerEvents: 'none',
+  clipPath: 'inset(0)',       // prevents blur bleed outside bounds
+};
+
+const PLACEHOLDER = 'R$ ••••••';
 
 const AdminCostsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
@@ -17,9 +26,14 @@ const AdminCostsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  /** Wraps children in blur when canViewCosts is false */
-  const S: React.FC<{ children: React.ReactNode }> = ({ children }) =>
-    canViewCosts ? <>{children}</> : <span style={blurStyle} aria-hidden="true">{children}</span>;
+  /**
+   * Renders real value when allowed, otherwise a blurred placeholder.
+   * The real value is NEVER placed in the DOM when access is off.
+   */
+  const R: React.FC<{ children: React.ReactNode; ph?: string }> = ({ children, ph }) =>
+    canViewCosts
+      ? <>{children}</>
+      : <span style={redactedStyle} aria-hidden="true">{ph || PLACEHOLDER}</span>;
 
   const fetchCosts = async () => {
     setLoading(true);
@@ -93,10 +107,10 @@ const AdminCostsPage: React.FC = () => {
   const budgetOk = !threshold.exceeded && !threshold.warning;
 
   const kpis = [
-    { label: 'Projeção Mensal (BRL)', value: fmt(projection.brl) ? `R$ ${fmt(projection.brl)}` : '—', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo total AWS para o mês atual, convertido em reais.', sensitive: true },
-    { label: 'Custo 7 dias (USD)', value: fmt(total7d.usd) ? `${fmt(total7d.usd)}` : '—', color: '#8b5cf6', icon: <TrendingDown size={16} />, tip: 'Custo total acumulado dos últimos 7 dias em dólares.', sensitive: true },
-    { label: 'Orçamento Usado', value: fmt(threshold.percentage, 1) ? `${fmt(threshold.percentage, 1)}%` : '—', color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', icon: threshold.exceeded ? <TrendingUp size={16} /> : <TrendingDown size={16} />, tip: 'Percentual do orçamento mensal já consumido pela projeção atual.', sensitive: true },
-    { label: 'Anomalias', value: `${anomalies.length}`, color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Serviços com custos significativamente acima da média histórica.', sensitive: false },
+    { label: 'Projeção Mensal (BRL)', value: `R$ ${fmt(projection.brl)}`, ph: 'R$ ••••', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo total AWS para o mês atual, convertido em reais.', sensitive: true },
+    { label: 'Custo 7 dias (USD)', value: `${fmt(total7d.usd)}`, ph: '$ ••••', color: '#8b5cf6', icon: <TrendingDown size={16} />, tip: 'Custo total acumulado dos últimos 7 dias em dólares.', sensitive: true },
+    { label: 'Orçamento Usado', value: `${fmt(threshold.percentage, 1)}%`, ph: '••%', color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', icon: threshold.exceeded ? <TrendingUp size={16} /> : <TrendingDown size={16} />, tip: 'Percentual do orçamento mensal já consumido pela projeção atual.', sensitive: true },
+    { label: 'Anomalias', value: `${anomalies.length}`, ph: '', color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Serviços com custos significativamente acima da média histórica.', sensitive: false },
   ];
 
   return (
@@ -149,7 +163,7 @@ const AdminCostsPage: React.FC = () => {
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
             {budgetOk
               ? 'Todos os serviços operando dentro dos limites de custo esperados.'
-              : <>Projeção atual: <S>R$ {fmt(projection.brl)} de R$ {fmt(threshold.limit_brl, 0)} ({fmt(threshold.percentage, 1)}%)</S></>}
+              : <>Projeção atual: <R ph="R$ •••• de R$ •••• (••%)">R$ {fmt(projection.brl)} de R$ {fmt(threshold.limit_brl, 0)} ({fmt(threshold.percentage, 1)}%)</R></>}
           </div>
         </div>
       </div>
@@ -175,7 +189,7 @@ const AdminCostsPage: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <span style={{ color: kpi.color, opacity: 0.7 }}>{kpi.icon}</span>
               <span style={{ fontSize: 'clamp(1rem, 3vw, 1.35rem)', fontWeight: 700, color: kpi.color }}>
-                {kpi.sensitive ? <S>{kpi.value}</S> : kpi.value}
+                {kpi.sensitive ? <R ph={kpi.ph}>{kpi.value}</R> : kpi.value}
               </span>
             </div>
           </div>
@@ -190,7 +204,7 @@ const AdminCostsPage: React.FC = () => {
               Orçamento Mensal <InfoTooltip text="Barra de progresso do orçamento. Verde = saudável, Amarelo = atenção (>80%), Vermelho = excedido (>100%)." darkMode={darkMode} size={12} />
             </span>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: threshold.exceeded ? '#ef4444' : '#10b981' }}>
-              <S>R$ {fmt(projection.brl)} / R$ {fmt(threshold.limit_brl, 0)}</S>
+              <R ph="R$ •••• / R$ ••••">R$ {fmt(projection.brl)} / R$ {fmt(threshold.limit_brl, 0)}</R>
             </span>
           </div>
           <div style={{ height: 12, borderRadius: 6, background: darkMode ? '#363258' : '#e2e8f0' }}>
@@ -212,7 +226,7 @@ const AdminCostsPage: React.FC = () => {
                 <div key={service}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
                     <span style={{ fontSize: '0.8rem', color: theme.text, maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{service}</span>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f59e0b' }}><S>{fmt(cost)}</S></span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f59e0b' }}><R ph="$ ••••">{fmt(cost)}</R></span>
                   </div>
                   <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#363258' : '#e2e8f0' }}>
                     <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(90deg, #7c3aed, #3b82f6)', width: `${(cost / maxServiceCost) * 100}%`, transition: 'width 0.3s' }} />
@@ -234,7 +248,7 @@ const AdminCostsPage: React.FC = () => {
               {Object.entries(byComponent).sort(([, a]: any, [, b]: any) => b - a).map(([comp, cost]: any) => (
                 <div key={comp} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0' }}>
                   <span style={{ fontSize: '0.85rem', color: theme.text, textTransform: 'capitalize' }}>{comp}</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: cost > 0 ? '#f59e0b' : theme.textSecondary }}><S>{fmt(cost)}</S></span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: cost > 0 ? '#f59e0b' : theme.textSecondary }}><R ph="$ ••••">{fmt(cost)}</R></span>
                 </div>
               ))}
             </div>
@@ -256,9 +270,13 @@ const AdminCostsPage: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   {a.severity === 'critical' ? <XCircle size={14} color="#ef4444" /> : <AlertTriangle size={14} color="#f59e0b" />}
                   <span style={{ fontSize: '0.82rem', color: theme.text }}>{a.service}</span>
-                  <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}><S>{fmt(a.current_cost_usd)} (avg: {fmt(a.average_cost_usd)})</S></span>
+                  <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>
+                    <R ph="$•••• (avg: $••••)">{fmt(a.current_cost_usd)} (avg: {fmt(a.average_cost_usd)})</R>
+                  </span>
                 </div>
-                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: a.severity === 'critical' ? '#ef4444' : '#f59e0b' }}><S>+{fmt(a.change_percentage, 0)}%</S></span>
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: a.severity === 'critical' ? '#ef4444' : '#f59e0b' }}>
+                  <R ph="+••%">+{fmt(a.change_percentage, 0)}%</R>
+                </span>
               </div>
             ))}
           </div>
