@@ -1128,6 +1128,7 @@ def _handle_change_password(event: dict) -> dict:
 
 NOTIFICATIONS_TABLE = os.environ.get("NOTIFICATIONS_TABLE", "B3Dashboard-Notifications")
 CHAT_TABLE = os.environ.get("CHAT_TABLE", "B3Dashboard-Chat")
+CARTEIRAS_TABLE = os.environ.get("CARTEIRAS_TABLE", "B3Dashboard-Carteiras")
 
 
 def _require_admin(event: dict) -> Optional[dict]:
@@ -2351,6 +2352,19 @@ def _handle_admin_delete_user(event: dict) -> dict:
         except Exception as e:
             logger.warning(f"Admin delete: failed to delete chat tickets for {email}: {e}")
 
+        # 6. Delete carteiras
+        try:
+            cart_table = dynamodb.Table(CARTEIRAS_TABLE)
+            cart_result = cart_table.query(
+                KeyConditionExpression="userEmail = :e",
+                ExpressionAttributeValues={":e": email},
+                ProjectionExpression="userEmail, carteiraId",
+            )
+            for item in cart_result.get("Items", []):
+                cart_table.delete_item(Key={"userEmail": email, "carteiraId": item["carteiraId"]})
+        except Exception as e:
+            logger.warning(f"Admin delete: failed to delete carteiras for {email}: {e}")
+
         _log_auth(email, "admin_delete_user", True, "admin", admin.get("email", "admin"),
                    f"deleted by {admin.get('email')}")
         return _cors_response(200, {"message": f"Usuário {email} excluído com sucesso."})
@@ -2440,7 +2454,20 @@ def _handle_delete_account(event: dict) -> dict:
         except Exception as e:
             logger.warning(f"Failed to delete chat tickets for {email}: {e}")
 
-        # 6. Send confirmation email
+        # 6. Delete carteiras
+        try:
+            cart_table = dynamodb.Table(CARTEIRAS_TABLE)
+            cart_result = cart_table.query(
+                KeyConditionExpression="userEmail = :e",
+                ExpressionAttributeValues={":e": email},
+                ProjectionExpression="userEmail, carteiraId",
+            )
+            for item in cart_result.get("Items", []):
+                cart_table.delete_item(Key={"userEmail": email, "carteiraId": item["carteiraId"]})
+        except Exception as e:
+            logger.warning(f"Failed to delete carteiras for {email}: {e}")
+
+        # 7. Send confirmation email
         try:
             deletion_content = """
               <p style="color:#334155;font-size:15px;line-height:1.6;">Sua conta e todos os dados associados foram excluídos com sucesso, conforme solicitado.</p>
@@ -2463,6 +2490,206 @@ def _handle_delete_account(event: dict) -> dict:
         logger.error(f"Failed to delete account for {email}: {e}")
         _log_auth(email, "delete_account", False, ip, ua, str(e))
         return _cors_response(500, {"message": "Erro ao excluir conta. Tente novamente."})
+
+
+# ── Carteiras (User Portfolios) ──
+
+MAX_CARTEIRAS_FREE = 1
+MAX_CARTEIRAS_PRO = 50
+MAX_TICKERS_PER_CARTEIRA = 30
+
+
+def _handle_carteiras_list(event: dict) -> dict:
+    """GET /carteiras — list user's carteiras."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    email = user.get("email", "")
+    table = dynamodb.Table(CARTEIRAS_TABLE)
+
+    try:
+        result = table.query(
+            KeyConditionExpression="userEmail = :e",
+            ExpressionAttributeValues={":e": email},
+        )
+        items = result.get("Items", [])
+        for item in items:
+            for k, v in item.items():
+                if isinstance(v, Decimal):
+                    item[k] = float(v)
+        items.sort(key=lambda x: x.get("createdAt", ""))
+        return _cors_response(200, {"carteiras": items})
+    except Exception as e:
+        logger.error(f"Error listing carteiras: {e}")
+        return _cors_response(500, {"message": "Erro ao carregar carteiras"})
+
+
+def _handle_carteiras_create(event: dict) -> dict:
+    """POST /carteiras — create a new carteira."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    email = user.get("email", "")
+    plan = user.get("plan", "free")
+
+    # Check limit
+    table = dynamodb.Table(CARTEIRAS_TABLE)
+    try:
+        result = table.query(
+            KeyConditionExpression="userEmail = :e",
+            ExpressionAttributeValues={":e": email},
+            Select="COUNT",
+        )
+        count = result.get("Count", 0)
+        limit = MAX_CARTEIRAS_PRO if plan == "pro" else MAX_CARTEIRAS_FREE
+        if count >= limit:
+            msg = "Limite de carteiras atingido. Faça upgrade para o Pro." if plan == "free" else "Limite máximo de carteiras atingido."
+            return _cors_response(403, {"message": msg})
+    except Exception as e:
+        logger.error(f"Error checking carteira count: {e}")
+        return _cors_response(500, {"message": "Erro interno"})
+
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    name = _sanitize_string(body.get("name", ""), 30)
+    color = _sanitize_string(body.get("color", "#3b82f6"), 10)
+    icon = body.get("icon", "💼")[:4]
+    tickers = body.get("tickers", [])
+
+    if not name:
+        return _cors_response(400, {"message": "Nome é obrigatório"})
+
+    if not isinstance(tickers, list):
+        tickers = []
+    tickers = [_sanitize_string(t, 10).upper() for t in tickers[:MAX_TICKERS_PER_CARTEIRA]]
+
+    carteira_id = str(uuid.uuid4())[:8]
+    now = datetime.now(UTC).isoformat()
+
+    item = {
+        "userEmail": email,
+        "carteiraId": carteira_id,
+        "name": name,
+        "color": color,
+        "icon": icon,
+        "tickers": tickers,
+        "createdAt": now,
+        "updatedAt": now,
+    }
+
+    try:
+        table.put_item(Item=item)
+        return _cors_response(201, {"message": "Carteira criada", "carteira": item})
+    except Exception as e:
+        logger.error(f"Error creating carteira: {e}")
+        return _cors_response(500, {"message": "Erro ao criar carteira"})
+
+
+def _handle_carteiras_update(event: dict) -> dict:
+    """PUT /carteiras — update a carteira (name, color, icon, tickers)."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    email = user.get("email", "")
+
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    carteira_id = body.get("carteiraId", "")
+    if not carteira_id:
+        return _cors_response(400, {"message": "carteiraId obrigatório"})
+
+    table = dynamodb.Table(CARTEIRAS_TABLE)
+
+    # Build update expression dynamically
+    update_parts = []
+    attr_values = {}
+    attr_names = {}
+
+    if "name" in body:
+        update_parts.append("#n = :name")
+        attr_values[":name"] = _sanitize_string(body["name"], 30)
+        attr_names["#n"] = "name"
+    if "color" in body:
+        update_parts.append("color = :color")
+        attr_values[":color"] = _sanitize_string(body["color"], 10)
+    if "icon" in body:
+        update_parts.append("icon = :icon")
+        attr_values[":icon"] = body["icon"][:4]
+    if "tickers" in body:
+        tickers = body["tickers"]
+        if isinstance(tickers, list):
+            tickers = [_sanitize_string(t, 10).upper() for t in tickers[:MAX_TICKERS_PER_CARTEIRA]]
+            update_parts.append("tickers = :tickers")
+            attr_values[":tickers"] = tickers
+
+    if not update_parts:
+        return _cors_response(400, {"message": "Nenhum campo para atualizar"})
+
+    now = datetime.now(UTC).isoformat()
+    update_parts.append("updatedAt = :now")
+    attr_values[":now"] = now
+
+    try:
+        kwargs = {
+            "Key": {"userEmail": email, "carteiraId": carteira_id},
+            "UpdateExpression": "SET " + ", ".join(update_parts),
+            "ExpressionAttributeValues": attr_values,
+            "ReturnValues": "ALL_NEW",
+        }
+        if attr_names:
+            kwargs["ExpressionAttributeNames"] = attr_names
+        result = table.update_item(**kwargs)
+        item = result.get("Attributes", {})
+        for k, v in item.items():
+            if isinstance(v, Decimal):
+                item[k] = float(v)
+        return _cors_response(200, {"message": "Carteira atualizada", "carteira": item})
+    except Exception as e:
+        logger.error(f"Error updating carteira: {e}")
+        return _cors_response(500, {"message": "Erro ao atualizar carteira"})
+
+
+def _handle_carteiras_delete(event: dict) -> dict:
+    """DELETE /carteiras — delete a carteira."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    email = user.get("email", "")
+
+    raw_body = event.get("body", "") or ""
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    carteira_id = body.get("carteiraId", "")
+    if not carteira_id:
+        return _cors_response(400, {"message": "carteiraId obrigatório"})
+
+    table = dynamodb.Table(CARTEIRAS_TABLE)
+
+    try:
+        table.delete_item(Key={"userEmail": email, "carteiraId": carteira_id})
+        return _cors_response(200, {"message": "Carteira excluída"})
+    except Exception as e:
+        logger.error(f"Error deleting carteira: {e}")
+        return _cors_response(500, {"message": "Erro ao excluir carteira"})
 
 
 def handler(event: dict, context: Any = None) -> dict:
@@ -2535,5 +2762,13 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_check_session(event)
     elif path.endswith("/auth/manage-billing") and method == "POST":
         return _handle_manage_billing(event)
+    elif path.endswith("/carteiras") and method == "GET":
+        return _handle_carteiras_list(event)
+    elif path.endswith("/carteiras") and method == "POST":
+        return _handle_carteiras_create(event)
+    elif path.endswith("/carteiras") and method == "PUT":
+        return _handle_carteiras_update(event)
+    elif path.endswith("/carteiras") and method == "DELETE":
+        return _handle_carteiras_delete(event)
     else:
         return _cors_response(404, {"message": "Not found"})

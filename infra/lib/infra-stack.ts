@@ -1003,6 +1003,17 @@ export class InfraStack extends cdk.Stack {
     // DynamoDB Notifications Table (import existing)
     const notificationsTable = cdk.aws_dynamodb.Table.fromTableName(this, "NotificationsTable", "B3Dashboard-Notifications");
 
+    // DynamoDB Carteiras Table (user portfolios)
+    const carteirasTable = new cdk.aws_dynamodb.Table(this, "CarteirasTable", {
+      tableName: "B3Dashboard-Carteiras",
+      partitionKey: { name: "userEmail", type: cdk.aws_dynamodb.AttributeType.STRING },
+      sortKey: { name: "carteiraId", type: cdk.aws_dynamodb.AttributeType.STRING },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      encryption: cdk.aws_dynamodb.TableEncryption.AWS_MANAGED,
+      pointInTimeRecovery: true,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
+    });
+
     // JWT Secret via SSM
     const jwtSecret = envOr("JWT_SECRET", "b3tr-jwt-secret-change-in-production-" + cdk.Aws.ACCOUNT_ID);
     const adminEmail = envOr("ADMIN_EMAIL", "");
@@ -1014,6 +1025,7 @@ export class InfraStack extends cdk.Stack {
       RATE_LIMITS_TABLE: "B3Dashboard-RateLimits",
       NOTIFICATIONS_TABLE: "B3Dashboard-Notifications",
       CHAT_TABLE: "B3Dashboard-Chat",
+      CARTEIRAS_TABLE: carteirasTable.tableName,
       JWT_SECRET: jwtSecret,
       ADMIN_EMAIL: adminEmail,
       SES_SENDER_EMAIL: adminEmail,
@@ -1028,6 +1040,7 @@ export class InfraStack extends cdk.Stack {
       FRONTEND_URL: "https://qyntara.tech",
     });
     usersTable.grantReadWriteData(userAuthFn);
+    carteirasTable.grantReadWriteData(userAuthFn);
 
     // Grant auth logs write + delete (for LGPD account deletion)
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
@@ -1131,6 +1144,13 @@ export class InfraStack extends cdk.Stack {
     chatMessages.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const chatTickets = chatResource.addResource("tickets");
     chatTickets.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+
+    // /carteiras routes (JWT-protected, user-facing)
+    const carteirasResource = api.root.addResource("carteiras");
+    carteirasResource.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
+    carteirasResource.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    carteirasResource.addMethod("PUT", userAuthIntegration, { apiKeyRequired: false });
+    carteirasResource.addMethod("DELETE", userAuthIntegration, { apiKeyRequired: false });
 
     // -----------------------
     // Agent Hub (Multi-Agent Governance)

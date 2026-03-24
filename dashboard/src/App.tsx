@@ -33,6 +33,7 @@ import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminChatPage from './pages/admin/AdminChatPage';
 import AdminModelsPage from './pages/admin/AdminModelsPage';
 import SupportChatPage from './pages/dashboard/SupportChatPage';
+import CarteirasPage from './pages/dashboard/CarteirasPage';
 
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
@@ -111,6 +112,7 @@ const AppRoutes: React.FC = () => {
         <Route path="backtesting" element={<BacktestingPage />} />
         <Route path="tracking" element={<TrackingPage />} />
         <Route path="portfolio" element={<PortfolioPage />} />
+        <Route path="carteiras" element={<CarteirasPage />} />
         <Route path="performance" element={<PerformancePage />} />
         <Route path="upgrade" element={<UpgradePage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />

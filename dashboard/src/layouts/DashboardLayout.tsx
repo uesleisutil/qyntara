@@ -79,6 +79,7 @@ const DashboardLayout: React.FC = () => {
     { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} />, tourId: 'nav-explainability' },
     { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} />, tourId: 'nav-backtesting' },
     { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} />, tourId: 'nav-performance' },
+    { path: '/dashboard/carteiras', label: 'Carteiras', icon: <Briefcase size={18} />, tourId: 'nav-carteiras' },
   ];
 
   const proMenuItems = [
@@ -271,6 +272,7 @@ const DashboardLayout: React.FC = () => {
     if (p === '/dashboard/backtesting') return '🧪 Backtesting';
     if (p === '/dashboard/performance') return '📈 Performance';
     if (p === '/dashboard/portfolio') return '👑 Carteira Modelo';
+    if (p === '/dashboard/carteiras') return '💼 Minhas Carteiras';
     if (p === '/dashboard/upgrade') return '👑 Upgrade Pro';
     if (p === '/dashboard/change-password') return '🔒 Alterar Senha';
     if (p === '/dashboard/change-phone') return '📱 Alertas WhatsApp';
@@ -285,7 +287,7 @@ const DashboardLayout: React.FC = () => {
   });
   const showUpgradeBanner = !bannerDismissed && user && user.plan !== 'pro' && [
     '/dashboard', '/dashboard/recommendations', '/dashboard/explainability',
-    '/dashboard/tracking', '/dashboard/portfolio',
+    '/dashboard/tracking', '/dashboard/portfolio', '/dashboard/carteiras',
   ].includes(location.pathname);
 
   return (
