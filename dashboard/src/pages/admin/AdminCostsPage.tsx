@@ -49,8 +49,11 @@ const AdminCostsPage: React.FC = () => {
     finally { setLoading(false); }
   }, []);
 
-  // Re-fetch whenever the resolved costDays changes
-  useEffect(() => { fetchCosts(costDays); }, [costDays, fetchCosts]);
+  // Re-fetch whenever the period changes
+  useEffect(() => {
+    const days = periodValue === -1 ? new Date().getDate() : periodValue;
+    fetchCosts(days);
+  }, [periodValue, fetchCosts]);
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
@@ -66,7 +69,7 @@ const AdminCostsPage: React.FC = () => {
   };
 
   /* ── Loading skeleton ── */
-  if (loading) {
+  if (loading && !data) {
     const sk: React.CSSProperties = {
       background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
@@ -138,8 +141,8 @@ const AdminCostsPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={() => fetchCosts(costDays)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
-          <RefreshCw size={14} /> Atualizar
+        <button onClick={() => fetchCosts(costDays)} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any, opacity: loading ? 0.6 : 1 }}>
+          <RefreshCw size={14} style={loading ? { animation: 'spin 1s linear infinite' } : undefined} /> {loading ? 'Carregando...' : 'Atualizar'}
         </button>
       </div>
 
@@ -293,6 +296,7 @@ const AdminCostsPage: React.FC = () => {
           </div>
         </div>
       )}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 };
