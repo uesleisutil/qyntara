@@ -75,6 +75,36 @@ const AdminCostsPage: React.FC = () => {
     return <div style={{ ...cardStyle, textAlign: 'center', padding: '3rem', color: theme.textSecondary }}>Sem dados de custos disponíveis.</div>;
   }
 
+  /* ── If user cannot view costs, show access-denied overlay ── */
+  if (!canViewCosts) {
+    return (
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>💰 Custos AWS</h1>
+            <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0 }}>Monitoramento de custos e otimização</p>
+          </div>
+        </div>
+        <div style={{
+          ...cardStyle, textAlign: 'center', padding: 'clamp(2rem, 6vw, 4rem) 1.5rem',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem',
+        }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 16,
+            background: darkMode ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.06)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <EyeOff size={28} color="#f59e0b" />
+          </div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 700, color: theme.text }}>Acesso Restrito</div>
+          <div style={{ fontSize: '0.85rem', color: theme.textSecondary, maxWidth: 400, lineHeight: 1.6 }}>
+            Você não tem permissão para visualizar dados de custos. Solicite ao administrador que ative o acesso a dados sensíveis para sua conta.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const latest = data?.latest || {};
   const threshold = latest.threshold || {};
   const projection = latest.monthly_projection || {};
@@ -99,17 +129,6 @@ const AdminCostsPage: React.FC = () => {
 
   return (
     <div>
-      {!canViewCosts && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.5rem',
-          padding: '0.6rem 1rem', marginBottom: '1rem', borderRadius: 8,
-          background: darkMode ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.05)',
-          border: '1px solid rgba(245,158,11,0.2)', fontSize: '0.82rem', color: '#f59e0b',
-        }}>
-          <EyeOff size={16} />
-          <span>Valores de custo estão ocultos. Solicite acesso ao administrador para visualizar.</span>
-        </div>
-      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ minWidth: 0 }}>
           <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>💰 Custos AWS</h1>

@@ -217,7 +217,7 @@ const AdminUsersPage: React.FC = () => {
                     { l: 'Email', t: '' }, { l: 'Nome', t: '' }, { l: 'Plano', t: 'Plano atual do usuário' },
                     { l: 'Expira', t: 'Data de expiração do plano Pro (se aplicável)' },
                     { l: 'Origem', t: 'Como o plano foi ativado: stripe, admin ou —' },
-                    { l: 'Custos', t: 'Permissão para visualizar valores de custo' },
+                    { l: 'Dados Sensíveis', t: 'Permissão para visualizar custos e dados financeiros sensíveis' },
                     { l: 'Cadastro', t: '' }, { l: 'Último Login', t: '' }, { l: 'Ações', t: '' },
                   ].map(h => (
                     <th key={h.l} style={{ padding: '0.5rem 0.4rem', textAlign: 'left', fontSize: '0.7rem', fontWeight: 600, color: theme.textSecondary, whiteSpace: 'nowrap' }}>
@@ -262,21 +262,35 @@ const AdminUsersPage: React.FC = () => {
                         {u.planSource === 'admin' ? '🔧 Admin' : u.stripeSubscriptionId ? '💳 Stripe' : '—'}
                       </td>
                       <td style={{ padding: '0.5rem 0.4rem', textAlign: 'center' }}>
-                        <button
-                          onClick={() => handleToggleCosts(u.email, !!u.canViewCosts)}
-                          disabled={costsToggleLoading === u.email || u.role === 'admin'}
-                          title={u.role === 'admin' ? 'Admins sempre veem custos' : u.canViewCosts ? 'Revogar acesso a custos' : 'Liberar acesso a custos'}
+                        <label
+                          title={u.role === 'admin' ? 'Admins sempre veem dados sensíveis' : u.canViewCosts ? 'Revogar acesso a dados sensíveis' : 'Liberar acesso a dados sensíveis'}
                           style={{
-                            ...btnBase, padding: '0.3rem 0.5rem', fontSize: '0.72rem',
-                            background: u.role === 'admin' ? 'rgba(16,185,129,0.1)' : u.canViewCosts ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.1)',
-                            color: u.role === 'admin' || u.canViewCosts ? '#10b981' : '#9895b0',
-                            opacity: costsToggleLoading === u.email ? 0.5 : 1,
+                            display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
                             cursor: u.role === 'admin' ? 'default' : 'pointer',
+                            opacity: costsToggleLoading === u.email ? 0.5 : 1,
                           }}
                         >
-                          {costsToggleLoading === u.email ? <Loader2 size={11} className="spin" /> : (u.role === 'admin' || u.canViewCosts ? <Eye size={11} /> : <EyeOff size={11} />)}
-                          {u.role === 'admin' ? 'Admin' : u.canViewCosts ? 'Sim' : 'Não'}
-                        </button>
+                          <span style={{ position: 'relative', display: 'inline-block', width: 34, height: 18 }}>
+                            <input
+                              type="checkbox"
+                              checked={u.role === 'admin' || !!u.canViewCosts}
+                              disabled={costsToggleLoading === u.email || u.role === 'admin'}
+                              onChange={() => handleToggleCosts(u.email, !!u.canViewCosts)}
+                              style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+                            />
+                            <span style={{
+                              position: 'absolute', inset: 0, borderRadius: 9,
+                              background: (u.role === 'admin' || u.canViewCosts) ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
+                              transition: 'background 0.2s',
+                            }} />
+                            <span style={{
+                              position: 'absolute', top: 2, left: (u.role === 'admin' || u.canViewCosts) ? 18 : 2,
+                              width: 14, height: 14, borderRadius: '50%', background: 'white',
+                              transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                            }} />
+                          </span>
+                          {costsToggleLoading === u.email && <Loader2 size={11} className="spin" style={{ color: theme.textSecondary }} />}
+                        </label>
                       </td>
                       <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDate(u.createdAt)}</td>
                       <td style={{ padding: '0.5rem 0.4rem', fontSize: '0.72rem', color: theme.textSecondary }}>{fmtDateTime(u.lastLoginAt)}</td>
@@ -337,20 +351,35 @@ const AdminUsersPage: React.FC = () => {
                     <div><span style={{ color: theme.textSecondary }}>Cadastro:</span> {fmtDate(u.createdAt)}</div>
                     <div><span style={{ color: theme.textSecondary }}>Login:</span> {fmtDateTime(u.lastLoginAt)}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <span style={{ color: theme.textSecondary }}>Custos:</span>
-                      <button
-                        onClick={() => handleToggleCosts(u.email, !!u.canViewCosts)}
-                        disabled={costsToggleLoading === u.email || u.role === 'admin'}
+                      <span style={{ color: theme.textSecondary }}>Sensíveis:</span>
+                      <label
                         style={{
-                          ...btnBase, padding: '0.15rem 0.4rem', fontSize: '0.68rem',
-                          background: u.role === 'admin' || u.canViewCosts ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.1)',
-                          color: u.role === 'admin' || u.canViewCosts ? '#10b981' : '#9895b0',
+                          display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                          cursor: u.role === 'admin' ? 'default' : 'pointer',
                           opacity: costsToggleLoading === u.email ? 0.5 : 1,
                         }}
                       >
-                        {u.role === 'admin' || u.canViewCosts ? <Eye size={9} /> : <EyeOff size={9} />}
-                        {u.role === 'admin' ? 'Admin' : u.canViewCosts ? 'Sim' : 'Não'}
-                      </button>
+                        <span style={{ position: 'relative', display: 'inline-block', width: 30, height: 16 }}>
+                          <input
+                            type="checkbox"
+                            checked={u.role === 'admin' || !!u.canViewCosts}
+                            disabled={costsToggleLoading === u.email || u.role === 'admin'}
+                            onChange={() => handleToggleCosts(u.email, !!u.canViewCosts)}
+                            style={{ opacity: 0, width: 0, height: 0, position: 'absolute' }}
+                          />
+                          <span style={{
+                            position: 'absolute', inset: 0, borderRadius: 8,
+                            background: (u.role === 'admin' || u.canViewCosts) ? '#10b981' : (darkMode ? '#4a4670' : '#cbd5e1'),
+                            transition: 'background 0.2s',
+                          }} />
+                          <span style={{
+                            position: 'absolute', top: 2, left: (u.role === 'admin' || u.canViewCosts) ? 16 : 2,
+                            width: 12, height: 12, borderRadius: '50%', background: 'white',
+                            transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                          }} />
+                        </span>
+                        {costsToggleLoading === u.email && <Loader2 size={9} className="spin" />}
+                      </label>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '0.35rem' }}>
