@@ -64,7 +64,7 @@ const RevealSection: React.FC<{
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [trackRecord, setTrackRecord] = useState<{ totalReturn: number; alpha: number; winRate: number; days: number } | null>(null);
+  const [trackRecord, setTrackRecord] = useState<{ totalReturn: number; alpha: number; winRate: number; days: number; totalSignals: number } | null>(null);
   const [liveRecs, setLiveRecs] = useState<LiveRec[]>([]);
   const [liveDate, setLiveDate] = useState('');
   const [userCount, setUserCount] = useState(0);
@@ -125,8 +125,12 @@ const LandingPage: React.FC = () => {
         const allDates = new Set<string>();
         Object.values(history).forEach(entries => entries.forEach(e => allDates.add(e.date)));
         const sortedDates = Array.from(allDates).sort();
-        const dailyReturns: { buyReturn: number }[] = [];
+
+        /* Track individual buy signals, not daily averages */
+        let totalBuySignals = 0, winningBuySignals = 0;
         let cumBuy = 1, cumIbov = 1;
+        const dailyReturns: { buyReturn: number }[] = [];
+
         for (let i = 0; i < sortedDates.length - 1; i++) {
           const predDate = sortedDates[i], nextDate = sortedDates[i + 1];
           const buyReturns: number[] = [], allReturns: number[] = [];
@@ -136,7 +140,11 @@ const LandingPage: React.FC = () => {
             const tp = priceMap[ticker];
             if (!tp || !tp[predDate] || !tp[nextDate]) return;
             const dayReturn = (tp[nextDate] - tp[predDate]) / tp[predDate];
-            if (entry.score >= SCORE_BUY_THRESHOLD) buyReturns.push(dayReturn);
+            if (entry.score >= SCORE_BUY_THRESHOLD) {
+              buyReturns.push(dayReturn);
+              totalBuySignals++;
+              if (dayReturn > 0) winningBuySignals++;
+            }
           });
           Object.values(priceMap).forEach(tp => {
             if (tp[predDate] && tp[nextDate]) allReturns.push((tp[nextDate] - tp[predDate]) / tp[predDate]);
@@ -147,8 +155,13 @@ const LandingPage: React.FC = () => {
           dailyReturns.push({ buyReturn: br });
         }
         const totalReturn = (cumBuy - 1) * 100, ibovReturn = (cumIbov - 1) * 100;
-        const buyWins = dailyReturns.filter(d => d.buyReturn > 0).length;
-        setTrackRecord({ totalReturn, alpha: totalReturn - ibovReturn, winRate: dailyReturns.length > 0 ? (buyWins / dailyReturns.length) * 100 : 0, days: dailyReturns.length });
+        setTrackRecord({
+          totalReturn,
+          alpha: totalReturn - ibovReturn,
+          winRate: totalBuySignals > 0 ? (winningBuySignals / totalBuySignals) * 100 : 0,
+          days: dailyReturns.length,
+          totalSignals: totalBuySignals,
+        });
       } catch {}
     })();
   }, []);
@@ -613,10 +626,11 @@ const LandingPage: React.FC = () => {
             {trackRecord ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.25rem' }}>
                 {[
-                  { label: 'Retorno Total', value: `${trackRecord.totalReturn >= 0 ? '+' : ''}${fmt(trackRecord.totalReturn, 1)}%`, color: trackRecord.totalReturn >= 0 ? brand.buy : brand.sell },
+                  { label: 'Retorno (só Compras)', value: `${trackRecord.totalReturn >= 0 ? '+' : ''}${fmt(trackRecord.totalReturn, 1)}%`, color: trackRecord.totalReturn >= 0 ? brand.buy : brand.sell },
                   { label: 'Alpha vs Mercado', value: `${trackRecord.alpha >= 0 ? '+' : ''}${fmt(trackRecord.alpha, 1)}%`, color: trackRecord.alpha >= 0 ? brand.buy : brand.sell },
-                  { label: 'Win Rate', value: `${fmt(trackRecord.winRate, 0)}%`, color: brand.accent },
-                  { label: 'Dias Analisados', value: `${trackRecord.days}`, color: brand.text },
+                  { label: 'Win Rate (Compras)', value: `${fmt(trackRecord.winRate, 0)}%`, color: brand.accent },
+                  { label: 'Sinais de Compra', value: `${trackRecord.totalSignals}`, color: brand.text },
+                  { label: 'Dias Analisados', value: `${trackRecord.days}`, color: brand.textMuted },
                 ].map((m, i) => (
                   <div key={i} style={{
                     background: brand.surfaceCard, border: `0.5px solid ${brand.borderSubtle}`,
