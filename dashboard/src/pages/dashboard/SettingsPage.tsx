@@ -116,35 +116,41 @@ const SettingsPage: React.FC = () => {
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button
-            onClick={async () => {
-              if (!isPro) return;
+            onClick={() => {
+              if (!isPro || emailNotifSaving) return;
               setEmailNotifSaving(true);
               const newVal = !emailNotif;
-              try {
-                const token = localStorage.getItem('authToken');
-                await fetch(`${API_BASE_URL}/auth/preferences`, {
-                  method: 'POST',
-                  headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ emailNotifications: newVal }),
-                }).catch(() => {});
+              const token = localStorage.getItem('authToken');
+              fetch(`${API_BASE_URL}/auth/preferences`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ emailNotifications: newVal }),
+              }).catch(() => {}).finally(() => {
                 localStorage.setItem('b3tr_email_notif', String(newVal));
                 setEmailNotif(newVal);
-              } catch {} finally { setEmailNotifSaving(false); }
+                setEmailNotifSaving(false);
+              });
             }}
             disabled={!isPro || emailNotifSaving}
+            aria-checked={emailNotif && isPro}
+            role="switch"
+            aria-label="Notificações por email"
             style={{
-              width: 40, height: 22, borderRadius: 11, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
+              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
               background: emailNotif && isPro ? '#10b981' : (darkMode ? '#2a2745' : '#e2e0f0'),
               position: 'relative', transition: 'background 0.2s', flexShrink: 0,
               opacity: isPro ? 1 : 0.5, padding: 0,
               WebkitAppearance: 'none' as any,
+              MozAppearance: 'none' as any,
+              appearance: 'none' as any,
             }}
           >
             <div style={{
-              width: 16, height: 16, borderRadius: '50%', background: 'white',
+              width: 18, height: 18, borderRadius: '50%', background: 'white',
               position: 'absolute', top: 3,
-              left: emailNotif && isPro ? 21 : 3,
+              left: emailNotif && isPro ? 23 : 3,
               transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              pointerEvents: 'none',
             }} />
           </button>
           <span style={{ fontSize: '0.82rem', color: theme.text }}>

@@ -140,12 +140,12 @@ const AdminInvestorPage: React.FC = () => {
 
   const toggleSection = (id: string) => setExpandedSection(prev => prev === id ? null : id);
 
-  const SectionHeader: React.FC<{ id: string; icon: React.ReactNode; title: string; subtitle: string; color: string }> = ({ id, icon, title, subtitle, color }) => (
-    <button onClick={() => toggleSection(id)} style={{
+  const sectionHeaderBtn = (id: string, icon: React.ReactNode, title: string, subtitle: string, color: string) => (
+    <button key={`sh-${id}`} onClick={() => toggleSection(id)} style={{
       width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem',
       padding: '0.85rem 1rem', background: expandedSection === id ? `${color}12` : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'),
       border: `1px solid ${expandedSection === id ? `${color}30` : theme.border}`,
-      borderRadius: 12, cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s',
+      borderRadius: 12, cursor: 'pointer', textAlign: 'left' as const, transition: 'all 0.2s',
     }}
       onMouseEnter={e => { if (expandedSection !== id) e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'; }}
       onMouseLeave={e => { if (expandedSection !== id) e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'; }}
@@ -161,11 +161,11 @@ const AdminInvestorPage: React.FC = () => {
     </button>
   );
 
-  const NavLink: React.FC<{ path: string; label: string; icon: React.ReactNode }> = ({ path, label, icon }) => {
+  const navLinkBtn = (path: string, label: string, icon: React.ReactNode) => {
     const needsAdmin = path.startsWith('/admin');
     const disabled = needsAdmin && !isAdmin;
     return (
-      <button onClick={() => { if (!disabled) navigate(path); }}
+      <button key={`nl-${path}`} onClick={() => { if (!disabled) navigate(path); }}
         title={disabled ? 'Acesso restrito a administradores' : undefined}
         style={{
           display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
@@ -184,8 +184,8 @@ const AdminInvestorPage: React.FC = () => {
     );
   };
 
-  const Pill: React.FC<{ color: string; children: React.ReactNode }> = ({ color, children }) => (
-    <span style={{
+  const pill = (color: string, children: React.ReactNode, key?: string) => (
+    <span key={key} style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
       padding: '0.15rem 0.55rem', borderRadius: 20, fontSize: '0.7rem', fontWeight: 600,
       background: `${color}12`, color, border: `1px solid ${color}22`,
@@ -298,7 +298,7 @@ const AdminInvestorPage: React.FC = () => {
       <div style={{ ...card, marginBottom: '1.5rem' }}>
         <SectionTitle num={3} icon={<Layers size={16} color="#6366f1" />} title="Produto" color="#6366f1" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <SectionHeader id="recs" icon={<BarChart3 size={16} color="white" />} title="Recomendações Diárias" subtitle={`${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de ML`} color="#3b82f6" />
+          {sectionHeaderBtn("recs", <BarChart3 size={16} color="white" />, "Recomendações Diárias", `${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de ML`, "#3b82f6")}
           {expandedSection === 'recs' && (
             <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #3b82f6`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
@@ -306,14 +306,14 @@ const AdminInvestorPage: React.FC = () => {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Score compra/venda', 'Preço previsto T+20', 'Retorno esperado', 'Volatilidade 20d', 'Confiança', 'Stop-Loss', 'Take-Profit'].map(f => (
-                  <Pill key={f} color="#3b82f6"><CheckCircle size={9} /> {f}</Pill>
+                  pill("#3b82f6", <><CheckCircle size={9} /> {f}</>, f)
                 ))}
               </div>
-              <NavLink path="/dashboard/recommendations" label="Ver Recomendações" icon={<BarChart3 size={12} />} />
+              {navLinkBtn("/dashboard/recommendations", "Ver Recomendações", <BarChart3 size={12} />)}
             </div>
           )}
 
-          <SectionHeader id="explain" icon={<Brain size={16} color="white" />} title="Explicabilidade (SHAP)" subtitle="Transparência: o usuário sabe POR QUE cada ação foi recomendada" color="#8b5cf6" />
+          {sectionHeaderBtn("explain", <Brain size={16} color="white" />, "Explicabilidade (SHAP)", "Transparência: o usuário sabe POR QUE cada ação foi recomendada", "#8b5cf6")}
           {expandedSection === 'explain' && (
             <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #8b5cf6`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
@@ -322,14 +322,14 @@ const AdminInvestorPage: React.FC = () => {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['SHAP Waterfall', 'Feature Impact', 'Sensibilidade', 'Texto em linguagem natural'].map(f => (
-                  <Pill key={f} color="#8b5cf6"><Brain size={9} /> {f}</Pill>
+                  pill("#8b5cf6", <><Brain size={9} /> {f}</>, f)
                 ))}
               </div>
-              <NavLink path="/dashboard/explainability" label="Ver Explicabilidade" icon={<Brain size={12} />} />
+              {navLinkBtn("/dashboard/explainability", "Ver Explicabilidade", <Brain size={12} />)}
             </div>
           )}
 
-          <SectionHeader id="backtest" icon={<TestTubes size={16} color="white" />} title="Backtesting Histórico" subtitle="Simulação com dados reais — prova de conceito verificável" color="#10b981" />
+          {sectionHeaderBtn("backtest", <TestTubes size={16} color="white" />, "Backtesting Histórico", "Simulação com dados reais — prova de conceito verificável", "#10b981")}
           {expandedSection === 'backtest' && (
             <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #10b981`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
@@ -337,39 +337,39 @@ const AdminInvestorPage: React.FC = () => {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Walk-forward', 'vs IBOV', 'Sharpe / Sortino / Max DD', 'Cenários', 'Stress testing'].map(f => (
-                  <Pill key={f} color="#10b981"><CheckCircle size={9} /> {f}</Pill>
+                  pill("#10b981", <><CheckCircle size={9} /> {f}</>, f)
                 ))}
               </div>
-              <NavLink path="/dashboard/backtesting" label="Ver Backtesting" icon={<TestTubes size={12} />} />
+              {navLinkBtn("/dashboard/backtesting", "Ver Backtesting", <TestTubes size={12} />)}
             </div>
           )}
 
-          <SectionHeader id="perf" icon={<LineChart size={16} color="white" />} title="Performance do Modelo" subtitle="Métricas reais de acurácia com preços de mercado" color="#f59e0b" />
+          {sectionHeaderBtn("perf", <LineChart size={16} color="white" />, "Performance do Modelo", "Métricas reais de acurácia com preços de mercado", "#f59e0b")}
           {expandedSection === 'perf' && (
             <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #f59e0b`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['MAPE', 'Hit Rate', 'Retorno acumulado', 'Alpha vs IBOV', 'Sharpe', 'Confusion Matrix'].map(f => (
-                  <Pill key={f} color="#f59e0b"><Activity size={9} /> {f}</Pill>
+                  pill("#f59e0b", <><Activity size={9} /> {f}</>, f)
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <NavLink path="/admin/performance" label="Admin" icon={<Activity size={12} />} />
-                <NavLink path="/dashboard/performance" label="Visão Usuário" icon={<LineChart size={12} />} />
+                {navLinkBtn("/admin/performance", "Admin", <Activity size={12} />)}
+                {navLinkBtn("/dashboard/performance", "Visão Usuário", <LineChart size={12} />)}
               </div>
             </div>
           )}
 
-          <SectionHeader id="carteiras" icon={<Briefcase size={16} color="white" />} title="Carteiras & Portfólio" subtitle="Carteiras personalizadas + Carteira Modelo otimizada por Markowitz" color="#6366f1" />
+          {sectionHeaderBtn("carteiras", <Briefcase size={16} color="white" />, "Carteiras & Portfólio", "Carteiras personalizadas + Carteira Modelo otimizada por Markowitz", "#6366f1")}
           {expandedSection === 'carteiras' && (
             <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #6366f1`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.75rem' }}>
                 {['Carteiras ilimitadas', 'Carteira Modelo (Pro)', 'Markowitz', 'Tracking por safra', 'Alertas'].map(f => (
-                  <Pill key={f} color="#6366f1"><Briefcase size={9} /> {f}</Pill>
+                  pill("#6366f1", <><Briefcase size={9} /> {f}</>, f)
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <NavLink path="/dashboard/carteiras" label="Carteiras" icon={<Briefcase size={12} />} />
-                <NavLink path="/dashboard/portfolio" label="Carteira Modelo" icon={<Crown size={12} />} />
+                {navLinkBtn("/dashboard/carteiras", "Carteiras", <Briefcase size={12} />)}
+                {navLinkBtn("/dashboard/portfolio", "Carteira Modelo", <Crown size={12} />)}
               </div>
             </div>
           )}
@@ -406,7 +406,7 @@ const AdminInvestorPage: React.FC = () => {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.15rem' }}>{item.title}</div>
                 <div style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5, marginBottom: '0.4rem' }}>{item.desc}</div>
-                <NavLink path={item.path} label="Abrir" icon={item.icon} />
+                {navLinkBtn(item.path, "Abrir", item.icon)}
               </div>
             </div>
           ))}
