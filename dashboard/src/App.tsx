@@ -32,6 +32,7 @@ import AdminAgentsPage from './pages/admin/AdminAgentsPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminChatPage from './pages/admin/AdminChatPage';
 import AdminModelsPage from './pages/admin/AdminModelsPage';
+import AdminInvestorPage from './pages/admin/AdminInvestorPage';
 import SupportChatPage from './pages/dashboard/SupportChatPage';
 import CarteirasPage from './pages/dashboard/CarteirasPage';
 
@@ -119,6 +120,7 @@ const AppRoutes: React.FC = () => {
         <Route path="change-phone" element={<ChangePhonePage />} />
         <Route path="support" element={<SupportChatPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="investor" element={<AdminInvestorPage />} />
       </Route>
 
       {/* Admin panel */}

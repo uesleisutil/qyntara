@@ -5,6 +5,7 @@ import {
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock, Target,
   Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
   Settings, Mail, Shield, DollarSign, Database, CheckSquare, Activity, Layers,
+  Landmark,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/NotificationCenter';
@@ -191,6 +192,14 @@ const DashboardLayout: React.FC = () => {
           </button>
         ))}
 
+        {/* Investidor Anjo — visível para todos */}
+        <div style={{ padding: '1rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
+          <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Landmark size={11} color="#f59e0b" /> Investidor
+          </span>
+        </div>
+        {renderNavButton({ path: '/dashboard/investor', label: 'Investidor Anjo', icon: <Landmark size={18} /> })}
+
         {/* #2: Admin grouped sections */}
         {isAdmin && (
           <>
@@ -264,8 +273,8 @@ const DashboardLayout: React.FC = () => {
     if (p === '/admin/agents') return '🤖 Admin — Agentes IA';
     if (p === '/admin/users') return '👥 Admin — Usuários';
     if (p === '/admin/chat') return '💬 Admin — Chat';
-    if (p.startsWith('/admin')) return '🔒 Admin';
-    // Client routes
+    if (p === '/admin/investor') return '💰 Admin — Investidor Anjo';
+    if (p.startsWith('/admin')) return '🔒 Admin';    // Client routes
     if (p === '/dashboard') return '📊 Recomendações';
     if (p === '/dashboard/tracking') return '🎯 Acompanhamento';
     if (p === '/dashboard/explainability') return '🧠 Explicabilidade';
@@ -278,6 +287,7 @@ const DashboardLayout: React.FC = () => {
     if (p === '/dashboard/change-phone') return '📱 Alertas WhatsApp';
     if (p === '/dashboard/support') return '💬 Fale Conosco';
     if (p === '/dashboard/settings') return '⚙️ Configurações';
+    if (p === '/dashboard/investor') return '💰 Investidor Anjo';
     return 'Dashboard';
   };
 
