@@ -1941,7 +1941,8 @@ def _handle_chat_send(event: dict) -> dict:
     if not ticket_id:
         # Create new ticket
         ticket_id = str(uuid.uuid4())[:12]
-        table.put_item(Item={
+        category = _sanitize_string(body.get("category", ""), 50)
+        item = {
             "ticketId": ticket_id,
             "userEmail": email,
             "userName": user_name,
@@ -1957,7 +1958,10 @@ def _handle_chat_send(event: dict) -> dict:
                 "timestamp": now,
             }],
             "ttl": int((datetime.now(UTC) + timedelta(days=180)).timestamp()),
-        })
+        }
+        if category:
+            item["category"] = category
+        table.put_item(Item=item)
         return _cors_response(201, {"ticketId": ticket_id, "message": "Chamado criado"})
 
     # Append message to existing ticket
@@ -2113,6 +2117,31 @@ def _handle_admin_chat_close(event: dict) -> dict:
     except Exception as e:
         logger.error(f"Error closing ticket: {e}")
         return _cors_response(500, {"message": "Erro ao encerrar chamado"})
+
+def _handle_admin_chat_delete(event: dict) -> dict:
+    """POST /admin/chat/delete — admin deletes a ticket."""
+    admin = _require_admin(event)
+    if not admin:
+        return _cors_response(403, {"message": "Acesso negado"})
+
+    try:
+        body = json.loads(event.get("body") or "{}")
+    except json.JSONDecodeError:
+        return _cors_response(400, {"message": "JSON inválido"})
+
+    ticket_id = body.get("ticketId", "")
+    if not ticket_id:
+        return _cors_response(400, {"message": "ticketId obrigatório"})
+
+    table = dynamodb.Table(CHAT_TABLE)
+
+    try:
+        table.delete_item(Key={"ticketId": ticket_id})
+        return _cors_response(200, {"message": "Chamado excluído"})
+    except Exception as e:
+        logger.error(f"Error deleting ticket: {e}")
+        return _cors_response(500, {"message": "Erro ao excluir chamado"})
+
 
 def _handle_admin_list_users(event: dict) -> dict:
     """GET /admin/users — list all users with plan info."""
@@ -2840,6 +2869,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_admin_chat_reply(event)
     elif path.endswith("/admin/chat/close") and method == "POST":
         return _handle_admin_chat_close(event)
+    elif path.endswith("/admin/chat/delete") and method == "POST":
+        return _handle_admin_chat_delete(event)
     elif path.endswith("/chat/messages") and method == "POST":
         return _handle_chat_send(event)
     elif path.endswith("/chat/tickets") and method == "GET":

@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Message { id: string; sender: 'user' | 'admin'; senderName: string; message: string; timestamp: string; }
-interface Ticket { ticketId: string; subject: string; status: string; messages: Message[]; createdAt: string; updatedAt: string; }
+interface Ticket { ticketId: string; subject: string; status: string; category?: string; messages: Message[]; createdAt: string; updatedAt: string; }
 
 const SupportChatPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
@@ -64,21 +64,23 @@ const SupportChatPage: React.FC = () => {
 
   const handleSend = async () => {
     if (!message.trim()) return;
-    const prefix = !activeTicket && category ? `[${CATEGORIES.find(c => c.key === category)?.label || category}] ` : '';
-    const fullMessage = prefix + message.trim();
+    const catLabel = !activeTicket && category ? CATEGORIES.find(c => c.key === category)?.label || category : '';
+    const catIcon = !activeTicket && category ? CATEGORIES.find(c => c.key === category)?.icon || '' : '';
+    const fullMessage = message.trim();
+    const subject = catLabel ? `[${catLabel}] ${fullMessage.slice(0, 80)}` : fullMessage.slice(0, 80);
     setSending(true); setError('');
     try {
       const token = localStorage.getItem('authToken');
       const res = await fetch(`${API_BASE_URL}/chat/messages`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: fullMessage, ticketId: activeTicket?.ticketId || '' }),
+        body: JSON.stringify({ message: fullMessage, ticketId: activeTicket?.ticketId || '', category: !activeTicket ? category : undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Erro');
       setMessage(''); setCategory('');
       if (data.ticketId && !activeTicket) {
-        setActiveTicket({ ticketId: data.ticketId, subject: fullMessage.slice(0, 80), status: 'open', messages: [{ id: '1', sender: 'user', senderName: user?.name || '', message: fullMessage, timestamp: new Date().toISOString() }], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        setActiveTicket({ ticketId: data.ticketId, subject, status: 'open', category: category || undefined, messages: [{ id: '1', sender: 'user', senderName: user?.name || '', message: fullMessage, timestamp: new Date().toISOString() }], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       }
       await fetchTickets();
     } catch (err: any) { setError(err.message); }
@@ -124,8 +126,20 @@ const SupportChatPage: React.FC = () => {
             <ChevronLeft size={20} />
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {activeTicket.subject}
+            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {activeTicket.category && (() => {
+                const cat = CATEGORIES.find(c => c.key === activeTicket.category);
+                return cat ? (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                    fontSize: '0.68rem', fontWeight: 600, padding: '0.15rem 0.45rem', borderRadius: 6,
+                    background: 'rgba(59,130,246,0.1)', color: '#3b82f6', flexShrink: 0,
+                  }}>
+                    {cat.icon} {cat.label}
+                  </span>
+                ) : null;
+              })()}
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activeTicket.subject.replace(/^\[.*?\]\s*/, '')}</span>
             </div>
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
               #{activeTicket.ticketId} · {(() => { const s = statusLabel(activeTicket.status); return <span style={{ color: s.color }}>{s.text}</span>; })()}
@@ -135,6 +149,22 @@ const SupportChatPage: React.FC = () => {
 
         {/* Messages */}
         <div style={{ ...cardStyle, flex: 1, overflow: 'auto', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {/* Category badge at top of conversation */}
+          {activeTicket.category && (() => {
+            const cat = CATEGORIES.find(c => c.key === activeTicket.category);
+            return cat ? (
+              <div style={{
+                alignSelf: 'center', display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                padding: '0.35rem 0.75rem', borderRadius: 20,
+                background: darkMode ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.08)',
+                border: `1px solid rgba(59,130,246,0.2)`,
+                marginBottom: '0.25rem',
+              }}>
+                <span style={{ fontSize: '0.85rem' }}>{cat.icon}</span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#3b82f6' }}>{cat.label}</span>
+              </div>
+            ) : null;
+          })()}
           {msgs.map(m => {
             const isUser = m.sender === 'user';
             return (
@@ -274,13 +304,25 @@ const SupportChatPage: React.FC = () => {
               {openTickets.map(t => {
                 const s = statusLabel(t.status);
                 const lastMsg = t.messages?.[t.messages.length - 1];
+                const cat = t.category ? CATEGORIES.find(c => c.key === t.category) : null;
                 return (
                   <div key={t.ticketId} onClick={() => setActiveTicket(t)}
                     style={{ ...cardStyle, padding: '0.75rem', marginBottom: '0.4rem', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2e3a' : '#f1f2f6'}
                     onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a1d27' : '#fff')}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>{t.subject}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, flex: 1 }}>
+                        {cat && (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                            fontSize: '0.65rem', fontWeight: 600, padding: '0.1rem 0.4rem', borderRadius: 6,
+                            background: 'rgba(59,130,246,0.1)', color: '#3b82f6', flexShrink: 0,
+                          }}>
+                            {cat.icon} {cat.label}
+                          </span>
+                        )}
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.subject.replace(/^\[.*?\]\s*/, '')}</span>
+                      </div>
                       <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 6, background: s.bg, color: s.color, fontWeight: 600 }}>{s.text}</span>
                     </div>
                     {lastMsg && (

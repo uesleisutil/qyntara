@@ -7,7 +7,7 @@ interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Message { id: string; sender: 'user' | 'admin'; senderName: string; message: string; timestamp: string; }
 interface Ticket {
   ticketId: string; userEmail: string; userName: string; subject: string;
-  status: string; messages: Message[]; createdAt: string; updatedAt: string;
+  status: string; category?: string; messages: Message[]; createdAt: string; updatedAt: string;
   unreadCount?: number;
 }
 
@@ -88,14 +88,15 @@ const AdminChatPage: React.FC = () => {
     if (!window.confirm('Tem certeza que deseja excluir este chamado? Esta ação é irreversível.')) return;
     try {
       const token = localStorage.getItem('authToken');
-      await fetch(`${API_BASE_URL}/admin/chat/delete`, {
+      const res = await fetch(`${API_BASE_URL}/admin/chat/delete`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId }),
       });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message || 'Erro ao excluir'); }
       if (activeTicket?.ticketId === ticketId) setActiveTicket(null);
-      await fetchTickets();
-    } catch { /* silent */ }
+      setTickets(prev => prev.filter(t => t.ticketId !== ticketId));
+    } catch (err: any) { setError(err.message); }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -276,6 +277,7 @@ const AdminChatPage: React.FC = () => {
             const si = statusInfo(t.status);
             const lastMsg = t.messages?.[t.messages.length - 1];
             const hasUnread = (t.unreadCount || 0) > 0;
+            const catLabel = t.category || (t.subject.match(/^\[(.+?)\]/) || [])[1] || '';
             return (
               <div key={t.ticketId} onClick={() => { setActiveTicket(t); setError(''); }}
                 style={{
@@ -286,7 +288,16 @@ const AdminChatPage: React.FC = () => {
                 onMouseLeave={e => e.currentTarget.style.background = theme.card || (darkMode ? '#1a1d27' : '#fff')}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, flex: 1 }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.subject}</span>
+                    {catLabel && (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center',
+                        fontSize: '0.62rem', fontWeight: 600, padding: '0.1rem 0.4rem', borderRadius: 6,
+                        background: 'rgba(59,130,246,0.1)', color: '#3b82f6', flexShrink: 0,
+                      }}>
+                        {catLabel}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.subject.replace(/^\[.*?\]\s*/, '')}</span>
                     {hasUnread && <span style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem', borderRadius: 8, background: '#ef4444', color: 'white', fontWeight: 700, flexShrink: 0 }}>{t.unreadCount}</span>}
                   </div>
                   <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: 6, background: si.bg, color: si.color, fontWeight: 600, flexShrink: 0 }}>{si.text}</span>
