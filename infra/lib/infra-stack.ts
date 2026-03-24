@@ -1108,6 +1108,10 @@ export class InfraStack extends cdk.Stack {
     const authManageBilling = authResource.addResource("manage-billing");
     authManageBilling.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
 
+    // Free-tier ticker preference
+    const authFreeTicker = authResource.addResource("free-ticker");
+    authFreeTicker.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+
     // /admin/notifications routes (JWT-protected, admin only)
     const adminResource = api.root.addResource("admin");
     const adminNotifications = adminResource.addResource("notifications");
