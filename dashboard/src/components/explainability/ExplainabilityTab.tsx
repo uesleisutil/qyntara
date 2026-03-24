@@ -42,7 +42,6 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const [selectedTicker, setSelectedTicker] = useState<string>('');
   const [tickers, setTickers] = useState<TickerData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tickerSearch, setTickerSearch] = useState('');
   const isPro = useIsPro();
   const freeTicker = useFreeTicker();
 
@@ -170,10 +169,10 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
 
       {/* ═══ 2. TICKER SELECTOR ═══ */}
       {(() => {
-        const filtered = tickers.filter(t =>
-          t.ticker.toLowerCase().includes(tickerSearch.toLowerCase())
-        );
         const currentIdx = tickers.findIndex(t => t.ticker === selectedTicker);
+        const freeTickerData = freeTicker ? tickers.find(t => t.ticker.toUpperCase() === freeTicker.toUpperCase()) : null;
+        const freeSignal = freeTickerData ? getSignal(freeTickerData.score) : null;
+        const freeSignalColor = freeSignal ? getSignalColor(freeSignal) : null;
 
         return (
           <div style={{
@@ -181,85 +180,84 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
             padding: 'clamp(0.75rem, 3vw, 1.25rem)',
             border: `1.5px solid ${darkMode ? 'rgba(59,130,246,0.25)' : 'rgba(59,130,246,0.18)'}`,
           }}>
-            {/* Header row: title + search */}
             <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              marginBottom: '0.75rem', flexWrap: 'wrap',
+              display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem',
             }}>
               <Search size={16} color="#3b82f6" style={{ flexShrink: 0 }} />
               <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>
                 Selecione uma ação para explorar
               </span>
-              <span style={{ fontSize: '0.68rem', color: theme.textSecondary }}>
-                {currentIdx + 1}/{tickers.length}
-              </span>
-              <div style={{ position: 'relative', marginLeft: 'auto', width: 'min(200px, 100%)' }}>
-                <Search size={13} style={{
-                  position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                  color: theme.textSecondary, pointerEvents: 'none',
-                }} />
-                <input
-                  type="text"
-                  placeholder="Filtrar..."
-                  value={tickerSearch}
-                  onChange={e => setTickerSearch(e.target.value)}
-                  style={{
-                    width: '100%', padding: '0.35rem 0.5rem 0.35rem 1.7rem',
-                    fontSize: '0.78rem', border: `1px solid ${theme.border}`,
-                    borderRadius: 6, backgroundColor: theme.subtle, color: theme.text,
-                    outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s',
-                  }}
-                  onFocus={e => { e.currentTarget.style.borderColor = '#3b82f6'; }}
-                  onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
-                />
-              </div>
             </div>
 
-            {/* Ticker chips — wrapping */}
-            <div style={{
-              display: 'flex', flexWrap: 'wrap', gap: '0.35rem',
-            }}>
-              {filtered.map(t => {
-                const s = getSignal(t.score);
-                const sColor = getSignalColor(s);
-                const isActive = t.ticker === selectedTicker;
-                const locked = !isPro && !!freeTicker && t.ticker.toUpperCase() !== freeTicker.toUpperCase();
-                return (
-                  <button
-                    key={t.ticker}
-                    onClick={() => setSelectedTicker(t.ticker)}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                      padding: '0.3rem 0.55rem', borderRadius: 6,
-                      fontSize: '0.74rem', fontWeight: isActive ? 700 : 500,
-                      cursor: 'pointer', transition: 'all 0.15s',
-                      border: isActive
-                        ? `1.5px solid ${sColor.text}`
-                        : `1px solid ${theme.border}`,
-                      background: isActive
-                        ? (darkMode ? `${sColor.text}18` : `${sColor.text}0c`)
-                        : 'transparent',
-                      color: isActive ? theme.text : theme.textSecondary,
-                      WebkitAppearance: 'none' as any,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {locked && <Lock size={10} style={{ opacity: 0.5 }} />}
-                    {t.ticker}
+            {/* Free ticker highlight */}
+            {!isPro && freeTickerData && freeSignalColor && (
+              <button
+                onClick={() => setSelectedTicker(freeTickerData.ticker)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%',
+                  padding: '0.65rem 0.85rem', borderRadius: 8, marginBottom: '0.6rem',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                  border: selectedTicker === freeTickerData.ticker
+                    ? `1.5px solid #3b82f6`
+                    : `1.5px solid ${darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)'}`,
+                  background: darkMode ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.03)',
+                  WebkitAppearance: 'none' as any, textAlign: 'left' as const,
+                }}
+              >
+                <div style={{
+                  width: 28, height: 28, borderRadius: 6, flexShrink: 0,
+                  background: 'rgba(59,130,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.7rem', fontWeight: 700, color: '#3b82f6',
+                }}>✦</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: theme.text }}>{freeTickerData.ticker}</span>
                     <span style={{
-                      fontSize: '0.6rem', fontWeight: 700,
-                      color: sColor.text,
-                    }}>
-                      {s === 'Compra' ? '▲' : s === 'Venda' ? '▼' : '—'}{t.score.toFixed(2)}
-                    </span>
-                  </button>
-                );
-              })}
-              {filtered.length === 0 && (
-                <span style={{ fontSize: '0.78rem', color: theme.textSecondary, padding: '0.25rem' }}>
-                  Nenhum ticker encontrado
-                </span>
-              )}
+                      fontSize: '0.62rem', fontWeight: 700, padding: '0.1rem 0.4rem', borderRadius: 6,
+                      background: freeSignalColor.bg, color: freeSignalColor.text, border: `1px solid ${freeSignalColor.border}`,
+                    }}>{freeSignal}</span>
+                    <span style={{ fontSize: '0.68rem', color: '#3b82f6', fontWeight: 600 }}>Sua ação gratuita</span>
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginTop: '0.1rem' }}>
+                    Score: {freeTickerData.score.toFixed(2)} · Acesso completo sem Pro
+                  </div>
+                </div>
+              </button>
+            )}
+
+            {/* Select dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <select
+                value={selectedTicker}
+                onChange={e => setSelectedTicker(e.target.value)}
+                style={{
+                  flex: 1, padding: '0.5rem 0.75rem', fontSize: '0.84rem',
+                  border: `1px solid ${theme.border}`, borderRadius: 8,
+                  backgroundColor: theme.cardBg, color: theme.text,
+                  cursor: 'pointer', outline: 'none', transition: 'border-color 0.2s',
+                  WebkitAppearance: 'none' as any,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${darkMode ? '%239ba1b0' : '%2364748b'}' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center',
+                  paddingRight: '2rem',
+                }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#3b82f6'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
+              >
+                {tickers.map(t => {
+                  const s = getSignal(t.score);
+                  const isFree = !isPro && !!freeTicker && t.ticker.toUpperCase() === freeTicker.toUpperCase();
+                  const locked = !isPro && !!freeTicker && !isFree;
+                  return (
+                    <option key={t.ticker} value={t.ticker}>
+                      {isFree ? '✦ ' : locked ? '🔒 ' : ''}{t.ticker} — {s} ({t.score.toFixed(2)})
+                    </option>
+                  );
+                })}
+              </select>
+              <span style={{ fontSize: '0.7rem', color: theme.textSecondary, flexShrink: 0 }}>
+                {currentIdx + 1}/{tickers.length}
+              </span>
             </div>
           </div>
         );
