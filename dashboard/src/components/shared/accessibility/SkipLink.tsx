@@ -34,7 +34,7 @@ export function SkipLink({ targetId, label }: SkipLinkProps) {
           position: absolute;
           top: -40px;
           left: 0;
-          background: var(--primary-color, #7c3aed);
+          background: var(--primary-color, #2563eb);
           color: white;
           padding: 0.5rem 1rem;
           text-decoration: none;

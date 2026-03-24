@@ -117,15 +117,15 @@ const DashboardLayout: React.FC = () => {
 
   /* ── Theme with purple accents ── */
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
-    sidebar: darkMode ? '#161430' : '#ffffff',
-    card: darkMode ? '#1e1b40' : '#ffffff',
-    text: darkMode ? '#f5f4fb' : '#0f0e1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
-    border: darkMode ? '#363258' : '#e8e5f0',
-    hover: darkMode ? '#272450' : '#f3f1fa',
+    bg: darkMode ? '#0f1117' : '#f8f9fb',
+    sidebar: darkMode ? '#141620' : '#ffffff',
+    card: darkMode ? '#1a1d27' : '#ffffff',
+    text: darkMode ? '#e8eaf0' : '#0c0e14',
+    textSecondary: darkMode ? '#9ba1b0' : '#5f6577',
+    border: darkMode ? '#2a2e3a' : '#e0e2e8',
+    hover: darkMode ? '#22252f' : '#f1f2f6',
     activeItem: darkMode ? 'rgba(139,92,246,0.20)' : 'rgba(139,92,246,0.08)',
-    accentColor: '#8b5cf6',
+    accentColor: '#3b82f6',
     accentSoft: darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.06)',
   };
 
@@ -171,7 +171,7 @@ const DashboardLayout: React.FC = () => {
         padding: '1.25rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
         borderBottom: `1px solid ${theme.border}`, cursor: 'pointer',
       }} onClick={() => handleNav('/dashboard')}>
-        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg, #2563eb, #3b82f6, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ color: 'white', fontWeight: 800, fontSize: '0.8rem' }}>Q</span>
         </div>
         <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text }}>Qyntara</span>
@@ -217,7 +217,7 @@ const DashboardLayout: React.FC = () => {
           borderRadius: 8, marginBottom: '0.5rem',
         }}>
           <div style={{
-            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #7c3aed, #6366f1)',
+            width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '0.8rem', fontWeight: 600,
           }}>
             {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}

@@ -35,11 +35,11 @@ export const DataQualityTab: React.FC<DataQualityTabProps> = ({
   const { data, loading, error } = useDataQuality(days) as any;
 
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8fafc',
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
+    bg: darkMode ? '#0f1117' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
   };
 
   if (loading) {

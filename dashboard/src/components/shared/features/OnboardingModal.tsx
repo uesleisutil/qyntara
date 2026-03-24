@@ -13,13 +13,13 @@ const STORAGE_KEY = 'b3tr_onboarding_done';
 
 const infoSteps = [
   {
-    icon: <TrendingUp size={32} color="#8b5cf6" />,
+    icon: <TrendingUp size={32} color="#3b82f6" />,
     title: 'Bem-vindo ao Qyntara!',
     desc: `Nosso modelo de Machine Learning analisa ${UNIVERSE_SIZE_FALLBACK} ações da B3 diariamente e gera sinais de Compra, Venda ou Neutro com base em dezenas de indicadores.`,
     tip: 'Comece pela aba Recomendações — ela é sua página principal.',
   },
   {
-    icon: <Brain size={32} color="#8b5cf6" />,
+    icon: <Brain size={32} color="#3b82f6" />,
     title: 'Entenda cada recomendação',
     desc: 'Na aba Explicabilidade, você vê quais fatores mais influenciaram a previsão de cada ação. Gráficos SHAP, análise de sensibilidade e explicação em texto.',
     tip: 'Selecione qualquer ação e explore os gráficos interativos.',
@@ -122,15 +122,15 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
         transform: visible ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(0.95)',
         opacity: visible ? 1 : 0, transition: 'all 0.2s ease',
         zIndex: 9999, width: 'min(440px, 90vw)',
-        background: darkMode ? '#1e1b40' : '#fff',
-        border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
+        background: darkMode ? '#1a1d27' : '#fff',
+        border: `1px solid ${darkMode ? '#2a2e3a' : '#e2e8f0'}`,
         borderRadius: 16, overflow: 'hidden',
         boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
       }}>
         {/* Close button */}
         <button onClick={handleClose} style={{
           position: 'absolute', top: 12, right: 12, background: 'none', border: 'none',
-          color: darkMode ? '#64748b' : '#9895b0', cursor: 'pointer', padding: 4, zIndex: 1,
+          color: darkMode ? '#64748b' : '#6b7280', cursor: 'pointer', padding: 4, zIndex: 1,
         }} aria-label="Fechar">
           <X size={18} />
         </button>
@@ -140,7 +140,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
           {Array.from({ length: totalSteps }).map((_, i) => (
             <div key={i} style={{
               flex: 1, height: 3, borderRadius: 2,
-              background: i <= step ? '#8b5cf6' : (darkMode ? '#363258' : '#e2e8f0'),
+              background: i <= step ? '#3b82f6' : (darkMode ? '#2a2e3a' : '#e2e8f0'),
               transition: 'background 0.3s',
             }} />
           ))}
@@ -152,17 +152,17 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
             <div style={{ marginBottom: '1rem' }}>{infoSteps[step].icon}</div>
             <h2 style={{
               fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.5rem',
-              color: darkMode ? '#f1f5f9' : '#0c0a1a',
+              color: darkMode ? '#f1f5f9' : '#0f1117',
             }}>{infoSteps[step].title}</h2>
             <p style={{
-              fontSize: '0.85rem', color: darkMode ? '#b8b5d0' : '#64748b',
+              fontSize: '0.85rem', color: darkMode ? '#9ba1b0' : '#64748b',
               lineHeight: 1.6, marginBottom: '0.75rem',
             }}>{infoSteps[step].desc}</p>
             <div style={{
               padding: '0.5rem 0.75rem', borderRadius: 8, fontSize: '0.78rem',
               background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
               border: `1px solid ${darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.1)'}`,
-              color: darkMode ? '#b8b5d0' : '#64748b',
+              color: darkMode ? '#9ba1b0' : '#64748b',
             }}>
               💡 {infoSteps[step].tip}
             </div>
@@ -173,27 +173,27 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
               <Star size={32} color="#f59e0b" style={{ marginBottom: '0.5rem' }} />
               <h2 style={{
                 fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.4rem',
-                color: darkMode ? '#f1f5f9' : '#0c0a1a',
+                color: darkMode ? '#f1f5f9' : '#0f1117',
               }}>Escolha sua ação gratuita</h2>
               <p style={{
-                fontSize: '0.82rem', color: darkMode ? '#b8b5d0' : '#64748b',
+                fontSize: '0.82rem', color: darkMode ? '#9ba1b0' : '#64748b',
                 lineHeight: 1.5, margin: 0,
               }}>
-                No plano Free, você tem acesso completo a <strong style={{ color: darkMode ? '#f1f5f9' : '#0c0a1a' }}>1 ação</strong> de sua escolha.
+                No plano Free, você tem acesso completo a <strong style={{ color: darkMode ? '#f1f5f9' : '#0f1117' }}>1 ação</strong> de sua escolha.
                 Todas as informações dessa ação ficam desbloqueadas nas páginas de Recomendações e Explicabilidade.
               </p>
             </div>
             {/* Search */}
             <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
-              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: darkMode ? '#64748b' : '#9895b0' }} />
+              <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: darkMode ? '#64748b' : '#6b7280' }} />
               <input
                 type="text" placeholder="Buscar ticker..." value={tickerSearch}
                 onChange={e => setTickerSearch(e.target.value)}
                 style={{
                   width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', borderRadius: 8,
-                  border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
-                  background: darkMode ? '#0e0c1e' : '#f8f7fc',
-                  color: darkMode ? '#f1f5f9' : '#0c0a1a', fontSize: '0.82rem', outline: 'none',
+                  border: `1px solid ${darkMode ? '#2a2e3a' : '#e2e8f0'}`,
+                  background: darkMode ? '#0f1117' : '#f8f9fb',
+                  color: darkMode ? '#f1f5f9' : '#0f1117', fontSize: '0.82rem', outline: 'none',
                   boxSizing: 'border-box',
                 }}
               />
@@ -208,12 +208,12 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                 <button key={t.ticker} onClick={() => setSelectedTicker(t.ticker)} style={{
                   padding: '0.5rem 0.4rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
                   border: selectedTicker === t.ticker
-                    ? '2px solid #8b5cf6'
-                    : `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
+                    ? '2px solid #3b82f6'
+                    : `1px solid ${darkMode ? '#2a2e3a' : '#e2e8f0'}`,
                   background: selectedTicker === t.ticker
                     ? (darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)')
                     : 'transparent',
-                  color: selectedTicker === t.ticker ? '#8b5cf6' : (darkMode ? '#f1f5f9' : '#0c0a1a'),
+                  color: selectedTicker === t.ticker ? '#3b82f6' : (darkMode ? '#f1f5f9' : '#0f1117'),
                   cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem',
                   transition: 'all 0.15s',
                 }}>
@@ -222,7 +222,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                 </button>
               ))}
               {filteredTickers.length === 0 && (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '1rem', color: darkMode ? '#64748b' : '#9895b0', fontSize: '0.8rem' }}>
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '1rem', color: darkMode ? '#64748b' : '#6b7280', fontSize: '0.8rem' }}>
                   Nenhum ticker encontrado
                 </div>
               )}
@@ -231,7 +231,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
               marginTop: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: 8, fontSize: '0.75rem',
               background: darkMode ? 'rgba(245,158,11,0.08)' : 'rgba(245,158,11,0.04)',
               border: `1px solid ${darkMode ? 'rgba(245,158,11,0.2)' : 'rgba(245,158,11,0.1)'}`,
-              color: darkMode ? '#b8b5d0' : '#64748b',
+              color: darkMode ? '#9ba1b0' : '#64748b',
             }}>
               👑 Com o Pro, você desbloqueia todas as {UNIVERSE_SIZE_FALLBACK} ações, carteira modelo e muito mais.
             </div>
@@ -243,15 +243,15 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
           padding: '0.75rem 1.5rem 1.25rem',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <span style={{ fontSize: '0.72rem', color: darkMode ? '#64748b' : '#9895b0' }}>
+          <span style={{ fontSize: '0.72rem', color: darkMode ? '#64748b' : '#6b7280' }}>
             {step + 1} de {totalSteps}
           </span>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {step > 0 && (
               <button onClick={() => setStep(step - 1)} style={{
                 padding: '0.5rem 1rem', borderRadius: 8, fontSize: '0.82rem',
-                border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
-                background: 'transparent', color: darkMode ? '#b8b5d0' : '#64748b',
+                border: `1px solid ${darkMode ? '#2a2e3a' : '#e2e8f0'}`,
+                background: 'transparent', color: darkMode ? '#9ba1b0' : '#64748b',
                 cursor: 'pointer', WebkitAppearance: 'none' as any,
               }}>Voltar</button>
             )}
@@ -264,7 +264,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
                 display: 'flex', alignItems: 'center', gap: '0.3rem',
                 background: isLast
                   ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-                  : 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+                  : 'linear-gradient(135deg, #2563eb, #3b82f6)',
                 color: 'white', boxShadow: '0 2px 8px rgba(124,58,237,0.25)',
                 WebkitAppearance: 'none' as any,
                 opacity: (isTickerStep && !selectedTicker) ? 0.5 : 1,

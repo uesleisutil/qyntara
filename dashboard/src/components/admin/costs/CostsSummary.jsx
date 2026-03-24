@@ -79,7 +79,7 @@ const CostsSummary = ({ data, isLoading }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {alertStatus.icon}
           <div>
-            <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
+            <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1d27' }}>
               Status de Custos
             </h3>
             <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>
@@ -157,7 +157,7 @@ const CostsSummary = ({ data, isLoading }) => {
         border: '1px solid #e2e8f0'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1a1836' }}>
+          <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1a1d27' }}>
             Progresso do Limite Mensal
           </span>
           <span style={{ fontSize: '0.875rem', fontWeight: '600', color: alertStatus.color }}>

@@ -21,11 +21,11 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
   const { data: rawData, isLoading, error, refresh } = queryResult;
 
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8fafc',
-    cardBg: darkMode ? '#1e1b40' : '#fff',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
+    bg: darkMode ? '#0f1117' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : '#fff',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -120,7 +120,7 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
 
   if (isLoading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -181,7 +181,7 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
           <option value={90}>90 dias</option>
         </select>
         <button onClick={() => refresh()}
-          style={{ ...btnBase, padding: '0.45rem 0.9rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)' }}>
+          style={{ ...btnBase, padding: '0.45rem 0.9rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', color: 'white', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)' }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

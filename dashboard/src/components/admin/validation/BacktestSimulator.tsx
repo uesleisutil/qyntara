@@ -410,7 +410,7 @@ export const BacktestSimulator: React.FC<BacktestSimulatorProps> = ({
               fontWeight: '600',
               border: 'none',
               borderRadius: '6px',
-              backgroundColor: isRunning || loading ? '#9ca3af' : '#8b5cf6',
+              backgroundColor: isRunning || loading ? '#9ca3af' : '#3b82f6',
               color: 'white',
               cursor: isRunning || loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',

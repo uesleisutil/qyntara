@@ -62,11 +62,11 @@ export const StressTesting: React.FC<StressTestingProps> = ({
   const [loading, setLoading] = useState(false);
 
   const theme = {
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
-    tableBg: darkMode ? '#0e0c1e' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
+    tableBg: darkMode ? '#0f1117' : '#f8fafc',
   };
 
   const predefinedScenarios: StressScenario[] = [
@@ -167,7 +167,7 @@ export const StressTesting: React.FC<StressTestingProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <AlertTriangle size={20} color={darkMode ? '#b8b5d0' : '#64748b'} />
+        <AlertTriangle size={20} color={darkMode ? '#9ba1b0' : '#64748b'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 
@@ -201,7 +201,7 @@ export const StressTesting: React.FC<StressTestingProps> = ({
                 padding: '1rem',
                 backgroundColor: theme.cardBg,
                 borderRadius: '8px',
-                border: `2px solid ${selectedScenarios.includes(scenario.id) ? '#8b5cf6' : theme.border}`,
+                border: `2px solid ${selectedScenarios.includes(scenario.id) ? '#3b82f6' : theme.border}`,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
               }}
@@ -229,7 +229,7 @@ export const StressTesting: React.FC<StressTestingProps> = ({
           disabled={loading || selectedScenarios.length === 0}
           style={{
             padding: '0.75rem 1.5rem',
-            backgroundColor: loading || selectedScenarios.length === 0 ? '#9895b0' : '#dc2626',
+            backgroundColor: loading || selectedScenarios.length === 0 ? '#6b7280' : '#dc2626',
             color: 'white',
             border: 'none',
             borderRadius: '8px',

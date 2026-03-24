@@ -127,7 +127,7 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
           alignItems: 'center',
           gap: '0.5rem',
           padding: '0.5rem 1rem',
-          backgroundColor: '#8b5cf6',
+          backgroundColor: '#3b82f6',
           color: 'white',
           border: 'none',
           borderRadius: '6px',
@@ -139,11 +139,11 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
         }}
         onMouseEnter={(e) => {
           if (data.length > 0 && !exporting) {
-            e.currentTarget.style.backgroundColor = '#7c3aed';
+            e.currentTarget.style.backgroundColor = '#2563eb';
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#8b5cf6';
+          e.currentTarget.style.backgroundColor = '#3b82f6';
         }}
       >
         <Download size={16} />
@@ -175,7 +175,7 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
               backgroundColor: 'transparent',
               border: 'none',
               fontSize: '0.875rem',
-              color: '#1a1836',
+              color: '#1a1d27',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'background-color 0.2s'
@@ -199,7 +199,7 @@ const ExportButton = ({ data, filename = 'recommendations' }) => {
               border: 'none',
               borderTop: '1px solid #e2e8f0',
               fontSize: '0.875rem',
-              color: '#1a1836',
+              color: '#1a1d27',
               cursor: 'pointer',
               textAlign: 'left',
               transition: 'background-color 0.2s'

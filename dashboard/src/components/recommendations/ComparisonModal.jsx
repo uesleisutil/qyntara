@@ -131,7 +131,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
           backgroundColor: 'white',
           zIndex: 1
         }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#1a1836' }}>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#1a1d27' }}>
             Comparação de Tickers
           </h2>
           <button
@@ -172,7 +172,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                   margin: '0 0 1rem 0', 
                   fontSize: '1.25rem', 
                   fontWeight: 'bold', 
-                  color: '#1a1836',
+                  color: '#1a1d27',
                   textAlign: 'center'
                 }}>
                   {ticker.ticker}
@@ -192,7 +192,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                       fontSize: '1.5rem', 
                       fontWeight: 'bold', 
                       margin: 0,
-                      color: (ticker.confidence_score || ticker.score || 0) === bestScore ? '#10b981' : '#1a1836'
+                      color: (ticker.confidence_score || ticker.score || 0) === bestScore ? '#10b981' : '#1a1d27'
                     }}>
                       {(ticker.confidence_score || ticker.score || 0).toFixed(1)}
                     </p>
@@ -212,7 +212,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                       fontWeight: 'bold', 
                       margin: 0,
                       color: ((ticker.expected_return || ticker.exp_return_20 || 0) * 100) === bestReturn ? '#10b981' : 
-                             ((ticker.expected_return || ticker.exp_return_20 || 0) >= 0 ? '#1a1836' : '#ef4444')
+                             ((ticker.expected_return || ticker.exp_return_20 || 0) >= 0 ? '#1a1d27' : '#ef4444')
                     }}>
                       {((ticker.expected_return || ticker.exp_return_20 || 0) * 100).toFixed(2)}%
                     </p>
@@ -224,7 +224,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                     borderRadius: '8px'
                   }}>
                     <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Setor</p>
-                    <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0, color: '#1a1836' }}>
+                    <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: 0, color: '#1a1d27' }}>
                       {ticker.sector || '-'}
                     </p>
                   </div>
@@ -239,7 +239,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
               fontSize: '1.125rem', 
               fontWeight: '600', 
               marginBottom: '1rem', 
-              color: '#1a1836',
+              color: '#1a1d27',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem'
@@ -257,7 +257,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                 backgroundColor: '#f8fafc',
                 borderRadius: '8px'
               }}>
-                <Loader size={24} className="animate-spin" style={{ color: '#8b5cf6' }} />
+                <Loader size={24} className="animate-spin" style={{ color: '#3b82f6' }} />
                 <span style={{ marginLeft: '0.5rem', color: '#64748b' }}>Carregando histórico...</span>
               </div>
             ) : historicalData.length === 0 ? (
@@ -266,7 +266,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                 textAlign: 'center',
                 backgroundColor: '#f8fafc',
                 borderRadius: '8px',
-                color: '#9895b0',
+                color: '#6b7280',
                 fontSize: '0.85rem'
               }}>
                 Histórico de desempenho não disponível via API.
@@ -311,7 +311,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                     />
                     {tickers.map((ticker, idx) => {
                       // Generate distinct colors for each ticker
-                      const colors = ['#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                      const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
                       return (
                         <Line
                           key={ticker.ticker}
@@ -344,7 +344,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
               fontSize: '1.125rem', 
               fontWeight: '600', 
               marginBottom: '1rem', 
-              color: '#1a1836',
+              color: '#1a1d27',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem'
@@ -377,7 +377,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                         textAlign: 'center', 
                         fontSize: '0.875rem', 
                         fontWeight: '600',
-                        color: '#1a1836',
+                        color: '#1a1d27',
                         borderBottom: '2px solid #e2e8f0'
                       }}>
                         {m.ticker}
@@ -402,7 +402,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                         textAlign: 'center',
                         fontSize: '0.875rem',
                         fontWeight: '600',
-                        color: m.score === bestScore ? '#10b981' : '#1a1836',
+                        color: m.score === bestScore ? '#10b981' : '#1a1d27',
                         backgroundColor: m.score === bestScore ? '#f0fdf4' : 'transparent',
                         borderBottom: '1px solid #e2e8f0'
                       }}>
@@ -426,7 +426,7 @@ const ComparisonModal = ({ tickers, onClose }) => {
                         textAlign: 'center',
                         fontSize: '0.875rem',
                         fontWeight: '600',
-                        color: m.expectedReturn === bestReturn ? '#10b981' : (m.expectedReturn >= 0 ? '#1a1836' : '#ef4444'),
+                        color: m.expectedReturn === bestReturn ? '#10b981' : (m.expectedReturn >= 0 ? '#1a1d27' : '#ef4444'),
                         backgroundColor: m.expectedReturn === bestReturn ? '#f0fdf4' : 'transparent',
                         borderBottom: '1px solid #e2e8f0'
                       }}>

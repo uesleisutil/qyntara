@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Info, RefreshCw, Brain, TrendingUp, BarChart3,
+  RefreshCw, Brain, TrendingUp, BarChart3,
   DollarSign, Globe, Building2, Newspaper, Layers, Lock,
+  Search, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import { getSignal, getSignalColor } from '../../constants';
@@ -23,9 +24,9 @@ interface TickerData {
 
 /* ── Feature category metadata ── */
 const FEATURE_CATEGORIES = [
-  { key: 'tecnicas', icon: TrendingUp, label: 'Técnicas', count: '~25', color: '#8b5cf6',
+  { key: 'tecnicas', icon: TrendingUp, label: 'Técnicas', count: '~25', color: '#3b82f6',
     desc: 'Retornos, médias móveis, RSI, MACD, Bollinger, momentum' },
-  { key: 'volume', icon: BarChart3, label: 'Volume', count: '11', color: '#8b5cf6',
+  { key: 'volume', icon: BarChart3, label: 'Volume', count: '11', color: '#3b82f6',
     desc: 'OBV, VWAP, divergência volume-preço, z-score de volume' },
   { key: 'fundamentalistas', icon: DollarSign, label: 'Fundamentalistas', count: '~30', color: '#10b981',
     desc: 'ROE, P/L, P/VP, DY, margens, dívida/PL, EBITDA, FCF (BRAPI Pro)' },
@@ -41,16 +42,18 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   const [selectedTicker, setSelectedTicker] = useState<string>('');
   const [tickers, setTickers] = useState<TickerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tickerSearch, setTickerSearch] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
   const isPro = useIsPro();
   const freeTicker = useFreeTicker();
 
   const theme = useMemo(() => ({
-    bg: darkMode ? '#0e0c1e' : '#f8fafc',
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
-    subtle: darkMode ? '#0e0c1e' : '#f8fafc',
+    bg: darkMode ? '#0f1117' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
+    subtle: darkMode ? '#0f1117' : '#f8fafc',
   }), [darkMode]);
 
   useEffect(() => {
@@ -95,7 +98,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
   if (loading) {
     return (
       <div style={{ ...cardStyle, padding: '3rem', textAlign: 'center' }}>
-        <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} color="#8b5cf6" />
+        <RefreshCw size={24} style={{ animation: 'spin 1s linear infinite', marginBottom: 8 }} color="#3b82f6" />
         <div style={{ color: theme.textSecondary, fontSize: '0.85rem' }}>Carregando dados do modelo...</div>
       </div>
     );
@@ -106,7 +109,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
       {/* ═══ 1. MODEL OVERVIEW — free for all ═══ */}
       <div style={{ ...cardStyle, padding: 'clamp(1rem, 3vw, 1.5rem)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Brain size={20} color="#8b5cf6" />
+          <Brain size={20} color="#3b82f6" />
           <h2 style={{ margin: 0, fontSize: 'clamp(1rem, 3vw, 1.2rem)', fontWeight: 700, color: theme.text }}>
             Visão Geral do Modelo
           </h2>
@@ -155,7 +158,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           border: `1px solid ${darkMode ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.08)'}`,
           display: 'flex', alignItems: 'center', gap: '0.5rem',
         }}>
-          <Layers size={14} color="#8b5cf6" />
+          <Layers size={14} color="#3b82f6" />
           <span style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5 }}>
             Pipeline: <strong style={{ color: theme.text }}>Ingestão diária</strong> (21h UTC) →
             <strong style={{ color: theme.text }}> Feature Store S3</strong> →
@@ -167,54 +170,144 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
       </div>
 
       {/* ═══ 2. TICKER SELECTOR ═══ */}
-      <div style={{ ...cardStyle, padding: 'clamp(0.75rem, 3vw, 1.25rem)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Info size={18} color="#8b5cf6" />
-          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: theme.text }}>Selecione uma ação para explorar</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button onClick={() => {
-            const idx = tickers.findIndex(t => t.ticker === selectedTicker);
-            if (idx > 0) setSelectedTicker(tickers[idx - 1].ticker);
-          }}
-            disabled={tickers.findIndex(t => t.ticker === selectedTicker) <= 0}
-            style={{
-              width: 32, height: 32, borderRadius: 8, border: `1px solid ${theme.border}`,
-              background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              opacity: tickers.findIndex(t => t.ticker === selectedTicker) <= 0 ? 0.3 : 1,
-            }} aria-label="Ação anterior">‹</button>
-          <select value={selectedTicker} onChange={e => setSelectedTicker(e.target.value)}
-            style={{
-              padding: '0.5rem 0.75rem', fontSize: '0.88rem', border: `1px solid ${theme.border}`,
-              borderRadius: 8, backgroundColor: theme.cardBg, color: theme.text, cursor: 'pointer',
-              flex: '1 1 180px', minWidth: 0, outline: 'none', transition: 'border-color 0.2s',
-            }}
-            onFocus={e => { e.currentTarget.style.borderColor = '#8b5cf6'; }}
-            onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}>
-            {tickers.map(t => {
-              const s = getSignal(t.score);
-              const locked = !isPro && !!freeTicker && t.ticker.toUpperCase() !== freeTicker.toUpperCase();
-              return (
-                <option key={t.ticker} value={t.ticker}>
-                  {locked ? '🔒 ' : ''}{t.ticker} — {s} (Score: {t.score.toFixed(2)})
-                </option>
-              );
-            })}
-          </select>
-          <button onClick={() => {
-            const idx = tickers.findIndex(t => t.ticker === selectedTicker);
-            if (idx < tickers.length - 1) setSelectedTicker(tickers[idx + 1].ticker);
-          }}
-            disabled={tickers.findIndex(t => t.ticker === selectedTicker) >= tickers.length - 1}
-            style={{
-              width: 32, height: 32, borderRadius: 8, border: `1px solid ${theme.border}`,
-              background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              opacity: tickers.findIndex(t => t.ticker === selectedTicker) >= tickers.length - 1 ? 0.3 : 1,
-            }} aria-label="Próxima ação">›</button>
-        </div>
-      </div>
+      {(() => {
+        const filtered = tickers.filter(t =>
+          t.ticker.toLowerCase().includes(tickerSearch.toLowerCase())
+        );
+        const scrollByAmount = (dir: number) => {
+          scrollRef.current?.scrollBy({ left: dir * 200, behavior: 'smooth' });
+        };
+        const currentIdx = tickers.findIndex(t => t.ticker === selectedTicker);
+
+        return (
+          <div style={{
+            ...cardStyle,
+            padding: 0,
+            border: `1.5px solid ${darkMode ? 'rgba(59,130,246,0.25)' : 'rgba(59,130,246,0.2)'}`,
+            overflow: 'hidden',
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: 'clamp(0.75rem, 3vw, 1rem) clamp(0.75rem, 3vw, 1.25rem)',
+              background: darkMode ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.03)',
+              borderBottom: `1px solid ${darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)'}`,
+              display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                background: 'rgba(59,130,246,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Search size={16} color="#3b82f6" />
+              </div>
+              <span style={{ fontSize: '0.92rem', fontWeight: 700, color: theme.text, flex: '1 1 auto' }}>
+                Selecione uma ação para explorar
+              </span>
+              <span style={{
+                fontSize: '0.7rem', color: theme.textSecondary, fontWeight: 500,
+              }}>
+                {currentIdx + 1} / {tickers.length}
+              </span>
+            </div>
+
+            {/* Search + nav */}
+            <div style={{
+              padding: 'clamp(0.6rem, 2vw, 0.85rem) clamp(0.75rem, 3vw, 1.25rem)',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+            }}>
+              <div style={{ position: 'relative', flex: '1 1 auto', minWidth: 0 }}>
+                <Search size={14} style={{
+                  position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+                  color: theme.textSecondary, pointerEvents: 'none',
+                }} />
+                <input
+                  type="text"
+                  placeholder="Buscar ticker..."
+                  value={tickerSearch}
+                  onChange={e => setTickerSearch(e.target.value)}
+                  style={{
+                    width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem',
+                    fontSize: '0.82rem', border: `1px solid ${theme.border}`,
+                    borderRadius: 8, backgroundColor: theme.subtle, color: theme.text,
+                    outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s',
+                  }}
+                  onFocus={e => { e.currentTarget.style.borderColor = '#3b82f6'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
+                />
+              </div>
+              <button onClick={() => scrollByAmount(-1)}
+                style={{
+                  width: 32, height: 32, borderRadius: 8, border: `1px solid ${theme.border}`,
+                  background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }} aria-label="Scroll esquerda"><ChevronLeft size={16} /></button>
+              <button onClick={() => scrollByAmount(1)}
+                style={{
+                  width: 32, height: 32, borderRadius: 8, border: `1px solid ${theme.border}`,
+                  background: 'transparent', color: theme.textSecondary, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }} aria-label="Scroll direita"><ChevronRight size={16} /></button>
+            </div>
+
+            {/* Ticker chips */}
+            <div
+              ref={scrollRef}
+              style={{
+                display: 'flex', gap: '0.4rem', overflowX: 'auto',
+                padding: '0 clamp(0.75rem, 3vw, 1.25rem) clamp(0.75rem, 3vw, 1rem)',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
+            >
+              {filtered.map(t => {
+                const s = getSignal(t.score);
+                const sColor = getSignalColor(s);
+                const isActive = t.ticker === selectedTicker;
+                const locked = !isPro && !!freeTicker && t.ticker.toUpperCase() !== freeTicker.toUpperCase();
+                return (
+                  <button
+                    key={t.ticker}
+                    onClick={() => setSelectedTicker(t.ticker)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.35rem',
+                      padding: '0.4rem 0.7rem', borderRadius: 8, flexShrink: 0,
+                      fontSize: '0.78rem', fontWeight: isActive ? 700 : 500,
+                      cursor: 'pointer', transition: 'all 0.15s',
+                      border: isActive
+                        ? `1.5px solid ${sColor.text}`
+                        : `1px solid ${theme.border}`,
+                      background: isActive
+                        ? (darkMode ? `${sColor.text}18` : `${sColor.text}0c`)
+                        : 'transparent',
+                      color: isActive ? sColor.text : theme.textSecondary,
+                      WebkitAppearance: 'none' as any,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {locked && <Lock size={11} style={{ opacity: 0.6 }} />}
+                    <span style={{ fontWeight: isActive ? 700 : 600, color: isActive ? theme.text : theme.textSecondary }}>
+                      {t.ticker}
+                    </span>
+                    <span style={{
+                      fontSize: '0.62rem', fontWeight: 700,
+                      padding: '0.08rem 0.35rem', borderRadius: 6,
+                      background: isActive ? sColor.bg : `${sColor.text}12`,
+                      color: sColor.text,
+                      border: isActive ? `1px solid ${sColor.border}` : 'none',
+                    }}>
+                      {s === 'Compra' ? '▲' : s === 'Venda' ? '▼' : '—'} {t.score.toFixed(2)}
+                    </span>
+                  </button>
+                );
+              })}
+              {filtered.length === 0 && (
+                <div style={{ padding: '0.5rem', fontSize: '0.8rem', color: theme.textSecondary }}>
+                  Nenhum ticker encontrado
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Locked ticker banner for free users */}
       {!hasTickerAccess && selectedTicker && (
@@ -227,8 +320,8 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
           <Lock size={14} color="#f59e0b" />
           <span style={{ fontSize: '0.8rem', color: theme.textSecondary, flex: 1 }}>
             {freeTicker
-              ? <>Conteúdo bloqueado. Sua ação gratuita é <strong style={{ color: '#8b5cf6' }}>{freeTicker}</strong>. </>
-              : <>Selecione sua ação gratuita nas <a href="#/dashboard/settings" style={{ color: '#8b5cf6' }}>Configurações</a>. </>
+              ? <>Conteúdo bloqueado. Sua ação gratuita é <strong style={{ color: '#3b82f6' }}>{freeTicker}</strong>. </>
+              : <>Selecione sua ação gratuita nas <a href="#/dashboard/settings" style={{ color: '#3b82f6' }}>Configurações</a>. </>
             }
             <a href="#/dashboard/upgrade" style={{ color: '#f59e0b', fontWeight: 600, textDecoration: 'none' }}>
               Assine o Pro para desbloquear todas.
@@ -251,7 +344,7 @@ const ExplainabilityTab: React.FC<ExplainabilityTabProps> = ({ darkMode = false 
               }}>{signal}</span>
               <span style={{ fontSize: '1.05rem', fontWeight: 700, color: theme.text }}>{currentTicker.ticker}</span>
               <span style={{ fontSize: '0.8rem', color: theme.textSecondary }}>
-                Score: <strong style={{ color: '#8b5cf6' }}>{currentTicker.score.toFixed(2)}</strong>
+                Score: <strong style={{ color: '#3b82f6' }}>{currentTicker.score.toFixed(2)}</strong>
               </span>
             </div>
             <div style={{
@@ -463,10 +556,10 @@ const FundamentalsSnapshot: React.FC<SnapshotProps> = ({ ticker = '', darkMode, 
 
 /* ── Macro Snapshot (inline component) ── */
 const MACRO_FALLBACK = [
-  { label: 'Selic', value: '14.25%', trend: 'estável', color: '#8b5cf6', desc: 'Taxa básica de juros' },
+  { label: 'Selic', value: '14.25%', trend: 'estável', color: '#3b82f6', desc: 'Taxa básica de juros' },
   { label: 'IPCA 12m', value: '4.87%', trend: '↑', color: '#ef4444', desc: 'Inflação acumulada' },
   { label: 'USD/BRL', value: 'R$ 5.72', trend: '↓', color: '#10b981', desc: 'Câmbio dólar' },
-  { label: 'CDI', value: '14.15%', trend: 'estável', color: '#8b5cf6', desc: 'Taxa interbancária' },
+  { label: 'CDI', value: '14.15%', trend: 'estável', color: '#3b82f6', desc: 'Taxa interbancária' },
   { label: 'Δ Selic 3m', value: '+0.50pp', trend: '↑', color: '#f59e0b', desc: 'Variação trimestral' },
   { label: 'Δ Câmbio 1m', value: '-1.2%', trend: '↓', color: '#10b981', desc: 'Variação mensal' },
 ];
@@ -495,10 +588,10 @@ function parseMacroSeries(data: Record<string, any>): typeof MACRO_FALLBACK {
   const trendOf = (v: number | null) => v == null ? 'estável' : v > 0.001 ? '↑' : v < -0.001 ? '↓' : 'estável';
 
   return [
-    { label: 'Selic', value: selic != null ? `${selic.toFixed(2)}%` : '—', trend: trendOf(selicChange), color: '#8b5cf6', desc: 'Taxa básica de juros' },
+    { label: 'Selic', value: selic != null ? `${selic.toFixed(2)}%` : '—', trend: trendOf(selicChange), color: '#3b82f6', desc: 'Taxa básica de juros' },
     { label: 'IPCA 12m', value: ipca != null ? `${(ipca * 12).toFixed(2)}%` : '—', trend: trendOf(ipca != null ? ipca - 0.4 : null), color: '#ef4444', desc: 'Inflação acumulada' },
     { label: 'USD/BRL', value: cambio != null ? `R$ ${cambio.toFixed(2)}` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#10b981' : '#ef4444', desc: 'Câmbio dólar' },
-    { label: 'CDI', value: cdi != null ? `${cdi.toFixed(2)}%` : '—', trend: 'estável', color: '#8b5cf6', desc: 'Taxa interbancária' },
+    { label: 'CDI', value: cdi != null ? `${cdi.toFixed(2)}%` : '—', trend: 'estável', color: '#3b82f6', desc: 'Taxa interbancária' },
     { label: 'Δ Selic 3m', value: selicChange != null ? `${selicChange > 0 ? '+' : ''}${(selicChange * 100).toFixed(2)}pp` : '—', trend: trendOf(selicChange), color: '#f59e0b', desc: 'Variação trimestral' },
     { label: 'Δ Câmbio 1m', value: cambioChange != null ? `${(cambioChange * 100).toFixed(1)}%` : '—', trend: trendOf(cambioChange), color: cambioChange != null && cambioChange < 0 ? '#10b981' : '#ef4444', desc: 'Variação mensal' },
   ];

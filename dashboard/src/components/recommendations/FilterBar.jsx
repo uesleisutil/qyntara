@@ -120,7 +120,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Filter size={20} color="#64748b" />
-          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: '#1a1836' }}>
+          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: '600', color: '#1a1d27' }}>
             Filtros
           </h3>
         </div>
@@ -134,7 +134,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
           <span style={{
             fontSize: '0.875rem',
             fontWeight: hasActiveFilters ? '600' : '500',
-            color: hasActiveFilters ? '#8b5cf6' : '#64748b',
+            color: hasActiveFilters ? '#3b82f6' : '#64748b',
             padding: '0.25rem 0.75rem',
             backgroundColor: hasActiveFilters ? '#eff6ff' : 'transparent',
             borderRadius: '6px',
@@ -166,8 +166,8 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
               onMouseEnter={(e) => {
                 if (!showCopySuccess) {
                   e.currentTarget.style.backgroundColor = '#eff6ff';
-                  e.currentTarget.style.borderColor = '#8b5cf6';
-                  e.currentTarget.style.color = '#8b5cf6';
+                  e.currentTarget.style.borderColor = '#3b82f6';
+                  e.currentTarget.style.color = '#3b82f6';
                 }
               }}
               onMouseLeave={(e) => {
@@ -261,7 +261,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
               cursor: 'pointer',
               transition: 'border-color 0.2s'
             }}
-            onFocus={(e) => e.currentTarget.style.borderColor = '#8b5cf6'}
+            onFocus={(e) => e.currentTarget.style.borderColor = '#3b82f6'}
             onBlur={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
           >
             <option value="">Todos os setores</option>
@@ -287,7 +287,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             <span>Retorno Mínimo (%)</span>
             <span style={{ 
               fontWeight: '500', 
-              color: filters.minReturn !== undefined ? '#8b5cf6' : '#9895b0',
+              color: filters.minReturn !== undefined ? '#3b82f6' : '#6b7280',
               fontSize: '0.875rem'
             }}>
               {filters.minReturn !== undefined ? filters.minReturn.toFixed(1) : returnBounds.min.toFixed(1)}
@@ -316,7 +316,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             display: 'flex',
             justifyContent: 'space-between',
             fontSize: '0.75rem',
-            color: '#9895b0',
+            color: '#6b7280',
             marginTop: '0.25rem'
           }}>
             <span>{returnBounds.min.toFixed(1)}%</span>
@@ -340,7 +340,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             <span>Retorno Máximo (%)</span>
             <span style={{ 
               fontWeight: '500', 
-              color: filters.maxReturn !== undefined ? '#8b5cf6' : '#9895b0',
+              color: filters.maxReturn !== undefined ? '#3b82f6' : '#6b7280',
               fontSize: '0.875rem'
             }}>
               {filters.maxReturn !== undefined ? filters.maxReturn.toFixed(1) : returnBounds.max.toFixed(1)}
@@ -369,7 +369,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             display: 'flex',
             justifyContent: 'space-between',
             fontSize: '0.75rem',
-            color: '#9895b0',
+            color: '#6b7280',
             marginTop: '0.25rem'
           }}>
             <span>{returnBounds.min.toFixed(1)}%</span>
@@ -393,7 +393,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             <span>Score Mínimo</span>
             <span style={{ 
               fontWeight: '500', 
-              color: filters.minScore !== undefined ? '#8b5cf6' : '#9895b0',
+              color: filters.minScore !== undefined ? '#3b82f6' : '#6b7280',
               fontSize: '0.875rem'
             }}>
               {filters.minScore !== undefined ? filters.minScore.toFixed(0) : scoreBounds.min.toFixed(0)}
@@ -422,7 +422,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             display: 'flex',
             justifyContent: 'space-between',
             fontSize: '0.75rem',
-            color: '#9895b0',
+            color: '#6b7280',
             marginTop: '0.25rem'
           }}>
             <span>{scoreBounds.min.toFixed(0)}</span>
@@ -443,7 +443,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
           <div style={{
             fontSize: '0.75rem',
             fontWeight: '600',
-            color: '#7c3aed',
+            color: '#2563eb',
             marginBottom: '0.5rem'
           }}>
             Filtros Ativos:
@@ -453,7 +453,7 @@ const FilterBar = ({ recommendations, onFilteredCountChange }) => {
             flexWrap: 'wrap',
             gap: '0.5rem',
             fontSize: '0.75rem',
-            color: '#7c3aed'
+            color: '#2563eb'
           }}>
             {filters.sector && (
               <span style={{

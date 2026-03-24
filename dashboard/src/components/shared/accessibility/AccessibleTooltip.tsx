@@ -231,7 +231,7 @@ export function AccessibleTooltip({
         }
         
         .tooltip-link {
-          color: var(--tooltip-link, #a78bfa);
+          color: var(--tooltip-link, #60a5fa);
           text-decoration: underline;
         }
         

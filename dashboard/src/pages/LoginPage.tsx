@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const accent = '#8b5cf6';
-const gradient = 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)';
+const accent = '#3b82f6';
+const gradient = 'linear-gradient(135deg, #2563eb, #3b82f6, #3b82f6)';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,14 +22,14 @@ const LoginPage: React.FC = () => {
   });
 
   const t = {
-    bg: dark ? '#0c0a1a' : '#f8f7fc',
+    bg: dark ? '#0f1117' : '#f8f9fb',
     card: dark ? 'rgba(139,92,246,0.03)' : 'white',
-    cardBorder: dark ? '#2a2745' : '#e8e5f0',
-    input: dark ? '#1a1836' : '#f3f1fa',
-    inputBorder: dark ? '#2a2745' : '#d1d5db',
-    text: dark ? '#f1f0f9' : '#0f0e1a',
-    textSecondary: dark ? '#9895b0' : '#64618b',
-    label: dark ? '#9895b0' : '#475569',
+    cardBorder: dark ? '#2a2e3a' : '#e0e2e8',
+    input: dark ? '#1a1d27' : '#f1f2f6',
+    inputBorder: dark ? '#2a2e3a' : '#d1d5db',
+    text: dark ? '#f1f0f9' : '#0c0e14',
+    textSecondary: dark ? '#6b7280' : '#5f6577',
+    label: dark ? '#6b7280' : '#475569',
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

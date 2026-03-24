@@ -27,7 +27,7 @@ const AdminValidationPage: React.FC = () => {
   useEffect(() => { fetchValidation(); }, []);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -41,7 +41,7 @@ const AdminValidationPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -96,7 +96,7 @@ const AdminValidationPage: React.FC = () => {
   const pendingCount = validations.length - validatedCount;
 
   const kpis = [
-    { label: 'Total Predições', value: total.toString(), color: '#8b5cf6', icon: <BarChart3 size={16} />, tip: 'Número total de predições feitas pelo modelo no período.' },
+    { label: 'Total Predições', value: total.toString(), color: '#3b82f6', icon: <BarChart3 size={16} />, tip: 'Número total de predições feitas pelo modelo no período.' },
     { label: 'Validadas', value: completed.toString(), color: '#10b981', icon: <CheckCircle size={16} />, tip: 'Predições que já podem ser comparadas com preços reais (20+ dias passados).' },
     { label: 'Pendentes', value: pending.toString(), color: '#f59e0b', icon: <Clock size={16} />, tip: 'Predições aguardando 20 pregões para validação contra preços reais.' },
     { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100, 1)}%` : allPending ? 'Aguardando' : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de predições que acertaram a direção (alta/baixa).' },
@@ -119,7 +119,7 @@ const AdminValidationPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -132,9 +132,9 @@ const AdminValidationPage: React.FC = () => {
           borderColor: 'rgba(59,130,246,0.2)',
           display: 'flex', alignItems: 'center', gap: '0.75rem',
         }}>
-          <Clock size={20} color="#8b5cf6" style={{ flexShrink: 0 }} />
+          <Clock size={20} color="#3b82f6" style={{ flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#8b5cf6' }}>Aguardando validação</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#3b82f6' }}>Aguardando validação</div>
             <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
               {pending} predições precisam de ~20 pregões para serem validadas contra preços reais. As métricas de acurácia serão calculadas automaticamente.
             </div>
@@ -192,14 +192,14 @@ const AdminValidationPage: React.FC = () => {
             <div style={{ position: 'relative', flex: '1 1 180px', minWidth: 0 }}>
               <Search size={16} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
               <input type="text" placeholder="Buscar ticker..." value={tickerSearch} onChange={e => setTickerSearch(e.target.value)}
-                style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', background: darkMode ? '#0e0c1e' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }}
-                onFocus={e => { e.currentTarget.style.borderColor = '#8b5cf6'; }}
+                style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2rem', background: darkMode ? '#0f1117' : '#f8fafc', border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text, fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box' }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#3b82f6'; }}
                 onBlur={e => { e.currentTarget.style.borderColor = theme.border; }}
               />
             </div>
             <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
               {([
-                { key: 'ALL', label: 'Todos', count: validations.length, color: '#8b5cf6' },
+                { key: 'ALL', label: 'Todos', count: validations.length, color: '#3b82f6' },
                 { key: 'validated', label: 'Validados', count: validatedCount, color: '#10b981' },
                 { key: 'pending', label: 'Pendentes', count: pendingCount, color: '#f59e0b' },
               ] as const).map(chip => {
@@ -241,7 +241,7 @@ const AdminValidationPage: React.FC = () => {
                       { label: 'Direção', tip: 'Se o modelo acertou a direção (alta/baixa).' },
                       { label: 'Status', tip: 'Validado = preço real disponível. Pendente = aguardando.' },
                     ].map((h, idx) => (
-                      <th key={idx} style={{ padding: '0.6rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0e0c1e' : '#f8fafc', whiteSpace: 'nowrap', position: 'sticky', top: 0 }}>
+                      <th key={idx} style={{ padding: '0.6rem 0.6rem', textAlign: 'left', fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, background: darkMode ? '#0f1117' : '#f8fafc', whiteSpace: 'nowrap', position: 'sticky', top: 0 }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                           {h.label} <InfoTooltip text={h.tip} darkMode={darkMode} size={11} />
                         </span>

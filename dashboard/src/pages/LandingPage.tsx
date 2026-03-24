@@ -13,14 +13,14 @@ import { fmt } from '../lib/formatters';
 interface LiveRec { ticker: string; score: number; last_close: number; exp_return_20: number; pred_price_t_plus_20: number; vol_20d: number; }
 
 const brand = {
-  gradient: 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)',
+  gradient: 'linear-gradient(135deg, #2563eb, #3b82f6, #3b82f6)',
   gradientSoft: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(99,102,241,0.06), rgba(59,130,246,0.04))',
-  accent: '#8b5cf6',
+  accent: '#3b82f6',
   accentSoft: 'rgba(139,92,246,0.12)',
   accentBorder: 'rgba(139,92,246,0.25)',
   glow: 'rgba(139,92,246,0.15)',
   glowStrong: 'rgba(99,102,241,0.25)',
-  surface: '#0c0a1a',
+  surface: '#0f1117',
   surfaceAlt: '#110e24',
   surfaceCard: 'rgba(139,92,246,0.04)',
   border: 'rgba(139,92,246,0.12)',
@@ -512,7 +512,7 @@ const LandingPage: React.FC = () => {
           <RevealSection delay={0.15}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', maxWidth: 700, margin: '0 auto' }}>
               {[
-                { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#7c3aed', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
+                { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#2563eb', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
                 { icon: <Landmark size={20} />, name: 'Bancos', color: '#3b82f6', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
                 { icon: <Zap size={20} />, name: 'Energia', color: '#10b981', tickers: ['ELET3', 'ENGI11', 'CPFE3'] },
               ].map((c, i) => (

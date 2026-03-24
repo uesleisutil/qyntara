@@ -47,7 +47,7 @@ const AdminCostsPage: React.FC = () => {
   useEffect(() => { fetchCosts(); }, []);
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12,
     padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
@@ -61,7 +61,7 @@ const AdminCostsPage: React.FC = () => {
 
   if (loading) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -108,7 +108,7 @@ const AdminCostsPage: React.FC = () => {
 
   const kpis = [
     { label: 'Projeção Mensal (BRL)', value: `R$ ${fmt(projection.brl)}`, ph: 'R$ ••••', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo total AWS para o mês atual, convertido em reais.', sensitive: true },
-    { label: 'Custo 7 dias (USD)', value: `${fmt(total7d.usd)}`, ph: '$ ••••', color: '#8b5cf6', icon: <TrendingDown size={16} />, tip: 'Custo total acumulado dos últimos 7 dias em dólares.', sensitive: true },
+    { label: 'Custo 7 dias (USD)', value: `${fmt(total7d.usd)}`, ph: '$ ••••', color: '#3b82f6', icon: <TrendingDown size={16} />, tip: 'Custo total acumulado dos últimos 7 dias em dólares.', sensitive: true },
     { label: 'Orçamento Usado', value: `${fmt(threshold.percentage, 1)}%`, ph: '••%', color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', icon: threshold.exceeded ? <TrendingUp size={16} /> : <TrendingDown size={16} />, tip: 'Percentual do orçamento mensal já consumido pela projeção atual.', sensitive: true },
     { label: 'Anomalias', value: `${anomalies.length}`, ph: '', color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Serviços com custos significativamente acima da média histórica.', sensitive: false },
   ];
@@ -128,7 +128,7 @@ const AdminCostsPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={fetchCosts} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #7c3aed, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={fetchCosts} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(124,58,237,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
@@ -207,7 +207,7 @@ const AdminCostsPage: React.FC = () => {
               <R ph="R$ •••• / R$ ••••">R$ {fmt(projection.brl)} / R$ {fmt(threshold.limit_brl, 0)}</R>
             </span>
           </div>
-          <div style={{ height: 12, borderRadius: 6, background: darkMode ? '#363258' : '#e2e8f0' }}>
+          <div style={{ height: 12, borderRadius: 6, background: darkMode ? '#2a2e3a' : '#e2e8f0' }}>
             <div style={{ height: '100%', borderRadius: 6, background: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981', width: `${Math.min(threshold.percentage || 0, 100)}%`, transition: 'width 0.3s' }} />
           </div>
         </div>
@@ -228,8 +228,8 @@ const AdminCostsPage: React.FC = () => {
                     <span style={{ fontSize: '0.8rem', color: theme.text, maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{service}</span>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f59e0b' }}><R ph="$ ••••">{fmt(cost)}</R></span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#363258' : '#e2e8f0' }}>
-                    <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(90deg, #7c3aed, #3b82f6)', width: `${(cost / maxServiceCost) * 100}%`, transition: 'width 0.3s' }} />
+                  <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a2e3a' : '#e2e8f0' }}>
+                    <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(90deg, #2563eb, #3b82f6)', width: `${(cost / maxServiceCost) * 100}%`, transition: 'width 0.3s' }} />
                   </div>
                 </div>
               ))}

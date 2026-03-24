@@ -362,13 +362,13 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
   });
 
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8fafc',
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
-    inputBg: darkMode ? '#0e0c1e' : '#f8fafc',
-    hover: darkMode ? '#363258' : '#f1f5f9',
+    bg: darkMode ? '#0f1117' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
+    inputBg: darkMode ? '#0f1117' : '#f8fafc',
+    hover: darkMode ? '#2a2e3a' : '#f1f5f9',
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -453,8 +453,8 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               display: 'flex', alignItems: 'center', gap: '0.35rem', padding: '0.55rem 0.85rem',
               borderRadius: 8, border: 'none', cursor: tab.disabled ? 'default' : 'pointer',
               fontSize: '0.8rem', fontWeight: activeTab === tab.id ? 600 : 400, whiteSpace: 'nowrap',
-              background: activeTab === tab.id ? (darkMode ? '#363258' : 'white') : 'transparent',
-              color: tab.disabled ? (darkMode ? '#475569' : '#cbd5e1') : activeTab === tab.id ? '#8b5cf6' : theme.textSecondary,
+              background: activeTab === tab.id ? (darkMode ? '#2a2e3a' : 'white') : 'transparent',
+              color: tab.disabled ? (darkMode ? '#475569' : '#cbd5e1') : activeTab === tab.id ? '#3b82f6' : theme.textSecondary,
               boxShadow: activeTab === tab.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
               transition: 'all 0.15s', opacity: tab.disabled ? 0.5 : 1,
             }}
@@ -468,7 +468,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
       {activeTab === 'config' && (
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <Settings size={18} color="#8b5cf6" />
+            <Settings size={18} color="#3b82f6" />
             <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: theme.text }}>Configuração do Backtest</h3>
           </div>
           <p style={{ margin: '0 0 1rem', fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
@@ -485,12 +485,12 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             ].map((preset, i) => (
               <button key={i} onClick={() => setConfig(prev => ({ ...prev, ...preset.cfg }))} style={{
                 padding: '0.4rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-                border: `1px solid ${theme.border}`, background: darkMode ? '#0e0c1e' : '#f8fafc',
+                border: `1px solid ${theme.border}`, background: darkMode ? '#0f1117' : '#f8fafc',
                 color: theme.text, cursor: 'pointer', transition: 'all 0.15s',
                 WebkitAppearance: 'none' as any,
               }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = darkMode ? '#0e0c1e' : '#f8fafc'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.background = 'rgba(59,130,246,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.background = darkMode ? '#0f1117' : '#f8fafc'; }}
               >
                 {preset.label}
               </button>
@@ -523,7 +523,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
 
           <button onClick={handleRun} disabled={loading} style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1.5rem',
-            background: loading ? '#64748b' : 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+            background: loading ? '#64748b' : 'linear-gradient(135deg, #2563eb, #3b82f6)',
             border: 'none', color: 'white', borderRadius: 8, cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '0.9rem', fontWeight: 600, transition: 'all 0.2s',
             boxShadow: loading ? 'none' : '0 2px 8px rgba(37,99,235,0.3)',
@@ -542,7 +542,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               ✓ Dados reais
             </span>
             {savedLabel && (
-              <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(59,130,246,0.1)', color: '#8b5cf6', fontWeight: 500 }}>
+              <span style={{ padding: '0.15rem 0.5rem', borderRadius: 4, background: 'rgba(59,130,246,0.1)', color: '#3b82f6', fontWeight: 500 }}>
                 💾 {savedLabel}
               </span>
             )}
@@ -611,7 +611,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               { label: 'Capital Inicial', value: fmtBRL(config.initialCapital), color: theme.text, tip: 'Valor investido no início.' },
               { label: 'Valor Final', value: fmtBRL(result.portfolioValue[result.portfolioValue.length - 1].value), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Valor final da carteira.' },
               { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Ganho ou perda total no período.' },
-              { label: 'Sharpe', value: fmt(result.metrics.sharpeRatio), color: '#8b5cf6', tip: 'Retorno ajustado ao risco. Acima de 1.0 é bom.' },
+              { label: 'Sharpe', value: fmt(result.metrics.sharpeRatio), color: '#3b82f6', tip: 'Retorno ajustado ao risco. Acima de 1.0 é bom.' },
               { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444', tip: 'Maior queda do pico ao vale.' },
             ].map((kpi, i) => (
               <div key={i} style={cardStyle}>
@@ -626,7 +626,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
           {/* Portfolio Value Chart */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <TrendingUp size={16} color="#8b5cf6" />
+              <TrendingUp size={16} color="#3b82f6" />
               <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Evolução do Portfólio</h3>
             </div>
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -637,7 +637,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                     <XAxis dataKey="date" stroke={theme.textSecondary} style={{ fontSize: 10 }} tickFormatter={(d: string) => { const dt = new Date(d + 'T12:00:00'); return `${dt.getDate()}/${dt.getMonth() + 1}`; }} />
                     <YAxis stroke={theme.textSecondary} style={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
                     <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: 12 }} formatter={(v: number) => [fmtBRL(v), 'Portfólio']} labelFormatter={(d: string) => new Date(d + 'T12:00:00').toLocaleDateString('pt-BR')} />
-                    <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -654,7 +654,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               {[
                 { label: 'Alpha', value: fmtPct(result.benchmarks.alpha), color: result.benchmarks.alpha >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno extra acima do mercado.' },
                 { label: 'Beta', value: fmt(result.benchmarks.beta), color: theme.text, tip: 'Sensibilidade ao mercado. 1.0 = acompanha o mercado.' },
-                { label: 'Info Ratio', value: fmt(result.benchmarks.informationRatio), color: '#8b5cf6', tip: 'Retorno extra por unidade de risco adicional.' },
+                { label: 'Info Ratio', value: fmt(result.benchmarks.informationRatio), color: '#3b82f6', tip: 'Retorno extra por unidade de risco adicional.' },
                 { label: 'Tracking Error', value: fmtPct(result.benchmarks.trackingError), color: '#f59e0b', tip: 'Quanto sua carteira desvia do mercado.' },
               ].map((m, i) => (
                 <div key={i} style={{ padding: '0.5rem', backgroundColor: theme.bg, borderRadius: 6 }}>
@@ -667,7 +667,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem' }}>
               {[
-                { label: 'Portfólio', ret: fmtPct(result.metrics.totalReturn), color: '#8b5cf6' },
+                { label: 'Portfólio', ret: fmtPct(result.metrics.totalReturn), color: '#3b82f6' },
                 { label: 'Média do universo', ret: fmtPct(result.benchmarks.ibovespa.totalReturn), color: '#f59e0b' },
                 { label: 'CDI', ret: fmtPct(result.benchmarks.cdi.totalReturn), color: '#10b981' },
               ].map((b, i) => (
@@ -713,8 +713,8 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               { label: 'Retorno Total', value: fmtPct(result.metrics.totalReturn), color: result.metrics.totalReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Ganho ou perda total no período.' },
               { label: 'Retorno Anualizado', value: fmtPct(result.metrics.annualizedReturn), color: result.metrics.annualizedReturn >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno convertido para base anual.' },
               { label: 'Volatilidade Anual', value: fmtPct(result.metrics.volatility), color: '#f59e0b', tip: 'Oscilação anualizada da carteira.' },
-              { label: 'Sharpe Ratio', value: fmt(result.metrics.sharpeRatio), color: '#8b5cf6', tip: 'Retorno por unidade de risco. Acima de 1.0 é bom.' },
-              { label: 'Sortino Ratio', value: fmt(result.metrics.sortinoRatio), color: '#8b5cf6', tip: 'Similar ao Sharpe, mas só penaliza quedas.' },
+              { label: 'Sharpe Ratio', value: fmt(result.metrics.sharpeRatio), color: '#3b82f6', tip: 'Retorno por unidade de risco. Acima de 1.0 é bom.' },
+              { label: 'Sortino Ratio', value: fmt(result.metrics.sortinoRatio), color: '#3b82f6', tip: 'Similar ao Sharpe, mas só penaliza quedas.' },
               { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444', tip: 'Maior queda do pico ao vale.' },
               { label: 'Duração Média DD', value: `${result.metrics.averageDrawdownDuration}d`, color: theme.text, tip: 'Tempo médio de recuperação de quedas.' },
               { label: 'Win Rate', value: fmtPct(result.metrics.winRate), color: '#10b981', tip: 'Percentual de dias com retorno positivo.' },
@@ -752,7 +752,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
                   ].map((row, i) => (
                     <tr key={i} style={{ borderBottom: `1px solid ${theme.border}` }}>
                       <td style={{ padding: '0.5rem', fontSize: '0.8rem', color: theme.textSecondary }}>{row.label}</td>
-                      <td style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#8b5cf6' }}>{row.p}</td>
+                      <td style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#3b82f6' }}>{row.p}</td>
                       <td style={{ padding: '0.5rem', fontSize: '0.85rem', fontWeight: 600, color: '#f59e0b' }}>{row.b}</td>
                     </tr>
                   ))}

@@ -7,7 +7,7 @@ interface Props { darkMode: boolean; theme: Record<string, string>; }
 interface Change { ticker: string; prevSignal: string; newSignal: string; prevScore: number; newScore: number; }
 interface RankDiff { ticker: string; currentRank: number; diff: number; currentSignal: string; }
 
-const sigColor = (s: string) => s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#9895b0';
+const sigColor = (s: string) => s === 'Compra' ? '#10b981' : s === 'Venda' ? '#ef4444' : '#6b7280';
 const SigIcon = ({ s, sz = 10 }: { s: string; sz?: number }) =>
   s === 'Compra' ? <ArrowUpRight size={sz} /> : s === 'Venda' ? <ArrowDownRight size={sz} /> : <Minus size={sz} />;
 
@@ -108,7 +108,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.5rem' }}>
         {tabBtn('signals', 'Sinais', changes.length, '#f59e0b')}
-        {tabBtn('ranking', 'Ranking', diffs.length, '#8b5cf6')}
+        {tabBtn('ranking', 'Ranking', diffs.length, '#3b82f6')}
       </div>
 
       {tab === 'signals' ? (
@@ -117,7 +117,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
         ) : (
           <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1e1b40' : '#ffffff'), zIndex: 1 }}>
+              <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a1d27' : '#ffffff'), zIndex: 1 }}>
                 <tr>
                   <th style={thS}>Ação</th>
                   <th style={thS}>Anterior</th>
@@ -156,9 +156,9 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
             {[1, 3, 5, 7].filter(d => d <= maxDays).map(d => (
               <button key={d} onClick={() => setDaysBack(d)} style={{
                 padding: '0.15rem 0.45rem', borderRadius: 5, fontSize: '0.68rem', fontWeight: 600,
-                border: `1px solid ${daysBack === d ? '#8b5cf6' : theme.border}`,
+                border: `1px solid ${daysBack === d ? '#3b82f6' : theme.border}`,
                 background: daysBack === d ? 'rgba(139,92,246,0.15)' : 'transparent',
-                color: daysBack === d ? '#8b5cf6' : theme.textSecondary, cursor: 'pointer',
+                color: daysBack === d ? '#3b82f6' : theme.textSecondary, cursor: 'pointer',
               }}>{d}d</button>
             ))}
           </div>
@@ -167,7 +167,7 @@ const SignalChangesDropdown: React.FC<Props> = ({ darkMode, theme }) => {
           ) : (
             <div style={{ overflowX: 'auto', maxHeight: 190, overflowY: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1e1b40' : '#ffffff'), zIndex: 1 }}>
+                <thead style={{ position: 'sticky', top: 0, background: theme.card || (darkMode ? '#1a1d27' : '#ffffff'), zIndex: 1 }}>
                   <tr>
                     <th style={thS}>Ação</th>
                     <th style={thS}>Sinal</th>

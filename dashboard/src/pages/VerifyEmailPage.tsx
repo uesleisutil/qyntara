@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
-const accent = '#8b5cf6';
-const gradient = 'linear-gradient(135deg, #7c3aed, #6366f1, #3b82f6)';
+const accent = '#3b82f6';
+const gradient = 'linear-gradient(135deg, #2563eb, #3b82f6, #3b82f6)';
 
 const VerifyEmailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -70,11 +70,11 @@ const VerifyEmailPage: React.FC = () => {
   const inputStyle: React.CSSProperties = {
     width: 'clamp(38px, 10vw, 48px)', height: 'clamp(44px, 12vw, 56px)', textAlign: 'center',
     fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', fontWeight: 700,
-    background: '#1a1836', border: '1px solid #2a2745', borderRadius: 8, color: '#f1f0f9', outline: 'none',
+    background: '#1a1d27', border: '1px solid #2a2e3a', borderRadius: 8, color: '#f1f0f9', outline: 'none',
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+    <div style={{ minHeight: '100vh', background: '#0f1117', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center', marginBottom: '2.5rem', cursor: 'pointer' }} onClick={() => navigate('/')}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: gradient, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -82,9 +82,9 @@ const VerifyEmailPage: React.FC = () => {
           </div>
           <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f1f0f9' }}>Qyntara</span>
         </div>
-        <div style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid #2a2745', borderRadius: 16, padding: '2rem' }}>
+        <div style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid #2a2e3a', borderRadius: 16, padding: '2rem' }}>
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f0f9', marginBottom: '0.5rem', textAlign: 'center' }}>Verificar Email</h2>
-          <p style={{ color: '#9895b0', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+          <p style={{ color: '#6b7280', textAlign: 'center', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
             Enviamos um código de 6 dígitos para<br /><span style={{ color: accent }}>{email}</span>
           </p>
           {error && (
@@ -102,8 +102,8 @@ const VerifyEmailPage: React.FC = () => {
               {code.map((digit, i) => (
                 <input key={i} ref={el => { inputRefs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1}
                   value={digit} onChange={e => handleChange(i, e.target.value)} onKeyDown={e => handleKeyDown(i, e)}
-                  style={{ ...inputStyle, borderColor: digit ? accent : '#2a2745' }}
-                  onFocus={e => e.currentTarget.style.borderColor = accent} onBlur={e => { if (!digit) e.currentTarget.style.borderColor = '#2a2745'; }}
+                  style={{ ...inputStyle, borderColor: digit ? accent : '#2a2e3a' }}
+                  onFocus={e => e.currentTarget.style.borderColor = accent} onBlur={e => { if (!digit) e.currentTarget.style.borderColor = '#2a2e3a'; }}
                   aria-label={`Dígito ${i + 1}`} />
               ))}
             </div>

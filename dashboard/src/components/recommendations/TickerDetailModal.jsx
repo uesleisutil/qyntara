@@ -161,7 +161,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
           backgroundColor: 'white',
           zIndex: 1
         }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#1a1836' }}>
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: '#1a1d27' }}>
             {ticker.ticker}
           </h2>
           <button
@@ -194,7 +194,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
               padding: '3rem',
               gap: '1rem'
             }}>
-              <Loader size={32} color="#8b5cf6" className="animate-spin" />
+              <Loader size={32} color="#3b82f6" className="animate-spin" />
               <p style={{ color: '#64748b', margin: 0 }}>Carregando detalhes...</p>
             </div>
           )}
@@ -232,7 +232,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                   borderRadius: '8px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <TrendingUp size={16} color="#8b5cf6" />
+                    <TrendingUp size={16} color="#3b82f6" />
                     <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>Retorno Esperado</p>
                   </div>
                   <p style={{ 
@@ -251,10 +251,10 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                   borderRadius: '8px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <BarChart3 size={16} color="#8b5cf6" />
+                    <BarChart3 size={16} color="#3b82f6" />
                     <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>Score de Confiança</p>
                   </div>
-                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#1a1836' }}>
+                  <p style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, color: '#1a1d27' }}>
                     {(ticker.confidence_score || ticker.score || 0).toFixed(1)}
                   </p>
                 </div>
@@ -262,7 +262,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
 
               {/* Recommendation History (Req 3.2) */}
               <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1836' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1d27' }}>
                   Histórico de Recomendações
                 </h3>
                 {detailData.history.length > 0 ? (
@@ -300,7 +300,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                   </table>
                 </div>
                 ) : (
-                  <div style={{ padding: '1rem', textAlign: 'center', color: '#9895b0', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
                     Histórico não disponível via API.
                   </div>
                 )}
@@ -308,7 +308,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
 
               {/* Fundamentals (Req 3.3) */}
               <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1836' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1d27' }}>
                   Métricas Fundamentalistas
                 </h3>
                 {Object.keys(detailData.fundamentals).length > 0 ? (
@@ -326,14 +326,14 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                       <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 0.25rem 0', textTransform: 'uppercase' }}>
                         {key}
                       </p>
-                      <p style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0, color: '#1a1836' }}>
+                      <p style={{ fontSize: '1.125rem', fontWeight: '600', margin: 0, color: '#1a1d27' }}>
                         {value != null ? value : '—'}
                       </p>
                     </div>
                   ))}
                 </div>
                 ) : (
-                  <div style={{ padding: '1rem', textAlign: 'center', color: '#9895b0', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
                     Dados fundamentalistas não disponíveis via API.
                   </div>
                 )}
@@ -341,7 +341,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
 
               {/* News (Req 3.4) */}
               <div style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1836', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1d27', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Newspaper size={20} />
                   Notícias Recentes
                 </h3>
@@ -357,7 +357,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: '0 0 0.25rem 0', color: '#1a1836' }}>
+                      <p style={{ fontSize: '0.875rem', fontWeight: '500', margin: '0 0 0.25rem 0', color: '#1a1d27' }}>
                         {article.title}
                       </p>
                       <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0 }}>
@@ -367,7 +367,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                   ))}
                 </div>
                 ) : (
-                  <div style={{ padding: '1rem', textAlign: 'center', color: '#9895b0', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.85rem', backgroundColor: '#f8fafc', borderRadius: 8 }}>
                     Notícias não disponíveis via API.
                   </div>
                 )}
@@ -375,7 +375,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
 
               {/* Contribuição dos modelos */}
               <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1836' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem', color: '#1a1d27' }}>
                   Contribuição dos Modelos do Ensemble
                 </h3>
                 
@@ -388,7 +388,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                         marginBottom: '0.5rem',
                         fontSize: '0.875rem'
                       }}>
-                        <span style={{ fontWeight: '500', color: '#1a1836' }}>{model.name}</span>
+                        <span style={{ fontWeight: '500', color: '#1a1d27' }}>{model.name}</span>
                         <span style={{ color: '#64748b' }}>
                           Peso: {(model.weight * 100).toFixed(1)}% | 
                           Predição: {(model.prediction * 100).toFixed(2)}%
@@ -404,7 +404,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                         <div style={{
                           width: `${model.weight * 100}%`,
                           height: '100%',
-                          backgroundColor: '#8b5cf6',
+                          backgroundColor: '#3b82f6',
                           transition: 'width 0.3s ease'
                         }} />
                       </div>
@@ -422,7 +422,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
                   borderRadius: '8px'
                 }}>
                   <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>Setor</p>
-                  <p style={{ fontSize: '1rem', fontWeight: '500', margin: '0.25rem 0 0 0', color: '#1a1836' }}>
+                  <p style={{ fontSize: '1rem', fontWeight: '500', margin: '0.25rem 0 0 0', color: '#1a1d27' }}>
                     {ticker.sector}
                   </p>
                 </div>

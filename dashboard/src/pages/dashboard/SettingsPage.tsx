@@ -38,12 +38,12 @@ const SettingsPage: React.FC = () => {
   }, [isPro]);
 
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
-    border: darkMode ? '#363258' : '#e2e0f0',
-    hover: darkMode ? '#363258' : '#f3f1fa',
+    bg: darkMode ? '#0f1117' : '#f8f9fb',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#5f6577',
+    border: darkMode ? '#2a2e3a' : '#e0e2e8',
+    hover: darkMode ? '#2a2e3a' : '#f1f2f6',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -106,7 +106,7 @@ const SettingsPage: React.FC = () => {
             <Star size={16} color="#f59e0b" /> Minha Ação Gratuita
           </h3>
           <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.75rem', lineHeight: 1.5 }}>
-            No plano Free, você tem acesso completo a 1 ação. Atualmente: <strong style={{ color: '#8b5cf6' }}>{user?.freeTicker || 'Nenhuma selecionada'}</strong>
+            No plano Free, você tem acesso completo a 1 ação. Atualmente: <strong style={{ color: '#3b82f6' }}>{user?.freeTicker || 'Nenhuma selecionada'}</strong>
           </p>
           <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
             <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: theme.textSecondary }} />
@@ -123,9 +123,9 @@ const SettingsPage: React.FC = () => {
             {availableTickers.filter(t => !tickerSearch || t.toLowerCase().includes(tickerSearch.toLowerCase())).map(t => (
               <button key={t} onClick={() => setNewTicker(t)} style={{
                 padding: '0.4rem', borderRadius: 6, fontSize: '0.75rem', fontWeight: 600,
-                border: newTicker === t ? '2px solid #8b5cf6' : `1px solid ${theme.border}`,
+                border: newTicker === t ? '2px solid #3b82f6' : `1px solid ${theme.border}`,
                 background: newTicker === t ? (darkMode ? 'rgba(139,92,246,0.15)' : 'rgba(139,92,246,0.08)') : 'transparent',
-                color: newTicker === t ? '#8b5cf6' : theme.text,
+                color: newTicker === t ? '#3b82f6' : theme.text,
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.2rem',
               }}>
                 {newTicker === t && <Check size={10} />} {t}
@@ -142,7 +142,7 @@ const SettingsPage: React.FC = () => {
             }}
             style={{
               padding: '0.5rem 1.25rem', borderRadius: 8, border: 'none', fontSize: '0.82rem', fontWeight: 600,
-              background: (!newTicker || newTicker === user?.freeTicker) ? (darkMode ? '#363258' : '#e2e0f0') : 'linear-gradient(135deg, #7c3aed, #3b82f6)',
+              background: (!newTicker || newTicker === user?.freeTicker) ? (darkMode ? '#2a2e3a' : '#e0e2e8') : 'linear-gradient(135deg, #2563eb, #3b82f6)',
               color: (!newTicker || newTicker === user?.freeTicker) ? theme.textSecondary : 'white',
               cursor: (!newTicker || newTicker === user?.freeTicker) ? 'not-allowed' : 'pointer',
               opacity: savingTicker ? 0.6 : 1,
@@ -209,7 +209,7 @@ const SettingsPage: React.FC = () => {
             aria-label="Notificações por email"
             style={{
               width: 44, height: 24, borderRadius: 12, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
-              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#363258' : '#e2e0f0'),
+              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#2a2e3a' : '#e0e2e8'),
               position: 'relative', transition: 'background 0.2s', flexShrink: 0,
               opacity: isPro ? 1 : 0.5, padding: 0,
               WebkitAppearance: 'none' as any,
@@ -248,7 +248,7 @@ const SettingsPage: React.FC = () => {
               <span style={{ fontSize: '0.82rem', color: theme.textSecondary }}>{s.desc}</span>
               <kbd style={{
                 padding: '0.15rem 0.5rem', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600,
-                background: darkMode ? '#0e0c1e' : '#f3f1fa', border: `1px solid ${theme.border}`,
+                background: darkMode ? '#0f1117' : '#f1f2f6', border: `1px solid ${theme.border}`,
                 color: theme.text, fontFamily: 'monospace',
               }}>{s.keys}</kbd>
             </div>

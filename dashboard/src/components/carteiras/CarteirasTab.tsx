@@ -45,7 +45,7 @@ const renderIcon = (key: string, size: number, color?: string) => {
   return <Icon size={size} color={color} />;
 };
 
-const COLORS = ['#8b5cf6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#14b8a6'];
 const MAX_FREE = 1;
 
 
@@ -69,12 +69,12 @@ const CarteirasTab: React.FC<CarteirasTabProps> = ({ darkMode = false }) => {
   const [addingTickerTo, setAddingTickerTo] = useState<string | null>(null);
 
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8fafc',
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
-    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#8b5cf6', purple: '#8b5cf6',
+    bg: darkMode ? '#0f1117' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
+    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#3b82f6', purple: '#3b82f6',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -398,7 +398,7 @@ const CarteirasTab: React.FC<CarteirasTabProps> = ({ darkMode = false }) => {
                   <a href="#/dashboard/upgrade" style={{
                     display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.5rem',
                     padding: '0.35rem 0.75rem', borderRadius: 6, border: 'none',
-                    background: theme.yellow, color: '#0c0a1a', fontSize: '0.72rem',
+                    background: theme.yellow, color: '#0f1117', fontSize: '0.72rem',
                     fontWeight: 600, textDecoration: 'none',
                   }}>
                     <Crown size={12} /> Upgrade
@@ -517,7 +517,7 @@ const CarteirasTab: React.FC<CarteirasTabProps> = ({ darkMode = false }) => {
                               color: theme.text, cursor: 'pointer', fontSize: '0.8rem', textAlign: 'left',
                               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             }}
-                              onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#363258' : '#f1f5f9'}
+                              onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#2a2e3a' : '#f1f5f9'}
                               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                             >
                               <span style={{ fontWeight: 600 }}>{t}</span>
@@ -657,7 +657,7 @@ const CarteirasTab: React.FC<CarteirasTabProps> = ({ darkMode = false }) => {
           <a href="#/dashboard/upgrade" style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
             padding: '0.5rem 1rem', borderRadius: 8, border: 'none',
-            background: theme.yellow, color: '#0c0a1a', fontSize: '0.82rem',
+            background: theme.yellow, color: '#0f1117', fontSize: '0.82rem',
             fontWeight: 600, textDecoration: 'none',
           }}>
             <Crown size={14} /> Fazer Upgrade

@@ -15,8 +15,8 @@ interface SHAPWaterfallChartProps {
 
 /* ── Category colors ── */
 const CAT_COLORS: Record<string, string> = {
-  'Técnica': '#8b5cf6',
-  'Volume': '#8b5cf6',
+  'Técnica': '#3b82f6',
+  'Volume': '#3b82f6',
   'Fundamental': '#10b981',
   'Macro': '#f59e0b',
   'Setorial': '#ec4899',
@@ -76,11 +76,11 @@ function deriveContributions(td: TickerData) {
 
 const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerData, darkMode = false, isPro = false }) => {
   const theme = useMemo(() => ({
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
-    subtle: darkMode ? '#0e0c1e' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
+    subtle: darkMode ? '#0f1117' : '#f8fafc',
   }), [darkMode]);
 
   const chartData = useMemo(() => deriveContributions(tickerData), [tickerData]);
@@ -102,7 +102,7 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
       boxShadow: darkMode ? '0 1px 3px rgba(0,0,0,0.3)' : '0 1px 3px rgba(0,0,0,0.05)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-        <TrendingUp size={18} color="#8b5cf6" />
+        <TrendingUp size={18} color="#3b82f6" />
         <h3 style={{ margin: 0, fontSize: 'clamp(0.95rem, 3vw, 1.125rem)', fontWeight: 600, color: theme.text }}>
           Contribuição dos Fatores (SHAP) — {ticker}
         </h3>
@@ -141,13 +141,13 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
           <span key={cs.category} style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
             padding: '0.25rem 0.6rem', borderRadius: 20, fontSize: '0.7rem', fontWeight: 600,
-            background: `${CAT_COLORS[cs.category] || '#9895b0'}15`,
-            color: CAT_COLORS[cs.category] || '#9895b0',
-            border: `1px solid ${CAT_COLORS[cs.category] || '#9895b0'}30`,
+            background: `${CAT_COLORS[cs.category] || '#6b7280'}15`,
+            color: CAT_COLORS[cs.category] || '#6b7280',
+            border: `1px solid ${CAT_COLORS[cs.category] || '#6b7280'}30`,
           }}>
             <span style={{
               width: 8, height: 8, borderRadius: '50%',
-              backgroundColor: CAT_COLORS[cs.category] || '#9895b0',
+              backgroundColor: CAT_COLORS[cs.category] || '#6b7280',
             }} />
             {cs.category}: {cs.value >= 0 ? '+' : ''}R$ {cs.value.toFixed(2)}
           </span>
@@ -173,7 +173,7 @@ const SHAPWaterfallChart: React.FC<SHAPWaterfallChartProps> = ({ ticker, tickerD
               <ReferenceLine x={0} stroke={theme.textSecondary} strokeDasharray="3 3" />
               <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                 {chartData.map((entry, i) => (
-                  <Cell key={i} fill={CAT_COLORS[entry.category] || '#9895b0'} opacity={0.85} />
+                  <Cell key={i} fill={CAT_COLORS[entry.category] || '#6b7280'} opacity={0.85} />
                 ))}
               </Bar>
             </BarChart>

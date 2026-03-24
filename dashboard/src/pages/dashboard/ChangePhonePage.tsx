@@ -69,21 +69,21 @@ const ChangePhonePage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '2rem',
     maxWidth: 480, margin: '0 auto',
   };
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.65rem 0.75rem',
-    background: darkMode ? '#0e0c1e' : '#f8fafc', border: `1px solid ${theme.border}`,
+    background: darkMode ? '#0f1117' : '#f8fafc', border: `1px solid ${theme.border}`,
     borderRadius: 8, color: theme.text, fontSize: '0.9rem', outline: 'none',
     boxSizing: 'border-box' as const,
   };
 
   if (fetching) {
     const sk: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e8f0'} 25%, ${darkMode ? '#363258' : '#f1f5f9'} 50%, ${darkMode ? '#1e1b40' : '#e2e8f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -136,7 +136,7 @@ const ChangePhonePage: React.FC = () => {
           {/* WhatsApp toggle */}
           <div style={{
             marginBottom: '1.25rem', padding: '1rem', borderRadius: 8,
-            background: darkMode ? '#0e0c1e' : '#f0fdf4',
+            background: darkMode ? '#0f1117' : '#f0fdf4',
             border: `1px solid ${whatsappEnabled ? 'rgba(37,211,102,0.3)' : theme.border}`,
           }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
@@ -178,7 +178,7 @@ const ChangePhonePage: React.FC = () => {
 
           <button type="submit" disabled={loading || (phoneClean.length > 0 && !isValid)} style={{
             width: '100%', padding: '0.75rem', borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600,
-            background: !loading ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#363258' : '#e2e8f0'),
+            background: !loading ? 'linear-gradient(135deg, #25d366, #128c7e)' : (darkMode ? '#2a2e3a' : '#e2e8f0'),
             color: !loading ? 'white' : theme.textSecondary,
             cursor: !loading ? 'pointer' : 'not-allowed',
             transition: 'all 0.2s', WebkitAppearance: 'none' as any,

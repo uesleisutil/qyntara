@@ -11,11 +11,11 @@ export interface SectorInfo {
 
 export const SECTOR_MAP: Record<string, SectorInfo> = {
   // Tecnologia e E-commerce
-  MGLU3: { sector: 'Tecnologia', color: '#8b5cf6', icon: '💻' },
-  LWSA3: { sector: 'Tecnologia', color: '#8b5cf6', icon: '💻' },
+  MGLU3: { sector: 'Tecnologia', color: '#3b82f6', icon: '💻' },
+  LWSA3: { sector: 'Tecnologia', color: '#3b82f6', icon: '💻' },
   PETZ3: { sector: 'Varejo', color: '#f59e0b', icon: '🛒' },
-  VAMO3: { sector: 'Logística', color: '#6366f1', icon: '🚛' },
-  RENT3: { sector: 'Logística', color: '#6366f1', icon: '🚛' },
+  VAMO3: { sector: 'Logística', color: '#3b82f6', icon: '🚛' },
+  RENT3: { sector: 'Logística', color: '#3b82f6', icon: '🚛' },
   // Energia e Petróleo
   PETR4: { sector: 'Petróleo', color: '#0ea5e9', icon: '🛢️' },
   PETR3: { sector: 'Petróleo', color: '#0ea5e9', icon: '🛢️' },
@@ -65,8 +65,8 @@ export const SECTOR_MAP: Record<string, SectorInfo> = {
   MRFG3: { sector: 'Agro', color: '#22c55e', icon: '🌾' },
   BRFS3: { sector: 'Agro', color: '#22c55e', icon: '🌾' },
   // Infraestrutura e Logística
-  CCRO3: { sector: 'Logística', color: '#6366f1', icon: '🚛' },
-  ECOR3: { sector: 'Logística', color: '#6366f1', icon: '🚛' },
+  CCRO3: { sector: 'Logística', color: '#3b82f6', icon: '🚛' },
+  ECOR3: { sector: 'Logística', color: '#3b82f6', icon: '🚛' },
   TIMS3: { sector: 'Telecom', color: '#a855f7', icon: '📡' },
   VIVT3: { sector: 'Telecom', color: '#a855f7', icon: '📡' },
   CSAN3: { sector: 'Energia', color: '#eab308', icon: '⚡' },

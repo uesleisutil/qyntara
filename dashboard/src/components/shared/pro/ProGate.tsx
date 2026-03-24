@@ -72,15 +72,15 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
 
   return (
     <div style={{
-      background: darkMode ? '#1e1b40' : 'white',
-      border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
+      background: darkMode ? '#1a1d27' : 'white',
+      border: `1px solid ${darkMode ? '#2a2e3a' : '#e2e8f0'}`,
       borderRadius: 16, padding: 'clamp(1.5rem, 4vw, 2.5rem)',
       textAlign: 'center', maxWidth: 480, margin: '2rem auto',
       position: 'relative',
     }}>
       <button onClick={close} style={{
         position: 'absolute', top: 12, right: 12, background: 'none', border: 'none',
-        color: darkMode ? '#64748b' : '#9895b0', cursor: 'pointer', padding: 4,
+        color: darkMode ? '#64748b' : '#6b7280', cursor: 'pointer', padding: 4,
       }} aria-label="Fechar">
         <X size={18} />
       </button>
@@ -94,12 +94,12 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
       </div>
       <h2 style={{
         fontSize: 'clamp(1.1rem, 3vw, 1.3rem)', fontWeight: 700,
-        color: darkMode ? '#f1f5f9' : '#0c0a1a', marginBottom: '0.5rem',
+        color: darkMode ? '#f1f5f9' : '#0f1117', marginBottom: '0.5rem',
       }}>
         Recurso exclusivo Pro
       </h2>
       <p style={{
-        fontSize: '0.85rem', color: darkMode ? '#b8b5d0' : '#64748b',
+        fontSize: '0.85rem', color: darkMode ? '#9ba1b0' : '#64748b',
         lineHeight: 1.6, marginBottom: '1.5rem',
       }}>
         {feature} está disponível no plano Pro. Faça upgrade para desbloquear
@@ -118,7 +118,7 @@ const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', d
       >
         Fazer Upgrade <ArrowRight size={16} />
       </button>
-      <p style={{ fontSize: '0.72rem', color: darkMode ? '#64748b' : '#9895b0', marginTop: '0.75rem' }}>
+      <p style={{ fontSize: '0.72rem', color: darkMode ? '#64748b' : '#6b7280', marginTop: '0.75rem' }}>
         A partir de {PRO_PRICE_LABEL} · Cancele quando quiser
       </p>
     </div>

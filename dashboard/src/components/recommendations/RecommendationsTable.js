@@ -189,7 +189,7 @@ const RecommendationsTable = React.memo(({ recommendations, comparisonMode, onTi
                     </span>
                   </td>
                   <td style={{ padding: '0.75rem' }}>
-                    <strong style={{ color: '#1a1836' }}>{rec.ticker}</strong>
+                    <strong style={{ color: '#1a1d27' }}>{rec.ticker}</strong>
                   </td>
                   <td style={{ padding: '0.75rem', textAlign: 'right', color: '#475569' }}>
                     {scoreValue.toFixed(1)}

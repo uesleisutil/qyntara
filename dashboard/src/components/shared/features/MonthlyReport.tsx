@@ -52,7 +52,7 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
       // Build recommendations table
       const recRows = recs.slice(0, 20).map((r: any, i: number) => {
         const signal = getSignal(r.score);
-        const sigColor = signal === 'Compra' ? '#10b981' : signal === 'Venda' ? '#ef4444' : '#9895b0';
+        const sigColor = signal === 'Compra' ? '#10b981' : signal === 'Venda' ? '#ef4444' : '#6b7280';
         return `<tr>
           <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0">${i + 1}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600">${r.ticker}</td>
@@ -72,9 +72,9 @@ const MonthlyReport: React.FC<Props> = ({ darkMode }) => {
       const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Relatório Mensal - Qyntara</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #0c0a1a; }
-  h1 { color: #1a1836; border-bottom: 2px solid #8b5cf6; padding-bottom: 0.5rem; }
-  h2 { color: #2a2745; margin-top: 2rem; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #0f1117; }
+  h1 { color: #1a1d27; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; }
+  h2 { color: #2a2e3a; margin-top: 2rem; }
   table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
   th { background: #f1f5f9; padding: 8px 10px; text-align: left; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
   .summary { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }
@@ -124,14 +124,14 @@ ${positions.length > 0 ? `<h2>📋 Minhas Posições</h2>
     <button onClick={generate} disabled={generating} style={{
       display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
       padding: '0.45rem 0.75rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 500,
-      border: `1px solid ${darkMode ? '#363258' : '#e2e8f0'}`,
+      border: `1px solid ${darkMode ? '#2a2e3a' : '#e2e8f0'}`,
       background: 'transparent',
-      color: darkMode ? '#b8b5d0' : '#64748b',
+      color: darkMode ? '#9ba1b0' : '#64748b',
       cursor: generating ? 'wait' : 'pointer', transition: 'all 0.15s',
       WebkitAppearance: 'none' as any, minHeight: 'auto',
     }}
-      onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.color = '#8b5cf6'; } }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#363258' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#b8b5d0' : '#64748b'; }}
+      onMouseEnter={e => { if (!generating) { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; } }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = darkMode ? '#2a2e3a' : '#e2e8f0'; e.currentTarget.style.color = darkMode ? '#9ba1b0' : '#64748b'; }}
     >
       {generating ? <Loader size={13} className="spin" /> : <FileText size={13} />}
       {generating ? 'Gerando...' : 'Relatório Mensal'}

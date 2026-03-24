@@ -3,14 +3,14 @@ import { useUI } from '../contexts/UIContext';
 // Color palettes for light and dark themes
 export const CHART_COLORS = {
   light: {
-    primary: '#8b5cf6',
-    secondary: '#8b5cf6',
+    primary: '#3b82f6',
+    secondary: '#3b82f6',
     success: '#10b981',
     warning: '#f59e0b',
     error: '#ef4444',
     info: '#06b6d4',
     neutral: '#6b7280',
-    gradient: ['#8b5cf6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
+    gradient: ['#3b82f6', '#3b82f6', '#ec4899', '#f59e0b', '#10b981'],
     positive: '#10b981',
     negative: '#ef4444',
     grid: '#e5e7eb',
@@ -18,19 +18,19 @@ export const CHART_COLORS = {
     background: '#ffffff',
   },
   dark: {
-    primary: '#a78bfa',
-    secondary: '#a78bfa',
+    primary: '#60a5fa',
+    secondary: '#3b82f6',
     success: '#34d399',
     warning: '#fbbf24',
     error: '#f87171',
     info: '#22d3ee',
     neutral: '#9ca3af',
-    gradient: ['#a78bfa', '#a78bfa', '#f472b6', '#fbbf24', '#34d399'],
+    gradient: ['#60a5fa', '#3b82f6', '#f472b6', '#fbbf24', '#34d399'],
     positive: '#34d399',
     negative: '#f87171',
-    grid: '#374151',
-    text: '#f9fafb',
-    background: '#1f2937',
+    grid: '#2a2e3a',
+    text: '#e8eaf0',
+    background: '#1a1d27',
   },
 };
 

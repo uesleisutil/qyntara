@@ -145,7 +145,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({
       disableCloseOnEsc={false}
       callback={handleJoyrideCallback}
       styles={{
-        options: { primaryColor: '#8b5cf6', zIndex: 10000 },
+        options: { primaryColor: '#3b82f6', zIndex: 10000 },
         tooltip: { borderRadius: '12px', fontSize: '14px' },
         tooltipContainer: { textAlign: 'left' as const },
         buttonNext: { borderRadius: '8px', padding: '8px 16px', fontSize: '14px', fontWeight: '600' },

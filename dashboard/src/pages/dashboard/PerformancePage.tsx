@@ -20,7 +20,7 @@ const PerformancePage: React.FC = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: `1px solid ${theme?.border || '#2a2745'}`, paddingBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: `1px solid ${theme?.border || '#2a2e3a'}`, paddingBottom: '0.75rem' }}>
         {tabs.map(t => (
           <button
             key={t.key}
@@ -29,8 +29,8 @@ const PerformancePage: React.FC = () => {
               display: 'flex', alignItems: 'center', gap: '0.4rem',
               padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer',
               fontSize: '0.875rem', fontWeight: subTab === t.key ? 600 : 400,
-              background: subTab === t.key ? (darkMode ? '#363258' : '#ede9fe') : 'transparent',
-              color: subTab === t.key ? (darkMode ? '#a78bfa' : '#7c3aed') : (theme?.textSecondary || '#9895b0'),
+              background: subTab === t.key ? (darkMode ? '#2a2e3a' : '#e8ebf0') : 'transparent',
+              color: subTab === t.key ? (darkMode ? '#60a5fa' : '#2563eb') : (theme?.textSecondary || '#6b7280'),
               transition: 'all 0.2s',
             }}
           >

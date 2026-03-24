@@ -74,7 +74,7 @@ const CostsTable = ({ data, isLoading }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1836' }}>
+      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1a1d27' }}>
         Detalhamento de Custos por Componente (Últimos 7 dias)
       </h3>
 
@@ -89,19 +89,19 @@ const CostsTable = ({ data, isLoading }) => {
         }}>
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', color: '#1a1836' }}>
+              <th style={{ padding: '0.75rem', textAlign: 'left', fontWeight: '600', color: '#1a1d27' }}>
                 Componente
               </th>
-              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1836' }}>
+              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1d27' }}>
                 Total (7 dias)
               </th>
-              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1836' }}>
+              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1d27' }}>
                 Média Diária
               </th>
-              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1836' }}>
+              <th style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1d27' }}>
                 % do Total
               </th>
-              <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', color: '#1a1836' }}>
+              <th style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '600', color: '#1a1d27' }}>
                 Tendência
               </th>
             </tr>
@@ -120,10 +120,10 @@ const CostsTable = ({ data, isLoading }) => {
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1a1836' }}>
+                  <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1a1d27' }}>
                     {row.component}
                   </td>
-                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1836' }}>
+                  <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '600', color: '#1a1d27' }}>
                     R$ {row.total.toFixed(2)}
                   </td>
                   <td style={{ padding: '0.75rem', textAlign: 'right', color: '#64748b' }}>
@@ -152,10 +152,10 @@ const CostsTable = ({ data, isLoading }) => {
             
             {/* Linha de total */}
             <tr style={{ backgroundColor: '#f8fafc', fontWeight: '600' }}>
-              <td style={{ padding: '0.75rem', color: '#1a1836' }}>
+              <td style={{ padding: '0.75rem', color: '#1a1d27' }}>
                 TOTAL
               </td>
-              <td style={{ padding: '0.75rem', textAlign: 'right', color: '#1a1836' }}>
+              <td style={{ padding: '0.75rem', textAlign: 'right', color: '#1a1d27' }}>
                 R$ {totalCost.toFixed(2)}
               </td>
               <td style={{ padding: '0.75rem', textAlign: 'right', color: '#64748b' }}>

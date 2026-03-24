@@ -42,7 +42,7 @@ const WidgetPreferences: React.FC<WidgetPreferencesProps> = ({
       {/* Panel */}
       <div style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, width: 'min(360px, 90vw)',
-        background: darkMode ? '#0e0c1e' : '#ffffff',
+        background: darkMode ? '#0f1117' : '#ffffff',
         borderLeft: `1px solid ${theme.border}`,
         zIndex: 1000, display: 'flex', flexDirection: 'column',
         boxShadow: '-8px 0 30px rgba(0,0,0,0.2)',
@@ -55,7 +55,7 @@ const WidgetPreferences: React.FC<WidgetPreferencesProps> = ({
           display: 'flex', alignItems: 'center', gap: '0.5rem',
           padding: '1rem 1.2rem', borderBottom: `1px solid ${theme.border}`,
         }}>
-          <Settings2 size={18} color="#8b5cf6" />
+          <Settings2 size={18} color="#3b82f6" />
           <span style={{ fontSize: '1rem', fontWeight: 700, color: theme.text, flex: 1 }}>
             Personalizar Dashboard
           </span>
@@ -121,7 +121,7 @@ const WidgetPreferences: React.FC<WidgetPreferencesProps> = ({
                   disabled={disabled || w.locked}
                   style={{
                     background: 'none', border: 'none', cursor: disabled || w.locked ? 'default' : 'pointer',
-                    color: w.enabled ? '#8b5cf6' : theme.textSecondary, padding: 4,
+                    color: w.enabled ? '#3b82f6' : theme.textSecondary, padding: 4,
                     opacity: w.locked ? 0.3 : 1,
                   }}
                   title={w.locked ? 'Sempre visível' : w.enabled ? 'Desativar' : 'Ativar'}
@@ -143,7 +143,7 @@ const WidgetPreferences: React.FC<WidgetPreferencesProps> = ({
           </span>
           <button onClick={onClose} style={{
             padding: '0.45rem 1rem', borderRadius: 8, border: 'none',
-            background: '#8b5cf6', color: 'white', fontSize: '0.8rem',
+            background: '#3b82f6', color: 'white', fontSize: '0.8rem',
             fontWeight: 600, cursor: 'pointer',
           }}>
             Pronto

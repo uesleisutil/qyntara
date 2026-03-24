@@ -242,7 +242,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
             <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.5rem' }}>
               Under-Predictions
             </div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
               {outlierAnalysis.underPredictions.length}
             </div>
             <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
@@ -286,7 +286,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
               fontSize: '0.875rem',
               border: '1px solid #e5e7eb',
               borderRadius: '6px',
-              backgroundColor: filterDirection === 'all' ? '#8b5cf6' : 'white',
+              backgroundColor: filterDirection === 'all' ? '#3b82f6' : 'white',
               color: filterDirection === 'all' ? 'white' : '#6b7280',
               cursor: 'pointer',
               transition: 'all 0.2s',
@@ -316,7 +316,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
               fontSize: '0.875rem',
               border: '1px solid #e5e7eb',
               borderRadius: '6px',
-              backgroundColor: filterDirection === 'under' ? '#8b5cf6' : 'white',
+              backgroundColor: filterDirection === 'under' ? '#3b82f6' : 'white',
               color: filterDirection === 'under' ? 'white' : '#6b7280',
               cursor: 'pointer',
               transition: 'all 0.2s',
@@ -445,7 +445,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                         padding: '0.75rem',
                         textAlign: 'right',
                         fontWeight: 'bold',
-                        color: outlier.error > 0 ? '#f59e0b' : '#8b5cf6',
+                        color: outlier.error > 0 ? '#f59e0b' : '#3b82f6',
                       }}
                     >
                       {outlier.error > 0 ? '+' : ''}
@@ -459,7 +459,7 @@ export const OutlierTable: React.FC<OutlierTableProps> = ({
                           fontSize: '0.75rem',
                           fontWeight: '500',
                           backgroundColor: outlier.error > 0 ? '#fef3c7' : '#dbeafe',
-                          color: outlier.error > 0 ? '#92400e' : '#7c3aed',
+                          color: outlier.error > 0 ? '#92400e' : '#2563eb',
                         }}
                       >
                         {outlier.error > 0 ? 'Over' : 'Under'}

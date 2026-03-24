@@ -28,10 +28,10 @@ export const DataDriftChart: React.FC<DataDriftChartProps> = ({
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const theme = {
-    cardBg: darkMode ? '#1e1b40' : '#fff',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
+    cardBg: darkMode ? '#1a1d27' : '#fff',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
     success: '#10b981', warning: '#f59e0b', error: '#ef4444',
   };
 
@@ -114,14 +114,14 @@ export const DataDriftChart: React.FC<DataDriftChartProps> = ({
                   ].map(h => (
                     <th key={h.key} onClick={() => handleSort(h.key)} style={{
                       padding: '0.6rem', textAlign: h.key === 'feature' ? 'left' : 'right',
-                      fontWeight: 600, color: sortColumn === h.key ? '#8b5cf6' : theme.textSecondary,
+                      fontWeight: 600, color: sortColumn === h.key ? '#3b82f6' : theme.textSecondary,
                       cursor: 'pointer', userSelect: 'none', fontSize: '0.75rem',
-                      background: darkMode ? '#0e0c1e' : '#f8fafc', whiteSpace: 'nowrap',
+                      background: darkMode ? '#0f1117' : '#f8fafc', whiteSpace: 'nowrap',
                     }}>
                       {h.label} <SortIcon column={h.key} />
                     </th>
                   ))}
-                  <th style={{ padding: '0.6rem', textAlign: 'center', fontWeight: 600, color: theme.textSecondary, fontSize: '0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc' }}>
+                  <th style={{ padding: '0.6rem', textAlign: 'center', fontWeight: 600, color: theme.textSecondary, fontSize: '0.75rem', background: darkMode ? '#0f1117' : '#f8fafc' }}>
                     Status
                   </th>
                 </tr>
@@ -131,7 +131,7 @@ export const DataDriftChart: React.FC<DataDriftChartProps> = ({
                   <tr key={f.feature} onClick={() => setSelectedFeature(selectedFeature === f.feature ? null : f.feature)}
                     style={{
                       borderBottom: `1px solid ${theme.border}`, cursor: 'pointer', transition: 'background 0.15s',
-                      background: selectedFeature === f.feature ? (darkMode ? '#363258' : '#f1f5f9') : 'transparent',
+                      background: selectedFeature === f.feature ? (darkMode ? '#2a2e3a' : '#f1f5f9') : 'transparent',
                     }}
                     onMouseEnter={e => { if (selectedFeature !== f.feature) e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)'; }}
                     onMouseLeave={e => { if (selectedFeature !== f.feature) e.currentTarget.style.background = 'transparent'; }}
@@ -169,7 +169,7 @@ export const DataDriftChart: React.FC<DataDriftChartProps> = ({
           </h4>
           <div style={{
             display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
-            gap: '0.75rem', padding: '0.85rem', background: darkMode ? '#0e0c1e' : '#f8fafc',
+            gap: '0.75rem', padding: '0.85rem', background: darkMode ? '#0f1117' : '#f8fafc',
             borderRadius: 8, marginBottom: '1rem',
           }}>
             {[
@@ -191,12 +191,12 @@ export const DataDriftChart: React.FC<DataDriftChartProps> = ({
               <YAxis stroke={theme.textSecondary} label={{ value: 'Frequência', angle: -90, position: 'insideLeft', style: { fill: theme.textSecondary, fontSize: 12 } }} />
               <Tooltip contentStyle={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: 8, color: theme.text }} formatter={(v: number) => v.toFixed(4)} />
               <Legend wrapperStyle={{ color: theme.text }} />
-              <Bar dataKey="baseline" fill="#8b5cf6" fillOpacity={0.6} name="Distribuição Baseline" />
+              <Bar dataKey="baseline" fill="#3b82f6" fillOpacity={0.6} name="Distribuição Baseline" />
               <Bar dataKey="current" fill="#ef4444" fillOpacity={0.6} name="Distribuição Atual" />
             </BarChart>
           </ResponsiveContainer>
 
-          <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: darkMode ? '#0e0c1e' : '#f8fafc', borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+          <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8, fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
             <strong style={{ color: theme.text }}>Interpretação:</strong> O teste Kolmogorov-Smirnov mede a distância máxima entre as funções de distribuição acumulada. Um p-valor &lt; 0.05 indica drift significativo, sugerindo que a distribuição da feature mudou em relação ao baseline.
           </div>
         </div>

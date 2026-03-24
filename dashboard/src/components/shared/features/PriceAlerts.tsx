@@ -62,7 +62,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
   const done = alerts.filter(a => a.triggered);
   const inputS: React.CSSProperties = {
     padding: '0.4rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`,
-    background: darkMode ? '#0e0c1e' : '#f8fafc', color: theme.text, fontSize: '0.8rem', outline: 'none',
+    background: darkMode ? '#0f1117' : '#f8fafc', color: theme.text, fontSize: '0.8rem', outline: 'none',
   };
 
   return (
@@ -87,7 +87,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
         <button onClick={() => setShowForm(!showForm)} style={{
           display: 'flex', alignItems: 'center', gap: 4, padding: '0.35rem 0.65rem',
-          borderRadius: 6, border: 'none', background: '#8b5cf6', color: 'white',
+          borderRadius: 6, border: 'none', background: '#3b82f6', color: 'white',
           cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600,
         }}>
           <Plus size={13} /> Novo
@@ -112,7 +112,7 @@ const PriceAlerts: React.FC<Props> = ({ darkMode, theme }) => {
             placeholder="R$" style={{ ...inputS, flex: '1 1 70px' }} />
           <button onClick={add} disabled={!form.ticker || !form.targetPrice} style={{
             padding: '0.4rem 0.7rem', borderRadius: 6, border: 'none',
-            background: form.ticker && form.targetPrice ? '#10b981' : (darkMode ? '#363258' : '#e2e8f0'),
+            background: form.ticker && form.targetPrice ? '#10b981' : (darkMode ? '#2a2e3a' : '#e2e8f0'),
             color: form.ticker && form.targetPrice ? 'white' : theme.textSecondary,
             cursor: form.ticker && form.targetPrice ? 'pointer' : 'not-allowed',
             fontSize: '0.78rem', fontWeight: 600,

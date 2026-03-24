@@ -22,13 +22,13 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
   });
 
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
-    border: darkMode ? '#363258' : '#e2e0f0',
-    hover: darkMode ? '#363258' : '#f3f1fa',
-    accent: '#8b5cf6',
+    bg: darkMode ? '#0f1117' : '#f8f9fb',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#5f6577',
+    border: darkMode ? '#2a2e3a' : '#e0e2e8',
+    hover: darkMode ? '#2a2e3a' : '#f1f2f6',
+    accent: '#3b82f6',
   };
 
   // Check if this is the first visit
@@ -84,7 +84,7 @@ export const HelpMenu: React.FC<HelpMenuProps> = ({ darkMode = false }) => {
         }}
         style={{
           padding: '0.75rem',
-          backgroundColor: darkMode ? '#363258' : '#f3f1fa',
+          backgroundColor: darkMode ? '#2a2e3a' : '#f1f2f6',
           border: 'none',
           borderRadius: '12px',
           cursor: 'pointer',

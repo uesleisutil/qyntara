@@ -66,7 +66,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
     },
     branding: {
       companyName: 'Qyntara',
-      primaryColor: '#8b5cf6',
+      primaryColor: '#3b82f6',
     },
   });
 
@@ -97,7 +97,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
       // Add header with branding
       if (config.branding?.companyName) {
         doc.setFontSize(20);
-        doc.setTextColor(config.branding.primaryColor || '#8b5cf6');
+        doc.setTextColor(config.branding.primaryColor || '#3b82f6');
         doc.text(config.branding.companyName, pageWidth / 2, yPosition, { align: 'center' });
         yPosition += 10;
       }
@@ -152,7 +152,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
           head: [['Metric', 'Value', 'Change']],
           body: kpiData,
           theme: 'striped',
-          headStyles: { fillColor: config.branding?.primaryColor || '#8b5cf6' },
+          headStyles: { fillColor: config.branding?.primaryColor || '#3b82f6' },
           margin: { left: 20, right: 20 },
         });
 
@@ -183,7 +183,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
           head: [['Metric', 'Current', 'Target', 'Status']],
           body: metricsData,
           theme: 'striped',
-          headStyles: { fillColor: config.branding?.primaryColor || '#8b5cf6' },
+          headStyles: { fillColor: config.branding?.primaryColor || '#3b82f6' },
           margin: { left: 20, right: 20 },
         });
 
@@ -281,7 +281,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
           alignItems: 'center',
           gap: '0.5rem',
           padding: '0.5rem 1rem',
-          backgroundColor: '#8b5cf6',
+          backgroundColor: '#3b82f6',
           color: 'white',
           border: 'none',
           borderRadius: '6px',
@@ -345,7 +345,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                     style={{
                       flex: 1,
                       padding: '0.5rem',
-                      border: `2px solid ${config.type === type ? '#8b5cf6' : '#e2e8f0'}`,
+                      border: `2px solid ${config.type === type ? '#3b82f6' : '#e2e8f0'}`,
                       backgroundColor: config.type === type ? '#eff6ff' : 'white',
                       borderRadius: '6px',
                       cursor: 'pointer',
@@ -504,7 +504,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ data, onGenerateRepor
                 disabled={generating}
                 style={{
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#8b5cf6',
+                  backgroundColor: '#3b82f6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',

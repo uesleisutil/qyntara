@@ -67,18 +67,18 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
   const [markedFalsePositives, setMarkedFalsePositives] = useState<Set<string>>(new Set());
 
   const theme = {
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
-    hover: darkMode ? '#363258' : '#f8fafc',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
+    hover: darkMode ? '#2a2e3a' : '#f8fafc',
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high': return '#dc2626';
       case 'medium': return '#f59e0b';
-      case 'low': return '#8b5cf6';
+      case 'low': return '#3b82f6';
       default: return theme.textSecondary;
     }
   };
@@ -299,7 +299,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                   border: `1px solid ${theme.border}`,
                   borderLeft: `4px solid ${getSeverityColor(anomaly.severity)}`,
                   borderRadius: '8px',
-                  backgroundColor: isFalsePositive ? (darkMode ? '#1a183680' : '#f8f7fc') : theme.cardBg,
+                  backgroundColor: isFalsePositive ? (darkMode ? '#1a1d2780' : '#f8f9fb') : theme.cardBg,
                   opacity: isFalsePositive ? 0.6 : 1,
                   transition: 'all 0.2s'
                 }}
@@ -339,7 +339,7 @@ export const AnomalyList: React.FC<AnomalyListProps> = ({
                       </span>
                       <span style={{
                         padding: '0.125rem 0.5rem',
-                        backgroundColor: darkMode ? '#363258' : '#e2e8f0',
+                        backgroundColor: darkMode ? '#2a2e3a' : '#e2e8f0',
                         color: theme.text,
                         borderRadius: '4px',
                         fontSize: '0.75rem',

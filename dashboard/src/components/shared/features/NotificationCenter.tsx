@@ -19,14 +19,14 @@ interface NotificationCenterProps {
 }
 
 const TYPE_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
-  auto_model_run: { icon: <Activity size={16} />, color: '#8b5cf6' },
+  auto_model_run: { icon: <Activity size={16} />, color: '#3b82f6' },
   auto_recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
   auto_strong_signals: { icon: <AlertTriangle size={16} />, color: '#f59e0b' },
-  auto_history: { icon: <Clock size={16} />, color: '#8b5cf6' },
-  manual: { icon: <Send size={16} />, color: '#8b5cf6' },
+  auto_history: { icon: <Clock size={16} />, color: '#3b82f6' },
+  manual: { icon: <Send size={16} />, color: '#3b82f6' },
   system: { icon: <CheckCircle size={16} />, color: '#10b981' },
   recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
-  model_run: { icon: <Activity size={16} />, color: '#8b5cf6' },
+  model_run: { icon: <Activity size={16} />, color: '#3b82f6' },
   alert: { icon: <AlertTriangle size={16} />, color: '#f59e0b' },
 };
 
@@ -35,11 +35,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const theme = {
-    bg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
-    hover: darkMode ? '#363258' : '#f1f5f9',
+    bg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
+    hover: darkMode ? '#2a2e3a' : '#f1f5f9',
   };
 
   const generateNotifications = useCallback(async () => {
@@ -102,7 +102,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
           title: 'Modelo executado com sucesso',
           message: `Pipeline ML concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
           time: new Date(recDate + 'T08:00:00'), read: readIds.includes(`model-${recDate}`),
-          icon: <Activity size={16} />, color: '#8b5cf6',
+          icon: <Activity size={16} />, color: '#3b82f6',
         });
 
         const strongBuys = recs.filter((r: any) => r.score >= 4);
@@ -130,7 +130,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
             title: 'Dados históricos atualizados',
             message: `${sortedDates.length} dias de histórico disponíveis. Último: ${new Date(sortedDates[0] + 'T12:00:00').toLocaleDateString('pt-BR')}.`,
             time: new Date(sortedDates[0] + 'T07:00:00'), read: readIds.includes(`history-${sortedDates[0]}`),
-            icon: <Clock size={16} />, color: '#8b5cf6',
+            icon: <Clock size={16} />, color: '#3b82f6',
           });
         }
       }
@@ -249,7 +249,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {unreadCount > 0 && (
                   <button onClick={markAllRead} style={{
-                    background: 'none', border: 'none', color: '#8b5cf6', cursor: 'pointer',
+                    background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer',
                     fontSize: '0.72rem', fontWeight: 500, padding: 0,
                   }}>Marcar todas como lidas</button>
                 )}
@@ -282,7 +282,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                       <span style={{ fontSize: '0.8rem', fontWeight: n.read ? 400 : 600, color: theme.text }}>{n.title}</span>
-                      {!n.read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6', flexShrink: 0, marginTop: 5 }} />}
+                      {!n.read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', flexShrink: 0, marginTop: 5 }} />}
                     </div>
                     <div style={{ fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.4, marginTop: 2 }}>{n.message}</div>
                     <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginTop: 3, opacity: 0.7 }}>{timeAgo(n.time)}</div>

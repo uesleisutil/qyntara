@@ -1,17 +1,16 @@
 /* Shared theme constants — extracted from inline styles for better perf (#7) */
 
 export const getTheme = (darkMode: boolean) => ({
-  bg: darkMode ? '#0e0c1e' : '#f8f7fc',
-  cardBg: darkMode ? '#1e1b40' : 'white',
-  text: darkMode ? '#f5f4fb' : '#0c0a1a',
-  textSecondary: darkMode ? '#b8b5d0' : '#64618b',
-  border: darkMode ? '#363258' : '#e2e0f0',
-  hover: darkMode ? '#272450' : '#f3f1fa',
+  bg: darkMode ? '#0f1117' : '#f8f9fb',
+  cardBg: darkMode ? '#1a1d27' : 'white',
+  text: darkMode ? '#e8eaf0' : '#0c0e14',
+  textSecondary: darkMode ? '#9ba1b0' : '#5f6577',
+  border: darkMode ? '#2a2e3a' : '#e0e2e8',
+  hover: darkMode ? '#22252f' : '#f1f2f6',
   green: '#10b981',
   red: '#ef4444',
   yellow: '#f59e0b',
-  blue: '#8b5cf6',
-  purple: '#8b5cf6',
+  blue: '#3b82f6',
 } as const);
 
 export type Theme = ReturnType<typeof getTheme>;

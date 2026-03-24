@@ -1,26 +1,26 @@
 :root {
   --font-size-scale: 1;
   --focus-color: #fbbf24;
-  --primary-color: #8b5cf6;
-  --text-primary: #0c0a1a;
-  --text-secondary: #64618b;
-  --bg-primary: #f8f7fc;
+  --primary-color: #3b82f6;
+  --text-primary: #0f1117;
+  --text-secondary: #5f6577;
+  --bg-primary: #f8f9fb;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
-  --border-color: #e8e5f0;
+  --border-color: #e0e2e8;
   --bg-subtle: #f8fafc;
-  --bg-hover: #f3f1fa;
+  --bg-hover: #f1f2f6;
 }
 
 html.dark {
-  --text-primary: #f5f4fb;
-  --text-secondary: #b8b5d0;
-  --bg-primary: #0e0c1e;
-  --bg-secondary: #161430;
-  --bg-card: #1e1b40;
-  --border-color: #363258;
-  --bg-subtle: #1e1b40;
-  --bg-hover: #272450;
+  --text-primary: #e8eaf0;
+  --text-secondary: #9ba1b0;
+  --bg-primary: #0f1117;
+  --bg-secondary: #141620;
+  --bg-card: #1a1d27;
+  --border-color: #2a2e3a;
+  --bg-subtle: #1a1d27;
+  --bg-hover: #22252f;
 }
 
 * {
@@ -74,7 +74,7 @@ body {
   position: absolute;
   top: -40px;
   left: 0;
-  background: var(--primary-color, #7c3aed);
+  background: var(--primary-color, #2563eb);
   color: white;
   padding: 0.5rem 1rem;
   text-decoration: none;
@@ -107,7 +107,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
   color: white;
   padding: 2rem 0;
   margin-bottom: 2rem;
@@ -180,7 +180,7 @@ body {
 .metric-value {
   font-size: calc(1.5rem * var(--font-size-scale, 1));
   font-weight: 700;
-  color: #7c3aed;
+  color: #2563eb;
 }
 
 .metric-label {
@@ -285,7 +285,7 @@ body {
 
 .rank-badge {
   display: inline-block;
-  background: #7c3aed;
+  background: #2563eb;
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
@@ -339,12 +339,12 @@ body {
 }
 
 .tab-button:hover {
-  color: #8b5cf6;
+  color: #3b82f6;
 }
 
 .tab-button.active {
-  border-bottom-color: #8b5cf6;
-  color: #8b5cf6;
+  border-bottom-color: #3b82f6;
+  color: #3b82f6;
   font-weight: bold;
 }
 
@@ -413,15 +413,15 @@ body {
 
 /* Dark mode skeleton */
 .dark-mode .skeleton {
-  background-color: #2a2745;
+  background-color: #2a2e3a;
 }
 
 .dark-mode .skeleton-wave {
   background: linear-gradient(
     90deg,
-    #2a2745 0%,
+    #2a2e3a 0%,
     #3d3a5c 50%,
-    #2a2745 100%
+    #2a2e3a 100%
   );
   background-size: 200% 100%;
 }

@@ -120,8 +120,8 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
           alignItems: 'center'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Bell size={24} color="#8b5cf6" />
-            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: '#1a1836' }}>
+            <Bell size={24} color="#3b82f6" />
+            <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: '#1a1d27' }}>
               {existingAlert ? 'Editar Alerta' : 'Novo Alerta'}
             </h2>
           </div>
@@ -321,7 +321,7 @@ const AlertConfigModal = ({ ticker, existingAlert, onClose, onSave, onDelete }) 
                   alignItems: 'center',
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
-                  backgroundColor: '#8b5cf6',
+                  backgroundColor: '#3b82f6',
                   color: 'white',
                   border: 'none',
                   borderRadius: '6px',

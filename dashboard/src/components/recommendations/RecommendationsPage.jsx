@@ -117,10 +117,10 @@ const RecommendationsPage = ({ recommendations }) => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: comparisonMode ? '#8b5cf6' : 'white',
+              backgroundColor: comparisonMode ? '#3b82f6' : 'white',
               color: comparisonMode ? 'white' : '#64748b',
               border: '1px solid',
-              borderColor: comparisonMode ? '#8b5cf6' : '#cbd5e1',
+              borderColor: comparisonMode ? '#3b82f6' : '#cbd5e1',
               borderRadius: '6px',
               fontSize: '0.875rem',
               fontWeight: '500',
@@ -148,7 +148,7 @@ const RecommendationsPage = ({ recommendations }) => {
                   gap: '0.5rem',
                   padding: '0.5rem 1rem',
                   backgroundColor: selectedTickers.length >= 2 ? '#10b981' : '#e2e8f0',
-                  color: selectedTickers.length >= 2 ? 'white' : '#9895b0',
+                  color: selectedTickers.length >= 2 ? 'white' : '#6b7280',
                   border: 'none',
                   borderRadius: '6px',
                   fontSize: '0.875rem',
@@ -194,10 +194,10 @@ const RecommendationsPage = ({ recommendations }) => {
               alignItems: 'center',
               gap: '0.5rem',
               padding: '0.5rem 1rem',
-              backgroundColor: showAlerts ? '#8b5cf6' : 'white',
+              backgroundColor: showAlerts ? '#3b82f6' : 'white',
               color: showAlerts ? 'white' : '#64748b',
               border: '1px solid',
-              borderColor: showAlerts ? '#8b5cf6' : '#cbd5e1',
+              borderColor: showAlerts ? '#3b82f6' : '#cbd5e1',
               borderRadius: '6px',
               fontSize: '0.875rem',
               fontWeight: '500',
@@ -225,7 +225,7 @@ const RecommendationsPage = ({ recommendations }) => {
           border: '1px solid #bfdbfe',
           borderRadius: '8px'
         }}>
-          <p style={{ fontSize: '0.875rem', color: '#7c3aed', margin: 0 }}>
+          <p style={{ fontSize: '0.875rem', color: '#2563eb', margin: 0 }}>
             <strong>Modo de comparação ativo:</strong> Clique nas caixas de seleção ao lado de cada ticker para comparar até {MAX_SELECTION} ações.
           </p>
         </div>

@@ -1,8 +1,8 @@
 /* Theme Variables */
 :root {
   /* Light theme colors */
-  --color-primary: #8b5cf6;
-  --color-secondary: #7c3aed;
+  --color-primary: #3b82f6;
+  --color-secondary: #2563eb;
   --color-success: #10b981;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
@@ -61,25 +61,25 @@
 
 /* Dark theme */
 .dark {
-  --color-primary: #a78bfa;
-  --color-secondary: #8b5cf6;
+  --color-primary: #60a5fa;
+  --color-secondary: #3b82f6;
   --color-success: #34d399;
   --color-warning: #fbbf24;
   --color-error: #f87171;
   --color-info: #22d3ee;
   
-  --color-bg-primary: #1e1b40;
-  --color-bg-secondary: #161430;
-  --color-bg-tertiary: #0e0c1e;
+  --color-bg-primary: #1a1d27;
+  --color-bg-secondary: #141620;
+  --color-bg-tertiary: #0f1117;
   
-  --color-text-primary: #f5f4fb;
-  --color-text-secondary: #cbc8e0;
-  --color-text-tertiary: #a9a6c0;
+  --color-text-primary: #e8eaf0;
+  --color-text-secondary: #9ba1b0;
+  --color-text-tertiary: #6b7280;
   
-  --color-border-primary: #363258;
-  --color-border-secondary: #4a4670;
+  --color-border-primary: #2a2e3a;
+  --color-border-secondary: #3a3f4d;
   
-  --color-chart-grid: #363258;
+  --color-chart-grid: #2a2e3a;
   --color-chart-positive: #34d399;
   --color-chart-negative: #f87171;
   

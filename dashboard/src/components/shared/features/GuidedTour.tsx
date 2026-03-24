@@ -115,18 +115,18 @@ const GuidedTour: React.FC<GuidedTourProps> = ({ darkMode, run, onFinish }) => {
       }}
       styles={{
         options: {
-          primaryColor: '#8b5cf6',
-          backgroundColor: darkMode ? '#1e1b40' : '#fff',
-          textColor: darkMode ? '#f1f5f9' : '#0c0a1a',
-          arrowColor: darkMode ? '#1e1b40' : '#fff',
+          primaryColor: '#3b82f6',
+          backgroundColor: darkMode ? '#1a1d27' : '#fff',
+          textColor: darkMode ? '#f1f5f9' : '#0f1117',
+          arrowColor: darkMode ? '#1a1d27' : '#fff',
           overlayColor: 'rgba(0,0,0,0.5)',
           zIndex: 10000,
         },
         tooltip: { borderRadius: 12, fontSize: '0.85rem', padding: '1rem 1.25rem' },
         tooltipTitle: { fontSize: '1rem', fontWeight: 700 },
         buttonNext: { borderRadius: 8, fontSize: '0.82rem', fontWeight: 600, padding: '0.5rem 1rem' },
-        buttonBack: { color: darkMode ? '#b8b5d0' : '#64748b', fontSize: '0.82rem' },
-        buttonSkip: { color: darkMode ? '#64748b' : '#9895b0', fontSize: '0.75rem' },
+        buttonBack: { color: darkMode ? '#9ba1b0' : '#64748b', fontSize: '0.82rem' },
+        buttonSkip: { color: darkMode ? '#64748b' : '#6b7280', fontSize: '0.75rem' },
       }}
     />
   );

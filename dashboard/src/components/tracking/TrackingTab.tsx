@@ -59,13 +59,13 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
   const [showFilters, setShowFilters] = useState(false);
 
   const theme = {
-    bg: darkMode ? '#0e0c1e' : '#f8f7fc',
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64618b',
-    border: darkMode ? '#363258' : '#e2e0f0',
-    hover: darkMode ? '#363258' : '#f3f1fa',
-    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#8b5cf6', purple: '#8b5cf6',
+    bg: darkMode ? '#0f1117' : '#f8f9fb',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#5f6577',
+    border: darkMode ? '#2a2e3a' : '#e0e2e8',
+    hover: darkMode ? '#2a2e3a' : '#f1f2f6',
+    green: '#10b981', red: '#ef4444', yellow: '#f59e0b', blue: '#3b82f6', purple: '#3b82f6',
   };
 
   const cardStyle: React.CSSProperties = {
@@ -290,7 +290,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
           <span>Dia {Math.min(daysElapsed, totalDays)} de {totalDays}</span>
           <span>{fmt(progress * 100, 0)}%</span>
         </div>
-        <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#363258' : '#e2e0f0', overflow: 'hidden' }}>
+        <div style={{ height: 6, borderRadius: 3, background: darkMode ? '#2a2e3a' : '#e0e2e8', overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 3, width: `${Math.min(progress * 100, 100)}%`,
             background: `linear-gradient(90deg, ${barColor}, ${barColor}dd)`, transition: 'width 0.5s ease' }} />
         </div>
@@ -304,7 +304,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
     let label: string, color: string, bg: string;
     if (pct >= 90) { label = 'Madura'; color = theme.green; bg = `${theme.green}15`; }
     else if (pct >= 50) { label = 'Em andamento'; color = theme.blue; bg = `${theme.blue}15`; }
-    else { label = 'Recente'; color = theme.purple; bg = `${theme.purple}15`; }
+    else { label = 'Recente'; color = theme.blue; bg = `${theme.blue}15`; }
     return (
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '0.12rem 0.45rem', borderRadius: 10, fontSize: '0.65rem', fontWeight: 600, background: bg, color }}>{label}</span>
     );
@@ -312,7 +312,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
 
   if (loading) {
     const skeletonPulse: React.CSSProperties = {
-      background: `linear-gradient(90deg, ${darkMode ? '#1e1b40' : '#e2e0f0'} 25%, ${darkMode ? '#363258' : '#f3f1fa'} 50%, ${darkMode ? '#1e1b40' : '#e2e0f0'} 75%)`,
+      background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e0e2e8'} 25%, ${darkMode ? '#2a2e3a' : '#f1f2f6'} 50%, ${darkMode ? '#1a1d27' : '#e0e2e8'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
     };
     return (
@@ -368,7 +368,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
             <button key={v.key} onClick={() => setViewMode(v.key)} style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.4rem 0.7rem',
               border: 'none', fontSize: '0.76rem', fontWeight: viewMode === v.key ? 600 : 400,
-              background: viewMode === v.key ? (darkMode ? '#363258' : '#e2e0f0') : 'transparent',
+              background: viewMode === v.key ? (darkMode ? '#2a2e3a' : '#e0e2e8') : 'transparent',
               color: viewMode === v.key ? theme.text : theme.textSecondary,
               cursor: 'pointer', transition: 'all 0.15s', WebkitAppearance: 'none' as any,
             }}>{v.icon} {v.label}</button>
@@ -450,7 +450,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
       {globalStats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.6rem', marginBottom: '1rem' }}>
           {[
-            { label: 'Safras', value: `${globalStats.safraCount}`, color: theme.purple, icon: <Calendar size={15} />,
+            { label: 'Safras', value: `${globalStats.safraCount}`, color: theme.blue, icon: <Calendar size={15} />,
               tip: 'Número de safras no período selecionado.' },
             { label: 'Previsões', value: `${globalStats.totalPredictions}`, color: theme.blue, icon: <BarChart3 size={15} />,
               tip: 'Total de previsões individuais (ticker × dia).' },
@@ -500,7 +500,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
       {viewMode === 'ranking' && (
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <Award size={16} color={theme.purple} />
+            <Award size={16} color={theme.blue} />
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Ranking de Tickers</h3>
             <InfoTooltip text="Performance agregada de cada ticker em todas as safras do período. Mostra quais ações estão performando melhor." darkMode={darkMode} size={12} />
           </div>
@@ -527,7 +527,7 @@ const TrackingTab: React.FC<TrackingTabProps> = ({ darkMode = false }) => {
                       <tr key={t.ticker} style={{ borderBottom: `1px solid ${theme.border}` }}
                         onMouseEnter={e => e.currentTarget.style.background = theme.hover}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <td style={{ padding: '0.45rem 0.5rem', fontSize: '0.75rem', color: i < 3 ? theme.purple : theme.textSecondary, fontWeight: i < 3 ? 700 : 400 }}>
+                        <td style={{ padding: '0.45rem 0.5rem', fontSize: '0.75rem', color: i < 3 ? theme.blue : theme.textSecondary, fontWeight: i < 3 ? 700 : 400 }}>
                           {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
                         </td>
                         <td style={{ padding: '0.45rem 0.5rem', fontWeight: 600, color: theme.text, fontSize: '0.85rem' }}>{t.ticker}</td>

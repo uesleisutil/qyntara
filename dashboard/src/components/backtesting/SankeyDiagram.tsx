@@ -47,20 +47,20 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const theme = useMemo(() => ({
-    cardBg: darkMode ? '#1e1b40' : 'white',
-    text: darkMode ? '#f1f5f9' : '#0c0a1a',
-    textSecondary: darkMode ? '#b8b5d0' : '#64748b',
-    border: darkMode ? '#363258' : '#e2e8f0',
+    cardBg: darkMode ? '#1a1d27' : 'white',
+    text: darkMode ? '#f1f5f9' : '#0f1117',
+    textSecondary: darkMode ? '#9ba1b0' : '#64748b',
+    border: darkMode ? '#2a2e3a' : '#e2e8f0',
   }), [darkMode]);
 
   const sectorColors: Record<string, string> = useMemo(() => ({
-    'Financials': '#8b5cf6',
+    'Financials': '#3b82f6',
     'Energy': '#f59e0b',
-    'Materials': '#8b5cf6',
+    'Materials': '#3b82f6',
     'Industrials': '#10b981',
     'Consumer': '#ec4899',
     'Healthcare': '#06b6d4',
-    'Technology': '#6366f1',
+    'Technology': '#3b82f6',
     'Utilities': '#14b8a6',
     'Real Estate': '#f97316',
     'Telecom': '#a855f7',
@@ -133,7 +133,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .attr('d', sankeyLinkHorizontal())
       .attr('stroke', d => {
         const sourceName = (d.source as any).name;
-        return sectorColors[sourceName] || '#9895b0';
+        return sectorColors[sourceName] || '#6b7280';
       })
       .attr('stroke-width', d => Math.max(1, d.width || 0))
       .attr('fill', 'none')
@@ -161,7 +161,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .attr('y', d => d.y0 || 0)
       .attr('height', d => (d.y1 || 0) - (d.y0 || 0))
       .attr('width', d => (d.x1 || 0) - (d.x0 || 0))
-      .attr('fill', d => sectorColors[d.name] || '#9895b0')
+      .attr('fill', d => sectorColors[d.name] || '#6b7280')
       .attr('opacity', 0.8)
       .append('title')
       .text(d => `${d.name}\nR$ ${((d.value || 0) / 1000).toFixed(1)}k`);
@@ -196,7 +196,7 @@ export const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
         gap: '0.5rem', 
         marginBottom: '1.5rem' 
       }}>
-        <GitBranch size={20} color={darkMode ? '#b8b5d0' : '#64748b'} />
+        <GitBranch size={20} color={darkMode ? '#9ba1b0' : '#64748b'} />
         <h2 style={{ 
           margin: 0, 
           fontSize: '1.25rem', 

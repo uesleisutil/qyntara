@@ -48,14 +48,14 @@ const ChangePasswordPage: React.FC = () => {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: theme.card || (darkMode ? '#1e1b40' : '#fff'),
+    background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: '2rem',
     maxWidth: 480, margin: '0 auto',
   };
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '0.65rem 2.5rem 0.65rem 0.75rem',
-    background: darkMode ? '#0e0c1e' : '#f8fafc', border: `1px solid ${theme.border}`,
+    background: darkMode ? '#0f1117' : '#f8fafc', border: `1px solid ${theme.border}`,
     borderRadius: 8, color: theme.text, fontSize: '0.9rem', outline: 'none',
   };
 
@@ -111,7 +111,7 @@ const ChangePasswordPage: React.FC = () => {
           </div>
 
           {/* Password strength checks */}
-          <div style={{ marginBottom: '1.25rem', padding: '0.75rem', borderRadius: 8, background: darkMode ? '#0e0c1e' : '#f8fafc', border: `1px solid ${theme.border}` }}>
+          <div style={{ marginBottom: '1.25rem', padding: '0.75rem', borderRadius: 8, background: darkMode ? '#0f1117' : '#f8fafc', border: `1px solid ${theme.border}` }}>
             <div style={{ fontSize: '0.8rem', fontWeight: 600, color: theme.textSecondary, marginBottom: '0.5rem' }}>Requisitos da senha:</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
               {passwordChecks.map((c, i) => (
@@ -125,7 +125,7 @@ const ChangePasswordPage: React.FC = () => {
 
           <button type="submit" disabled={!allValid || loading} style={{
             width: '100%', padding: '0.75rem', borderRadius: 8, border: 'none', fontSize: '0.9rem', fontWeight: 600,
-            background: allValid && !loading ? 'linear-gradient(135deg, #7c3aed, #3b82f6)' : (darkMode ? '#363258' : '#e2e8f0'),
+            background: allValid && !loading ? 'linear-gradient(135deg, #2563eb, #3b82f6)' : (darkMode ? '#2a2e3a' : '#e2e8f0'),
             color: allValid && !loading ? 'white' : theme.textSecondary, cursor: allValid && !loading ? 'pointer' : 'not-allowed',
             transition: 'all 0.2s',
           }}>

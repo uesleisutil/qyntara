@@ -73,7 +73,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
         <div style={{ fontSize: '0.875rem', color: '#64748b', textAlign: 'center' }}>
           Loading is taking longer than expected...
         </div>
-        <div style={{ fontSize: '0.75rem', color: '#9895b0', marginTop: '0.25rem' }}>
+        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
           Please wait while we fetch the data
         </div>
       </div>

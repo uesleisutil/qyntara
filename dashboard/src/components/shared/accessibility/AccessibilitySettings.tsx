@@ -196,7 +196,7 @@ export function AccessibilitySettings() {
         
         .audit-button {
           padding: 0.75rem 1.5rem;
-          background: var(--primary-color, #7c3aed);
+          background: var(--primary-color, #2563eb);
           color: white;
           border: none;
           border-radius: 0.375rem;
