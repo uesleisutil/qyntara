@@ -1143,6 +1143,8 @@ export class InfraStack extends cdk.Stack {
     adminChatReply.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
     const adminChatClose = adminChat.addResource("close");
     adminChatClose.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
+    const adminChatDelete = adminChat.addResource("delete");
+    adminChatDelete.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
 
     // /chat routes (JWT-protected, user-facing)
     const chatResource = api.root.addResource("chat");

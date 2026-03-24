@@ -91,29 +91,35 @@ const AdminCostsPage: React.FC = () => {
 
   if (!data) return <div style={{ ...cardStyle, textAlign: 'center', padding: '3rem', color: theme.textSecondary }}>Sem dados de custos disponíveis.</div>;
 
+  // API returns: { period, latest, time_series, summary, anomalies }
   const latest = data?.latest || {};
+  const summary = data?.summary || {};
+  const period = data?.period || {};
+  const anomalies = data?.anomalies || [];
+
+  // Latest day data (for budget/threshold)
   const threshold = latest.threshold || {};
   const projection = latest.monthly_projection || {};
-  const totalPeriod = latest.total_7_days || {};
+
+  // Use latest.costs_by_service as the per-service breakdown
   const byService = latest.costs_by_service || {};
   const byComponent = latest.costs_by_component || {};
-  const anomalies = latest.anomalies || [];
 
   const sortedServices = Object.entries(byService).sort(([, a]: any, [, b]: any) => b - a).filter(([, v]: any) => v > 0);
   const maxServiceCost = sortedServices.length > 0 ? (sortedServices[0][1] as number) : 1;
   const budgetOk = !threshold.exceeded && !threshold.warning;
 
   const kpis = [
-    { label: 'Projeção Mensal (BRL)', value: `R$ ${fmt(projection.brl)}`, ph: 'R$ ••••', color: '#f59e0b', icon: <DollarSign size={16} />,
-      tip: 'Projeção de custo total AWS para o mês atual, convertido em reais.', sensitive: true },
-    { label: `Custo no período (USD)`, value: `${fmt(totalPeriod.usd)}`, ph: '$ ••••', color: '#3b82f6', icon: <TrendingDown size={16} />,
-      tip: `Custo total acumulado no período selecionado (${periodLabel}) em dólares.`, sensitive: true },
+    { label: 'Projeção Mensal (BRL)', value: `R$ ${fmt(summary.avg_monthly_projection_brl || projection.brl)}`, ph: 'R$ ••••', color: '#f59e0b', icon: <DollarSign size={16} />,
+      tip: 'Projeção média mensal de custo AWS no período selecionado, convertido em reais.', sensitive: true },
+    { label: `Custo total (USD)`, value: `$ ${fmt(summary.total_cost_usd)}`, ph: '$ ••••', color: '#3b82f6', icon: <TrendingDown size={16} />,
+      tip: `Custo total acumulado no período selecionado (${periodLabel}, ${period.start_date || '?'} a ${period.end_date || '?'}).`, sensitive: true },
     { label: 'Orçamento Usado', value: `${fmt(threshold.percentage, 1)}%`, ph: '••%',
       color: threshold.exceeded ? '#ef4444' : threshold.warning ? '#f59e0b' : '#10b981',
       icon: threshold.exceeded ? <TrendingUp size={16} /> : <TrendingDown size={16} />,
       tip: 'Percentual do orçamento mensal já consumido pela projeção atual.', sensitive: true },
     { label: 'Anomalias', value: `${anomalies.length}`, ph: '', color: anomalies.length > 0 ? '#ef4444' : '#10b981',
-      icon: <AlertTriangle size={16} />, tip: `Serviços com custos acima de 2× a média histórica no período (${periodLabel}).`, sensitive: false },
+      icon: <AlertTriangle size={16} />, tip: `Total de anomalias detectadas no período (${periodLabel}). Dias com alertas: ${summary.threshold_exceeded_count || 0}.`, sensitive: false },
   ];
 
   return (
@@ -172,7 +178,7 @@ const AdminCostsPage: React.FC = () => {
             {budgetOk ? 'Custos dentro do orçamento' : threshold.exceeded ? 'Orçamento mensal excedido' : 'Custos próximos do limite'}
           </div>
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
-            {budgetOk ? 'Todos os serviços operando dentro dos limites esperados.' : <>Projeção: <R ph="R$ •••• de R$ •••• (••%)">R$ {fmt(projection.brl)} de R$ {fmt(threshold.limit_brl, 0)} ({fmt(threshold.percentage, 1)}%)</R></>}
+            {budgetOk ? 'Todos os serviços operando dentro dos limites esperados.' : <>Projeção: <R ph="R$ •••• de R$ •••• (••%)">R$ {fmt(summary.avg_monthly_projection_brl || projection.brl)} de R$ {fmt(threshold.limit_brl, 0)} ({fmt(threshold.percentage, 1)}%)</R></>}
           </div>
         </div>
       </div>
@@ -181,8 +187,8 @@ const AdminCostsPage: React.FC = () => {
       <div style={{ ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem', background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)', borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)' }}>
         <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
           💡 <strong style={{ color: theme.text }}>Como funciona:</strong> Os custos são coletados diariamente via AWS Cost Explorer.
-          Exibindo dados dos últimos <strong style={{ color: theme.text }}>{costDays} dias</strong> ({periodLabel}).
-          A projeção mensal extrapola o gasto do período selecionado. Anomalias são detectadas quando um serviço excede 2× a média histórica.
+          Exibindo dados de <strong style={{ color: theme.text }}>{period.start_date || '?'}</strong> a <strong style={{ color: theme.text }}>{period.end_date || '?'}</strong> ({costDays} dias).
+          Anomalias são detectadas quando um serviço excede 2× a média histórica.
         </div>
       </div>
 
@@ -211,7 +217,7 @@ const AdminCostsPage: React.FC = () => {
               Orçamento Mensal <InfoTooltip text="Barra de progresso do orçamento. Verde = saudável, Amarelo = atenção (>80%), Vermelho = excedido (>100%)." darkMode={darkMode} size={12} />
             </span>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: threshold.exceeded ? '#ef4444' : '#10b981' }}>
-              <R ph="R$ •••• / R$ ••••">R$ {fmt(projection.brl)} / R$ {fmt(threshold.limit_brl, 0)}</R>
+              <R ph="R$ •••• / R$ ••••">R$ {fmt(summary.avg_monthly_projection_brl || projection.brl)} / R$ {fmt(threshold.limit_brl, 0)}</R>
             </span>
           </div>
           <div style={{ height: 12, borderRadius: 6, background: darkMode ? '#2a2e3a' : '#e2e8f0' }}>
