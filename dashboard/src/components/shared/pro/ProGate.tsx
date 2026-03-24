@@ -33,7 +33,7 @@ export const useHasTickerAccess = (ticker: string) => {
 
 export const useCanViewCosts = () => {
   const { user } = useAuth();
-  return user?.role === 'admin' || user?.canViewCosts === true;
+  return user?.canViewCosts === true;
 };
 
 const ProGate: React.FC<ProGateProps> = ({ children, feature = 'Este recurso', darkMode = true, inline = false, storageKey }) => {

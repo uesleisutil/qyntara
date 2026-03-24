@@ -851,6 +851,7 @@ def _handle_me(event: dict) -> dict:
             "plan": plan,
             "planExpiresAt": plan_expires if plan == "pro" else "",
             "freeTicker": item.get("freeTicker", ""),
+            "canViewCosts": item.get("canViewCosts", False),
         })
     except Exception:
         # Fallback to JWT data
