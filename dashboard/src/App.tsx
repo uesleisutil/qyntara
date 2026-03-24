@@ -47,7 +47,7 @@ const queryClient = new QueryClient({
 
 // Protected route wrapper — also redirects unverified emails
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   if (isLoading) {
     return (
       <div style={{ minHeight: '100vh', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>
@@ -56,6 +56,7 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.emailVerified === false) return <Navigate to="/verify-email" replace />;
   return <>{children}</>;
 };
 

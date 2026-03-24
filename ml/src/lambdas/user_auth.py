@@ -518,43 +518,59 @@ def _send_smtp_email(to: str, subject: str, body_html: str, body_text: str) -> b
         return False
 
 
+def _email_wrapper(content: str) -> str:
+    """Wrap email content in a consistent Qyntara branded template."""
+    return f"""
+    <div style="background:#f8fafc;padding:40px 0;">
+      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:480px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);padding:24px 32px;text-align:center;">
+          <h1 style="color:#ffffff;font-size:22px;font-weight:700;margin:0;letter-spacing:1px;">Qyntara</h1>
+          <p style="color:#94a3b8;font-size:12px;margin:4px 0 0;">Inteligência para o mercado financeiro</p>
+        </div>
+        <div style="padding:32px;">
+          {content}
+        </div>
+        <div style="background:#f8fafc;padding:16px 32px;text-align:center;border-top:1px solid #e2e8f0;">
+          <p style="color:#94a3b8;font-size:11px;margin:0;">© Qyntara — qyntara.tech</p>
+          <p style="color:#cbd5e1;font-size:11px;margin:4px 0 0;">Este é um email automático, não responda.</p>
+        </div>
+      </div>
+    </div>
+    """
+
+
 def _send_verification_email(email: str, code: str, purpose: str = "email_verify") -> bool:
     """Send verification code via SMTP."""
-    sender = SMTP_FROM_EMAIL
-    if not sender:
+    if not SMTP_FROM_EMAIL:
         logger.error("SMTP_FROM_EMAIL not configured")
         return False
 
     if purpose == "email_verify":
-        subject = "B3 Tactical Ranking — Código de Verificação"
-        body_html = f"""
-        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
-            <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
-            <p>Seu código de verificação é:</p>
-            <div style="background:#f1f5f9;border-radius:8px;padding:20px;text-align:center;margin:20px 0;">
-                <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#0f172a;">{code}</span>
-            </div>
-            <p style="color:#64748b;font-size:14px;">Este código expira em 15 minutos.</p>
-            <p style="color:#64748b;font-size:14px;">Se você não solicitou este código, ignore este email.</p>
-        </div>
+        subject = "Qyntara — Código de Verificação"
+        content = f"""
+          <p style="color:#334155;font-size:15px;line-height:1.6;">Olá! Obrigado por se cadastrar.</p>
+          <p style="color:#334155;font-size:15px;line-height:1.6;">Use o código abaixo para verificar seu email:</p>
+          <div style="background:#f1f5f9;border-radius:10px;padding:24px;text-align:center;margin:24px 0;border:1px solid #e2e8f0;">
+            <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#0f172a;">{code}</span>
+          </div>
+          <p style="color:#64748b;font-size:13px;">Este código expira em <strong>15 minutos</strong>.</p>
+          <p style="color:#64748b;font-size:13px;">Se você não criou uma conta na Qyntara, ignore este email.</p>
         """
-        body_text = f"Seu código de verificação B3 Tactical Ranking: {code}\nExpira em 15 minutos."
+        body_text = f"Seu código de verificação Qyntara: {code}\nExpira em 15 minutos."
     else:
-        subject = "B3 Tactical Ranking — Redefinir Senha"
-        body_html = f"""
-        <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
-            <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
-            <p>Você solicitou a redefinição de senha. Use o código abaixo:</p>
-            <div style="background:#f1f5f9;border-radius:8px;padding:20px;text-align:center;margin:20px 0;">
-                <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#0f172a;">{code}</span>
-            </div>
-            <p style="color:#64748b;font-size:14px;">Este código expira em 30 minutos.</p>
-            <p style="color:#64748b;font-size:14px;">Se você não solicitou, ignore este email. Sua senha não será alterada.</p>
-        </div>
+        subject = "Qyntara — Redefinir Senha"
+        content = f"""
+          <p style="color:#334155;font-size:15px;line-height:1.6;">Você solicitou a redefinição de senha.</p>
+          <p style="color:#334155;font-size:15px;line-height:1.6;">Use o código abaixo para criar uma nova senha:</p>
+          <div style="background:#f1f5f9;border-radius:10px;padding:24px;text-align:center;margin:24px 0;border:1px solid #e2e8f0;">
+            <span style="font-size:36px;font-weight:700;letter-spacing:10px;color:#0f172a;">{code}</span>
+          </div>
+          <p style="color:#64748b;font-size:13px;">Este código expira em <strong>30 minutos</strong>.</p>
+          <p style="color:#64748b;font-size:13px;">Se você não solicitou, ignore este email. Sua senha não será alterada.</p>
         """
-        body_text = f"Código para redefinir senha B3 Tactical Ranking: {code}\nExpira em 30 minutos."
+        body_text = f"Código para redefinir senha Qyntara: {code}\nExpira em 30 minutos."
 
-    return _send_smtp_email(email, subject, body_html, body_text)
+    return _send_smtp_email(email, subject, _email_wrapper(content), body_text)
 
 
 # ── Route handlers ──
@@ -1729,23 +1745,23 @@ def _handle_stripe_webhook(event: dict) -> dict:
 
 def _send_upgrade_email(email: str) -> None:
     """Send Pro upgrade confirmation email via SMTP."""
-    subject = "🎉 Bem-vindo ao Pro — B3 Tactical Ranking"
-    body_html = f"""
-    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
-        <h2 style="color:#f59e0b;">🎉 Você agora é Pro!</h2>
-        <p>Seu plano Pro do B3 Tactical Ranking foi ativado com sucesso.</p>
-        <p>Agora você tem acesso a:</p>
-        <ul>
-            <li>Todas as colunas desbloqueadas (Confiança, Stop-Loss, Take-Profit)</li>
-            <li>Carteira Modelo otimizada</li>
-            <li>Tracking por Safra</li>
-            <li>Alertas de preço</li>
-        </ul>
-        <p style="color:#64748b;font-size:14px;">Qualquer dúvida, responda este email.</p>
-    </div>
+    subject = "Qyntara — Bem-vindo ao Pro! 🎉"
+    content = """
+      <p style="color:#334155;font-size:15px;line-height:1.6;">Seu plano <strong style="color:#f59e0b;">Pro</strong> foi ativado com sucesso!</p>
+      <p style="color:#334155;font-size:15px;line-height:1.6;">Agora você tem acesso completo:</p>
+      <ul style="color:#334155;font-size:14px;line-height:2;padding-left:20px;">
+        <li>Todas as colunas desbloqueadas (Confiança, Stop-Loss, Take-Profit)</li>
+        <li>Carteira Modelo otimizada</li>
+        <li>Tracking por Safra</li>
+        <li>Alertas de preço</li>
+      </ul>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="https://qyntara.tech" style="background:linear-gradient(135deg,#0f172a,#1e293b);color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;display:inline-block;">Acessar Dashboard</a>
+      </div>
+      <p style="color:#64748b;font-size:13px;">Qualquer dúvida, entre em contato pelo chat do dashboard.</p>
     """
-    body_text = "Você agora é Pro! Seu plano foi ativado. Acesse: https://uesleisutil.github.io/b3-tactical-ranking/"
-    _send_smtp_email(email, subject, body_html, body_text)
+    body_text = "Você agora é Pro! Seu plano Qyntara foi ativado. Acesse: https://qyntara.tech"
+    _send_smtp_email(email, subject, _email_wrapper(content), body_text)
 
 
 def _handle_check_session(event: dict) -> dict:
@@ -2326,18 +2342,16 @@ def _handle_delete_account(event: dict) -> dict:
 
         # 6. Send confirmation email
         try:
+            deletion_content = """
+              <p style="color:#334155;font-size:15px;line-height:1.6;">Sua conta e todos os dados associados foram excluídos com sucesso, conforme solicitado.</p>
+              <p style="color:#64748b;font-size:13px;">Esta ação é irreversível. Se desejar utilizar o serviço novamente, será necessário criar uma nova conta.</p>
+              <p style="color:#64748b;font-size:13px;">Obrigado por ter utilizado a Qyntara.</p>
+            """
             _send_smtp_email(
                 email,
-                "B3 Tactical Ranking — Conta Excluída",
-                f"""
-                <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:20px;">
-                    <h2 style="color:#2563eb;">B3 Tactical Ranking</h2>
-                    <p>Sua conta e todos os dados associados foram excluídos com sucesso, conforme solicitado.</p>
-                    <p style="color:#64748b;font-size:14px;">Esta ação é irreversível. Se desejar utilizar o serviço novamente, será necessário criar uma nova conta.</p>
-                    <p style="color:#64748b;font-size:14px;">Obrigado por ter utilizado o B3 Tactical Ranking.</p>
-                </div>
-                """,
-                "Sua conta B3 Tactical Ranking foi excluída com sucesso. Todos os dados foram removidos.",
+                "Qyntara — Conta Excluída",
+                _email_wrapper(deletion_content),
+                "Sua conta Qyntara foi excluída com sucesso. Todos os dados foram removidos.",
             )
         except Exception as e:
             logger.warning(f"Failed to send deletion confirmation to {email}: {e}")
