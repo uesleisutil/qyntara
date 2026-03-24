@@ -41,7 +41,10 @@ const DashboardLayout: React.FC = () => {
   const isAdmin = user?.role === 'admin';
   const isPro = user?.plan === 'pro';
 
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   React.useEffect(() => {
+    if (isAdminRoute) return; // Never show onboarding/tour on admin pages
     if (shouldShowOnboarding()) {
       const timer = setTimeout(() => setShowOnboarding(true), 600);
       return () => clearTimeout(timer);
@@ -53,7 +56,7 @@ const DashboardLayout: React.FC = () => {
       const timer = setTimeout(() => setShowTour(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, [isPro, user?.freeTicker]);
+  }, [isPro, user?.freeTicker, isAdminRoute]);
 
   React.useEffect(() => {
     const goOnline = () => setIsOffline(false);
