@@ -852,6 +852,8 @@ def _handle_me(event: dict) -> dict:
             "planExpiresAt": plan_expires if plan == "pro" else "",
             "freeTicker": item.get("freeTicker", ""),
             "canViewCosts": item.get("canViewCosts", False),
+            "onboardingDone": item.get("onboardingDone", False),
+            "investorProfile": item.get("investorProfile", ""),
         })
     except Exception:
         # Fallback to JWT data
@@ -862,6 +864,8 @@ def _handle_me(event: dict) -> dict:
             "role": payload.get("role"),
             "plan": payload.get("plan", "free"),
             "freeTicker": "",
+            "onboardingDone": False,
+            "investorProfile": "",
         })
 
 
@@ -2776,6 +2780,55 @@ def _handle_carteiras_delete(event: dict) -> dict:
         return _cors_response(500, {"message": "Erro ao excluir carteira"})
 
 
+def _handle_complete_onboarding(event: dict) -> dict:
+    """POST /auth/complete-onboarding — mark onboarding as done and save investor profile."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    email = user.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    raw_body = event.get("body", "") or ""
+    if len(raw_body) > MAX_BODY_SIZE:
+        return _cors_response(413, {"message": "Request muito grande"})
+    try:
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, TypeError):
+        body = {}
+
+    investor_profile = _sanitize_string(body.get("investorProfile", ""), 20).lower()
+    valid_profiles = ("conservador", "moderado", "arrojado")
+    if investor_profile and investor_profile not in valid_profiles:
+        investor_profile = ""
+
+    table = dynamodb.Table(USERS_TABLE)
+    now = datetime.now(UTC).isoformat()
+
+    update_expr = "SET onboardingDone = :done, updatedAt = :now"
+    expr_values: dict = {":done": True, ":now": now}
+
+    if investor_profile:
+        update_expr += ", investorProfile = :profile"
+        expr_values[":profile"] = investor_profile
+
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression=update_expr,
+            ExpressionAttributeValues=expr_values,
+        )
+        return _cors_response(200, {
+            "message": "Onboarding concluído",
+            "onboardingDone": True,
+            "investorProfile": investor_profile,
+        })
+    except ClientError as e:
+        logger.error(f"Error completing onboarding for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao salvar onboarding"})
+
+
 def _handle_set_free_ticker(event: dict) -> dict:
     """POST /auth/free-ticker — save the free-tier ticker preference for a user."""
     user = _get_authenticated_user(event)
@@ -2889,6 +2942,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_manage_billing(event)
     elif path.endswith("/auth/free-ticker") and method == "POST":
         return _handle_set_free_ticker(event)
+    elif path.endswith("/auth/complete-onboarding") and method == "POST":
+        return _handle_complete_onboarding(event)
     elif path.endswith("/carteiras") and method == "GET":
         return _handle_carteiras_list(event)
     elif path.endswith("/carteiras") and method == "POST":

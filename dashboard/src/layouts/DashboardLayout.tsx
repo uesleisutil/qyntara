@@ -46,7 +46,7 @@ const DashboardLayout: React.FC = () => {
 
   React.useEffect(() => {
     if (isAdminRoute) return; // Never show onboarding/tour on admin pages
-    if (shouldShowOnboarding()) {
+    if (shouldShowOnboarding(user)) {
       const timer = setTimeout(() => setShowOnboarding(true), 600);
       return () => clearTimeout(timer);
     } else if (!isPro && !user?.freeTicker) {
@@ -57,7 +57,7 @@ const DashboardLayout: React.FC = () => {
       const timer = setTimeout(() => setShowTour(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, [isPro, user?.freeTicker, isAdminRoute]);
+  }, [isPro, user?.freeTicker, user?.onboardingDone, isAdminRoute]);
 
   React.useEffect(() => {
     const goOnline = () => setIsOffline(false);

@@ -11,6 +11,8 @@ interface User {
   emailVerified?: boolean;
   canViewCosts?: boolean;
   freeTicker?: string;
+  onboardingDone?: boolean;
+  investorProfile?: 'conservador' | 'moderado' | 'arrojado';
 }
 
 interface AuthContextType {
@@ -28,6 +30,7 @@ interface AuthContextType {
   refreshSession: () => Promise<void>;
   refreshPlan: () => Promise<void>;
   setFreeTicker: (ticker: string) => Promise<void>;
+  completeOnboarding: (profile?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,6 +63,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 emailVerified: data.emailVerified ?? true,
                 canViewCosts: data.canViewCosts ?? false,
                 freeTicker: data.freeTicker || '',
+                onboardingDone: data.onboardingDone ?? false,
+                investorProfile: data.investorProfile || undefined,
               };
               setUser(freshUser);
               // Keep localStorage in sync so fallback is never stale
@@ -116,10 +121,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const freshRole = data.role || 'viewer';
           const freshCanViewCosts = data.canViewCosts ?? false;
           const freshFreeTicker = data.freeTicker || '';
+          const freshOnboardingDone = data.onboardingDone ?? false;
+          const freshInvestorProfile = data.investorProfile || undefined;
           setUser(prev => {
             if (!prev) return prev;
-            if (prev.plan !== freshPlan || prev.role !== freshRole || prev.canViewCosts !== freshCanViewCosts || prev.freeTicker !== freshFreeTicker) {
-              const updated = { ...prev, plan: freshPlan as 'free' | 'pro', role: freshRole as 'admin' | 'analyst' | 'viewer', planExpiresAt: data.planExpiresAt || '', canViewCosts: freshCanViewCosts, freeTicker: freshFreeTicker };
+            if (prev.plan !== freshPlan || prev.role !== freshRole || prev.canViewCosts !== freshCanViewCosts || prev.freeTicker !== freshFreeTicker || prev.onboardingDone !== freshOnboardingDone || prev.investorProfile !== freshInvestorProfile) {
+              const updated = { ...prev, plan: freshPlan as 'free' | 'pro', role: freshRole as 'admin' | 'analyst' | 'viewer', planExpiresAt: data.planExpiresAt || '', canViewCosts: freshCanViewCosts, freeTicker: freshFreeTicker, onboardingDone: freshOnboardingDone, investorProfile: freshInvestorProfile };
               localStorage.setItem('user', JSON.stringify(updated));
               return updated;
             }
@@ -174,6 +181,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       emailVerified: data.emailVerified ?? true,
       canViewCosts: data.canViewCosts ?? false,
       freeTicker: data.freeTicker || '',
+      onboardingDone: data.onboardingDone ?? false,
+      investorProfile: data.investorProfile || undefined,
     });
   }, []);
 
@@ -193,6 +202,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       emailVerified: data.emailVerified ?? false,
       canViewCosts: data.canViewCosts ?? false,
       freeTicker: data.freeTicker || '',
+      onboardingDone: false,
+      investorProfile: undefined,
     });
   }, []);
 
@@ -305,10 +316,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
+  const completeOnboarding = useCallback(async (profile?: string) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('Não autenticado');
+    const res = await fetch(`${AUTH_URL}/complete-onboarding`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ investorProfile: profile || undefined }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao salvar onboarding');
+    }
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated: User = {
+        ...prev,
+        onboardingDone: true,
+        investorProfile: (profile as User['investorProfile']) || prev.investorProfile,
+      };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider value={{
       user, isAuthenticated: !!user, isLoading,
-      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession, refreshPlan, setFreeTicker,
+      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession, refreshPlan, setFreeTicker, completeOnboarding,
     }}>
       {children}
     </AuthContext.Provider>
