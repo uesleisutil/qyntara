@@ -91,7 +91,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    const handleActivity = () => setLastActivity(Date.now());
+    let lastRenew = Date.now();
+    const handleActivity = () => {
+      const now = Date.now();
+      setLastActivity(now);
+      // Renew session expiry at most once per minute to avoid excessive writes
+      if (now - lastRenew > 60000) {
+        lastRenew = now;
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          localStorage.setItem('sessionExpiry', (now + SESSION_TIMEOUT).toString());
+        }
+      }
+    };
     const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
     events.forEach(e => window.addEventListener(e, handleActivity));
     return () => events.forEach(e => window.removeEventListener(e, handleActivity));

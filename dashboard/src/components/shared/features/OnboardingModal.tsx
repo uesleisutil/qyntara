@@ -25,9 +25,21 @@ interface Rec {
 
 type InvestorProfile = 'conservador' | 'moderado' | 'arrojado' | null;
 
-export const shouldShowOnboarding = (user: { onboardingDone?: boolean } | null): boolean => {
+const ONBOARDING_DONE_KEY = 'b3tr_onboarding_done';
+
+export const shouldShowOnboarding = (user: { onboardingDone?: boolean; id?: string } | null): boolean => {
   if (!user) return false;
-  return !user.onboardingDone;
+  // If backend says done, respect it
+  if (user.onboardingDone) return false;
+  // Fallback: check localStorage in case the backend call failed previously
+  const localKey = `${ONBOARDING_DONE_KEY}_${user.id || 'default'}`;
+  if (localStorage.getItem(localKey) === 'true') return false;
+  return true;
+};
+
+export const markOnboardingDoneLocally = (userId?: string): void => {
+  const localKey = `${ONBOARDING_DONE_KEY}_${userId || 'default'}`;
+  localStorage.setItem(localKey, 'true');
 };
 
 /* ── Step IDs ── */
@@ -129,6 +141,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
 
   const handleClose = () => {
     setVisible(false);
+    markOnboardingDoneLocally(user?.id);
     completeOnboarding(investorProfile || undefined).catch(() => {});
     setTimeout(onClose, 250);
   };
@@ -139,10 +152,11 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
       try { await setFreeTicker(selectedTicker); } catch { /* silent */ }
       setSaving(false);
     }
+    markOnboardingDoneLocally(user?.id);
     try { await completeOnboarding(investorProfile || undefined); } catch { /* silent */ }
     setVisible(false);
     setTimeout(onClose, 250);
-  }, [isPro, selectedTicker, setFreeTicker, onClose, investorProfile, completeOnboarding]);
+  }, [isPro, selectedTicker, setFreeTicker, onClose, investorProfile, completeOnboarding, user?.id]);
 
   const handleNext = () => {
     if (step < totalSteps - 1) setStep(step + 1);
