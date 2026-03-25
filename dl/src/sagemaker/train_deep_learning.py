@@ -206,28 +206,9 @@ class DeepLearningTrainer:
         lr: float = 1e-3,
         patience: int = 15,
     ) -> dict:
-        """Treina com multi-task learning + oversampling de movimentos fortes."""
-        # Oversampling: duplicar amostras com |retorno| > 3%, triplicar > 5%
-        abs_ret = np.abs(y_train)
-        strong_mask = abs_ret > 0.03  # movimentos > 3%
-        very_strong_mask = abs_ret > 0.05  # movimentos > 5%
-
-        X_aug = [X_train]
-        y_aug = [y_train]
-        if strong_mask.any():
-            X_aug.append(X_train[strong_mask])
-            y_aug.append(y_train[strong_mask])
-        if very_strong_mask.any():
-            X_aug.append(X_train[very_strong_mask])
-            y_aug.append(y_train[very_strong_mask])
-
-        X_train_aug = np.concatenate(X_aug)
-        y_train_aug = np.concatenate(y_aug)
-        logger.info(f"Oversampling: {len(X_train)} -> {len(X_train_aug)} amostras "
-                     f"(+{strong_mask.sum()} strong, +{very_strong_mask.sum()} very strong)")
-
-        self.scaler.fit(X_train)  # fit no original (sem duplicatas)
-        X_t, y_t = self._prepare_tensors(X_train_aug, y_train_aug)
+        """Treina com multi-task potencializado: Focal Loss + gradient blending."""
+        self.scaler.fit(X_train)
+        X_t, y_t = self._prepare_tensors(X_train, y_train)
 
         dataset = TensorDataset(X_t, y_t)
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -237,7 +218,6 @@ class DeepLearningTrainer:
             optimizer, max_lr=lr, epochs=epochs, steps_per_epoch=len(loader),
         )
         huber = nn.HuberLoss(delta=0.05)
-        bce = nn.BCEWithLogitsLoss()
 
         best_val_loss = float('inf')
         best_state = None
@@ -251,10 +231,25 @@ class DeepLearningTrainer:
                 optimizer.zero_grad()
                 reg_out, cls_logit = self.model(xb)
 
+                # Task 1: Regressão
                 loss_reg = huber(reg_out, yb)
+
+                # Task 2: Focal Loss para classificação (penaliza exemplos de baixa confiança)
                 target_dir = (yb > 0).float()
-                loss_cls = bce(cls_logit, target_dir)
-                loss = 0.5 * loss_reg + 0.5 * loss_cls
+                p = torch.sigmoid(cls_logit)
+                # Focal Loss: -alpha * (1-pt)^gamma * log(pt)
+                # gamma=2 foca nos exemplos difíceis, alpha balanceia classes
+                pt = p * target_dir + (1 - p) * (1 - target_dir)
+                focal_weight = (1 - pt) ** 2  # gamma=2
+                bce_raw = nn.functional.binary_cross_entropy_with_logits(
+                    cls_logit, target_dir, reduction='none'
+                )
+                loss_cls = (focal_weight * bce_raw).mean()
+
+                # Gradient blending: normalizar gradientes para que nenhuma task domine
+                # Peso dinâmico: mais classificação no início, equilibra depois
+                cls_weight = 0.6  # 60% classificação, 40% regressão
+                loss = (1 - cls_weight) * loss_reg + cls_weight * loss_cls
 
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
