@@ -536,7 +536,7 @@ def handler(event, context):
             # Fazer predições
             predictions = predict_with_model(model, features_df, selected_features, model_type)
             
-            method = f"dl_{model_type}"
+            method = model_type if model_type.startswith('dl_') else f"dl_{model_type}"
             logger.info(f"Usando modelo DL: {model_key} (tipo: {model_type})")
             
         except Exception as e:
