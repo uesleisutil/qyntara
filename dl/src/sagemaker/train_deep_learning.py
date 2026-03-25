@@ -215,19 +215,18 @@ class DeepLearningTrainer:
         """
         self.scaler.fit(X_train)
 
-        # Preparar curriculum: ordenar por dificuldade (|retorno| decrescente = mais fácil primeiro)
+        # Curriculum mais suave: fase fácil mais curta, fase completa mais longa
         abs_returns = np.abs(y_train)
-        p70 = np.percentile(abs_returns, 70)
-        p40 = np.percentile(abs_returns, 40)
+        p80 = np.percentile(abs_returns, 80)
+        p50 = np.percentile(abs_returns, 50)
 
-        easy_mask = abs_returns >= p70       # ~30% das amostras (movimentos fortes)
-        medium_mask = abs_returns >= p40     # ~60% das amostras
-        # full = todas
+        easy_mask = abs_returns >= p80
+        medium_mask = abs_returns >= p50
 
         curriculum_phases = [
-            (0.0, 0.3, easy_mask, "fácil (|ret| > p70)"),
-            (0.3, 0.6, medium_mask, "médio (|ret| > p40)"),
-            (0.6, 1.0, np.ones(len(y_train), dtype=bool), "completo (todas)"),
+            (0.0, 0.15, easy_mask, "fácil (|ret| > p80)"),
+            (0.15, 0.35, medium_mask, "médio (|ret| > p50)"),
+            (0.35, 1.0, np.ones(len(y_train), dtype=bool), "completo (todas)"),
         ]
 
         logger.info(f"Curriculum: easy={easy_mask.sum()} medium={medium_mask.sum()} full={len(y_train)} amostras")
