@@ -4,7 +4,6 @@ import {
   Gift, Copy, Check, Users, Crown, Clock, Share2, Mail,
   CheckCircle, XCircle, Loader2, Trophy, Sparkles,
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
 import { API_BASE_URL } from '../../config';
 import { brand } from '../../styles/theme';
 
@@ -34,7 +33,6 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: React.Rea
 
 const ReferralPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
-  const { user } = useAuth();
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
