@@ -349,9 +349,23 @@ def handler(event, context):
 
 
 def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, event: dict) -> dict:
-    """Treina ensemble DL (3 modelos) localmente na Lambda e salva no S3."""
+    """
+    Treina ensemble DL em etapas (1 modelo por invocação para caber no timeout de 15min).
+
+    Modos:
+    - train_model=None: treina todos sequencialmente (pode dar timeout com dados grandes)
+    - train_model="transformer_bilstm": treina só esse modelo e salva no S3
+    - train_model="residual_mlp": treina só esse modelo
+    - train_model="temporal_cnn": treina só esse modelo
+    - combine_ensemble=True: combina os 3 modelos já treinados em um ensemble
+    """
     import torch
-    from dl.src.sagemaker.train_deep_learning import EnsembleDLTrainer
+    from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, EnsembleDLTrainer, MODEL_REGISTRY
+
+    train_model = event.get('train_model')
+    combine_only = event.get('combine_ensemble', False)
+    model_prefix = f"models/deep_learning/{dt}"
+    all_models = ['transformer_bilstm', 'residual_mlp', 'temporal_cnn']
 
     # Separar features e target
     target_col = 'target_return_20d'
@@ -364,38 +378,36 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
 
     X = train_df[feature_cols].fillna(0).values
     y = train_df[target_col].fillna(0).values
-
-    # Limpar NaN/Inf que podem vir de features fundamentalistas ou macro
     X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
     y = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0)
 
-    # Remover amostras com target extremo (outliers > 5 desvios)
     y_std = np.std(y)
     if y_std > 0:
         mask = np.abs(y) < 5 * y_std
         X, y = X[mask], y[mask]
         logger.info(f"Após limpeza de outliers: {len(X)} amostras (removidas {(~mask).sum()})")
 
-    # Split temporal (80/20)
     split_idx = int(len(X) * 0.8)
     X_train, X_val = X[:split_idx], X[split_idx:]
     y_train, y_val = y[:split_idx], y[split_idx:]
-
     logger.info(f"Train: {len(X_train)}, Val: {len(X_val)}, Features: {len(feature_cols)}")
 
-    # Treinar ensemble de 3 modelos com hiperparâmetros otimizados
-    ensemble = EnsembleDLTrainer(
-        n_features=len(feature_cols),
-        model_names=['transformer_bilstm', 'residual_mlp', 'temporal_cnn'],
-        device='cpu',
-    )
-    # Setar feature_names em cada trainer após treino
+    # === MODO: Combinar modelos já treinados ===
+    if combine_only:
+        return _combine_ensemble(bucket, dt, model_prefix, all_models, X_val, y_val, feature_cols)
+
+    # === MODO: Treinar um modelo específico ===
+    if train_model:
+        return _train_single_model(
+            train_model, bucket, dt, model_prefix, feature_cols,
+            X_train, y_train, X_val, y_val, epochs, event,
+        )
+
+    # === MODO: Treinar todos (pode dar timeout com dados grandes) ===
+    ensemble = EnsembleDLTrainer(n_features=len(feature_cols), model_names=all_models, device='cpu')
     metrics = ensemble.train_all(
         X_train, y_train, X_val, y_val,
-        epochs=epochs,
-        batch_size=min(128, len(X_train)),
-        lr=5e-4,
-        patience=20,
+        epochs=epochs, batch_size=min(128, len(X_train)), lr=5e-4, patience=20,
     )
     for trainer in ensemble.trainers.values():
         trainer.feature_names = feature_cols
@@ -405,46 +417,137 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     metrics['n_features'] = len(feature_cols)
     ensemble.ensemble_metrics = metrics
 
-    # Salvar e upload para S3
+    _upload_ensemble(ensemble, bucket, model_prefix)
+
+    return {
+        "ok": True, "dt": dt, "method": "local_dl_ensemble",
+        "architecture": "DL_Ensemble_3Models", "models": all_models,
+        "weights": ensemble.weights, "model_key": f"{model_prefix}/model.tar.gz",
+        "train_samples": len(X_train), "n_features": len(feature_cols), "metrics": metrics,
+    }
+
+
+def _train_single_model(
+    model_name: str, bucket: str, dt: str, model_prefix: str, feature_cols: list,
+    X_train, y_train, X_val, y_val, epochs: int, event: dict,
+) -> dict:
+    """Treina um único modelo DL e salva no S3."""
+    import torch
+    from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, MODEL_REGISTRY
+
+    logger.info(f"Treinando modelo individual: {model_name}")
+    reg = MODEL_REGISTRY[model_name]
+    model_cls = reg['class']
+    kwargs = reg['default_kwargs'].copy()
+
+    trainer = DeepLearningTrainer(n_features=len(feature_cols), device='cpu')
+    trainer.model = model_cls(n_features=len(feature_cols), **kwargs).to(torch.device('cpu'))
+    trainer.feature_names = feature_cols
+
+    metrics = trainer.train(
+        X_train, y_train, X_val, y_val,
+        epochs=epochs, batch_size=min(128, len(X_train)), lr=5e-4, patience=20,
+    )
+    metrics['train_date'] = dt
+    metrics['train_samples'] = len(X_train)
+    metrics['n_features'] = len(feature_cols)
+    metrics['model_name'] = model_name
+    trainer.metrics = metrics
+
+    # Salvar modelo individual no S3
+    with tempfile.TemporaryDirectory() as tmpdir:
+        trainer.save(tmpdir)
+        for fname in os.listdir(tmpdir):
+            fpath = os.path.join(tmpdir, fname)
+            if os.path.isfile(fpath):
+                s3_key = f"{model_prefix}/individual/{model_name}/{fname}"
+                s3.upload_file(fpath, bucket, s3_key)
+
+    logger.info(f"Modelo {model_name} salvo em s3://{bucket}/{model_prefix}/individual/{model_name}/")
+
+    return {
+        "ok": True, "dt": dt, "method": f"local_dl_{model_name}",
+        "model_name": model_name, "metrics": metrics,
+        "val_rmse": metrics.get('val_rmse'), "directional_accuracy": metrics.get('directional_accuracy'),
+    }
+
+
+def _combine_ensemble(
+    bucket: str, dt: str, model_prefix: str, model_names: list,
+    X_val, y_val, feature_cols: list,
+) -> dict:
+    """Combina modelos individuais já treinados em um ensemble."""
+    import torch
+    from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, EnsembleDLTrainer
+
+    logger.info("Combinando modelos individuais em ensemble...")
+    ensemble = EnsembleDLTrainer(n_features=len(feature_cols), model_names=model_names, device='cpu')
+
+    for name in model_names:
+        # Baixar modelo individual do S3
+        with tempfile.TemporaryDirectory() as tmpdir:
+            prefix = f"{model_prefix}/individual/{name}/"
+            resp = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+            for obj in resp.get('Contents', []):
+                fname = obj['Key'].split('/')[-1]
+                s3.download_file(bucket, obj['Key'], os.path.join(tmpdir, fname))
+            trainer = DeepLearningTrainer.load(tmpdir, device='cpu')
+            trainer.feature_names = feature_cols
+            ensemble.trainers[name] = trainer
+            logger.info(f"Carregado {name}: RMSE={trainer.metrics.get('val_rmse', 'N/A')}")
+
+    # Calcular pesos baseados no RMSE
+    val_rmses = {name: t.metrics.get('val_rmse', 999.0) for name, t in ensemble.trainers.items()}
+    inv = {k: 1.0 / (v + 1e-8) for k, v in val_rmses.items()}
+    total = sum(inv.values())
+    ensemble.weights = {k: round(v / total, 4) for k, v in inv.items()}
+    logger.info(f"Pesos do ensemble: {ensemble.weights}")
+
+    # Calcular métricas do ensemble
+    ensemble_preds = ensemble.predict(X_val)
+    residuals = y_val - ensemble_preds
+    ens_rmse = float(np.sqrt(np.mean(residuals ** 2)))
+    ens_mae = float(np.mean(np.abs(residuals)))
+    mask = np.abs(y_val) > 1e-6
+    ens_mape = float(np.mean(np.abs(residuals[mask] / y_val[mask])) * 100) if mask.any() else 999.0
+    ens_dir_acc = float(np.mean(np.sign(ensemble_preds) == np.sign(y_val)))
+
+    individual_metrics = {name: t.metrics for name, t in ensemble.trainers.items()}
+    ensemble.ensemble_metrics = {
+        'architecture': 'DL_Ensemble_3Models', 'models': model_names,
+        'weights': ensemble.weights, 'individual_metrics': individual_metrics,
+        'ensemble_val_rmse': ens_rmse, 'ensemble_val_mae': ens_mae,
+        'ensemble_val_mape': min(ens_mape, 999.0), 'ensemble_directional_accuracy': ens_dir_acc,
+        'train_date': dt, 'n_features': len(feature_cols),
+        'train_samples': individual_metrics.get(model_names[0], {}).get('train_samples'),
+    }
+    logger.info(f"Ensemble: RMSE={ens_rmse:.4f}, DirAcc={ens_dir_acc:.2%}")
+
+    _upload_ensemble(ensemble, bucket, model_prefix)
+
+    return {
+        "ok": True, "dt": dt, "method": "local_dl_ensemble",
+        "architecture": "DL_Ensemble_3Models", "models": model_names,
+        "weights": ensemble.weights, "model_key": f"{model_prefix}/model.tar.gz",
+        "n_features": len(feature_cols), "metrics": ensemble.ensemble_metrics,
+    }
+
+
+def _upload_ensemble(ensemble, bucket: str, model_prefix: str):
+    """Salva ensemble completo no S3."""
     with tempfile.TemporaryDirectory() as tmpdir:
         ensemble.save(tmpdir)
-
-        # Criar model.tar.gz
         tar_path = os.path.join(tmpdir, 'model.tar.gz')
         with tarfile.open(tar_path, 'w:gz') as tar:
-            # Adicionar ensemble_config.json e metrics.json
             for fname in ['ensemble_config.json', 'metrics.json']:
                 fpath = os.path.join(tmpdir, fname)
                 if os.path.exists(fpath):
                     tar.add(fpath, arcname=fname)
-            # Adicionar cada modelo como subdiretório
             for model_name in ensemble.model_names:
                 model_dir = os.path.join(tmpdir, model_name)
                 if os.path.exists(model_dir):
                     for fname in os.listdir(model_dir):
                         tar.add(os.path.join(model_dir, fname), arcname=f"{model_name}/{fname}")
-
-        # Upload
-        model_prefix = f"models/deep_learning/{dt}"
         s3.upload_file(tar_path, bucket, f"{model_prefix}/model.tar.gz")
-        s3.upload_file(
-            os.path.join(tmpdir, 'metrics.json'),
-            bucket,
-            f"{model_prefix}/metrics.json"
-        )
-
-    logger.info(f"Ensemble DL salvo em s3://{bucket}/{model_prefix}/")
-
-    return {
-        "ok": True,
-        "dt": dt,
-        "method": "local_dl_ensemble",
-        "architecture": "DL_Ensemble_3Models",
-        "models": ensemble.model_names,
-        "weights": ensemble.weights,
-        "model_key": f"{model_prefix}/model.tar.gz",
-        "train_samples": len(X_train),
-        "val_samples": len(X_val),
-        "n_features": len(feature_cols),
-        "metrics": metrics,
-    }
+        s3.upload_file(os.path.join(tmpdir, 'metrics.json'), bucket, f"{model_prefix}/metrics.json")
+    logger.info(f"Ensemble salvo em s3://{bucket}/{model_prefix}/")

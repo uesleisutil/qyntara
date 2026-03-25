@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Bell, X, TrendingUp, Activity, CheckCircle, AlertTriangle, Clock, Send } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../../constants';
+import { NotificationCategory } from '../../../types/notifications';
 
 interface Notification {
   id: string;
   type: string;
+  category?: NotificationCategory;
   title: string;
   message: string;
   time: Date;
@@ -42,10 +44,67 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
     hover: darkMode ? '#2a2e3a' : '#f1f5f9',
   };
 
+  // Map notification types to preference categories
+  const typeToCategory = (type: string): NotificationCategory | null => {
+    switch (type) {
+      case 'auto_model_run':
+      case 'model_run':
+        return 'system';
+      case 'auto_recommendations':
+      case 'recommendations':
+        return 'degradation'; // model output = performance category
+      case 'auto_strong_signals':
+      case 'alert':
+        return 'anomaly';
+      case 'auto_history':
+      case 'system':
+        return 'system';
+      case 'manual':
+        return null; // always show manual/admin notifications
+      default:
+        return null;
+    }
+  };
+
+  const loadPreferences = () => {
+    try {
+      const stored = localStorage.getItem('notificationPreferences');
+      if (stored) return JSON.parse(stored);
+    } catch { /* silent */ }
+    return { emailTypes: ['degradation', 'system'], smsTypes: ['system'], quietHours: { enabled: false, start: '22:00', end: '08:00' } };
+  };
+
+  const isInQuietHours = (prefs: any): boolean => {
+    if (!prefs.quietHours?.enabled) return false;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const [startH, startM] = (prefs.quietHours.start || '22:00').split(':').map(Number);
+    const [endH, endM] = (prefs.quietHours.end || '08:00').split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    if (startMinutes <= endMinutes) {
+      return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+    }
+    // Wraps midnight (e.g. 22:00 - 08:00)
+    return currentMinutes >= startMinutes || currentMinutes < endMinutes;
+  };
+
+  const shouldShowNotification = (type: string, prefs: any): boolean => {
+    const category = typeToCategory(type);
+    // Always show manual/admin and uncategorized notifications
+    if (!category) return true;
+    // During quiet hours, only show system-critical
+    if (isInQuietHours(prefs) && category !== 'system') return false;
+    // Check if category is in user's enabled types
+    const enabledTypes: string[] = prefs.emailTypes || ['degradation', 'system'];
+    return enabledTypes.includes(category);
+  };
+
   const generateNotifications = useCallback(async () => {
     const notes: Notification[] = [];
     const now = new Date();
     const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+    const prefs = loadPreferences();
 
     // 1. Fetch backend notifications (from DynamoDB via /notifications endpoint)
     const authToken = localStorage.getItem('authToken');
@@ -57,10 +116,12 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         if (backendRes.ok) {
           const data = await backendRes.json();
           (data.notifications || []).forEach((n: any) => {
+            if (!shouldShowNotification(n.type, prefs)) return;
             const typeInfo = TYPE_ICONS[n.type] || TYPE_ICONS.manual;
             notes.push({
               id: `backend-${n.id}`,
               type: n.type,
+              category: typeToCategory(n.type) || undefined,
               title: n.title,
               message: n.message,
               time: new Date(n.created_at),
@@ -89,26 +150,30 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         const sellCount = recs.filter((r: any) => r.score <= SCORE_SELL_THRESHOLD).length;
         const topBuy = recs.filter((r: any) => r.score >= SCORE_BUY_THRESHOLD).sort((a: any, b: any) => b.score - a.score)[0];
 
-        notes.push({
-          id: `rec-${recDate}`, type: 'recommendations',
-          title: 'Recomendações do dia prontas',
-          message: `${recs.length} ações analisadas: ${buyCount} compra, ${sellCount} venda${topBuy ? `. Destaque: ${topBuy.ticker} (score ${topBuy.score.toFixed(1)})` : ''}`,
-          time: new Date(recDate + 'T09:30:00'), read: readIds.includes(`rec-${recDate}`),
-          icon: <TrendingUp size={16} />, color: '#10b981',
-        });
+        if (shouldShowNotification('recommendations', prefs)) {
+          notes.push({
+            id: `rec-${recDate}`, type: 'recommendations', category: 'degradation',
+            title: 'Recomendações do dia prontas',
+            message: `${recs.length} ações analisadas: ${buyCount} compra, ${sellCount} venda${topBuy ? `. Destaque: ${topBuy.ticker} (score ${topBuy.score.toFixed(1)})` : ''}`,
+            time: new Date(recDate + 'T09:30:00'), read: readIds.includes(`rec-${recDate}`),
+            icon: <TrendingUp size={16} />, color: '#10b981',
+          });
+        }
 
-        notes.push({
-          id: `model-${recDate}`, type: 'model_run',
-          title: 'Modelo executado com sucesso',
-          message: `Pipeline DL concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
-          time: new Date(recDate + 'T08:00:00'), read: readIds.includes(`model-${recDate}`),
-          icon: <Activity size={16} />, color: '#3b82f6',
-        });
+        if (shouldShowNotification('model_run', prefs)) {
+          notes.push({
+            id: `model-${recDate}`, type: 'model_run', category: 'system',
+            title: 'Modelo executado com sucesso',
+            message: `Pipeline DL concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
+            time: new Date(recDate + 'T08:00:00'), read: readIds.includes(`model-${recDate}`),
+            icon: <Activity size={16} />, color: '#3b82f6',
+          });
+        }
 
         const strongBuys = recs.filter((r: any) => r.score >= 4);
-        if (strongBuys.length > 0) {
+        if (strongBuys.length > 0 && shouldShowNotification('alert', prefs)) {
           notes.push({
-            id: `strong-${recDate}`, type: 'alert',
+            id: `strong-${recDate}`, type: 'alert', category: 'anomaly',
             title: 'Sinais fortes detectados',
             message: `${strongBuys.length} ação(ões) com score acima de 4: ${strongBuys.map((r: any) => r.ticker).join(', ')}`,
             time: new Date(recDate + 'T09:35:00'), read: readIds.includes(`strong-${recDate}`),
@@ -117,7 +182,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         }
       }
 
-      if (histRes.ok) {
+      if (histRes.ok && shouldShowNotification('system', prefs)) {
         const hist = await histRes.json();
         const dates = new Set<string>();
         Object.values(hist.data as Record<string, any[]>).forEach((entries: any[]) =>
@@ -126,7 +191,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         const sortedDates = Array.from(dates).sort().reverse();
         if (sortedDates.length >= 2) {
           notes.push({
-            id: `history-${sortedDates[0]}`, type: 'system',
+            id: `history-${sortedDates[0]}`, type: 'system', category: 'system',
             title: 'Dados históricos atualizados',
             message: `${sortedDates.length} dias de histórico disponíveis. Último: ${new Date(sortedDates[0] + 'T12:00:00').toLocaleDateString('pt-BR')}.`,
             time: new Date(sortedDates[0] + 'T07:00:00'), read: readIds.includes(`history-${sortedDates[0]}`),
@@ -136,7 +201,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
       }
     } catch { /* silent */ }
 
-    // Welcome
+    // Welcome — always show
     notes.push({
       id: 'welcome', type: 'system',
       title: 'Bem-vindo ao Qyntara',
@@ -146,39 +211,41 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
     });
 
     // Signal change notifications (compare last 2 days from history)
-    try {
-      const headers = { 'x-api-key': API_KEY };
-      const histRes2 = await fetch(`${API_BASE_URL}/api/recommendations/history`, { headers });
-      if (histRes2.ok) {
-        const histData = await histRes2.json();
-        const history: Record<string, { date: string; score: number }[]> = histData.data || {};
-        const allDates2 = new Set<string>();
-        Object.values(history).forEach(entries => entries.forEach(e => allDates2.add(e.date)));
-        const sortedDates2 = Array.from(allDates2).sort();
-        if (sortedDates2.length >= 2) {
-          const todayD = sortedDates2[sortedDates2.length - 1];
-          const yesterdayD = sortedDates2[sortedDates2.length - 2];
-          const signalChanges: string[] = [];
-          Object.entries(history).forEach(([ticker, entries]) => {
-            const t = entries.find(e => e.date === todayD);
-            const y = entries.find(e => e.date === yesterdayD);
-            if (!t || !y) return;
-            const tSig = t.score >= SCORE_BUY_THRESHOLD ? 'Compra' : t.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
-            const ySig = y.score >= SCORE_BUY_THRESHOLD ? 'Compra' : y.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
-            if (tSig !== ySig) signalChanges.push(`${ticker}: ${ySig} → ${tSig}`);
-          });
-          if (signalChanges.length > 0) {
-            notes.push({
-              id: `signal-change-${todayD}`, type: 'alert',
-              title: `${signalChanges.length} mudança(s) de sinal`,
-              message: signalChanges.slice(0, 5).join(', ') + (signalChanges.length > 5 ? ` e mais ${signalChanges.length - 5}` : ''),
-              time: new Date(todayD + 'T09:40:00'), read: readIds.includes(`signal-change-${todayD}`),
-              icon: <AlertTriangle size={16} />, color: '#f59e0b',
+    if (shouldShowNotification('alert', prefs)) {
+      try {
+        const headers = { 'x-api-key': API_KEY };
+        const histRes2 = await fetch(`${API_BASE_URL}/api/recommendations/history`, { headers });
+        if (histRes2.ok) {
+          const histData = await histRes2.json();
+          const history: Record<string, { date: string; score: number }[]> = histData.data || {};
+          const allDates2 = new Set<string>();
+          Object.values(history).forEach(entries => entries.forEach(e => allDates2.add(e.date)));
+          const sortedDates2 = Array.from(allDates2).sort();
+          if (sortedDates2.length >= 2) {
+            const todayD = sortedDates2[sortedDates2.length - 1];
+            const yesterdayD = sortedDates2[sortedDates2.length - 2];
+            const signalChanges: string[] = [];
+            Object.entries(history).forEach(([ticker, entries]) => {
+              const t = entries.find(e => e.date === todayD);
+              const y = entries.find(e => e.date === yesterdayD);
+              if (!t || !y) return;
+              const tSig = t.score >= SCORE_BUY_THRESHOLD ? 'Compra' : t.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
+              const ySig = y.score >= SCORE_BUY_THRESHOLD ? 'Compra' : y.score <= SCORE_SELL_THRESHOLD ? 'Venda' : 'Neutro';
+              if (tSig !== ySig) signalChanges.push(`${ticker}: ${ySig} → ${tSig}`);
             });
+            if (signalChanges.length > 0) {
+              notes.push({
+                id: `signal-change-${todayD}`, type: 'alert', category: 'anomaly',
+                title: `${signalChanges.length} mudança(s) de sinal`,
+                message: signalChanges.slice(0, 5).join(', ') + (signalChanges.length > 5 ? ` e mais ${signalChanges.length - 5}` : ''),
+                time: new Date(todayD + 'T09:40:00'), read: readIds.includes(`signal-change-${todayD}`),
+                icon: <AlertTriangle size={16} />, color: '#f59e0b',
+              });
+            }
           }
         }
-      }
-    } catch { /* silent */ }
+      } catch { /* silent */ }
+    }
 
     // Deduplicate by id
     const seen = new Set<string>();
