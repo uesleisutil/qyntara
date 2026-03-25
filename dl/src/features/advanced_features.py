@@ -467,3 +467,94 @@ def create_training_dataset(
             data_list.append(features)
     
     return pd.DataFrame(data_list)
+
+
+def create_temporal_training_dataset(
+    series_dict: Dict[str, List[float]],
+    target_horizon: int = 20,
+    window_size: int = 20,
+    min_history: int = 120,
+    step: int = 5,
+    volumes_dict: Optional[Dict[str, List[float]]] = None,
+    fundamentals_dict: Optional[Dict[str, Dict]] = None,
+    macro_features: Optional[Dict[str, float]] = None,
+    sentiment_dict: Optional[Dict[str, float]] = None,
+) -> tuple:
+    """
+    Cria dataset temporal: cada amostra é uma janela de `window_size` dias de features.
+    
+    Retorna:
+        X_windows: np.ndarray (n_samples, window_size, n_features)
+        y_targets: np.ndarray (n_samples,)
+        feature_names: list[str]
+    """
+    engineer = AdvancedFeatureEngineer()
+    
+    all_windows = []
+    all_targets = []
+    feature_names = None
+    
+    for ticker, prices in series_dict.items():
+        if len(prices) < min_history + target_horizon + window_size:
+            continue
+        
+        volumes = volumes_dict.get(ticker) if volumes_dict else None
+        fundamentals = fundamentals_dict.get(ticker) if fundamentals_dict else None
+        sentiment = sentiment_dict.get(ticker) if sentiment_dict else None
+        
+        # Gerar features para cada dia do histórico
+        daily_features = []
+        start = max(60, min_history - window_size)
+        end = len(prices) - target_horizon
+        
+        for i in range(start, end):
+            window = prices[:i + 1]
+            vol_window = volumes[:i + 1] if volumes and len(volumes) > i else None
+            
+            features = engineer.generate_all_features(
+                np.array(window), ticker,
+                volumes=np.array(vol_window) if vol_window else None,
+                fundamentals=fundamentals,
+                macro_features=macro_features,
+                all_series=series_dict,
+                sentiment_score=sentiment,
+            )
+            # Remover ticker (não numérico)
+            features.pop('ticker', None)
+            daily_features.append(features)
+        
+        if not daily_features:
+            continue
+        
+        # Determinar feature names (consistente)
+        if feature_names is None:
+            feature_names = sorted(daily_features[0].keys())
+        
+        # Converter para array
+        daily_array = np.array([
+            [f.get(name, 0.0) for name in feature_names]
+            for f in daily_features
+        ], dtype=np.float32)
+        
+        # Criar janelas temporais com step
+        for i in range(window_size, len(daily_array), step):
+            window_data = daily_array[i - window_size:i]  # (window_size, n_features)
+            
+            # Target: retorno futuro a partir do último dia da janela
+            day_idx = start + i
+            if day_idx + target_horizon - 1 >= len(prices):
+                continue
+            future_price = prices[day_idx + target_horizon - 1]
+            current_price = prices[day_idx - 1]
+            target = (future_price / current_price) - 1.0
+            
+            all_windows.append(window_data)
+            all_targets.append(target)
+    
+    if not all_windows:
+        return np.array([]), np.array([]), []
+    
+    X = np.stack(all_windows)  # (n_samples, window_size, n_features)
+    y = np.array(all_targets, dtype=np.float32)
+    
+    return X, y, feature_names

@@ -180,6 +180,78 @@ def prepare_features(
     logger.info(f"Features geradas: {len(df)} tickers, {len(df.columns)} colunas")
     
     return df
+def prepare_temporal_features(
+    series: dict[str, list[float]],
+    window_size: int = 20,
+    volumes: dict[str, list[float]] = None,
+    macro_features: dict[str, float] = None,
+    fundamentals_dict: dict[str, dict] = None,
+    sentiment_dict: dict[str, float] = None,
+) -> tuple:
+    """
+    Prepara features temporais para inferência (janela de N dias por ticker).
+
+    Returns:
+        tickers: list[str]
+        X_windows: np.ndarray (n_tickers, window_size, n_features)
+        last_closes: list[float]
+        feature_names: list[str]
+    """
+    logger.info(f"Gerando features temporais (janela={window_size} dias)...")
+    engineer = AdvancedFeatureEngineer()
+
+    tickers_out = []
+    windows_out = []
+    last_closes = []
+    feature_names = None
+
+    for ticker, values in series.items():
+        if len(values) < 120 + window_size:
+            continue
+
+        vol_array = np.array(volumes[ticker]) if volumes and ticker in volumes else None
+        fund = fundamentals_dict.get(ticker) if fundamentals_dict else None
+        sent = sentiment_dict.get(ticker) if sentiment_dict else None
+
+        # Gerar features para os últimos window_size dias
+        daily_features = []
+        for offset in range(window_size, 0, -1):
+            end_idx = len(values) - offset + 1
+            window = values[:end_idx]
+            vol_win = vol_array[:end_idx] if vol_array is not None and len(vol_array) >= end_idx else None
+
+            features = engineer.generate_all_features(
+                np.array(window), ticker,
+                volumes=vol_win,
+                fundamentals=fund,
+                macro_features=macro_features,
+                all_series=series,
+                sentiment_score=sent,
+            )
+            features.pop('ticker', None)
+            daily_features.append(features)
+
+        if not daily_features:
+            continue
+
+        if feature_names is None:
+            feature_names = sorted(daily_features[0].keys())
+
+        window_array = np.array([
+            [f.get(name, 0.0) for name in feature_names]
+            for f in daily_features
+        ], dtype=np.float32)
+
+        tickers_out.append(ticker)
+        windows_out.append(window_array)
+        last_closes.append(values[-1])
+
+    if not windows_out:
+        return [], np.array([]), [], []
+
+    X = np.stack(windows_out)  # (n_tickers, window_size, n_features)
+    logger.info(f"Features temporais: {X.shape} para {len(tickers_out)} tickers")
+    return tickers_out, X, last_closes, feature_names
 
 
 def find_latest_model(bucket: str) -> tuple[str, dict]:
@@ -324,14 +396,29 @@ def predict_with_model(
     features_df: pd.DataFrame,
     selected_features: list = None,
     model_type: str = 'transformer_bilstm',
+    X_temporal: np.ndarray = None,
 ) -> np.ndarray:
     """
-    Faz predições usando modelo DL (Transformer+BiLSTM) ou XGBoost legado.
+    Faz predições usando modelo DL. Suporta dados flat (2D) e temporais (3D).
     """
     logger.info(f"Fazendo predições in-memory (tipo: {model_type})...")
 
-    exclude_cols = ['ticker']
+    # Se temos dados temporais, usar diretamente
+    if X_temporal is not None and len(X_temporal) > 0:
+        logger.info(f"Usando dados temporais: {X_temporal.shape}")
+        if model_type == 'dl_ensemble':
+            predictions = model.predict(X_temporal)
+        elif model_type in ('transformer_bilstm', 'residual_mlp', 'temporal_cnn'):
+            predictions = model.predict(X_temporal)
+        else:
+            # Fallback: flatten para modelos que não suportam 3D
+            X_flat = X_temporal[:, -1, :]  # último timestep
+            predictions = model.predict(X_flat)
+        logger.info(f"Predições: min={predictions.min():.4f}, max={predictions.max():.4f}, mean={predictions.mean():.4f}")
+        return predictions
 
+    # Fallback: dados flat (DataFrame)
+    exclude_cols = ['ticker']
     if selected_features:
         feature_cols = [f for f in selected_features if f not in exclude_cols]
     else:
@@ -344,21 +431,15 @@ def predict_with_model(
             features_df[col] = 0.0
 
     X = features_df[feature_cols].select_dtypes(include=[np.number])
-    logger.info(f"Predições para {len(X)} tickers com {len(feature_cols)} features")
+    logger.info(f"Predições flat para {len(X)} tickers com {len(feature_cols)} features")
 
-    if model_type == 'transformer_bilstm':
-        # Modelo DL único — model é um DeepLearningTrainer
-        predictions = model.predict(X.values)
-    elif model_type == 'dl_ensemble':
-        # Ensemble DL — model é um EnsembleDLTrainer
+    if model_type in ('transformer_bilstm', 'dl_ensemble'):
         predictions = model.predict(X.values)
     elif model_type == 'xgboost_legacy':
-        # XGBoost legado
         import xgboost as xgb
-        dmatrix = xgb.DMatrix(X)
-        predictions = model.predict(dmatrix)
+        predictions = model.predict(xgb.DMatrix(X))
     else:
-        raise ValueError(f"Tipo de modelo desconhecido: {model_type}")
+        predictions = model.predict(X.values)
 
     logger.info(f"Predições: min={predictions.min():.4f}, max={predictions.max():.4f}, mean={predictions.mean():.4f}")
     return predictions
@@ -494,18 +575,27 @@ def handler(event, context):
     except Exception as e:
         logger.warning(f"Não foi possível carregar sentimento: {e}")
 
-    # Preparar features (com volume, macro, fundamentals, setor, sentimento)
+    # Preparar features flat (para fallback e ranking)
     features_df = prepare_features(
-        series,
-        volumes=volumes,
-        macro_features=macro_features,
-        fundamentals_dict=fundamentals_dict,
-        sentiment_dict=sentiment_dict,
+        series, volumes=volumes, macro_features=macro_features,
+        fundamentals_dict=fundamentals_dict, sentiment_dict=sentiment_dict,
     )
-    logger.info(f"Features preparadas: {len(features_df)} tickers")
+    logger.info(f"Features flat: {len(features_df)} tickers")
 
     if features_df.empty:
         raise RuntimeError("Nenhuma feature gerada.")
+
+    # Preparar features temporais (janela de 20 dias para Transformer/BiLSTM)
+    X_temporal = None
+    temporal_tickers = None
+    try:
+        temporal_tickers, X_temporal, temporal_closes, temporal_feature_names = prepare_temporal_features(
+            series, window_size=20, volumes=volumes, macro_features=macro_features,
+            fundamentals_dict=fundamentals_dict, sentiment_dict=sentiment_dict,
+        )
+        logger.info(f"Features temporais: {X_temporal.shape if X_temporal is not None else 'None'}")
+    except Exception as e:
+        logger.warning(f"Não foi possível gerar features temporais: {e}")
 
     # Decidir método de predição
     force_momentum = event.get('force_momentum', False)
@@ -522,22 +612,30 @@ def handler(event, context):
         )
         predictions = momentum_score.values
     else:
-        # Tentar usar modelo treinado
         try:
-            # Encontrar modelo mais recente
             model_key = event.get('model_key')
             if not model_key:
                 model_key, model_metadata = find_latest_model(bucket)
             
-            # Carregar modelo
             model, selected_features, train_metrics, model_type = load_model_from_s3(bucket, model_key)
-            
-            # Usar métricas do tar.gz se disponíveis
             if train_metrics:
                 model_metadata = train_metrics
             
-            # Fazer predições
-            predictions = predict_with_model(model, features_df, selected_features, model_type)
+            # Usar dados temporais se disponíveis
+            predictions = predict_with_model(
+                model, features_df, selected_features, model_type,
+                X_temporal=X_temporal,
+            )
+            
+            # Se usou temporal, precisamos alinhar com features_df
+            if X_temporal is not None and temporal_tickers and len(predictions) == len(temporal_tickers):
+                # Criar DataFrame alinhado com os tickers temporais
+                temporal_df = features_df[features_df['ticker'].isin(temporal_tickers)].copy()
+                # Reordenar para match
+                ticker_order = {t: i for i, t in enumerate(temporal_tickers)}
+                temporal_df = temporal_df[temporal_df['ticker'].map(lambda t: t in ticker_order)]
+                temporal_df = temporal_df.sort_values('ticker', key=lambda s: s.map(ticker_order))
+                features_df = temporal_df.reset_index(drop=True)
             
             method = model_type if model_type.startswith('dl_') else f"dl_{model_type}"
             logger.info(f"Usando modelo DL: {model_key} (tipo: {model_type})")
@@ -545,7 +643,6 @@ def handler(event, context):
         except Exception as e:
             logger.error(f"Erro ao usar modelo: {e}")
             logger.info("Fallback para momentum avançado")
-            
             momentum_score = (
                 features_df['return_1d'] * 0.1 +
                 features_df['return_5d'] * 0.3 +

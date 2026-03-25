@@ -318,21 +318,30 @@ def handler(event, context):
         logger.warning(f"Não foi possível carregar sentimento: {e}")
 
     # 5. Preparar dados de treino com TODAS as features
-    logger.info("Preparando dados de treino com features completas...")
-    train_df = prepare_training_data(
-        series,
-        volumes=volumes,
-        fundamentals_dict=fundamentals_dict,
-        macro_features=macro_features,
-        sentiment_dict=sentiment_dict,
+    # Gerar dados temporais (janelas de 20 dias) para Transformer/BiLSTM
+    logger.info("Preparando dados temporais (janelas de 20 dias)...")
+    from dl.src.features.advanced_features import create_temporal_training_dataset
+    window_size = event.get('window_size', 20)
+    X_temporal, y_temporal, feature_names = create_temporal_training_dataset(
+        series, target_horizon=20, window_size=window_size, min_history=120, step=3,
+        volumes_dict=volumes, fundamentals_dict=fundamentals_dict,
+        macro_features=macro_features, sentiment_dict=sentiment_dict,
     )
-    logger.info(f"Dados de treino: {len(train_df)} amostras, {len(train_df.columns)} colunas")
+    logger.info(f"Dados temporais: {X_temporal.shape} (samples, window, features), target: {len(y_temporal)}")
 
-    if train_df.empty:
-        raise RuntimeError("Nenhum dado de treino gerado.")
+    if len(X_temporal) == 0:
+        raise RuntimeError("Nenhum dado temporal gerado.")
+
+    # Também gerar flat para combine_ensemble (precisa de X_val flat)
+    train_df = prepare_training_data(
+        series, volumes=volumes, fundamentals_dict=fundamentals_dict,
+        macro_features=macro_features, sentiment_dict=sentiment_dict,
+    )
 
     if train_local:
-        return _train_local(train_df, bucket, dt, epochs, event)
+        return _train_local(train_df, bucket, dt, epochs, event,
+                            X_temporal=X_temporal, y_temporal=y_temporal,
+                            temporal_feature_names=feature_names)
     else:
         instance_type = event.get('instance_type', 'ml.m5.xlarge')
         hyperparameters = event.get('hyperparameters', {})
@@ -348,16 +357,10 @@ def handler(event, context):
         return {"ok": True, "dt": dt, "training_job_name": job_name, "method": "sagemaker", "train_samples": len(train_df)}
 
 
-def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, event: dict) -> dict:
+def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, event: dict,
+                 X_temporal=None, y_temporal=None, temporal_feature_names=None) -> dict:
     """
-    Treina ensemble DL em etapas (1 modelo por invocação para caber no timeout de 15min).
-
-    Modos:
-    - train_model=None: treina todos sequencialmente (pode dar timeout com dados grandes)
-    - train_model="transformer_bilstm": treina só esse modelo e salva no S3
-    - train_model="residual_mlp": treina só esse modelo
-    - train_model="temporal_cnn": treina só esse modelo
-    - combine_ensemble=True: combina os 3 modelos já treinados em um ensemble
+    Treina ensemble DL em etapas com dados temporais (janelas de N dias).
     """
     import torch
     from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, EnsembleDLTrainer, MODEL_REGISTRY
@@ -367,19 +370,27 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     model_prefix = f"models/deep_learning/{dt}"
     all_models = ['transformer_bilstm', 'residual_mlp', 'temporal_cnn']
 
-    # Separar features e target
-    target_col = 'target'
-    if target_col not in train_df.columns:
-        target_col = 'target_return_20d'
-    if target_col not in train_df.columns:
-        target_candidates = [c for c in train_df.columns if c == 'target' or 'target_return' in c.lower()]
-        target_col = target_candidates[0] if target_candidates else train_df.columns[-1]
+    # Usar dados temporais se disponíveis
+    if X_temporal is not None and len(X_temporal) > 0:
+        X = X_temporal  # (n_samples, window_size, n_features)
+        y = y_temporal
+        feature_cols = temporal_feature_names or [f"f{i}" for i in range(X.shape[-1])]
+        is_temporal = True
+        logger.info(f"Usando dados temporais: {X.shape}")
+    else:
+        # Fallback para flat
+        target_col = 'target'
+        if target_col not in train_df.columns:
+            target_col = 'target_return_20d'
+        if target_col not in train_df.columns:
+            target_candidates = [c for c in train_df.columns if c == 'target' or 'target_return' in c.lower()]
+            target_col = target_candidates[0] if target_candidates else train_df.columns[-1]
+        exclude_cols = ['ticker', 'date', target_col] + [c for c in train_df.columns if 'target' in c.lower()]
+        feature_cols = [c for c in train_df.columns if c not in exclude_cols and train_df[c].dtype in ['float64', 'float32', 'int64']]
+        X = train_df[feature_cols].fillna(0).values
+        y = train_df[target_col].fillna(0).values
+        is_temporal = False
 
-    exclude_cols = ['ticker', 'date', target_col] + [c for c in train_df.columns if 'target' in c.lower()]
-    feature_cols = [c for c in train_df.columns if c not in exclude_cols and train_df[c].dtype in ['float64', 'float32', 'int64']]
-
-    X = train_df[feature_cols].fillna(0).values
-    y = train_df[target_col].fillna(0).values
     X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
     y = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0)
 
@@ -389,14 +400,18 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
         X, y = X[mask], y[mask]
         logger.info(f"Após limpeza de outliers: {len(X)} amostras (removidas {(~mask).sum()})")
 
+    # Split temporal (80/20)
     split_idx = int(len(X) * 0.8)
     X_train, X_val = X[:split_idx], X[split_idx:]
     y_train, y_val = y[:split_idx], y[split_idx:]
-    logger.info(f"Train: {len(X_train)}, Val: {len(X_val)}, Features: {len(feature_cols)}")
+    n_features = X.shape[-1]  # funciona para 2D e 3D
+    logger.info(f"Train: {len(X_train)}, Val: {len(X_val)}, Features: {n_features}, Temporal: {is_temporal}")
 
     # === MODO: Combinar modelos já treinados ===
     if combine_only:
-        return _combine_ensemble(bucket, dt, model_prefix, all_models, X_val, y_val, feature_cols)
+        # Para combine, precisa de X_val flat (2D)
+        X_val_flat = X_val.reshape(len(X_val), -1) if X_val.ndim == 3 else X_val
+        return _combine_ensemble(bucket, dt, model_prefix, all_models, X_val_flat, y_val, feature_cols)
 
     # === MODO: Treinar um modelo específico ===
     if train_model:
@@ -433,18 +448,24 @@ def _train_single_model(
     model_name: str, bucket: str, dt: str, model_prefix: str, feature_cols: list,
     X_train, y_train, X_val, y_val, epochs: int, event: dict,
 ) -> dict:
-    """Treina um único modelo DL e salva no S3."""
+    """Treina um único modelo DL e salva no S3. Suporta dados 2D e 3D (temporal)."""
     import torch
     from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, MODEL_REGISTRY
 
-    logger.info(f"Treinando modelo individual: {model_name}")
+    logger.info(f"Treinando modelo individual: {model_name} (shape={X_train.shape})")
     reg = MODEL_REGISTRY[model_name]
     model_cls = reg['class']
     kwargs = reg['default_kwargs'].copy()
 
-    trainer = DeepLearningTrainer(n_features=len(feature_cols), device='cpu')
-    trainer.model = model_cls(n_features=len(feature_cols), **kwargs).to(torch.device('cpu'))
+    n_features = X_train.shape[-1]  # última dimensão = features
+    trainer = DeepLearningTrainer(n_features=n_features, device='cpu')
+    trainer.model = model_cls(n_features=n_features, **kwargs).to(torch.device('cpu'))
     trainer.feature_names = feature_cols
+
+    # Para scaler, precisa de dados 2D
+    if X_train.ndim == 3:
+        # Fit scaler no último timestep de cada janela (mais recente)
+        trainer.scaler.fit(X_train[:, -1, :])
 
     metrics = trainer.train(
         X_train, y_train, X_val, y_val,
