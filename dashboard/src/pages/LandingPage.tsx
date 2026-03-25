@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield, BarChart3, ArrowRight, CheckCircle, Menu, X,
-  Target, Brain, TestTubes, LineChart, Lock, Crown,
-  ArrowUpRight, ArrowDownRight, Eye, Briefcase, RefreshCw, Zap,
+  Target, Brain, TestTubes, Lock, Crown,
+  ArrowUpRight, ArrowDownRight, Eye, RefreshCw, Zap,
   Rocket, Landmark,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../config';
@@ -231,9 +231,9 @@ const LandingPage: React.FC = () => {
                       {signal === 'Compra' ? <ArrowUpRight size={10} /> : signal === 'Venda' ? <ArrowDownRight size={10} /> : null}{signal}
                     </span>
                   </td>
-                  <td style={{ padding: '0.7rem 1rem', textAlign: 'right', fontWeight: 600, color: sc.text }}>{fmt(r.score)}</td>
-                  <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}>R$ {fmt(r.price)}</td>
-                  <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}><span style={{ filter: 'blur(5px)', userSelect: 'none' }}>R$ {r.pred != null ? fmt(r.pred) : '--'}</span></td>
+                  <td style={{ padding: '0.7rem 1rem', textAlign: 'right', fontWeight: 600, color: sc.text }}>{fmt(r.score, 2)}</td>
+                  <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}>R$ {fmt(r.price, 2)}</td>
+                  <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}><span style={{ filter: 'blur(5px)', userSelect: 'none' }}>R$ {r.pred != null ? fmt(r.pred, 2) : '--'}</span></td>
                   <td style={{ padding: '0.7rem 1rem', textAlign: 'right' }}><span style={{ filter: 'blur(5px)', userSelect: 'none', color: (r.ret ?? 0) >= 0 ? brand.buy : brand.sell }}>{r.ret != null ? `${r.ret >= 0 ? '+' : ''}${fmt(r.ret * 100, 1)}%` : '+--.--%'}</span></td>
                 </tr>
               );
@@ -403,40 +403,8 @@ const LandingPage: React.FC = () => {
         </RevealSection>
       </section>
 
-      {/* ─── Section 1: Recomendações + Live Data ─── */}
-      <section id="recursos" className="lp-section-recursos" style={{ background: brand.surface }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(5rem, 12vw, 8rem) clamp(1rem, 4vw, 2rem)' }}>
-          <RevealSection style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <div style={{ fontSize: '0.78rem', color: brand.accent, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Recomendações</div>
-            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '1rem' }}>
-              Sinais claros.<br />
-              <span style={{ color: brand.textDim }}>Atualizados todo dia.</span>
-            </h2>
-            <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)', color: brand.textMuted, maxWidth: 550, margin: '0 auto', lineHeight: 1.6 }}>
-              O modelo analisa cada ação e gera um score de confiança. Compra, Venda ou Neutro — sem ambiguidade.
-            </p>
-          </RevealSection>
-
-          <RevealSection delay={0.15} id="live-data">
-            {liveRecs.length > 0
-              ? renderRecsTable(liveRecs.map(r => ({ ticker: r.ticker, score: r.score, price: r.last_close, pred: r.pred_price_t_plus_20, ret: r.exp_return_20 })), true)
-              : liveDataTimedOut
-                ? renderRecsTable(fallbackRecs, false)
-                : (
-                  <div style={{ background: brand.alpha(0.03), border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, overflow: 'hidden' }}>
-                    <div style={{ textAlign: 'center', padding: '4rem', color: brand.textDim }}>
-                      <RefreshCw size={24} style={{ animation: 'lp-spin 1s linear infinite', marginBottom: '0.5rem' }} />
-                      <div>Carregando dados ao vivo...</div>
-                    </div>
-                  </div>
-                )
-            }
-          </RevealSection>
-        </div>
-      </section>
-
-      {/* ─── Section 2: Como Funciona (consolidated flow) ─── */}
-      <section style={{ background: brand.surfaceAlt, borderTop: `0.5px solid ${brand.borderSubtle}`, borderBottom: `0.5px solid ${brand.borderSubtle}` }}>
+      {/* ─── Section 1: Como Funciona (consolidated flow) ─── */}
+      <section id="recursos" style={{ background: brand.surfaceAlt, borderTop: `0.5px solid ${brand.borderSubtle}`, borderBottom: `0.5px solid ${brand.borderSubtle}` }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(5rem, 12vw, 8rem) clamp(1rem, 4vw, 2rem)' }}>
           <RevealSection style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <div style={{ fontSize: '0.78rem', color: brand.accent, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Como funciona</div>
@@ -473,7 +441,39 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ─── Section 3: Recursos do Produto (user-facing only, no admin features) ─── */}
+      {/* ─── Section 2: Recomendações + Live Data ─── */}
+      <section className="lp-section-recursos" style={{ background: brand.surface }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(5rem, 12vw, 8rem) clamp(1rem, 4vw, 2rem)' }}>
+          <RevealSection style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div style={{ fontSize: '0.78rem', color: brand.accent, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Recomendações</div>
+            <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '1rem' }}>
+              Sinais claros.<br />
+              <span style={{ color: brand.textDim }}>Atualizados todo dia.</span>
+            </h2>
+            <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)', color: brand.textMuted, maxWidth: 550, margin: '0 auto', lineHeight: 1.6 }}>
+              O modelo analisa cada ação e gera um score de confiança. Compra, Venda ou Neutro — sem ambiguidade.
+            </p>
+          </RevealSection>
+
+          <RevealSection delay={0.15} id="live-data">
+            {liveRecs.length > 0
+              ? renderRecsTable(liveRecs.map(r => ({ ticker: r.ticker, score: r.score, price: r.last_close, pred: r.pred_price_t_plus_20, ret: r.exp_return_20 })), true)
+              : liveDataTimedOut
+                ? renderRecsTable(fallbackRecs, false)
+                : (
+                  <div style={{ background: brand.alpha(0.03), border: `0.5px solid ${brand.borderSubtle}`, borderRadius: 20, overflow: 'hidden' }}>
+                    <div style={{ textAlign: 'center', padding: '4rem', color: brand.textDim }}>
+                      <RefreshCw size={24} style={{ animation: 'lp-spin 1s linear infinite', marginBottom: '0.5rem' }} />
+                      <div>Carregando dados ao vivo...</div>
+                    </div>
+                  </div>
+                )
+            }
+          </RevealSection>
+        </div>
+      </section>
+
+      {/* ─── Section 3: Recursos do Produto (condensed — 6 core features) ─── */}
       <section style={{ background: brand.surface }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(5rem, 12vw, 8rem) clamp(1rem, 4vw, 2rem)' }}>
           <RevealSection style={{ textAlign: 'center', marginBottom: '3rem' }}>
@@ -485,13 +485,10 @@ const LandingPage: React.FC = () => {
           </RevealSection>
 
           <RevealSection delay={0.1}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
               <FeatureCard icon={<BarChart3 size={24} />} title="Recomendações diárias" desc="Sinais de Compra, Venda e Neutro atualizados a cada pregão." />
-              <FeatureCard icon={<Briefcase size={24} />} title="Carteiras personalizadas" desc="Crie carteiras com suas ações favoritas e acompanhe a evolução." />
-              <FeatureCard icon={<LineChart size={24} />} title="Acompanhamento de preços" desc="Cotações, scores e sinais atualizados diariamente." />
               <FeatureCard icon={<Brain size={24} />} title="Deep learning (DeepAR)" desc="Rede neural treinada com dados reais da B3 no AWS SageMaker." />
               <FeatureCard icon={<TestTubes size={24} />} title="Backtesting completo" desc="Valide estratégias com dados históricos reais de mercado." />
-              <FeatureCard icon={<Zap size={24} />} title="Explicabilidade (SHAP)" desc="Entenda quais fatores influenciaram cada recomendação." />
               <FeatureCard icon={<Target size={24} />} title="Análise de acurácia" desc="Métricas de performance e taxa de acerto do modelo." />
               <FeatureCard icon={<Shield size={24} />} title="Análise de risco" desc="Volatilidade, drawdown e métricas de risco por ação." />
               <FeatureCard icon={<Lock size={24} />} title="Dados seguros (LGPD)" desc="Seus dados protegidos com criptografia e conformidade LGPD." />
@@ -626,8 +623,8 @@ const LandingPage: React.FC = () => {
             {trackRecord ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.25rem' }}>
                 {[
-                  { label: 'Retorno (só Compras)', value: `${trackRecord.totalReturn >= 0 ? '+' : ''}${fmt(trackRecord.totalReturn, 1)}%`, color: trackRecord.totalReturn >= 0 ? brand.buy : brand.sell },
-                  { label: 'Alpha vs Mercado', value: `${trackRecord.alpha >= 0 ? '+' : ''}${fmt(trackRecord.alpha, 1)}%`, color: trackRecord.alpha >= 0 ? brand.buy : brand.sell },
+                  { label: 'Retorno (só Compras)', value: `${trackRecord.totalReturn >= 0 ? '+' : ''}${fmt(trackRecord.totalReturn, 2)}%`, color: trackRecord.totalReturn >= 0 ? brand.buy : brand.sell },
+                  { label: 'Alpha vs Mercado', value: `${trackRecord.alpha >= 0 ? '+' : ''}${fmt(trackRecord.alpha, 2)}%`, color: trackRecord.alpha >= 0 ? brand.buy : brand.sell },
                   { label: 'Win Rate (Compras)', value: `${fmt(trackRecord.winRate, 0)}%`, color: brand.accent },
                   { label: 'Sinais de Compra', value: `${trackRecord.totalSignals}`, color: brand.text },
                   { label: 'Dias Analisados', value: `${trackRecord.days}`, color: brand.textMuted },

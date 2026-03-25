@@ -73,9 +73,10 @@ const DashboardLayout: React.FC = () => {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (e.key === '1') navigate('/dashboard');
       else if (e.key === '2') navigate('/dashboard/recommendations');
-      else if (e.key === '3') navigate('/dashboard/explainability');
-      else if (e.key === '4') navigate('/dashboard/backtesting');
-      else if (e.key === '5') navigate('/dashboard/performance');
+      else if (e.key === '3') navigate('/dashboard/performance');
+      else if (e.key === '4') navigate('/dashboard/carteiras');
+      else if (e.key === '5') navigate('/dashboard/explainability');
+      else if (e.key === '6') navigate('/dashboard/backtesting');
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         const searchInput = document.querySelector('[data-tour="search-bar"] input') as HTMLInputElement;
@@ -87,13 +88,14 @@ const DashboardLayout: React.FC = () => {
   }, [navigate]);
 
   /* ── Navigation items ── */
+  // Order: core value first (recs → performance → carteiras), then analysis tools
   const userMenuItems = [
     { path: '/dashboard', label: 'Meu Dashboard', icon: <TrendingUp size={18} />, tourId: 'nav-mydashboard', pro: false },
     { path: '/dashboard/recommendations', label: 'Recomendações', icon: <BarChart3 size={18} />, tourId: 'nav-recommendations', pro: false },
-    { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} />, tourId: 'nav-explainability', pro: false },
-    { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} />, tourId: 'nav-backtesting', pro: false },
     { path: '/dashboard/performance', label: 'Performance', icon: <LineChart size={18} />, tourId: 'nav-performance', pro: false },
     { path: '/dashboard/carteiras', label: 'Carteiras', icon: <Briefcase size={18} />, tourId: 'nav-carteiras', pro: false },
+    { path: '/dashboard/explainability', label: 'Explicabilidade', icon: <Brain size={18} />, tourId: 'nav-explainability', pro: false },
+    { path: '/dashboard/backtesting', label: 'Backtesting', icon: <TestTubes size={18} />, tourId: 'nav-backtesting', pro: false },
   ];
 
   const adminModelItems = [
@@ -183,12 +185,11 @@ const DashboardLayout: React.FC = () => {
         {sectionLabel('Principal')}
         {userMenuItems.map(renderNavButton)}
 
-        {/* Investor Deck */}
+        {/* Suporte & Extras */}
         <div style={{ padding: '0.75rem 0.5rem 0.5rem', marginTop: '0.5rem', borderTop: `1px solid ${theme.border}` }}>
-          <span style={{ fontSize: '0.65rem', fontWeight: 600, color: theme.accentColor, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Landmark size={10} color={theme.accentColor} /> Investor
-          </span>
+          {sectionLabel('Extras')}
         </div>
+        {renderNavButton({ path: '/dashboard/support', label: 'Suporte', icon: <MessageCircle size={18} /> })}
         {renderNavButton({ path: '/dashboard/investor', label: 'Investor Deck', icon: <Landmark size={18} /> })}
 
         {/* Admin sections */}
@@ -511,7 +512,7 @@ const DashboardLayout: React.FC = () => {
           {[
             { path: '/dashboard', icon: <TrendingUp size={20} />, label: 'Home' },
             { path: '/dashboard/recommendations', icon: <BarChart3 size={20} />, label: 'Recs' },
-            { path: '/dashboard/backtesting', icon: <TestTubes size={20} />, label: 'Backtest' },
+            { path: '/dashboard/performance', icon: <LineChart size={20} />, label: 'Perf' },
             { path: '/dashboard/carteiras', icon: <Briefcase size={20} />, label: 'Carteiras' },
           ].map(tab => (
             <button key={tab.path} onClick={() => navigate(tab.path)} style={{
