@@ -164,7 +164,8 @@ class DeepLearningTrainer:
         self.device = torch.device(device)
         self.n_features = n_features
         self.model = TransformerBiLSTMModel(n_features=n_features, **model_kwargs).to(self.device)
-        self.scaler = StandardScaler()
+        self.scaler = StandardScaler()       # normaliza features X
+        self.target_scaler = StandardScaler()  # normaliza target y
         self.feature_names: list[str] = []
         self.metrics: dict = {}
 
@@ -174,7 +175,13 @@ class DeepLearningTrainer:
         X_scaled = np.nan_to_num(X_scaled, nan=0.0, posinf=0.0, neginf=0.0)
         X_t = torch.FloatTensor(X_scaled).to(self.device)
         if y is not None:
-            y_t = torch.FloatTensor(y).unsqueeze(1).to(self.device)
+            # Normalizar target também
+            y_clean = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0)
+            if hasattr(self.target_scaler, 'mean_'):
+                y_scaled = self.target_scaler.transform(y_clean.reshape(-1, 1)).flatten()
+            else:
+                y_scaled = self.target_scaler.fit_transform(y_clean.reshape(-1, 1)).flatten()
+            y_t = torch.FloatTensor(y_scaled).unsqueeze(1).to(self.device)
             return X_t, y_t
         return X_t
 
@@ -189,8 +196,9 @@ class DeepLearningTrainer:
         lr: float = 1e-3,
         patience: int = 15,
     ) -> dict:
-        """Treina o modelo com early stopping."""
+        """Treina o modelo com early stopping. Normaliza X e y."""
         self.scaler.fit(X_train)
+        self.target_scaler.fit(y_train.reshape(-1, 1))
         X_t, y_t = self._prepare_tensors(X_train, y_train)
 
         dataset = TensorDataset(X_t, y_t)
@@ -273,10 +281,8 @@ class DeepLearningTrainer:
             return criterion(pred, y_t).item()
 
     def _compute_metrics(self, X: np.ndarray, y: np.ndarray) -> dict:
-        self.model.eval()
-        with torch.no_grad():
-            X_t = self._prepare_tensors(X)
-            preds = self.model(X_t).cpu().numpy().flatten()
+        """Calcula métricas na escala original (desnormalizada)."""
+        preds = self.predict(X)  # já desnormalizado
 
         residuals = y - preds
         rmse = float(np.sqrt(np.mean(residuals ** 2)))
@@ -293,10 +299,15 @@ class DeepLearningTrainer:
         }
 
     def predict(self, X: np.ndarray) -> np.ndarray:
+        """Predição com desnormalização do target."""
         self.model.eval()
         with torch.no_grad():
             X_t = self._prepare_tensors(X)
-            return self.model(X_t).cpu().numpy().flatten()
+            y_scaled = self.model(X_t).cpu().numpy().flatten()
+        # Desnormalizar: voltar para escala original do target (retorno percentual)
+        if hasattr(self.target_scaler, 'mean_'):
+            return self.target_scaler.inverse_transform(y_scaled.reshape(-1, 1)).flatten()
+        return y_scaled
 
     def save(self, path: str):
         """Salva modelo, scaler e metadados."""
@@ -328,6 +339,8 @@ class DeepLearningTrainer:
             json.dump(model_config, f)
         with open(os.path.join(path, 'scaler.pkl'), 'wb') as f:
             pickle.dump(self.scaler, f)
+        with open(os.path.join(path, 'target_scaler.pkl'), 'wb') as f:
+            pickle.dump(self.target_scaler, f)
         if self.feature_names:
             with open(os.path.join(path, 'selected_features.json'), 'w') as f:
                 json.dump(self.feature_names, f)
@@ -382,6 +395,11 @@ class DeepLearningTrainer:
 
         with open(os.path.join(path, 'scaler.pkl'), 'rb') as f:
             trainer.scaler = pickle.load(f)
+
+        target_scaler_path = os.path.join(path, 'target_scaler.pkl')
+        if os.path.exists(target_scaler_path):
+            with open(target_scaler_path, 'rb') as f:
+                trainer.target_scaler = pickle.load(f)
 
         features_path = os.path.join(path, 'selected_features.json')
         if os.path.exists(features_path):

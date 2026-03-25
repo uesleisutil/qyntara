@@ -371,6 +371,9 @@ def generate_ranking(
 ) -> list[dict]:
     """Gera ranking final."""
     features_df = features_df.copy()
+    
+    # Clipar predições para range razoável (safety net — retornos de 20 dias raramente excedem ±30%)
+    predictions = np.clip(predictions, -0.3, 0.3)
     features_df['predicted_return'] = predictions
     
     # Score ajustado por risco (usar volatility_20d se vol_20d não existir)

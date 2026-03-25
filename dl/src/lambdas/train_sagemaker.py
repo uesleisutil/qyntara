@@ -368,9 +368,11 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     all_models = ['transformer_bilstm', 'residual_mlp', 'temporal_cnn']
 
     # Separar features e target
-    target_col = 'target_return_20d'
+    target_col = 'target'
     if target_col not in train_df.columns:
-        target_candidates = [c for c in train_df.columns if 'target' in c.lower() or 'return' in c.lower()]
+        target_col = 'target_return_20d'
+    if target_col not in train_df.columns:
+        target_candidates = [c for c in train_df.columns if c == 'target' or 'target_return' in c.lower()]
         target_col = target_candidates[0] if target_candidates else train_df.columns[-1]
 
     exclude_cols = ['ticker', 'date', target_col] + [c for c in train_df.columns if 'target' in c.lower()]
