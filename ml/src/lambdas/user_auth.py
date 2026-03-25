@@ -412,6 +412,11 @@ ALLOWED_ORIGINS = os.environ.get(
 
 
 def _cors_response(status: int, body: dict) -> dict:
+    def _default(o):
+        if isinstance(o, Decimal):
+            return int(o) if o == int(o) else float(o)
+        raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+
     return {
         "statusCode": status,
         "headers": {
@@ -426,7 +431,7 @@ def _cors_response(status: int, body: dict) -> dict:
             "X-Frame-Options": "DENY",
             "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
         },
-        "body": json.dumps(body),
+        "body": json.dumps(body, default=_default),
     }
 
 
@@ -615,6 +620,7 @@ def _handle_register(event: dict) -> dict:
     email = _normalize_email(body.get("email", ""))
     password = body.get("password", "")
     name = _sanitize_string(body.get("name", ""), NAME_MAX_LENGTH)
+    referral_code = _sanitize_string(body.get("referralCode", ""), 20).upper()
 
     if not email:
         return _cors_response(400, {"message": "Email inválido"})
@@ -643,22 +649,59 @@ def _handle_register(event: dict) -> dict:
     now = datetime.now(UTC).isoformat()
 
     try:
+        new_item = {
+            "email": email,
+            "userId": user_id,
+            "name": name,
+            "passwordHash": _hash_password(password),
+            "role": role,
+            "plan": "free",
+            "createdAt": now,
+            "updatedAt": now,
+            "enabled": True,
+            "emailVerified": False,
+            "failedAttempts": 0,
+        }
+        # Track referral
+        referrer_email = ""
+        if referral_code:
+            try:
+                scan = table.scan(
+                    FilterExpression="referralCode = :c",
+                    ExpressionAttributeValues={":c": referral_code},
+                    ProjectionExpression="email",
+                    Limit=1,
+                )
+                referrer_items = scan.get("Items", [])
+                if referrer_items:
+                    referrer_email = referrer_items[0]["email"]
+                    new_item["referredBy"] = referrer_email
+            except Exception:
+                pass
+
         table.put_item(
-            Item={
-                "email": email,
-                "userId": user_id,
-                "name": name,
-                "passwordHash": _hash_password(password),
-                "role": role,
-                "plan": "free",
-                "createdAt": now,
-                "updatedAt": now,
-                "enabled": True,
-                "emailVerified": False,
-                "failedAttempts": 0,
-            },
-            ConditionExpression="attribute_not_exists(email)",  # Prevent race condition
+            Item=new_item,
+            ConditionExpression="attribute_not_exists(email)",
         )
+
+        # Add to referrer's referrals list
+        if referrer_email:
+            try:
+                referrer = table.get_item(Key={"email": referrer_email}).get("Item", {})
+                referrals = referrer.get("referrals", [])
+                referrals.append({
+                    "name": name,
+                    "email": email,
+                    "status": "pending",
+                    "createdAt": now,
+                })
+                table.update_item(
+                    Key={"email": referrer_email},
+                    UpdateExpression="SET referrals = :r, updatedAt = :now",
+                    ExpressionAttributeValues={":r": referrals, ":now": now},
+                )
+            except Exception:
+                pass
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
             return _cors_response(409, {"message": "Não foi possível criar a conta. Tente outro email."})
@@ -801,6 +844,78 @@ def _handle_login(event: dict) -> dict:
     })
 
 
+def _process_referral_rewards(table, email: str, item: dict) -> None:
+    """Check if any referrals from this user's referrer should be qualified (7+ days as pro)."""
+    try:
+        now = datetime.now(UTC)
+        # Check if THIS user was referred and has been pro for 7+ days
+        referred_by = item.get("referredBy", "")
+        referral_qualified = item.get("referralQualified", False)
+        if referred_by and not referral_qualified and item.get("plan") == "pro":
+            # Check when they became pro
+            plan_start = item.get("planStartedAt", "")
+            if plan_start:
+                try:
+                    start_dt = datetime.fromisoformat(plan_start.replace("Z", "+00:00"))
+                    if (now - start_dt).days >= 7:
+                        # Qualify this referral — grant 1 month pro to referrer
+                        now_iso = now.isoformat()
+                        # Mark this user as qualified
+                        table.update_item(
+                            Key={"email": email},
+                            UpdateExpression="SET referralQualified = :t, updatedAt = :now",
+                            ExpressionAttributeValues={":t": True, ":now": now_iso},
+                        )
+                        # Grant 1 month pro to referrer
+                        referrer = table.get_item(Key={"email": referred_by}).get("Item", {})
+                        if referrer:
+                            ref_plan = referrer.get("plan", "free")
+                            ref_expires = referrer.get("planExpiresAt", "")
+                            if ref_plan == "pro" and ref_expires:
+                                try:
+                                    base = datetime.fromisoformat(ref_expires.replace("Z", "+00:00"))
+                                except Exception:
+                                    base = now
+                            else:
+                                base = now
+                            new_expires = (base + timedelta(days=30)).isoformat()
+                            table.update_item(
+                                Key={"email": referred_by},
+                                UpdateExpression="SET #p = :pro, planExpiresAt = :exp, updatedAt = :now",
+                                ExpressionAttributeNames={"#p": "plan"},
+                                ExpressionAttributeValues={":pro": "pro", ":exp": new_expires, ":now": now_iso},
+                            )
+                            # Also grant 1 month to the referred user
+                            user_expires = item.get("planExpiresAt", "")
+                            try:
+                                user_base = datetime.fromisoformat(user_expires.replace("Z", "+00:00"))
+                            except Exception:
+                                user_base = now
+                            user_new_expires = (user_base + timedelta(days=30)).isoformat()
+                            table.update_item(
+                                Key={"email": email},
+                                UpdateExpression="SET planExpiresAt = :exp, updatedAt = :now",
+                                ExpressionAttributeValues={":exp": user_new_expires, ":now": now_iso},
+                            )
+                            # Update referrer's referrals list
+                            referrals = referrer.get("referrals", [])
+                            for r in referrals:
+                                if r.get("email") == email:
+                                    r["status"] = "qualified"
+                                    r["qualifiedAt"] = now_iso
+                            if referrals:
+                                table.update_item(
+                                    Key={"email": referred_by},
+                                    UpdateExpression="SET referrals = :r",
+                                    ExpressionAttributeValues={":r": referrals},
+                                )
+                            logger.info(f"Referral reward granted: {referred_by} <- {email}")
+                except Exception:
+                    pass
+    except Exception as e:
+        logger.error(f"Error processing referral rewards for {email}: {e}")
+
+
 def _handle_me(event: dict) -> dict:
     """Get current user info from JWT."""
     headers = event.get("headers", {}) or {}
@@ -842,6 +957,9 @@ def _handle_me(event: dict) -> dict:
                     logger.info(f"Auto-downgraded expired plan for {email}")
             except Exception:
                 pass
+
+        # Auto-process referral rewards: qualify referrals after 7 days
+        _process_referral_rewards(table, email, item)
 
         return _cors_response(200, {
             "userId": item.get("userId", payload.get("sub")),
@@ -1694,7 +1812,7 @@ def _handle_stripe_webhook(event: dict) -> dict:
                 now = datetime.now(UTC).isoformat()
                 table.update_item(
                     Key={"email": email},
-                    UpdateExpression="SET #p = :pro, stripeSubscriptionId = :sid, stripeCustomerId = :cid, upgradedAt = :now, updatedAt = :now",
+                    UpdateExpression="SET #p = :pro, stripeSubscriptionId = :sid, stripeCustomerId = :cid, upgradedAt = :now, updatedAt = :now, planStartedAt = :now",
                     ExpressionAttributeNames={"#p": "plan"},
                     ExpressionAttributeValues={
                         ":pro": "pro",
@@ -1705,6 +1823,25 @@ def _handle_stripe_webhook(event: dict) -> dict:
                 )
                 logger.info(f"User upgraded to Pro: {email}")
                 _log_auth(email, "upgrade_pro", True, "stripe", "webhook")
+
+                # Update referral status to "paid" if this user was referred
+                try:
+                    user_item = table.get_item(Key={"email": email}).get("Item", {})
+                    referred_by = user_item.get("referredBy", "")
+                    if referred_by:
+                        referrer = table.get_item(Key={"email": referred_by}).get("Item", {})
+                        referrals = referrer.get("referrals", [])
+                        for r in referrals:
+                            if r.get("email") == email and r.get("status") == "pending":
+                                r["status"] = "paid"
+                                r["paidAt"] = now
+                        table.update_item(
+                            Key={"email": referred_by},
+                            UpdateExpression="SET referrals = :r",
+                            ExpressionAttributeValues={":r": referrals},
+                        )
+                except Exception:
+                    pass
 
                 # Send confirmation email
                 _send_upgrade_email(email)
@@ -3001,7 +3138,7 @@ def _handle_user_data(event: dict) -> dict:
             for i, e in enumerate(entries):
                 leaderboard.append({
                     "rank": i + 1,
-                    "name": e["name"],
+                    "name": (e["name"] or "Anônimo").split()[0],
                     "return": e["return"],
                     "isCurrentUser": e["email"] == email,
                 })
