@@ -18,6 +18,11 @@ const TYPE_LABELS: Record<string, { label: string; color: string; icon: string }
   auto_recommendations: { label: 'Recomendações Prontas', color: '#f59e0b', icon: '📊' },
   auto_strong_signals: { label: 'Sinais Fortes', color: '#ef4444', icon: '🔔' },
   auto_history: { label: 'Histórico Atualizado', color: '#3b82f6', icon: '📈' },
+  auto_signal_change: { label: 'Mudança de Sinal', color: '#8b5cf6', icon: '🔄' },
+  auto_drift: { label: 'Data Drift', color: '#f97316', icon: '📉' },
+  auto_anomaly: { label: 'Anomalia de Dados', color: '#ec4899', icon: '⚠️' },
+  auto_cost_alert: { label: 'Alerta de Custo', color: '#eab308', icon: '💰' },
+  auto_degradation: { label: 'Degradação do Modelo', color: '#dc2626', icon: '🔻' },
 };
 
 const TARGET_LABELS: Record<string, string> = { all: 'Todos', free: 'Free', pro: 'Pro' };
@@ -246,6 +251,11 @@ const AdminNotificationsPage: React.FC = () => {
                 <option value="auto_recommendations">📊 Auto: Recomendações Prontas</option>
                 <option value="auto_strong_signals">🔔 Auto: Sinais Fortes</option>
                 <option value="auto_history">📈 Auto: Histórico Atualizado</option>
+                <option value="auto_signal_change">🔄 Auto: Mudança de Sinal</option>
+                <option value="auto_drift">📉 Auto: Data Drift</option>
+                <option value="auto_anomaly">⚠️ Auto: Anomalia de Dados</option>
+                <option value="auto_cost_alert">💰 Auto: Alerta de Custo</option>
+                <option value="auto_degradation">🔻 Auto: Degradação do Modelo</option>
               </select>
             </div>
             <div>

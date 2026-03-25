@@ -208,8 +208,7 @@ class DeepLearningTrainer:
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer, max_lr=lr, epochs=epochs, steps_per_epoch=len(loader),
         )
-        # Combinação de HuberLoss (robusta a outliers) + penalidade direcional
-        huber = nn.HuberLoss(delta=0.02)
+        huber = nn.HuberLoss(delta=0.5)
 
         best_val_loss = float('inf')
         best_state = None
@@ -223,10 +222,23 @@ class DeepLearningTrainer:
             for xb, yb in loader:
                 optimizer.zero_grad()
                 pred = self.model(xb)
-                # Loss = Huber + penalidade por errar a direção
-                loss_huber = huber(pred, yb)
-                dir_penalty = torch.mean(torch.clamp(-pred * yb, min=0)) * 0.5
-                loss = loss_huber + dir_penalty
+
+                # Loss 1: Huber para magnitude (no espaço normalizado)
+                loss_magnitude = huber(pred, yb)
+
+                # Loss 2: Penalidade direcional forte
+                # Quando pred e yb têm sinais opostos, penaliza proporcionalmente
+                sign_match = (pred * yb)  # positivo = mesma direção, negativo = direção errada
+                dir_penalty = torch.mean(torch.clamp(-sign_match, min=0))
+
+                # Loss 3: Classificação binária da direção (BCE)
+                pred_prob = torch.sigmoid(pred * 5)  # amplifica sinal para sigmoid
+                target_dir = (yb > 0).float()
+                dir_bce = nn.functional.binary_cross_entropy(pred_prob, target_dir)
+
+                # Combinação: 30% magnitude + 30% penalidade direcional + 40% BCE direcional
+                loss = 0.3 * loss_magnitude + 0.3 * dir_penalty + 0.4 * dir_bce
+
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 optimizer.step()
@@ -242,7 +254,11 @@ class DeepLearningTrainer:
                 with torch.no_grad():
                     X_vt, y_vt = self._prepare_tensors(X_val, y_val)
                     vpred = self.model(X_vt)
-                    val_loss = huber(vpred, y_vt).item()
+                    # Usar acurácia direcional como critério de early stopping (não loss)
+                    # Desnormalizar para calcular direção correta
+                    vpred_orig = self.target_scaler.inverse_transform(vpred.cpu().numpy().reshape(-1, 1)).flatten()
+                    val_dir_acc = float(np.mean(np.sign(vpred_orig) == np.sign(y_val)))
+                    val_loss = 1.0 - val_dir_acc  # menor = melhor
                 history['val_loss'].append(val_loss)
 
                 if val_loss < best_val_loss:
