@@ -186,19 +186,8 @@ class DeepLearningTrainer:
 
     def _prepare_tensors(self, X: np.ndarray, y: np.ndarray = None):
         X_clean = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
-        
-        if X_clean.ndim == 3:
-            # Temporal: (batch, window, features) — normalizar cada timestep
-            batch, window, feat = X_clean.shape
-            X_flat = X_clean.reshape(-1, feat)
-            X_scaled = self.scaler.transform(X_flat) if hasattr(self.scaler, 'mean_') else self.scaler.fit_transform(X_flat)
-            X_scaled = np.nan_to_num(X_scaled, nan=0.0, posinf=0.0, neginf=0.0)
-            X_scaled = X_scaled.reshape(batch, window, feat)
-        else:
-            # Flat: (batch, features)
-            X_scaled = self.scaler.transform(X_clean) if hasattr(self.scaler, 'mean_') else self.scaler.fit_transform(X_clean)
-            X_scaled = np.nan_to_num(X_scaled, nan=0.0, posinf=0.0, neginf=0.0)
-        
+        X_scaled = self.scaler.transform(X_clean) if hasattr(self.scaler, 'mean_') else self.scaler.fit_transform(X_clean)
+        X_scaled = np.nan_to_num(X_scaled, nan=0.0, posinf=0.0, neginf=0.0)
         X_t = torch.FloatTensor(X_scaled).to(self.device)
         if y is not None:
             y_clean = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32)
@@ -218,11 +207,7 @@ class DeepLearningTrainer:
         patience: int = 15,
     ) -> dict:
         """Treina o modelo com early stopping. Normaliza apenas X (não y)."""
-        # Fit scaler — para dados 3D, usa último timestep
-        if X_train.ndim == 3:
-            self.scaler.fit(X_train.reshape(-1, X_train.shape[-1]))
-        else:
-            self.scaler.fit(X_train)
+        self.scaler.fit(X_train)
         X_t, y_t = self._prepare_tensors(X_train, y_train)
 
         dataset = TensorDataset(X_t, y_t)
