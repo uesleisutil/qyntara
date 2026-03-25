@@ -218,7 +218,7 @@ const faqData: FAQEntry[] = [
   {
     id: 'tech-4',
     question: 'What AWS services power the dashboard?',
-    answer: 'The infrastructure uses Lambda for compute, S3 for storage, API Gateway for endpoints, ElastiCache for caching, DynamoDB for user data, and CloudWatch for monitoring.',
+    answer: 'The infrastructure uses Lambda for compute, S3 for storage, API Gateway for endpoints, CloudFront for caching, DynamoDB for user data, and CloudWatch for monitoring.',
     category: 'technical',
     relatedDocs: ['Architecture Overview'],
     helpfulCount: 34,

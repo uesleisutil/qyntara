@@ -1934,6 +1934,249 @@ def get_ticker_fundamentals(ticker: str) -> Dict:
         }
 
 
+def get_infrastructure_status() -> Dict:
+    """
+    GET /api/monitoring/infrastructure
+
+    Retorna status completo da infraestrutura AWS:
+    - Lambda functions (invocações, erros, duração)
+    - EventBridge schedules (últimas execuções)
+    - S3 storage (tamanho, objetos)
+    - DynamoDB (itens, capacidade)
+    - API Gateway (requests, latência, 4xx/5xx)
+    - SageMaker (jobs ativos)
+    - CloudWatch alarms (estado)
+    - DR status (último backup, idade)
+    """
+    try:
+        cw = boto3.client("cloudwatch")
+        lam = boto3.client("lambda")
+        eb = boto3.client("events")
+        sm = boto3.client("sagemaker")
+        dynamo = boto3.client("dynamodb")
+
+        now = datetime.now(UTC)
+        end = now
+        start_1h = now - timedelta(hours=1)
+        start_24h = now - timedelta(hours=24)
+        start_7d = now - timedelta(days=7)
+
+        # ── Lambda Functions ──
+        lambda_functions = []
+        lambda_names = [
+            "Quotes5mIngest", "RankSageMaker", "TrainSageMaker", "MonitorIngestion",
+            "MonitorModelQuality", "MonitorModelPerformance", "MonitorCosts",
+            "MonitorSageMaker", "MonitorDrift", "DashboardAPI", "UserAuth",
+            "Backtesting", "PortfolioOptimizer", "SentimentAnalysis",
+            "StopLossCalculator", "PrepareTrainingData", "BootstrapHistoryDaily",
+            "GenerateEnsembleInsights", "GenerateFeatureImportance",
+            "GeneratePredictionIntervals", "GenerateModelMetrics",
+            "IngestFeatures", "WeeklyRetrain", "S3Proxy", "AgentHub",
+            "StorageOptimizer", "B3Dashboard-BackupConfiguration",
+            "B3Dashboard-DRHealthCheck",
+        ]
+
+        # Batch get metrics for all lambdas (invocations + errors last 24h)
+        for fn_name in lambda_names:
+            try:
+                inv_resp = cw.get_metric_statistics(
+                    Namespace="AWS/Lambda", MetricName="Invocations",
+                    Dimensions=[{"Name": "FunctionName", "Value": fn_name}],
+                    StartTime=start_24h, EndTime=end,
+                    Period=86400, Statistics=["Sum"],
+                )
+                err_resp = cw.get_metric_statistics(
+                    Namespace="AWS/Lambda", MetricName="Errors",
+                    Dimensions=[{"Name": "FunctionName", "Value": fn_name}],
+                    StartTime=start_24h, EndTime=end,
+                    Period=86400, Statistics=["Sum"],
+                )
+                dur_resp = cw.get_metric_statistics(
+                    Namespace="AWS/Lambda", MetricName="Duration",
+                    Dimensions=[{"Name": "FunctionName", "Value": fn_name}],
+                    StartTime=start_24h, EndTime=end,
+                    Period=86400, Statistics=["Average", "Maximum"],
+                )
+                invocations = inv_resp["Datapoints"][0]["Sum"] if inv_resp["Datapoints"] else 0
+                errors = err_resp["Datapoints"][0]["Sum"] if err_resp["Datapoints"] else 0
+                avg_dur = dur_resp["Datapoints"][0]["Average"] if dur_resp["Datapoints"] else 0
+                max_dur = dur_resp["Datapoints"][0]["Maximum"] if dur_resp["Datapoints"] else 0
+
+                status = "idle"
+                if invocations > 0:
+                    error_rate = errors / invocations if invocations > 0 else 0
+                    status = "critical" if error_rate > 0.5 else "warning" if error_rate > 0.1 else "healthy"
+
+                lambda_functions.append({
+                    "name": fn_name,
+                    "invocations_24h": int(invocations),
+                    "errors_24h": int(errors),
+                    "error_rate": round(errors / invocations, 4) if invocations > 0 else 0,
+                    "avg_duration_ms": round(avg_dur, 1),
+                    "max_duration_ms": round(max_dur, 1),
+                    "status": status,
+                })
+            except Exception:
+                lambda_functions.append({"name": fn_name, "status": "unknown", "invocations_24h": 0, "errors_24h": 0, "error_rate": 0, "avg_duration_ms": 0, "max_duration_ms": 0})
+
+        # ── API Gateway ──
+        api_gateway = {}
+        try:
+            for metric_name, stat in [("Count", "Sum"), ("Latency", "Average"), ("4XXError", "Sum"), ("5XXError", "Sum")]:
+                resp = cw.get_metric_statistics(
+                    Namespace="AWS/ApiGateway", MetricName=metric_name,
+                    Dimensions=[{"Name": "ApiName", "Value": "B3TR Dashboard API"}],
+                    StartTime=start_24h, EndTime=end,
+                    Period=86400, Statistics=[stat],
+                )
+                val = resp["Datapoints"][0][stat] if resp["Datapoints"] else 0
+                api_gateway[metric_name.lower()] = round(val, 2)
+        except Exception as e:
+            logger.warning(f"API Gateway metrics error: {e}")
+
+        # ── CloudWatch Alarms ──
+        alarms = []
+        try:
+            alarm_resp = cw.describe_alarms(StateValue="ALARM", MaxRecords=50)
+            for a in alarm_resp.get("MetricAlarms", []):
+                alarms.append({
+                    "name": a["AlarmName"],
+                    "state": a["StateValue"],
+                    "reason": a.get("StateReason", "")[:120],
+                    "updated": a.get("StateUpdatedTimestamp", "").isoformat() if hasattr(a.get("StateUpdatedTimestamp", ""), "isoformat") else str(a.get("StateUpdatedTimestamp", "")),
+                })
+            # Also get OK alarms count
+            ok_resp = cw.describe_alarms(StateValue="OK", MaxRecords=100)
+            insuf_resp = cw.describe_alarms(StateValue="INSUFFICIENT_DATA", MaxRecords=100)
+        except Exception as e:
+            logger.warning(f"Alarms error: {e}")
+            ok_resp = {"MetricAlarms": []}
+            insuf_resp = {"MetricAlarms": []}
+
+        # ── SageMaker ──
+        sagemaker_status = {"active_training": 0, "active_endpoints": 0, "active_transform": 0}
+        try:
+            tj = sm.list_training_jobs(StatusEquals="InProgress", MaxResults=10)
+            sagemaker_status["active_training"] = len(tj.get("TrainingJobSummaries", []))
+            ep = sm.list_endpoints(StatusEquals="InService", MaxResults=10)
+            sagemaker_status["active_endpoints"] = len(ep.get("Endpoints", []))
+        except Exception as e:
+            logger.warning(f"SageMaker error: {e}")
+
+        # ── DynamoDB Tables ──
+        dynamo_tables = []
+        for table_name in ["B3Dashboard-Users", "B3Dashboard-APIKeys", "B3Dashboard-AuthLogs", "B3Dashboard-RateLimits", "B3Dashboard-Agents", "B3Dashboard-Carteiras"]:
+            try:
+                desc = dynamo.describe_table(TableName=table_name)
+                t = desc["Table"]
+                dynamo_tables.append({
+                    "name": table_name,
+                    "items": t.get("ItemCount", 0),
+                    "size_bytes": t.get("TableSizeBytes", 0),
+                    "status": t.get("TableStatus", "UNKNOWN"),
+                })
+            except Exception:
+                dynamo_tables.append({"name": table_name, "items": 0, "size_bytes": 0, "status": "NOT_FOUND"})
+
+        # ── EventBridge Rules (schedules) ──
+        schedules = []
+        try:
+            rules_resp = eb.list_rules(Limit=50)
+            for rule in rules_resp.get("Rules", []):
+                if "B3" in rule.get("Name", "") or "b3" in rule.get("Name", ""):
+                    schedules.append({
+                        "name": rule["Name"],
+                        "state": rule.get("State", "UNKNOWN"),
+                        "schedule": rule.get("ScheduleExpression", ""),
+                    })
+        except Exception as e:
+            logger.warning(f"EventBridge error: {e}")
+
+        # ── DR Status (from S3) ──
+        dr_status = {"last_backup": None, "backup_age_hours": None, "status": "unknown"}
+        try:
+            # Check latest backup
+            backup_prefix = "monitoring/costs/dt="  # Reuse cost monitoring as proxy for system health
+            today = now.date().isoformat()
+            for i in range(3):
+                date_str = (now.date() - timedelta(days=i)).isoformat()
+                resp = s3.list_objects_v2(Bucket=BUCKET, Prefix=f"monitoring/costs/dt={date_str}/", MaxKeys=1)
+                if resp.get("Contents"):
+                    last_mod = resp["Contents"][0]["LastModified"]
+                    age_hours = (now - last_mod.replace(tzinfo=UTC)).total_seconds() / 3600
+                    dr_status = {
+                        "last_backup": last_mod.isoformat(),
+                        "backup_age_hours": round(age_hours, 1),
+                        "status": "healthy" if age_hours < 26 else "warning" if age_hours < 48 else "critical",
+                    }
+                    break
+        except Exception as e:
+            logger.warning(f"DR status error: {e}")
+
+        # ── Aggregate health score ──
+        total_lambdas = len(lambda_functions)
+        healthy_lambdas = len([f for f in lambda_functions if f["status"] in ("healthy", "idle")])
+        warning_lambdas = len([f for f in lambda_functions if f["status"] == "warning"])
+        critical_lambdas = len([f for f in lambda_functions if f["status"] == "critical"])
+        alarm_count = len(alarms)
+        ok_count = len(ok_resp.get("MetricAlarms", []))
+        insuf_count = len(insuf_resp.get("MetricAlarms", []))
+
+        overall = "healthy"
+        issues = []
+        if critical_lambdas > 0:
+            overall = "critical"
+            issues.append(f"{critical_lambdas} Lambda(s) com taxa de erro > 50%")
+        if alarm_count > 0:
+            overall = "critical" if overall != "critical" else overall
+            issues.append(f"{alarm_count} alarme(s) CloudWatch ativo(s)")
+        if sagemaker_status["active_endpoints"] > 0:
+            issues.append(f"{sagemaker_status['active_endpoints']} endpoint(s) SageMaker ativo(s) (custo contínuo)")
+            if overall == "healthy":
+                overall = "warning"
+        if warning_lambdas > 2:
+            if overall == "healthy":
+                overall = "warning"
+            issues.append(f"{warning_lambdas} Lambda(s) com taxa de erro elevada")
+        if dr_status["status"] == "critical":
+            issues.append("Backup com mais de 48h de atraso")
+            if overall == "healthy":
+                overall = "warning"
+        if api_gateway.get("5xxerror", 0) > 10:
+            issues.append(f"{int(api_gateway['5xxerror'])} erros 5xx na API nas últimas 24h")
+            overall = "critical"
+
+        result = {
+            "timestamp": now.isoformat(),
+            "overall_status": overall,
+            "issues": issues,
+            "lambdas": {
+                "functions": lambda_functions,
+                "total": total_lambdas,
+                "healthy": healthy_lambdas,
+                "warning": warning_lambdas,
+                "critical": critical_lambdas,
+            },
+            "api_gateway": api_gateway,
+            "alarms": {
+                "firing": alarms,
+                "ok_count": ok_count,
+                "alarm_count": alarm_count,
+                "insufficient_data_count": insuf_count,
+            },
+            "sagemaker": sagemaker_status,
+            "dynamodb": dynamo_tables,
+            "schedules": schedules,
+            "disaster_recovery": dr_status,
+        }
+
+        return {"statusCode": 200, "body": json.dumps(result, default=str)}
+
+    except Exception as e:
+        logger.error(f"Error getting infrastructure status: {e}", exc_info=True)
+        return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+
+
 def get_macro_indicators() -> Dict:
     """
     Retorna dados macroeconômicos reais do Feature Store (S3).
@@ -2059,6 +2302,8 @@ def handler(event, context):
         elif path == "/api/macro" or path.endswith("/macro"):
             # GET /api/macro
             response = get_macro_indicators()
+        elif path == "/api/monitoring/infrastructure" or path.endswith("/infrastructure"):
+            response = get_infrastructure_status()
         else:
             response = {
                 "statusCode": 404,

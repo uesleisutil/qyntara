@@ -276,9 +276,9 @@ export const glossaryData: GlossaryEntry[] = [
   },
   {
     id: 'elasticache',
-    term: 'ElastiCache',
-    definition: 'AWS managed caching service using Redis or Memcached. Improves performance by caching frequently accessed data.',
-    relatedTerms: ['Redis', 'Cache', 'Performance'],
+    term: 'CloudFront Cache',
+    definition: 'AWS CDN service that caches API responses (5 min) and static assets (24h) at edge locations for low-latency access.',
+    relatedTerms: ['CDN', 'Cache', 'Performance'],
     category: 'infrastructure',
   },
   {
@@ -478,7 +478,7 @@ export const glossaryData: GlossaryEntry[] = [
     term: 'Cache',
     definition: 'Temporary storage of frequently accessed data to improve performance and reduce server load.',
     example: 'Recommendation data is cached for 5 minutes to avoid repeated API calls.',
-    relatedTerms: ['Performance', 'ElastiCache'],
+    relatedTerms: ['Performance', 'CloudFront'],
     category: 'technical',
   },
   {

@@ -171,7 +171,7 @@ Modelo freemium: Free (ranking + score) / Pro R$49/mês (preço previsto, stop-l
 - Backend: 15+ AWS Lambdas (Python 3.11), API Gateway REST
 - ML: XGBoost treinado via SageMaker (ml.m5.large), inferência em Lambda
 - Storage: S3 (dados/modelos), DynamoDB (4 tabelas: Users, Agents, Config, AuditLog)
-- Cache: ElastiCache Redis (opcional)
+- Cache: CloudFront CDN (API 5min, assets 24h)
 - Auth: PBKDF2-SHA256 (600k iter) + JWT HMAC-SHA256 (24h TTL)
 - IaC: AWS CDK (TypeScript), CI/CD via GitHub Actions
 - Custo estimado: ~R$90/mês (SageMaker R$50, Lambda R$15, DynamoDB R$10, outros R$15)
@@ -238,7 +238,7 @@ Modelo freemium: Free (ranking + score) / Pro R$49/mês (preço previsto, stop-l
 - feedback_handler.py / feedback_survey.py — Feedback de usuários
 - agent_hub.py — Este arquivo (hub dos agentes executivos)
 - s3_proxy.py — Proxy para dados no S3
-- cache_helper.py — Helper de cache Redis
+- cache_helper.py — Helper de cache (deprecated, usando CloudFront)
 - lambda_optimizer.py / storage_optimizer.py — Otimizadores
 - backup_configuration.py / restore_from_backup.py / dr_health_check.py — DR/Backup
 - analyze_sentiment.py — Análise de sentimento de notícias

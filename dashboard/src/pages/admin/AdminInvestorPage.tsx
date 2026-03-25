@@ -425,7 +425,7 @@ const AdminInvestorPage: React.FC = () => {
             { layer: 'Frontend', items: ['React 18 + TypeScript', 'Recharts + D3.js', 'TanStack Table', 'React Query', 'PWA + Service Worker'], color: '#3b82f6' },
             { layer: 'Backend', items: ['AWS Lambda (Python)', 'API Gateway (REST)', 'Cognito (Auth)', 'Stripe (Pagamentos)', 'WebSocket'], color: '#10b981' },
             { layer: 'ML Pipeline', items: ['Amazon SageMaker', 'DeepAR+ (forecasting)', 'SHAP (explicabilidade)', 'Auto-retrain triggers', 'Feature Store (S3)'], color: '#3b82f6' },
-            { layer: 'Dados', items: ['S3 (data lake)', 'DynamoDB', 'ElastiCache Redis', 'CloudFront CDN', 'CloudWatch (logs)'], color: '#f59e0b' },
+            { layer: 'Dados', items: ['S3 (data lake)', 'DynamoDB', 'CloudFront CDN', 'CloudWatch (logs)'], color: '#f59e0b' },
           ].map((stack, i) => (
             <div key={i} style={{ padding: '0.75rem', borderRadius: 10, background: darkMode ? `${stack.color}06` : `${stack.color}03`, border: `1px solid ${stack.color}15` }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 700, color: stack.color, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>

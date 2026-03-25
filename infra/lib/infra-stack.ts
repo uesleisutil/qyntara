@@ -452,6 +452,20 @@ export class InfraStack extends cdk.Stack {
       "DashboardAPI",
       "ml.src.lambdas.dashboard_api.handler"
     );
+
+    // Permissions for /api/monitoring/infrastructure endpoint
+    dashboardApiFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: [
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:GetMetricStatistics",
+        "events:ListRules",
+        "lambda:ListFunctions",
+        "sagemaker:ListTrainingJobs",
+        "sagemaker:ListEndpoints",
+        "dynamodb:DescribeTable",
+      ],
+      resources: ["*"],
+    }));
     
     // S3 Proxy Lambda para dashboard acessar dados do S3 via API
     const s3ProxyFn = mkPyLambda(
@@ -672,11 +686,17 @@ export class InfraStack extends cdk.Stack {
     });
     monitorPerformanceRule.addTarget(new targets.LambdaFunction(monitorPerformanceFn));
     
-    // Monitor do SageMaker: roda a cada 5 minutos para detectar recursos ativos
-    const monitorSageMakerRule = new events.Rule(this, "MonitorSageMakerFrequent", {
-      schedule: events.Schedule.expression("cron(0/5 * * * ? *)"), // A cada 5 minutos
+    // Monitor do SageMaker: roda a cada 30 min apenas aos domingos (dia de treino)
+    // e 2x/dia nos outros dias. Reduz ~8.640 → ~300 invocações/mês.
+    const monitorSageMakerSundayRule = new events.Rule(this, "MonitorSageMakerSunday", {
+      schedule: events.Schedule.expression("cron(0/30 20-23 ? * SUN *)"), // A cada 30 min, domingos 20-23 UTC (janela de treino)
     });
-    monitorSageMakerRule.addTarget(new targets.LambdaFunction(monitorSageMakerFn));
+    monitorSageMakerSundayRule.addTarget(new targets.LambdaFunction(monitorSageMakerFn));
+    
+    const monitorSageMakerWeekdayRule = new events.Rule(this, "MonitorSageMakerWeekday", {
+      schedule: events.Schedule.expression("cron(0 12,22 ? * MON-SAT *)"), // 2x/dia nos outros dias (safety check)
+    });
+    monitorSageMakerWeekdayRule.addTarget(new targets.LambdaFunction(monitorSageMakerFn));
 
     // Monitor de drift: roda diariamente após o performance monitor (Req 8.1)
     const monitorDriftRule = new events.Rule(this, "MonitorDriftDaily", {
@@ -710,7 +730,7 @@ export class InfraStack extends cdk.Stack {
 
     // Bootstrap histórico: roda 30/30 min até terminar (depois a lambda deve “skipp ar”)
     const bootstrapRule = new events.Rule(this, "BootstrapHistorySchedule", {
-      schedule: events.Schedule.expression("cron(0/30 * ? * * *)"),
+      schedule: events.Schedule.expression("cron(0 3 * * ? *)"), // 1x/dia às 03:00 UTC (00:00 BRT)
     });
     bootstrapRule.addTarget(new targets.LambdaFunction(bootstrapHistoryFn));
 
@@ -985,9 +1005,21 @@ export class InfraStack extends cdk.Stack {
       resources: [`arn:aws:dynamodb:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:table/B3Dashboard-Chat`],
     }));
 
-    const userAuthIntegration = new apigateway.LambdaIntegration(userAuthFn, {
+    // Use AwsIntegration instead of LambdaIntegration to avoid automatic
+    // per-route Lambda::Permission creation (which exceeds the 20KB policy limit).
+    // A single broad CfnPermission is granted below instead.
+    const userAuthIntegration = new apigateway.AwsIntegration({
       proxy: true,
-      allowTestInvoke: false,
+      service: "lambda",
+      path: `2015-03-31/functions/${userAuthFn.functionArn}/invocations`,
+    });
+
+    // Grant API Gateway a single broad permission to invoke UserAuth
+    new cdk.aws_lambda.CfnPermission(this, "UserAuthApiGwPermission", {
+      action: "lambda:InvokeFunction",
+      functionName: userAuthFn.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: api.arnForExecuteApi("*"),
     });
 
     // -----------------------
@@ -1027,9 +1059,20 @@ export class InfraStack extends cdk.Stack {
       resources: ["*"],
     }));
 
-    const agentHubIntegration = new apigateway.LambdaIntegration(agentHubFn, {
+    // Use AwsIntegration instead of LambdaIntegration to avoid automatic
+    // per-route Lambda::Permission creation (which exceeds the 20KB policy limit).
+    const agentHubIntegration = new apigateway.AwsIntegration({
       proxy: true,
-      allowTestInvoke: false,
+      service: "lambda",
+      path: `2015-03-31/functions/${agentHubFn.functionArn}/invocations`,
+    });
+
+    // Grant API Gateway a single broad permission to invoke AgentHub
+    new cdk.aws_lambda.CfnPermission(this, "AgentHubApiGwPermission", {
+      action: "lambda:InvokeFunction",
+      functionName: agentHubFn.functionName,
+      principal: "apigateway.amazonaws.com",
+      sourceArn: api.arnForExecuteApi("*"),
     });
 
     // /auth/{proxy+} — all auth routes (NO API key required - public endpoints)

@@ -129,7 +129,7 @@ export class DisasterRecoveryStack extends cdk.Stack {
         RATE_LIMITS_TABLE: props.dynamoTables.rateLimits.tableName,
         ALERT_TOPIC_ARN: props.alertTopic.topicArn,
       },
-      logRetention: logs.RetentionDays.ONE_MONTH,
+      logRetention: logs.RetentionDays.TWO_WEEKS,
     });
 
     // Grant permissions to backup function
@@ -176,7 +176,7 @@ export class DisasterRecoveryStack extends cdk.Stack {
         RATE_LIMITS_TABLE: props.dynamoTables.rateLimits.tableName,
         ALERT_TOPIC_ARN: props.alertTopic.topicArn,
       },
-      logRetention: logs.RetentionDays.ONE_MONTH,
+      logRetention: logs.RetentionDays.TWO_WEEKS,
     });
 
     // Grant permissions to restore function
@@ -226,7 +226,7 @@ export class DisasterRecoveryStack extends cdk.Stack {
         RATE_LIMITS_TABLE: props.dynamoTables.rateLimits.tableName,
         ALERT_TOPIC_ARN: props.alertTopic.topicArn,
       },
-      logRetention: logs.RetentionDays.ONE_MONTH,
+      logRetention: logs.RetentionDays.TWO_WEEKS,
     });
 
     // Grant permissions to health check function
@@ -286,11 +286,12 @@ export class DisasterRecoveryStack extends cdk.Stack {
       })
     );
 
-    // DR Health Check - runs every 6 hours (Req 90.6)
+    // DR Health Check - runs every 12 hours (Req 90.6)
+    // RPO is 24h and backup runs daily, so 2x/day check is sufficient
     const healthCheckRule = new events.Rule(this, "DRHealthCheckRule", {
       ruleName: "B3Dashboard-DRHealthCheck",
-      description: "Check DR readiness every 6 hours",
-      schedule: events.Schedule.rate(cdk.Duration.hours(6)),
+      description: "Check DR readiness every 12 hours",
+      schedule: events.Schedule.rate(cdk.Duration.hours(12)),
     });
 
     healthCheckRule.addTarget(
@@ -328,7 +329,7 @@ export class DisasterRecoveryStack extends cdk.Stack {
       namespace: "B3Dashboard/DisasterRecovery",
       metricName: "DRReadiness",
       statistic: "Minimum",
-      period: cdk.Duration.hours(6),
+      period: cdk.Duration.hours(12),
     });
 
     const drReadinessAlarm = new cloudwatch.Alarm(this, "DRReadinessAlarm", {

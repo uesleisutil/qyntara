@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 cloudwatch = boto3.client("cloudwatch", region_name=REGION)
 lambda_client = boto3.client("lambda", region_name=REGION)
 s3 = boto3.client("s3", region_name=REGION)
-elasticache = boto3.client("elasticache", region_name=REGION)
+elasticache = boto3.client("elasticache", region_name=REGION)  # Optional: only used if ElastiCache is deployed
 ce = boto3.client("ce", region_name=REGION)
 
 

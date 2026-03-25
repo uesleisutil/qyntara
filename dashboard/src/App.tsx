@@ -31,6 +31,7 @@ import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminChatPage from './pages/admin/AdminChatPage';
 import AdminModelsPage from './pages/admin/AdminModelsPage';
 import AdminInvestorPage from './pages/admin/AdminInvestorPage';
+import AdminInfraPage from './pages/admin/AdminInfraPage';
 import SupportChatPage from './pages/dashboard/SupportChatPage';
 import CarteirasPage from './pages/dashboard/CarteirasPage';
 import ReferralPage from './pages/dashboard/ReferralPage';
@@ -138,6 +139,7 @@ const AppRoutes: React.FC = () => {
         <Route path="agents" element={<AdminAgentsPage />} />
         <Route path="users" element={<AdminUsersPage />} />
         <Route path="chat" element={<AdminChatPage />} />
+        <Route path="infra" element={<AdminInfraPage />} />
       </Route>
 
       {/* Catch-all */}

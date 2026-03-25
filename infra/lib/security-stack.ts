@@ -110,7 +110,7 @@ export class SecurityStack extends cdk.Stack {
         AUTH_LOGS_TABLE: this.authLogsTable.tableName,
         KMS_KEY_ID: this.kmsKey.keyId,
       },
-      logRetention: logs.RetentionDays.ONE_MONTH,
+      logRetention: logs.RetentionDays.TWO_WEEKS,
     });
 
     // Grant permissions to Security Audit Lambda

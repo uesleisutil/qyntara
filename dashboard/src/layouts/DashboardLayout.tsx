@@ -6,7 +6,7 @@ import {
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock,
   Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
   Settings, Mail, Shield, DollarSign, Database, CheckSquare, Activity, Layers,
-  Landmark, Gift, Trophy,
+  Landmark, Gift, Trophy, Server,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/features/NotificationCenter';
@@ -104,6 +104,7 @@ const DashboardLayout: React.FC = () => {
     { path: '/admin/validation', label: 'Validação', icon: <CheckSquare size={18} /> },
   ];
   const adminInfraItems = [
+    { path: '/admin/infra', label: 'Infraestrutura', icon: <Server size={18} /> },
     { path: '/admin/costs', label: 'Custos', icon: <DollarSign size={18} /> },
     { path: '/admin/data-quality', label: 'Qualidade de Dados', icon: <Database size={18} /> },
     { path: '/admin/notifications', label: 'Notificações', icon: <Bell size={18} /> },
