@@ -373,6 +373,12 @@ export class InfraStack extends cdk.Stack {
         environment: { ...commonEnv, ...(extraEnv ?? {}) },
       });
 
+      // Override CMD para usar o handler correto (Dockerfile default é rank_sagemaker)
+      const cfnFn = fn.node.defaultChild as cdk.aws_lambda.CfnFunction;
+      cfnFn.addPropertyOverride("ImageConfig", {
+        Command: [handlerPath],
+      });
+
       fn.addToRolePolicy(s3RwPolicy);
       fn.addToRolePolicy(cwPutMetricPolicy);
       fn.addToRolePolicy(ssmReadPolicy);
