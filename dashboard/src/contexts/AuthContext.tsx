@@ -14,6 +14,11 @@ interface User {
   onboardingDone?: boolean;
   investorProfile?: 'conservador' | 'moderado' | 'arrojado';
   avatar?: string;
+  notificationPreferences?: {
+    emailTypes: string[];
+    smsTypes: string[];
+    quietHours: { enabled: boolean; start: string; end: string };
+  };
 }
 
 interface AuthContextType {
@@ -32,6 +37,7 @@ interface AuthContextType {
   refreshPlan: () => Promise<void>;
   setFreeTicker: (ticker: string) => Promise<void>;
   completeOnboarding: (profile?: string) => Promise<void>;
+  updateNotificationPreferences: (prefs: User['notificationPreferences']) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,6 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 onboardingDone: data.onboardingDone ?? false,
                 investorProfile: data.investorProfile || undefined,
                 avatar: data.avatar || '',
+                notificationPreferences: data.notificationPreferences || undefined,
               };
               setUser(freshUser);
               // Keep localStorage in sync so fallback is never stale
@@ -137,10 +144,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const freshFreeTicker = data.freeTicker || '';
           const freshOnboardingDone = data.onboardingDone ?? false;
           const freshInvestorProfile = data.investorProfile || undefined;
+          const freshNotifPrefs = data.notificationPreferences || undefined;
           setUser(prev => {
             if (!prev) return prev;
-            if (prev.plan !== freshPlan || prev.role !== freshRole || prev.canViewCosts !== freshCanViewCosts || prev.freeTicker !== freshFreeTicker || prev.onboardingDone !== freshOnboardingDone || prev.investorProfile !== freshInvestorProfile) {
-              const updated = { ...prev, plan: freshPlan as 'free' | 'pro', role: freshRole as 'admin' | 'analyst' | 'viewer', planExpiresAt: data.planExpiresAt || '', canViewCosts: freshCanViewCosts, freeTicker: freshFreeTicker, onboardingDone: freshOnboardingDone, investorProfile: freshInvestorProfile };
+            if (prev.plan !== freshPlan || prev.role !== freshRole || prev.canViewCosts !== freshCanViewCosts || prev.freeTicker !== freshFreeTicker || prev.onboardingDone !== freshOnboardingDone || prev.investorProfile !== freshInvestorProfile || JSON.stringify(prev.notificationPreferences) !== JSON.stringify(freshNotifPrefs)) {
+              const updated = { ...prev, plan: freshPlan as 'free' | 'pro', role: freshRole as 'admin' | 'analyst' | 'viewer', planExpiresAt: data.planExpiresAt || '', canViewCosts: freshCanViewCosts, freeTicker: freshFreeTicker, onboardingDone: freshOnboardingDone, investorProfile: freshInvestorProfile, notificationPreferences: freshNotifPrefs };
               localStorage.setItem('user', JSON.stringify(updated));
               return updated;
             }
@@ -198,6 +206,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       onboardingDone: data.onboardingDone ?? false,
       investorProfile: data.investorProfile || undefined,
       avatar: data.avatar || '',
+      notificationPreferences: data.notificationPreferences || undefined,
     });
   }, []);
 
@@ -355,10 +364,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
+  const updateNotificationPreferences = useCallback(async (prefs: User['notificationPreferences']) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) throw new Error('Não autenticado');
+    const res = await fetch(`${AUTH_URL}/free-ticker`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ notificationPreferences: prefs }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || 'Erro ao salvar preferências');
+    }
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, notificationPreferences: prefs };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
     <AuthContext.Provider value={{
       user, isAuthenticated: !!user, isLoading,
-      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession, refreshPlan, setFreeTicker, completeOnboarding,
+      login, register, verifyEmail, resendCode, forgotPassword, resetPassword, changePassword, logout, refreshSession, refreshPlan, setFreeTicker, completeOnboarding, updateNotificationPreferences,
     }}>
       {children}
     </AuthContext.Provider>

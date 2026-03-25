@@ -3,6 +3,7 @@ import { Bell, X, TrendingUp, Activity, CheckCircle, AlertTriangle, Clock, Send 
 import { API_BASE_URL, API_KEY } from '../../../config';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../../constants';
 import { NotificationCategory } from '../../../types/notifications';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface Notification {
   id: string;
@@ -35,6 +36,7 @@ const TYPE_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { user } = useAuth();
 
   const theme = {
     bg: darkMode ? '#1a1d27' : 'white',
@@ -66,13 +68,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
     }
   };
 
-  const loadPreferences = () => {
-    try {
-      const stored = localStorage.getItem('notificationPreferences');
-      if (stored) return JSON.parse(stored);
-    } catch { /* silent */ }
-    return { emailTypes: ['degradation', 'system'], smsTypes: ['system'], quietHours: { enabled: false, start: '22:00', end: '08:00' } };
-  };
+  const getPreferences = useCallback(() => {
+    // Read from user's backend-persisted preferences
+    const prefs = user?.notificationPreferences;
+    if (prefs && prefs.emailTypes) return prefs;
+    // Default: all categories enabled
+    return { emailTypes: ['drift', 'anomaly', 'cost', 'degradation', 'system'], smsTypes: ['system'], quietHours: { enabled: false, start: '22:00', end: '08:00' } };
+  }, [user]);
 
   const isInQuietHours = (prefs: any): boolean => {
     if (!prefs.quietHours?.enabled) return false;
@@ -89,22 +91,22 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
     return currentMinutes >= startMinutes || currentMinutes < endMinutes;
   };
 
-  const shouldShowNotification = (type: string, prefs: any): boolean => {
+  const shouldShowNotification = useCallback((type: string): boolean => {
+    const prefs = getPreferences();
     const category = typeToCategory(type);
     // Always show manual/admin and uncategorized notifications
     if (!category) return true;
     // During quiet hours, only show system-critical
     if (isInQuietHours(prefs) && category !== 'system') return false;
     // Check if category is in user's enabled types
-    const enabledTypes: string[] = prefs.emailTypes || ['degradation', 'system'];
+    const enabledTypes: string[] = prefs.emailTypes || ['drift', 'anomaly', 'cost', 'degradation', 'system'];
     return enabledTypes.includes(category);
-  };
+  }, [getPreferences]);
 
   const generateNotifications = useCallback(async () => {
     const notes: Notification[] = [];
     const now = new Date();
     const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
-    const prefs = loadPreferences();
 
     // 1. Fetch backend notifications (from DynamoDB via /notifications endpoint)
     const authToken = localStorage.getItem('authToken');
@@ -116,7 +118,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         if (backendRes.ok) {
           const data = await backendRes.json();
           (data.notifications || []).forEach((n: any) => {
-            if (!shouldShowNotification(n.type, prefs)) return;
+            if (!shouldShowNotification(n.type)) return;
             const typeInfo = TYPE_ICONS[n.type] || TYPE_ICONS.manual;
             notes.push({
               id: `backend-${n.id}`,
@@ -150,7 +152,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         const sellCount = recs.filter((r: any) => r.score <= SCORE_SELL_THRESHOLD).length;
         const topBuy = recs.filter((r: any) => r.score >= SCORE_BUY_THRESHOLD).sort((a: any, b: any) => b.score - a.score)[0];
 
-        if (shouldShowNotification('recommendations', prefs)) {
+        if (shouldShowNotification('recommendations')) {
           notes.push({
             id: `rec-${recDate}`, type: 'recommendations', category: 'degradation',
             title: 'Recomendações do dia prontas',
@@ -160,7 +162,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
           });
         }
 
-        if (shouldShowNotification('model_run', prefs)) {
+        if (shouldShowNotification('model_run')) {
           notes.push({
             id: `model-${recDate}`, type: 'model_run', category: 'system',
             title: 'Modelo executado com sucesso',
@@ -171,7 +173,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         }
 
         const strongBuys = recs.filter((r: any) => r.score >= 4);
-        if (strongBuys.length > 0 && shouldShowNotification('alert', prefs)) {
+        if (strongBuys.length > 0 && shouldShowNotification('alert')) {
           notes.push({
             id: `strong-${recDate}`, type: 'alert', category: 'anomaly',
             title: 'Sinais fortes detectados',
@@ -182,7 +184,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         }
       }
 
-      if (histRes.ok && shouldShowNotification('system', prefs)) {
+      if (histRes.ok && shouldShowNotification('system')) {
         const hist = await histRes.json();
         const dates = new Set<string>();
         Object.values(hist.data as Record<string, any[]>).forEach((entries: any[]) =>
@@ -211,7 +213,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
     });
 
     // Signal change notifications (compare last 2 days from history)
-    if (shouldShowNotification('alert', prefs)) {
+    if (shouldShowNotification('alert')) {
       try {
         const headers = { 'x-api-key': API_KEY };
         const histRes2 = await fetch(`${API_BASE_URL}/api/recommendations/history`, { headers });

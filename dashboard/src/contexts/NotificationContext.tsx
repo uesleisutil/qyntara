@@ -8,6 +8,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import api from '../services/api';
 import { Notification, NotificationPreferences } from '../types/notifications';
+import { API_BASE_URL } from '../config';
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -103,10 +104,16 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
   const updatePreferences = useCallback(async (newPreferences: Partial<NotificationPreferences>) => {
     try {
       const updated = { ...preferences, ...newPreferences };
-      // In a real implementation, this would save to backend
-      // await api.preferences.update({ notifications: updated });
       setPreferences(updated);
-      localStorage.setItem('notificationPreferences', JSON.stringify(updated));
+      // Persist to backend via AuthContext
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        await fetch(`${API_BASE_URL}/auth/free-ticker`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ notificationPreferences: updated }),
+        });
+      }
     } catch (err) {
       console.error('Failed to update preferences:', err);
       throw err;
@@ -124,15 +131,18 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     setNotifications((prev) => [newNotification, ...prev]);
   }, []);
 
-  // Load preferences from localStorage on mount
+  // Load preferences from backend user data on mount
   useEffect(() => {
-    const stored = localStorage.getItem('notificationPreferences');
-    if (stored) {
-      try {
-        setPreferences(JSON.parse(stored));
-      } catch (err) {
-        console.error('Failed to parse stored preferences:', err);
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.notificationPreferences) {
+          setPreferences(prev => ({ ...prev, ...parsed.notificationPreferences }));
+        }
       }
+    } catch (err) {
+      console.error('Failed to parse stored user preferences:', err);
     }
   }, []);
 

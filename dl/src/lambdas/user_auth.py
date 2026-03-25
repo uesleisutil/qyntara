@@ -986,6 +986,7 @@ def _handle_me(event: dict) -> dict:
             "onboardingDone": item.get("onboardingDone", False),
             "investorProfile": item.get("investorProfile", ""),
             "avatar": item.get("avatar", ""),
+            "notificationPreferences": item.get("notificationPreferences", {}),
         })
     except Exception:
         # Fallback to JWT data
@@ -998,6 +999,7 @@ def _handle_me(event: dict) -> dict:
             "freeTicker": "",
             "onboardingDone": False,
             "investorProfile": "",
+            "notificationPreferences": {},
         })
 
 
@@ -3005,8 +3007,27 @@ def _handle_set_free_ticker(event: dict) -> dict:
     if investor_profile and investor_profile not in valid_profiles:
         investor_profile = ""
 
+    # Notification preferences
+    notif_prefs_raw = body.get("notificationPreferences", None)
+    notif_prefs = None
+    if isinstance(notif_prefs_raw, dict):
+        valid_categories = {"drift", "anomaly", "cost", "degradation", "system"}
+        email_types = [c for c in notif_prefs_raw.get("emailTypes", []) if c in valid_categories]
+        sms_types = [c for c in notif_prefs_raw.get("smsTypes", []) if c in valid_categories]
+        quiet_raw = notif_prefs_raw.get("quietHours", {})
+        quiet_hours = {
+            "enabled": quiet_raw.get("enabled", False) is True,
+            "start": _sanitize_string(str(quiet_raw.get("start", "22:00")), 5),
+            "end": _sanitize_string(str(quiet_raw.get("end", "08:00")), 5),
+        }
+        notif_prefs = {
+            "emailTypes": email_types,
+            "smsTypes": sms_types,
+            "quietHours": quiet_hours,
+        }
+
     # At least one field must be provided
-    if not ticker and not onboarding_done and not investor_profile:
+    if not ticker and not onboarding_done and not investor_profile and notif_prefs is None:
         return _cors_response(400, {"message": "Nenhum campo para atualizar"})
 
     table = dynamodb.Table(USERS_TABLE)
@@ -3024,6 +3045,9 @@ def _handle_set_free_ticker(event: dict) -> dict:
     if investor_profile:
         update_parts.append("investorProfile = :profile")
         expr_values[":profile"] = investor_profile
+    if notif_prefs is not None:
+        update_parts.append("notificationPreferences = :notifPrefs")
+        expr_values[":notifPrefs"] = notif_prefs
 
     update_expr = "SET " + ", ".join(update_parts)
 
@@ -3040,6 +3064,8 @@ def _handle_set_free_ticker(event: dict) -> dict:
             resp["onboardingDone"] = True
         if investor_profile:
             resp["investorProfile"] = investor_profile
+        if notif_prefs is not None:
+            resp["notificationPreferences"] = notif_prefs
         return _cors_response(200, resp)
     except ClientError as e:
         logger.error(f"Error updating user prefs for {email}: {e}")
