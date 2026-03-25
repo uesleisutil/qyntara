@@ -18,7 +18,7 @@ ALLOWED_ORIGINS = os.environ.get(
 # Prefixes allowed for read access (prevent arbitrary S3 traversal)
 ALLOWED_PREFIXES = (
     'recommendations/', 'monitoring/', 'curated/',
-    'config/', 'models/', 'processed/',
+    'config/', 'models/', 'processed/', 'feature_store/',
 )
 
 SECURITY_HEADERS = {

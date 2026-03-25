@@ -76,8 +76,8 @@ const AdminModelsPage: React.FC = () => {
 
       if (fsListRes.ok) {
         const fsData = await fsListRes.json();
-        const files = fsData.files || fsData.keys || fsData || [];
-        const fundamentalFiles = Array.isArray(files) ? files.filter((f: string) => f.includes('fundamentals/')) : [];
+        const objects = fsData.objects || [];
+        const fundamentalFiles = objects.map((o: any) => o.Key).filter((k: string) => k.includes('fundamentals/'));
         const dates = fundamentalFiles.map((f: string) => { const m = f.match(/dt=(\d{4}-\d{2}-\d{2})/); return m ? m[1] : null; }).filter(Boolean);
         const latestDate = dates.sort().pop() || '';
         const latestFiles = fundamentalFiles.filter((f: string) => f.includes(`dt=${latestDate}`));
@@ -642,18 +642,23 @@ const AdminModelsPage: React.FC = () => {
         inputs: ['BRAPI Pro API', 'BCB API', 'NewsAPI (opcional)'],
       },
       {
-        name: 'WeeklyRetrain', description: 'Retreina ensemble DL (Transformer+BiLSTM · ResidualMLP · TemporalCNN) com walk-forward CV e pesos adaptativos.',
-        schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)', lambda: 'B3TacticalRankingStackV2-WeeklyRetrain',
-        status: pipeline?.weekly_retrain, icon: <Cpu size={18} />, color: '#3b82f6',
-        outputs: ['models/deep_learning/{date}/model.tar.gz', 'models/deep_learning/{date}/metrics.json', 'models/deep_learning/{date}/selected_features.json'],
-        inputs: ['curated/daily_monthly/', 'feature_store/'],
+        name: 'WeeklyRetrain (Staged)', description: 'Retreina ensemble DL em 4 etapas: treina cada modelo individualmente (Transformer+BiLSTM → ResidualMLP → TemporalCNN) e depois combina com pesos adaptativos.',
+        schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)', lambda: 'B3TacticalRankingStackV2-TrainSageMaker',
+        status: pipeline?.weekly_retrain, icon: <Cpu size={18} />, color: '#8b5cf6',
+        outputs: [
+          'models/deep_learning/{date}/individual/transformer_bilstm/',
+          'models/deep_learning/{date}/individual/residual_mlp/',
+          'models/deep_learning/{date}/individual/temporal_cnn/',
+          'models/deep_learning/{date}/model.tar.gz (ensemble final)',
+        ],
+        inputs: ['curated/daily_monthly/ (730 dias)', 'feature_store/fundamentals/', 'feature_store/macro/', 'feature_store/sentiment/'],
       },
       {
-        name: 'DailyRanking', description: 'Gera ranking diário usando ensemble DL (3 modelos) + features avançadas (volume, fundamentals, macro, setor, sentimento).',
+        name: 'DailyRanking', description: 'Carrega ensemble DL (3 modelos), gera predições ponderadas e ranking top 50 ajustado por risco.',
         schedule: 'Diário, SEG-SEX 21:30 UTC (18:30 BRT)', lambda: 'B3TacticalRankingStackV2-RankSageMaker',
         status: pipeline?.daily_ranking, icon: <TrendingUp size={18} />, color: '#10b981',
         outputs: ['recommendations/dt={date}/top50.json'],
-        inputs: ['curated/daily_monthly/', 'feature_store/', 'models/deep_learning/'],
+        inputs: ['curated/daily_monthly/', 'feature_store/', 'models/deep_learning/{date}/model.tar.gz'],
       },
     ];
 
