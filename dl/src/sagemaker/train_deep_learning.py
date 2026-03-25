@@ -116,47 +116,60 @@ class TransformerBiLSTMModel(nn.Module):
         # Attention pooling
         self.attn_pool = nn.Linear(lstm_hidden * 2, 1)
 
-        # MLP head — tanh na saída limita predições a (-1, +1), escalado para (-0.3, +0.3)
+        # Shared representation
         mlp_input = lstm_hidden * 2
-        self.head = nn.Sequential(
+        self.shared = nn.Sequential(
             nn.Linear(mlp_input, 64),
             nn.LayerNorm(64),
             nn.GELU(),
             nn.Dropout(dropout),
+        )
+
+        # Head 1: Regressão (retorno)
+        self.reg_head = nn.Sequential(
             nn.Linear(64, 32),
             nn.GELU(),
-            nn.Dropout(dropout * 0.5),
             nn.Linear(32, 1),
-            nn.Tanh(),  # limita output a (-1, +1)
+            nn.Tanh(),
         )
-        self.output_scale = 0.15  # escala para retornos realistas (±15%)
+        self.output_scale = 0.15
+
+        # Head 2: Classificação (direção sobe/desce)
+        self.cls_head = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.GELU(),
+            nn.Linear(32, 1),
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Args:
             x: (batch, seq_len, n_features) ou (batch, n_features)
         Returns:
-            (batch, 1) predicted return
+            (batch, 1) predicted return (combina regressão + direção)
         """
         if x.dim() == 2:
-            x = x.unsqueeze(1)  # (batch, 1, features)
+            x = x.unsqueeze(1)
 
-        # Project to d_model
-        x = self.input_proj(x)  # (batch, seq, d_model)
+        x = self.input_proj(x)
         x = self.pos_enc(x)
+        x = self.transformer(x)
+        lstm_out, _ = self.bilstm(x)
+        attn_weights = torch.softmax(self.attn_pool(lstm_out), dim=1)
+        pooled = (lstm_out * attn_weights).sum(dim=1)
 
-        # Transformer
-        x = self.transformer(x)  # (batch, seq, d_model)
+        shared = self.shared(pooled)
+        reg_out = self.reg_head(shared) * self.output_scale  # retorno ±15%
+        cls_logit = self.cls_head(shared)  # logit para direção
 
-        # BiLSTM
-        lstm_out, _ = self.bilstm(x)  # (batch, seq, lstm_hidden*2)
-
-        # Attention pooling
-        attn_weights = torch.softmax(self.attn_pool(lstm_out), dim=1)  # (batch, seq, 1)
-        pooled = (lstm_out * attn_weights).sum(dim=1)  # (batch, lstm_hidden*2)
-
-        # MLP head
-        return self.head(pooled) * self.output_scale  # (batch, 1) scaled to ±15%
+        if self.training:
+            # Durante treino, retorna ambos para loss multi-task
+            return reg_out, cls_logit
+        else:
+            # Durante inferência, combina: magnitude da regressão + sinal da classificação
+            direction = torch.tanh(cls_logit)  # suave: -1 a +1
+            magnitude = torch.abs(reg_out)
+            return direction * magnitude
 
 
 class DeepLearningTrainer:
@@ -204,7 +217,8 @@ class DeepLearningTrainer:
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer, max_lr=lr, epochs=epochs, steps_per_epoch=len(loader),
         )
-        huber = nn.HuberLoss(delta=0.05)  # delta adequado para retornos percentuais (~0.02 a 0.10)
+        huber = nn.HuberLoss(delta=0.05)
+        bce = nn.BCEWithLogitsLoss()
 
         best_val_loss = float('inf')
         best_state = None
@@ -217,24 +231,17 @@ class DeepLearningTrainer:
             train_losses = []
             for xb, yb in loader:
                 optimizer.zero_grad()
-                pred = self.model(xb)
+                reg_out, cls_logit = self.model(xb)
 
-                # Loss 1: Huber para magnitude (no espaço normalizado)
-                loss_magnitude = huber(pred, yb)
+                # Task 1: Regressão (magnitude do retorno)
+                loss_reg = huber(reg_out, yb)
 
-                # Loss 2: Penalidade direcional
-                sign_match = (pred * yb)
-                dir_penalty = torch.mean(torch.clamp(-sign_match, min=0))
-
-                # Loss 3: Classificação binária da direção (BCE) com label smoothing
-                pred_prob = torch.sigmoid(pred * 20)  # amplifica retornos pequenos (~0.02) para sigmoid
+                # Task 2: Classificação (direção sobe/desce)
                 target_dir = (yb > 0).float()
-                # Label smoothing: 0 -> 0.1, 1 -> 0.9 (evita overconfidence)
-                target_dir_smooth = target_dir * 0.8 + 0.1
-                dir_bce = nn.functional.binary_cross_entropy(pred_prob, target_dir_smooth)
+                loss_cls = bce(cls_logit, target_dir)
 
-                # Combinação: 50% magnitude + 20% penalidade + 30% BCE
-                loss = 0.5 * loss_magnitude + 0.2 * dir_penalty + 0.3 * dir_bce
+                # Multi-task: 50% regressão + 50% classificação
+                loss = 0.5 * loss_reg + 0.5 * loss_cls
 
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
@@ -250,7 +257,7 @@ class DeepLearningTrainer:
                 self.model.eval()
                 with torch.no_grad():
                     X_vt, y_vt = self._prepare_tensors(X_val, y_val)
-                    vpred = self.model(X_vt)
+                    vpred = self.model(X_vt)  # inferência: retorna combinado
                     val_loss = huber(vpred, y_vt).item()
                 history['val_loss'].append(val_loss)
 
@@ -469,7 +476,7 @@ class ResidualBlock(nn.Module):
 
 
 class ResidualMLPModel(nn.Module):
-    """MLP com blocos residuais — baseline robusto para dados tabulares."""
+    """MLP com blocos residuais — multi-task (regressão + classificação)."""
     def __init__(self, n_features: int, hidden: int = 128, n_blocks: int = 3, dropout: float = 0.2):
         super().__init__()
         self.n_features = n_features
@@ -477,13 +484,21 @@ class ResidualMLPModel(nn.Module):
         self.n_blocks = n_blocks
         self.input_proj = nn.Sequential(nn.Linear(n_features, hidden), nn.LayerNorm(hidden), nn.GELU())
         self.blocks = nn.Sequential(*[ResidualBlock(hidden, dropout) for _ in range(n_blocks)])
-        self.head = nn.Sequential(nn.Linear(hidden, 32), nn.GELU(), nn.Linear(32, 1), nn.Tanh())
+        self.shared = nn.Sequential(nn.Linear(hidden, 64), nn.GELU())
+        self.reg_head = nn.Sequential(nn.Linear(64, 1), nn.Tanh())
+        self.cls_head = nn.Linear(64, 1)
         self.output_scale = 0.15
 
     def forward(self, x):
         if x.dim() == 3:
             x = x[:, -1, :]
-        return self.head(self.blocks(self.input_proj(x))) * self.output_scale
+        shared = self.shared(self.blocks(self.input_proj(x)))
+        reg_out = self.reg_head(shared) * self.output_scale
+        cls_logit = self.cls_head(shared)
+        if self.training:
+            return reg_out, cls_logit
+        else:
+            return torch.tanh(cls_logit) * torch.abs(reg_out)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -508,17 +523,25 @@ class TemporalCNNModel(nn.Module):
                 nn.Dropout(dropout),
             ])
         self.conv = nn.Sequential(*layers)
-        self.head = nn.Sequential(nn.Linear(channels, 32), nn.GELU(), nn.Linear(32, 1), nn.Tanh())
+        self.shared = nn.Sequential(nn.Linear(channels, 32), nn.GELU())
+        self.reg_head = nn.Sequential(nn.Linear(32, 1), nn.Tanh())
+        self.cls_head = nn.Linear(32, 1)
         self.output_scale = 0.15
 
     def forward(self, x):
         if x.dim() == 2:
             x = x.unsqueeze(1)
-        x = self.input_proj(x)          # (B, seq, channels)
-        x = x.transpose(1, 2)           # (B, channels, seq)
-        x = self.conv(x)                # (B, channels, seq)
-        x = x.mean(dim=2)               # (B, channels) — global avg pool
-        return self.head(x) * self.output_scale
+        x = self.input_proj(x)
+        x = x.transpose(1, 2)
+        x = self.conv(x)
+        x = x.mean(dim=2)
+        shared = self.shared(x)
+        reg_out = self.reg_head(shared) * self.output_scale
+        cls_logit = self.cls_head(shared)
+        if self.training:
+            return reg_out, cls_logit
+        else:
+            return torch.tanh(cls_logit) * torch.abs(reg_out)
 
 
 # ═══════════════════════════════════════════════════════════
