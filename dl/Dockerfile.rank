@@ -1,6 +1,7 @@
 FROM public.ecr.aws/lambda/python:3.11
 
 # Dependências DL para a Lambda de ranking (Ensemble: Transformer+BiLSTM · ResidualMLP · TemporalCNN)
+# Build: 2026-03-25-v2
 # boto3/botocore já vem na base image da Lambda
 RUN pip install --no-cache-dir \
     torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu && \
