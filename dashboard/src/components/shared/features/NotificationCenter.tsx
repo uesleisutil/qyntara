@@ -254,7 +254,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
     const unique = notes.filter(n => { if (seen.has(n.id)) return false; seen.add(n.id); return true; });
     unique.sort((a, b) => b.time.getTime() - a.time.getTime());
     setNotifications(unique);
-  }, []);
+  }, [shouldShowNotification]);
 
   useEffect(() => { generateNotifications(); }, [generateNotifications]);
 

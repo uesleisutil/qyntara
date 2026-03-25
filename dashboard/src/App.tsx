@@ -19,11 +19,9 @@ import ChangePasswordPage from './pages/dashboard/ChangePasswordPage';
 import ChangePhonePage from './pages/dashboard/ChangePhonePage';
 import PerformancePage from './pages/dashboard/PerformancePage';
 import UpgradePage from './pages/dashboard/UpgradePage';
-import AdminOverviewPage from './pages/admin/AdminOverviewPage';
 import AdminPerformancePage from './pages/admin/AdminPerformancePage';
 import AdminCostsPage from './pages/admin/AdminCostsPage';
 import AdminDataQualityPage from './pages/admin/AdminDataQualityPage';
-import AdminDriftPage from './pages/admin/AdminDriftPage';
 import AdminValidationPage from './pages/admin/AdminValidationPage';
 import AdminNotificationsPage from './pages/admin/AdminNotificationsPage';
 import AdminAgentsPage from './pages/admin/AdminAgentsPage';
@@ -128,11 +126,10 @@ const AppRoutes: React.FC = () => {
 
       {/* Admin panel */}
       <Route path="/admin" element={<RequireAdmin><DashboardLayout /></RequireAdmin>}>
-        <Route index element={<AdminOverviewPage />} />
+        <Route index element={<Navigate to="/admin/models" replace />} />
         <Route path="performance" element={<AdminPerformancePage />} />
         <Route path="costs" element={<AdminCostsPage />} />
         <Route path="data-quality" element={<AdminDataQualityPage />} />
-        <Route path="drift" element={<AdminDriftPage />} />
         <Route path="models" element={<AdminModelsPage />} />
         <Route path="validation" element={<AdminValidationPage />} />
         <Route path="notifications" element={<AdminNotificationsPage />} />

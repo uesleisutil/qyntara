@@ -97,10 +97,8 @@ const DashboardLayout: React.FC = () => {
   ];
 
   const adminModelItems = [
-    { path: '/admin', label: 'Visão Geral', icon: <BarChart3 size={18} /> },
-    { path: '/admin/performance', label: 'Performance', icon: <Activity size={18} /> },
     { path: '/admin/models', label: 'Modelos & Features', icon: <Layers size={18} /> },
-    { path: '/admin/drift', label: 'Drift Detection', icon: <Brain size={18} /> },
+    { path: '/admin/performance', label: 'Performance', icon: <Activity size={18} /> },
     { path: '/admin/validation', label: 'Validação', icon: <CheckSquare size={18} /> },
   ];
   const adminInfraItems = [
@@ -263,12 +261,10 @@ const DashboardLayout: React.FC = () => {
 
   const getBreadcrumb = () => {
     const p = location.pathname;
-    if (p === '/admin') return '🔒 Admin — Visão Geral';
+    if (p === '/admin' || p === '/admin/models') return '🔒 Admin — Modelos & Features';
     if (p === '/admin/performance') return '🔒 Admin — Performance';
-    if (p === '/admin/models') return '🔒 Admin — Modelos & Features';
     if (p === '/admin/costs') return '🔒 Admin — Custos';
     if (p === '/admin/data-quality') return '🔒 Admin — Qualidade de Dados';
-    if (p === '/admin/drift') return '🔒 Admin — Drift';
     if (p === '/admin/validation') return '🔒 Admin — Validação';
     if (p === '/admin/notifications') return '🔒 Admin — Notificações';
     if (p === '/admin/agents') return '🤖 Admin — Agentes IA';

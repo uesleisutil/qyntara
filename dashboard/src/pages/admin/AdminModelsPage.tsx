@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import {
   RefreshCw, Database, Activity, CheckCircle2, XCircle, Clock,
   GitBranch, Layers, BarChart3, Shield, AlertTriangle, ChevronDown,
-  ChevronRight, Cpu, Zap, TrendingUp, Package, Eye, FileText,
+  ChevronRight, Cpu, Zap, TrendingUp, Eye, FileText,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
@@ -11,7 +11,6 @@ import { fmt, fmtDate } from '../../lib/formatters';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
-/* ── helpers ── */
 const fmtDateTime = (iso: string) => {
   try { const d = new Date(iso); return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch { return iso; }
 };
@@ -23,8 +22,6 @@ const StatusDot: React.FC<{ ok: boolean; label?: string }> = ({ ok, label }) => 
   </span>
 );
 
-
-/* ── types ── */
 interface FeatureStoreStatus {
   fundamentals: { count: number; date: string; sample?: Record<string, any> };
   macro: { ok: boolean; date: string; features?: Record<string, number> };
@@ -47,10 +44,9 @@ interface FeatureAudit {
 const AdminModelsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'registry' | 'features' | 'pipeline' | 'lineage'>('registry');
+  const [activeTab, setActiveTab] = useState<'ensemble' | 'features' | 'pipeline' | 'lineage'>('ensemble');
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
 
-  // Data
   const [featureStore, setFeatureStore] = useState<FeatureStoreStatus | null>(null);
   const [pipeline, setPipeline] = useState<PipelineStatus | null>(null);
   const [featureAudit, setFeatureAudit] = useState<FeatureAudit[]>([]);
@@ -75,35 +71,19 @@ const AdminModelsPage: React.FC = () => {
         fetch(`${API_BASE_URL}/s3-proxy/list?prefix=feature_store/fundamentals/`, { headers }),
       ]);
 
-      if (recRes.ok) {
-        const rec = await recRes.json();
-        setLatestRec(rec);
-
-        // Extract model info from recommendation
-        if (rec.data) {
-          // Model info is available via latestRec state
-        }
-      }
-
+      if (recRes.ok) setLatestRec(await recRes.json());
       if (monRes.ok) setMonitorData(await monRes.json());
 
-      // Feature store status from S3 listing
       if (fsListRes.ok) {
         const fsData = await fsListRes.json();
         const files = fsData.files || fsData.keys || fsData || [];
         const fundamentalFiles = Array.isArray(files) ? files.filter((f: string) => f.includes('fundamentals/')) : [];
-
-        // Get latest date partition
-        const dates = fundamentalFiles
-          .map((f: string) => { const m = f.match(/dt=(\d{4}-\d{2}-\d{2})/); return m ? m[1] : null; })
-          .filter(Boolean);
+        const dates = fundamentalFiles.map((f: string) => { const m = f.match(/dt=(\d{4}-\d{2}-\d{2})/); return m ? m[1] : null; }).filter(Boolean);
         const latestDate = dates.sort().pop() || '';
         const latestFiles = fundamentalFiles.filter((f: string) => f.includes(`dt=${latestDate}`));
 
-        // Load sample tickers for audit
         const sampleTickers: FeatureAudit[] = [];
-        const tickerFiles = latestFiles.slice(0, 5);
-        for (const file of tickerFiles) {
+        for (const file of latestFiles.slice(0, 5)) {
           try {
             const tickerMatch = file.match(/\/([A-Z0-9]+)\.json$/);
             if (!tickerMatch) continue;
@@ -112,15 +92,13 @@ const AdminModelsPage: React.FC = () => {
             if (sampleRes.ok) {
               const data = await sampleRes.json();
               const allFields = [
-                'pe_ratio', 'forward_pe', 'pb_ratio', 'dividend_yield', 'ev_to_ebitda',
-                'ev_to_revenue', 'peg_ratio', 'price_to_sales', 'roe', 'roa',
-                'profit_margin', 'operating_margin', 'ebitda_margin', 'gross_margin',
-                'earnings_growth', 'revenue_growth', 'earnings_quarterly_growth',
-                'debt_to_equity', 'debt_to_ebitda', 'current_ratio', 'quick_ratio',
-                'interest_coverage', 'net_debt', 'market_cap', 'enterprise_value',
-                'free_cash_flow', 'operating_cash_flow', 'total_assets', 'total_liabilities',
-                'total_equity', 'total_revenue', 'net_income', 'ebitda', 'total_debt',
-                'cash', 'asset_turnover', 'sector', 'industry',
+                'pe_ratio','forward_pe','pb_ratio','dividend_yield','ev_to_ebitda','ev_to_revenue','peg_ratio','price_to_sales',
+                'roe','roa','profit_margin','operating_margin','ebitda_margin','gross_margin',
+                'earnings_growth','revenue_growth','earnings_quarterly_growth',
+                'debt_to_equity','debt_to_ebitda','current_ratio','quick_ratio','interest_coverage','net_debt',
+                'market_cap','enterprise_value','free_cash_flow','operating_cash_flow',
+                'total_assets','total_liabilities','total_equity','total_revenue','net_income','ebitda','total_debt','cash','asset_turnover',
+                'sector','industry',
               ];
               const populated = allFields.filter(f => data[f] != null).length;
               const missing = allFields.filter(f => data[f] == null);
@@ -129,7 +107,6 @@ const AdminModelsPage: React.FC = () => {
           } catch { /* skip */ }
         }
         setFeatureAudit(sampleTickers);
-
         setFeatureStore({
           fundamentals: { count: latestFiles.length, date: latestDate },
           macro: { ok: true, date: latestDate },
@@ -137,35 +114,18 @@ const AdminModelsPage: React.FC = () => {
         });
       }
 
-      // Pipeline status from EventBridge (simulated from known schedules)
       const now = new Date();
       setPipeline({
-        ingest_features: {
-          last_run: now.toISOString(),
-          next_run: getNextSchedule(21, 0, [1, 2, 3, 4, 5]),
-          status: 'active',
-        },
-        weekly_retrain: {
-          last_run: undefined,
-          next_run: getNextSchedule(22, 0, [0]),
-          status: 'active',
-        },
-        daily_ranking: {
-          last_run: undefined,
-          next_run: getNextSchedule(21, 30, [1, 2, 3, 4, 5]),
-          status: 'active',
-        },
+        ingest_features: { last_run: now.toISOString(), next_run: getNextSchedule(21, 0, [1,2,3,4,5]), status: 'active' },
+        weekly_retrain: { last_run: undefined, next_run: getNextSchedule(22, 0, [0]), status: 'active' },
+        daily_ranking: { last_run: undefined, next_run: getNextSchedule(21, 30, [1,2,3,4,5]), status: 'active' },
       });
-    } catch (err) {
-      console.error('AdminModelsPage fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error('AdminModelsPage fetch error:', err); }
+    finally { setLoading(false); }
   }, [headers]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Skeleton
   if (loading) {
     const sk: React.CSSProperties = {
       background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
@@ -177,20 +137,19 @@ const AdminModelsPage: React.FC = () => {
         <div style={{ ...sk, height: 28, width: 260, marginBottom: 8 }} />
         <div style={{ ...sk, height: 16, width: 400, marginBottom: 24 }} />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 24 }}>
-          {[1, 2, 3, 4].map(i => <div key={i} style={{ ...sk, height: 100, borderRadius: 12 }} />)}
+          {[1,2,3,4].map(i => <div key={i} style={{ ...sk, height: 100, borderRadius: 12 }} />)}
         </div>
         <div style={{ ...sk, height: 300, borderRadius: 12 }} />
       </div>
     );
   }
 
-
   const latest = monitorData?.latest || {};
   const recData = latestRec?.data || {};
+  const meta = recData.model_metadata || {};
 
-  /* ── Tab buttons ── */
   const tabs: { key: typeof activeTab; label: string; icon: React.ReactNode }[] = [
-    { key: 'registry', label: 'Model Registry', icon: <Package size={15} /> },
+    { key: 'ensemble', label: 'Modelos & Ensemble', icon: <Cpu size={15} /> },
     { key: 'features', label: 'Feature Store', icon: <Database size={15} /> },
     { key: 'pipeline', label: 'Pipeline', icon: <GitBranch size={15} /> },
     { key: 'lineage', label: 'Lineage', icon: <Layers size={15} /> },
@@ -198,14 +157,13 @@ const AdminModelsPage: React.FC = () => {
 
   return (
     <div>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>
-            Governança de Modelos
+            Modelos & Features
           </h1>
           <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0 }}>
-            Rastreabilidade, auditoria de features e status do pipeline DL
+            Ensemble DL, performance individual dos modelos, feature store e pipeline
           </p>
         </div>
         <button onClick={fetchData} style={{
@@ -217,9 +175,8 @@ const AdminModelsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Health summary cards */}
+      {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
-        {/* Model status */}
         <div style={{ ...cardStyle, borderLeft: `3px solid ${recData.method?.startsWith('dl_') ? '#10b981' : '#f59e0b'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Cpu size={16} color={theme.textSecondary} />
@@ -233,7 +190,6 @@ const AdminModelsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Feature Store */}
         <div style={{ ...cardStyle, borderLeft: `3px solid ${(featureStore?.fundamentals.count || 0) > 0 ? '#10b981' : '#ef4444'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Database size={16} color={theme.textSecondary} />
@@ -247,7 +203,6 @@ const AdminModelsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Acurácia */}
         <div style={{ ...cardStyle, borderLeft: `3px solid ${(latest.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <TrendingUp size={16} color={theme.textSecondary} />
@@ -261,18 +216,13 @@ const AdminModelsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Pipeline health */}
         <div style={{ ...cardStyle, borderLeft: `3px solid ${pipeline ? '#10b981' : '#6b7280'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Zap size={16} color={theme.textSecondary} />
             <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Pipeline</span>
           </div>
-          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>
-            3/3 ativos
-          </div>
-          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
-            IngestFeatures · WeeklyRetrain · DailyRanking
-          </div>
+          <div style={{ fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>3/3 ativos</div>
+          <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>IngestFeatures · WeeklyRetrain · DailyRanking</div>
         </div>
       </div>
 
@@ -292,8 +242,7 @@ const AdminModelsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Tab content */}
-      {activeTab === 'registry' && renderRegistry()}
+      {activeTab === 'ensemble' && renderEnsemble()}
       {activeTab === 'features' && renderFeatureStore()}
       {activeTab === 'pipeline' && renderPipeline()}
       {activeTab === 'lineage' && renderLineage()}
@@ -302,173 +251,197 @@ const AdminModelsPage: React.FC = () => {
 
 
   /* ═══════════════════════════════════════════════════
-     TAB 1: Model Registry
+     TAB 1: Ensemble — Arquitetura, modelos individuais e composição final
      ═══════════════════════════════════════════════════ */
-  function renderRegistry() {
-    const recD = latestRec?.data || {};
-    const meta = recD.model_metadata || {};
+  function renderEnsemble() {
+    const individualMetrics = meta?.individual_metrics || {};
+    const weights = meta?.weights || {};
+    const hasIndividual = Object.keys(individualMetrics).length > 0;
+
+    const modelLabels: Record<string, { emoji: string; name: string; desc: string; color: string }> = {
+      transformer_bilstm: { emoji: '🧠', name: 'Transformer + BiLSTM', desc: 'Multi-head self-attention + BiLSTM com attention pooling. Captura dependências temporais longas e padrões sequenciais complexos.', color: '#8b5cf6' },
+      residual_mlp: { emoji: '🔗', name: 'Residual MLP', desc: 'MLP com blocos residuais + LayerNorm + GELU. Especializado em relações não-lineares entre features cross-section.', color: '#3b82f6' },
+      temporal_cnn: { emoji: '📊', name: 'Temporal 1D-CNN', desc: 'Convoluções 1D + BatchNorm + global avg pooling. Detecta padrões locais e motifs temporais de curto prazo.', color: '#10b981' },
+    };
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Current model card */}
-        <div style={{ ...cardStyle }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        {/* How ensemble works */}
+        <div style={{
+          ...cardStyle, padding: '0.75rem 1rem',
+          background: darkMode ? 'rgba(59,130,246,0.08)' : 'rgba(59,130,246,0.04)',
+          borderColor: darkMode ? 'rgba(59,130,246,0.2)' : 'rgba(59,130,246,0.15)',
+        }}>
+          <div style={{ fontSize: '0.78rem', color: theme.textSecondary, lineHeight: 1.6 }}>
+            💡 <strong style={{ color: theme.text }}>Arquitetura Ensemble:</strong> O modelo final combina 3 redes DL com pesos adaptativos inversamente proporcionais ao RMSE de validação.
+            Cada modelo é treinado independentemente com walk-forward CV, e o ensemble pondera as predições para gerar o score final de cada ação.
+            Score = predição_ensemble / volatilidade_20d (ajuste por risco).
+          </div>
+        </div>
+
+        {/* Ensemble composition card */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
             <Shield size={18} color="#3b82f6" />
-            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Modelo Ativo em Produção</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Composição do Ensemble</span>
             <span style={{
               marginLeft: 'auto', padding: '0.2rem 0.6rem', borderRadius: 20, fontSize: '0.68rem', fontWeight: 600,
-              background: recD.method?.startsWith('dl_') ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
-              color: recD.method?.startsWith('dl_') ? '#10b981' : '#f59e0b',
+              background: recData.method?.startsWith('dl_') ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
+              color: recData.method?.startsWith('dl_') ? '#10b981' : '#f59e0b',
             }}>
-              {recD.method?.startsWith('dl_') ? '● DL Ativo' : '● Fallback'}
+              {recData.method?.startsWith('dl_') ? '● DL Ativo' : '● Fallback'}
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: '0.75rem', marginBottom: 16 }}>
             <div>
               <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 2 }}>Método</div>
               <div style={{ fontSize: '0.88rem', fontWeight: 600, color: theme.text }}>
-                {recD.method?.startsWith('dl_') ? 'DL Ensemble (Transformer+BiLSTM · ResidualMLP · TemporalCNN)' : recD.method || '—'}
+                {recData.method?.startsWith('dl_') ? 'DL Ensemble Ponderado' : recData.method || '—'}
               </div>
             </div>
             <div>
               <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 2 }}>Model Key</div>
-              <div style={{ fontSize: '0.78rem', color: theme.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {recD.model_key || '—'}
-              </div>
+              <div style={{ fontSize: '0.78rem', color: theme.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>{recData.model_key || '—'}</div>
             </div>
             <div>
               <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 2 }}>Data do Ranking</div>
-              <div style={{ fontSize: '0.88rem', fontWeight: 500, color: theme.text }}>{recD.dt ? fmtDate(recD.dt) : '—'}</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 500, color: theme.text }}>{recData.dt ? fmtDate(recData.dt) : '—'}</div>
             </div>
             <div>
               <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 2 }}>Tickers Ranqueados</div>
-              <div style={{ fontSize: '0.88rem', fontWeight: 500, color: theme.text }}>{recD.count || recD.top_n || '—'}</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 500, color: theme.text }}>{recData.count || recData.top_n || '—'}</div>
             </div>
           </div>
-        </div>
 
-        {/* Training metrics */}
-        <div style={{ ...cardStyle }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <BarChart3 size={18} color="#3b82f6" />
-            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Métricas de Treino</span>
-            <InfoTooltip text="Métricas do ensemble DL (média ponderada de Transformer+BiLSTM, ResidualMLP e TemporalCNN)." darkMode={darkMode} size={14} />
-          </div>
-
-          {meta && Object.keys(meta).length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem' }}>
-              {[
-                ...(meta.architecture ? [{
-                  label: 'Arquitetura', value: meta.architecture,
-                  color: '#3b82f6', tip: 'Arquitetura do modelo Deep Learning.',
-                }] : []),
-                { label: 'Val RMSE', value: fmt(meta.val_rmse, 4), color: '#3b82f6', tip: 'RMSE no conjunto de validação.' },
-                ...(meta.val_mae != null ? [{
-                  label: 'Val MAE', value: fmt(meta.val_mae, 4),
-                  color: '#3b82f6', tip: 'Mean Absolute Error na validação.',
-                }] : []),
-                ...(meta.val_mape != null && meta.val_mape < 1000 ? [{
-                  label: 'Val MAPE', value: `${fmt(meta.val_mape)}%`,
-                  color: meta.val_mape <= 15 ? '#10b981' : '#f59e0b',
-                  tip: 'Mean Absolute Percentage Error na validação.',
-                }] : []),
-                ...(meta.directional_accuracy != null ? [{
-                  label: 'Acurácia Dir.', value: `${fmt(meta.directional_accuracy * 100, 1)}%`,
-                  color: meta.directional_accuracy >= 0.55 ? '#10b981' : '#f59e0b',
-                  tip: 'Acurácia direcional (% de vezes que acertou a direção).',
-                }] : []),
-                ...(meta.epochs_trained != null ? [{
-                  label: 'Épocas', value: `${meta.epochs_trained}`,
-                  color: '#3b82f6', tip: 'Número de épocas treinadas (com early stopping).',
-                }] : []),
-                { label: 'CV Avg RMSE', value: fmt(meta.cv_avg_rmse, 4), color: '#3b82f6', tip: 'RMSE médio do walk-forward cross-validation.' },
-                ...(meta.cv_avg_mape != null && meta.cv_avg_mape < 1000 ? [{
-                  label: 'CV Avg MAPE', value: `${fmt(meta.cv_avg_mape)}%`,
-                  color: meta.cv_avg_mape <= 15 ? '#10b981' : '#f59e0b',
-                  tip: 'MAPE médio do walk-forward CV.',
-                }] : []),
-                ...(meta.n_features != null ? [{
-                  label: 'Features', value: `${meta.n_features}`,
-                  color: '#3b82f6', tip: 'Número de features usadas pelo modelo.',
-                }] : []),
-                ...(meta.train_samples != null ? [{
-                  label: 'Amostras', value: `${meta.train_samples}`,
-                  color: '#3b82f6', tip: 'Número de amostras usadas no treino.',
-                }] : []),
-              ].map((m, i) => (
-                <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8 }}>
-                  <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={11} />
-                  </div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: m.color }}>{m.value}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ padding: '1rem', textAlign: 'center', color: theme.textSecondary, fontSize: '0.82rem' }}>
-              <AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />
-              Modelo usando fallback (momentum). Retreine para obter métricas.
+          {/* Weight distribution bar */}
+          {hasIndividual && (
+            <div>
+              <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                Distribuição de Pesos do Ensemble
+              </div>
+              <div style={{ display: 'flex', height: 28, borderRadius: 8, overflow: 'hidden', border: `1px solid ${theme.border}` }}>
+                {Object.entries(weights).map(([name, w]: [string, any]) => {
+                  const info = modelLabels[name] || { emoji: '?', name, color: '#6b7280' };
+                  const pct = (w * 100);
+                  return (
+                    <div key={name} style={{
+                      width: `${pct}%`, background: info.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.68rem', fontWeight: 700, color: '#fff', transition: 'width 0.3s',
+                      minWidth: pct > 5 ? 'auto' : 0,
+                    }}>
+                      {pct >= 15 && `${info.emoji} ${fmt(pct, 1)}%`}
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: 6, flexWrap: 'wrap' }}>
+                {Object.entries(weights).map(([name, w]: [string, any]) => {
+                  const info = modelLabels[name] || { emoji: '?', name, color: '#6b7280' };
+                  return (
+                    <span key={name} style={{ fontSize: '0.68rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 2, background: info.color, display: 'inline-block' }} />
+                      {info.name}: {fmt(w * 100, 1)}%
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Individual model metrics (ensemble breakdown) */}
-        {meta?.individual_metrics && (
-          <div style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Layers size={18} color="#8b5cf6" />
-              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Modelos Individuais do Ensemble</span>
-              <InfoTooltip text="Métricas de cada modelo DL que compõe o ensemble. Pesos são calculados inversamente ao RMSE." darkMode={darkMode} size={14} />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: '0.75rem' }}>
-              {Object.entries(meta.individual_metrics).map(([name, m]: [string, any]) => {
-                const weight = meta.weights?.[name];
-                const labels: Record<string, string> = {
-                  transformer_bilstm: '🧠 Transformer + BiLSTM',
-                  residual_mlp: '🔗 Residual MLP',
-                  temporal_cnn: '📊 Temporal 1D-CNN',
-                };
-                return (
-                  <div key={name} style={{ padding: '0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8, borderLeft: '3px solid #8b5cf6' }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: 8 }}>
-                      {labels[name] || name}
-                      {weight != null && (
-                        <span style={{ marginLeft: 8, padding: '0.1rem 0.4rem', borderRadius: 10, fontSize: '0.65rem', fontWeight: 700, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6' }}>
-                          peso: {fmt(weight * 100, 1)}%
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
-                      {[
-                        { label: 'RMSE', value: fmt(m.val_rmse ?? m.rmse, 4) },
-                        { label: 'MAE', value: fmt(m.val_mae ?? m.mae, 4) },
-                        { label: 'MAPE', value: `${fmt(m.val_mape ?? m.mape)}%` },
-                        { label: 'Dir. Acc', value: m.directional_accuracy != null ? `${fmt(m.directional_accuracy * 100, 1)}%` : '—' },
-                      ].map((item, j) => (
-                        <div key={j}>
-                          <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{item.label}</div>
-                          <div style={{ fontSize: '0.88rem', fontWeight: 600, color: theme.text }}>{item.value}</div>
-                        </div>
-                      ))}
-                    </div>
+        {/* Individual model cards */}
+        {hasIndividual ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))', gap: '0.75rem' }}>
+            {Object.entries(individualMetrics).map(([name, m]: [string, any]) => {
+              const info = modelLabels[name] || { emoji: '?', name, desc: '', color: '#6b7280' };
+              const weight = weights[name];
+              const metrics = [
+                { label: 'Val RMSE', value: fmt(m.val_rmse ?? m.rmse, 4), tip: 'Root Mean Squared Error na validação.' },
+                { label: 'Val MAE', value: fmt(m.val_mae ?? m.mae, 4), tip: 'Mean Absolute Error na validação.' },
+                { label: 'Val MAPE', value: `${fmt(m.val_mape ?? m.mape)}%`, tip: 'Mean Absolute Percentage Error na validação.' },
+                { label: 'Acurácia Dir.', value: m.directional_accuracy != null ? `${fmt(m.directional_accuracy * 100, 1)}%` : '—', tip: 'Percentual de acertos na direção (alta/baixa).' },
+              ];
+
+              return (
+                <div key={name} style={{ ...cardStyle, borderLeft: `3px solid ${info.color}`, position: 'relative' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: '1.1rem' }}>{info.emoji}</span>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: theme.text }}>{info.name}</span>
+                    {weight != null && (
+                      <span style={{
+                        marginLeft: 'auto', padding: '0.15rem 0.5rem', borderRadius: 12, fontSize: '0.68rem', fontWeight: 700,
+                        background: `${info.color}20`, color: info.color,
+                      }}>
+                        peso: {fmt(weight * 100, 1)}%
+                      </span>
+                    )}
                   </div>
-                );
-              })}
+                  <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginBottom: 12, lineHeight: 1.5 }}>
+                    {info.desc}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                    {metrics.map((item, j) => (
+                      <div key={j} style={{ padding: '0.5rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 6 }}>
+                        <div style={{ fontSize: '0.65rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: 3, marginBottom: 2 }}>
+                          {item.label} <InfoTooltip text={item.tip} darkMode={darkMode} size={10} />
+                        </div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 700, color: theme.text }}>{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ ...cardStyle, textAlign: 'center', color: theme.textSecondary, fontSize: '0.82rem' }}>
+            <AlertTriangle size={16} style={{ verticalAlign: 'middle', marginRight: 6 }} />
+            Modelo usando fallback (momentum). Retreine para obter métricas individuais do ensemble.
+          </div>
+        )}
+
+        {/* Ensemble training metrics */}
+        {meta && Object.keys(meta).length > 0 && (
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <BarChart3 size={18} color="#3b82f6" />
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Métricas Consolidadas do Ensemble</span>
+              <InfoTooltip text="Métricas do ensemble final (média ponderada dos 3 modelos)." darkMode={darkMode} size={14} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))', gap: '0.6rem' }}>
+              {[
+                ...(meta.architecture ? [{ label: 'Arquitetura', value: meta.architecture, color: '#3b82f6', tip: 'Arquitetura do ensemble DL.' }] : []),
+                { label: 'Val RMSE', value: fmt(meta.val_rmse, 4), color: '#3b82f6', tip: 'RMSE ponderado do ensemble na validação.' },
+                ...(meta.val_mae != null ? [{ label: 'Val MAE', value: fmt(meta.val_mae, 4), color: '#3b82f6', tip: 'MAE ponderado do ensemble.' }] : []),
+                ...(meta.val_mape != null && meta.val_mape < 1000 ? [{ label: 'Val MAPE', value: `${fmt(meta.val_mape)}%`, color: meta.val_mape <= 15 ? '#10b981' : '#f59e0b', tip: 'MAPE ponderado do ensemble.' }] : []),
+                ...(meta.directional_accuracy != null ? [{ label: 'Acurácia Dir.', value: `${fmt(meta.directional_accuracy * 100, 1)}%`, color: meta.directional_accuracy >= 0.55 ? '#10b981' : '#f59e0b', tip: 'Acurácia direcional do ensemble.' }] : []),
+                ...(meta.epochs_trained != null ? [{ label: 'Épocas', value: `${meta.epochs_trained}`, color: '#3b82f6', tip: 'Épocas treinadas (early stopping).' }] : []),
+                { label: 'CV Avg RMSE', value: fmt(meta.cv_avg_rmse, 4), color: '#3b82f6', tip: 'RMSE médio do walk-forward CV.' },
+                ...(meta.cv_avg_mape != null && meta.cv_avg_mape < 1000 ? [{ label: 'CV Avg MAPE', value: `${fmt(meta.cv_avg_mape)}%`, color: meta.cv_avg_mape <= 15 ? '#10b981' : '#f59e0b', tip: 'MAPE médio do walk-forward CV.' }] : []),
+                ...(meta.n_features != null ? [{ label: 'Features', value: `${meta.n_features}`, color: '#3b82f6', tip: 'Número de features usadas.' }] : []),
+                ...(meta.train_samples != null ? [{ label: 'Amostras', value: `${meta.train_samples}`, color: '#3b82f6', tip: 'Amostras de treino.' }] : []),
+              ].map((m, i) => (
+                <div key={i} style={{ padding: '0.6rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginBottom: 3, display: 'flex', alignItems: 'center', gap: 3 }}>
+                    {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={10} />
+                  </div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: m.color }}>{m.value}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* Monitor metrics (live) */}
+        {/* Live production metrics */}
         {monitorData?.latest && (
-          <div style={{ ...cardStyle }}>
+          <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <Activity size={18} color="#10b981" />
               <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Métricas em Produção (Live)</span>
-              <InfoTooltip text="Métricas calculadas comparando previsões com preços reais de mercado." darkMode={darkMode} size={14} />
+              <InfoTooltip text="Métricas calculadas comparando previsões do ensemble com preços reais de mercado." darkMode={darkMode} size={14} />
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))', gap: '0.6rem' }}>
               {[
                 { label: 'Acurácia Direcional', value: `${fmt(latest.directional_accuracy * 100, 1)}%`, color: latest.directional_accuracy >= 0.6 ? '#10b981' : '#f59e0b' },
                 { label: 'MAPE', value: `${fmt(latest.mape, 2)}%`, color: latest.mape <= 1 ? '#10b981' : latest.mape <= 2 ? '#f59e0b' : '#ef4444' },
@@ -477,14 +450,67 @@ const AdminModelsPage: React.FC = () => {
                 { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio, 2), color: latest.sharpe_ratio >= 0 ? '#10b981' : '#ef4444' },
                 { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#3b82f6' },
               ].map((m, i) => (
-                <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8 }}>
-                  <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4 }}>{m.label}</div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: m.color }}>{m.value}</div>
+                <div key={i} style={{ padding: '0.6rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginBottom: 3 }}>{m.label}</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: m.color }}>{m.value}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Ensemble flow diagram */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <Layers size={18} color="#8b5cf6" />
+            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Fluxo do Ensemble</span>
+            <InfoTooltip text="Diagrama simplificado de como os 3 modelos geram a predição final." darkMode={darkMode} size={14} />
+          </div>
+
+          {/* Visual flow */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
+            {/* Input */}
+            <div style={{
+              padding: '0.5rem 1.5rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
+              background: darkMode ? '#0f1117' : '#f0f9ff', border: `1px solid ${darkMode ? '#2a2e3a' : '#bae6fd'}`, color: theme.text,
+            }}>
+              📥 Features Normalizadas ({meta.n_features || '~83'} features)
+            </div>
+            <div style={{ width: 2, height: 16, background: theme.border }} />
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>↓ input compartilhado</div>
+            <div style={{ width: 2, height: 8, background: theme.border }} />
+
+            {/* 3 models side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: '0.5rem', width: '100%', maxWidth: 600 }}>
+              {Object.entries(modelLabels).map(([key, info]) => {
+                const w = weights[key];
+                return (
+                  <div key={key} style={{
+                    padding: '0.6rem', borderRadius: 8, textAlign: 'center',
+                    background: `${info.color}10`, border: `1px solid ${info.color}30`,
+                  }}>
+                    <div style={{ fontSize: '1rem', marginBottom: 2 }}>{info.emoji}</div>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: info.color }}>{info.name}</div>
+                    {w != null && <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginTop: 2 }}>peso: {fmt(w * 100, 1)}%</div>}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div style={{ width: 2, height: 8, background: theme.border }} />
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>↓ média ponderada (1/RMSE)</div>
+            <div style={{ width: 2, height: 8, background: theme.border }} />
+
+            {/* Output */}
+            <div style={{
+              padding: '0.5rem 1.5rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
+              background: darkMode ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.05)',
+              border: `1px solid rgba(16,185,129,0.3)`, color: '#10b981',
+            }}>
+              📤 Predição Ensemble → Score = pred / vol_20d → Ranking Top 50
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -495,21 +521,20 @@ const AdminModelsPage: React.FC = () => {
      ═══════════════════════════════════════════════════ */
   function renderFeatureStore() {
     const EXPECTED_FIELDS = [
-      { group: 'Valuation', fields: ['pe_ratio', 'forward_pe', 'pb_ratio', 'dividend_yield', 'ev_to_ebitda', 'ev_to_revenue', 'peg_ratio', 'price_to_sales'] },
-      { group: 'Rentabilidade', fields: ['roe', 'roa', 'profit_margin', 'operating_margin', 'ebitda_margin', 'gross_margin'] },
-      { group: 'Crescimento', fields: ['earnings_growth', 'revenue_growth', 'earnings_quarterly_growth'] },
-      { group: 'Endividamento', fields: ['debt_to_equity', 'debt_to_ebitda', 'current_ratio', 'quick_ratio', 'interest_coverage', 'net_debt'] },
-      { group: 'Tamanho', fields: ['market_cap', 'enterprise_value'] },
-      { group: 'Cash Flow', fields: ['free_cash_flow', 'operating_cash_flow'] },
-      { group: 'Balanço/DRE', fields: ['total_assets', 'total_liabilities', 'total_equity', 'total_revenue', 'net_income', 'ebitda', 'total_debt', 'cash', 'asset_turnover'] },
-      { group: 'Classificação', fields: ['sector', 'industry'] },
+      { group: 'Valuation', fields: ['pe_ratio','forward_pe','pb_ratio','dividend_yield','ev_to_ebitda','ev_to_revenue','peg_ratio','price_to_sales'] },
+      { group: 'Rentabilidade', fields: ['roe','roa','profit_margin','operating_margin','ebitda_margin','gross_margin'] },
+      { group: 'Crescimento', fields: ['earnings_growth','revenue_growth','earnings_quarterly_growth'] },
+      { group: 'Endividamento', fields: ['debt_to_equity','debt_to_ebitda','current_ratio','quick_ratio','interest_coverage','net_debt'] },
+      { group: 'Tamanho', fields: ['market_cap','enterprise_value'] },
+      { group: 'Cash Flow', fields: ['free_cash_flow','operating_cash_flow'] },
+      { group: 'Balanço/DRE', fields: ['total_assets','total_liabilities','total_equity','total_revenue','net_income','ebitda','total_debt','cash','asset_turnover'] },
+      { group: 'Classificação', fields: ['sector','industry'] },
     ];
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {/* Data sources status */}
+        {/* Data sources */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: '0.75rem' }}>
-          {/* Fundamentals */}
           <div style={{ ...cardStyle, borderLeft: `3px solid ${(featureStore?.fundamentals.count || 0) > 0 ? '#10b981' : '#ef4444'}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               {(featureStore?.fundamentals.count || 0) > 0 ? <CheckCircle2 size={18} color="#10b981" /> : <XCircle size={18} color="#ef4444" />}
@@ -522,22 +547,14 @@ const AdminModelsPage: React.FC = () => {
               5 modules: summaryProfile, financialData, defaultKeyStatistics, balanceSheetHistory, incomeStatementHistory
             </div>
           </div>
-
-          {/* Macro */}
           <div style={{ ...cardStyle, borderLeft: `3px solid ${featureStore?.macro.ok ? '#10b981' : '#ef4444'}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               {featureStore?.macro.ok ? <CheckCircle2 size={18} color="#10b981" /> : <XCircle size={18} color="#ef4444" />}
               <span style={{ fontSize: '0.88rem', fontWeight: 600, color: theme.text }}>Macroeconômico (BCB)</span>
             </div>
-            <div style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: 4 }}>
-              10 features · Selic, IPCA, Câmbio, CDI
-            </div>
-            <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
-              API pública do Banco Central do Brasil
-            </div>
+            <div style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: 4 }}>10 features · Selic, IPCA, Câmbio, CDI</div>
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>API pública do Banco Central do Brasil</div>
           </div>
-
-          {/* Sentiment */}
           <div style={{ ...cardStyle, borderLeft: `3px solid ${(featureStore?.sentiment.count || 0) > 0 ? '#10b981' : '#6b7280'}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               {(featureStore?.sentiment.count || 0) > 0 ? <CheckCircle2 size={18} color="#10b981" /> : <Clock size={18} color="#94a3b8" />}
@@ -557,9 +574,8 @@ const AdminModelsPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Eye size={18} color="#3b82f6" />
             <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Auditoria de Cobertura (BRAPI Pro)</span>
-            <InfoTooltip text="Verifica quais campos da BRAPI Pro estão preenchidos para cada ticker." darkMode={darkMode} size={14} />
+            <InfoTooltip text="Verifica quais campos fundamentalistas estão preenchidos para cada ticker." darkMode={darkMode} size={14} />
           </div>
-
           {featureAudit.length > 0 ? (
             <div>
               {featureAudit.map(audit => {
@@ -576,12 +592,8 @@ const AdminModelsPage: React.FC = () => {
                       <div style={{ flex: 1, height: 6, background: darkMode ? '#0f1117' : '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
                         <div style={{ width: `${pct}%`, height: '100%', background: pct >= 80 ? '#10b981' : pct >= 60 ? '#f59e0b' : '#ef4444', borderRadius: 3, transition: 'width 0.3s' }} />
                       </div>
-                      <span style={{ fontSize: '0.75rem', color: pct >= 80 ? '#10b981' : '#f59e0b', fontWeight: 600, minWidth: 40, textAlign: 'right' }}>
-                        {pct}%
-                      </span>
-                      <span style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
-                        ({audit.populated}/{audit.total})
-                      </span>
+                      <span style={{ fontSize: '0.75rem', color: pct >= 80 ? '#10b981' : '#f59e0b', fontWeight: 600, minWidth: 40, textAlign: 'right' }}>{pct}%</span>
+                      <span style={{ fontSize: '0.7rem', color: theme.textSecondary }}>({audit.populated}/{audit.total})</span>
                     </button>
                     {isExpanded && audit.missing.length > 0 && (
                       <div style={{ marginLeft: 28, marginTop: 4, padding: '0.5rem', background: darkMode ? '#0f1117' : '#fef3c7', borderRadius: 6, fontSize: '0.75rem' }}>
@@ -609,18 +621,10 @@ const AdminModelsPage: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem' }}>
             {EXPECTED_FIELDS.map(group => (
               <div key={group.group} style={{ padding: '0.6rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8 }}>
-                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#3b82f6', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                  {group.group}
-                </div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#3b82f6', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.03em' }}>{group.group}</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   {group.fields.map(f => (
-                    <span key={f} style={{
-                      padding: '0.15rem 0.4rem', borderRadius: 4, fontSize: '0.68rem',
-                      background: darkMode ? '#2a2e3a' : '#e2e8f0', color: theme.textSecondary,
-                      fontFamily: 'monospace',
-                    }}>
-                      {f}
-                    </span>
+                    <span key={f} style={{ padding: '0.15rem 0.4rem', borderRadius: 4, fontSize: '0.68rem', background: darkMode ? '#2a2e3a' : '#e2e8f0', color: theme.textSecondary, fontFamily: 'monospace' }}>{f}</span>
                   ))}
                 </div>
               </div>
@@ -638,35 +642,23 @@ const AdminModelsPage: React.FC = () => {
   function renderPipeline() {
     const pipelines = [
       {
-        name: 'IngestFeatures',
-        description: 'Coleta fundamentalistas (BRAPI Pro), macro (BCB) e sentimento. Salva no Feature Store S3.',
-        schedule: 'Diário, SEG-SEX 21:00 UTC (18:00 BRT)',
-        lambda: 'B3TacticalRankingStackV2-IngestFeatures',
-        status: pipeline?.ingest_features,
-        icon: <Database size={18} />,
-        color: '#3b82f6',
+        name: 'IngestFeatures', description: 'Coleta fundamentalistas (BRAPI Pro), macro (BCB) e sentimento. Salva no Feature Store S3.',
+        schedule: 'Diário, SEG-SEX 21:00 UTC (18:00 BRT)', lambda: 'B3TacticalRankingStackV2-IngestFeatures',
+        status: pipeline?.ingest_features, icon: <Database size={18} />, color: '#3b82f6',
         outputs: ['feature_store/fundamentals/', 'feature_store/macro/', 'feature_store/sentiment/'],
         inputs: ['BRAPI Pro API', 'BCB API', 'NewsAPI (opcional)'],
       },
       {
-        name: 'WeeklyRetrain',
-        description: 'Retreina ensemble DL (Transformer+BiLSTM · ResidualMLP · TemporalCNN) com walk-forward CV e pesos adaptativos.',
-        schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)',
-        lambda: 'B3TacticalRankingStackV2-WeeklyRetrain',
-        status: pipeline?.weekly_retrain,
-        icon: <Cpu size={18} />,
-        color: '#3b82f6',
+        name: 'WeeklyRetrain', description: 'Retreina ensemble DL (Transformer+BiLSTM · ResidualMLP · TemporalCNN) com walk-forward CV e pesos adaptativos.',
+        schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)', lambda: 'B3TacticalRankingStackV2-WeeklyRetrain',
+        status: pipeline?.weekly_retrain, icon: <Cpu size={18} />, color: '#3b82f6',
         outputs: ['models/deep_learning/{date}/model.tar.gz', 'models/deep_learning/{date}/metrics.json', 'models/deep_learning/{date}/selected_features.json'],
         inputs: ['curated/daily_monthly/', 'feature_store/'],
       },
       {
-        name: 'DailyRanking',
-        description: 'Gera ranking diário usando ensemble DL (3 modelos) + features avançadas (volume, fundamentals, macro, setor, sentimento).',
-        schedule: 'Diário, SEG-SEX 21:30 UTC (18:30 BRT)',
-        lambda: 'B3TacticalRankingStackV2-RankSageMaker',
-        status: pipeline?.daily_ranking,
-        icon: <TrendingUp size={18} />,
-        color: '#10b981',
+        name: 'DailyRanking', description: 'Gera ranking diário usando ensemble DL (3 modelos) + features avançadas (volume, fundamentals, macro, setor, sentimento).',
+        schedule: 'Diário, SEG-SEX 21:30 UTC (18:30 BRT)', lambda: 'B3TacticalRankingStackV2-RankSageMaker',
+        status: pipeline?.daily_ranking, icon: <TrendingUp size={18} />, color: '#10b981',
         outputs: ['recommendations/dt={date}/top50.json'],
         inputs: ['curated/daily_monthly/', 'feature_store/', 'models/deep_learning/'],
       },
@@ -677,63 +669,38 @@ const AdminModelsPage: React.FC = () => {
         {pipelines.map((p, idx) => (
           <div key={p.name} style={{ ...cardStyle, borderLeft: `3px solid ${p.color}` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <div style={{ padding: 8, borderRadius: 8, background: `${p.color}15`, color: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {p.icon}
-              </div>
+              <div style={{ padding: 8, borderRadius: 8, background: `${p.color}15`, color: p.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{p.icon}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>{p.name}</div>
                 <div style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{p.description}</div>
               </div>
               <StatusDot ok={p.status?.status === 'active'} label={p.status?.status === 'active' ? 'Ativo' : 'Inativo'} />
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem', marginBottom: 12 }}>
               <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 6 }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: 2 }}>Schedule</div>
-                <div style={{ fontSize: '0.78rem', color: theme.text, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Clock size={12} /> {p.schedule}
-                </div>
+                <div style={{ fontSize: '0.78rem', color: theme.text, display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> {p.schedule}</div>
               </div>
               <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 6 }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: 2 }}>Próxima execução</div>
-                <div style={{ fontSize: '0.78rem', color: theme.text }}>
-                  {p.status?.next_run ? fmtDateTime(p.status.next_run) : '—'}
-                </div>
+                <div style={{ fontSize: '0.78rem', color: theme.text }}>{p.status?.next_run ? fmtDateTime(p.status.next_run) : '—'}</div>
               </div>
               <div style={{ padding: '0.5rem 0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 6 }}>
                 <div style={{ fontSize: '0.68rem', color: theme.textSecondary, marginBottom: 2 }}>Lambda</div>
-                <div style={{ fontSize: '0.72rem', color: theme.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                  {p.lambda}
-                </div>
+                <div style={{ fontSize: '0.72rem', color: theme.text, fontFamily: 'monospace', wordBreak: 'break-all' }}>{p.lambda}</div>
               </div>
             </div>
-
-            {/* Inputs / Outputs */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
                 <div style={{ fontSize: '0.68rem', fontWeight: 600, color: theme.textSecondary, marginBottom: 4, textTransform: 'uppercase' }}>Inputs</div>
-                {p.inputs.map(inp => (
-                  <div key={inp} style={{ fontSize: '0.72rem', color: theme.textSecondary, padding: '0.15rem 0', fontFamily: 'monospace' }}>
-                    → {inp}
-                  </div>
-                ))}
+                {p.inputs.map(inp => <div key={inp} style={{ fontSize: '0.72rem', color: theme.textSecondary, padding: '0.15rem 0', fontFamily: 'monospace' }}>→ {inp}</div>)}
               </div>
               <div>
                 <div style={{ fontSize: '0.68rem', fontWeight: 600, color: theme.textSecondary, marginBottom: 4, textTransform: 'uppercase' }}>Outputs</div>
-                {p.outputs.map(out => (
-                  <div key={out} style={{ fontSize: '0.72rem', color: theme.textSecondary, padding: '0.15rem 0', fontFamily: 'monospace' }}>
-                    ← {out}
-                  </div>
-                ))}
+                {p.outputs.map(out => <div key={out} style={{ fontSize: '0.72rem', color: theme.textSecondary, padding: '0.15rem 0', fontFamily: 'monospace' }}>← {out}</div>)}
               </div>
             </div>
-
-            {/* Connection arrow to next */}
-            {idx < pipelines.length - 1 && (
-              <div style={{ textAlign: 'center', margin: '0.5rem 0 -0.5rem', color: theme.textSecondary, fontSize: '1.2rem' }}>
-                ↓
-              </div>
-            )}
+            {idx < pipelines.length - 1 && <div style={{ textAlign: 'center', margin: '0.5rem 0 -0.5rem', color: theme.textSecondary, fontSize: '1.2rem' }}>↓</div>}
           </div>
         ))}
       </div>
@@ -747,9 +714,7 @@ const AdminModelsPage: React.FC = () => {
   function renderLineage() {
     const stages = [
       {
-        name: 'Dados Brutos',
-        icon: <Database size={20} />,
-        color: '#3b82f6',
+        name: 'Dados Brutos', icon: <Database size={20} />, color: '#3b82f6',
         items: [
           { label: 'BRAPI Pro', detail: '5 modules · 46 tickers · ~35 campos/ticker', status: true },
           { label: 'BCB API', detail: 'Selic, IPCA, Câmbio, CDI · 10 features', status: true },
@@ -758,9 +723,7 @@ const AdminModelsPage: React.FC = () => {
         ],
       },
       {
-        name: 'Feature Engineering',
-        icon: <Layers size={20} />,
-        color: '#3b82f6',
+        name: 'Feature Engineering', icon: <Layers size={20} />, color: '#3b82f6',
         items: [
           { label: 'Técnicas', detail: 'RSI, MACD, Bollinger, ATR, momentum, volatilidade, regime · ~25 features', status: true },
           { label: 'Volume', detail: 'OBV, VWAP, volume-price divergence, z-score · 11 features', status: true },
@@ -771,9 +734,7 @@ const AdminModelsPage: React.FC = () => {
         ],
       },
       {
-        name: 'Feature Selection',
-        icon: <Zap size={20} />,
-        color: '#f59e0b',
+        name: 'Feature Selection', icon: <Zap size={20} />, color: '#f59e0b',
         items: [
           { label: 'StandardScaler', detail: 'Normalização de features para input do modelo DL', status: true },
           { label: 'Walk-Forward CV', detail: 'Validação temporal sem data leakage', status: true },
@@ -781,9 +742,7 @@ const AdminModelsPage: React.FC = () => {
         ],
       },
       {
-        name: 'Treinamento',
-        icon: <Cpu size={20} />,
-        color: '#ef4444',
+        name: 'Treinamento (Ensemble)', icon: <Cpu size={20} />, color: '#ef4444',
         items: [
           { label: 'Transformer + BiLSTM', detail: 'Multi-head self-attention + BiLSTM + attention pooling (peso ~40%)', status: true },
           { label: 'Residual MLP', detail: 'MLP com blocos residuais + LayerNorm + GELU (peso ~30%)', status: true },
@@ -794,9 +753,7 @@ const AdminModelsPage: React.FC = () => {
         ],
       },
       {
-        name: 'Inferência',
-        icon: <TrendingUp size={20} />,
-        color: '#10b981',
+        name: 'Inferência', icon: <TrendingUp size={20} />, color: '#10b981',
         items: [
           { label: 'Ranking Diário', detail: 'Top 50 ações por score ajustado por risco (ensemble de 3 modelos)', status: true },
           { label: 'Score = retorno / volatilidade', detail: 'Predição ensemble dividida por vol_20d', status: true },
@@ -818,13 +775,10 @@ const AdminModelsPage: React.FC = () => {
                   {stage.icon}
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.68rem', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Etapa {idx + 1}
-                  </div>
+                  <div style={{ fontSize: '0.68rem', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Etapa {idx + 1}</div>
                   <div style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>{stage.name}</div>
                 </div>
               </div>
-
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))', gap: '0.5rem', marginLeft: 18 }}>
                 {stage.items.map(item => (
                   <div key={item.label} style={{
@@ -843,8 +797,6 @@ const AdminModelsPage: React.FC = () => {
                 ))}
               </div>
             </div>
-
-            {/* Connector */}
             {idx < stages.length - 1 && (
               <div style={{ display: 'flex', justifyContent: 'center', padding: '0.25rem 0' }}>
                 <div style={{ width: 2, height: 20, background: theme.border }} />
@@ -857,18 +809,13 @@ const AdminModelsPage: React.FC = () => {
   }
 };
 
-
-/* ── Helper: next schedule occurrence ── */
 function getNextSchedule(hourUtc: number, minuteUtc: number, daysOfWeek: number[]): string {
   const now = new Date();
   const candidate = new Date(now);
   candidate.setUTCHours(hourUtc, minuteUtc, 0, 0);
-
   for (let i = 0; i < 8; i++) {
     const d = new Date(candidate.getTime() + i * 86400000);
-    if (daysOfWeek.includes(d.getUTCDay()) && d > now) {
-      return d.toISOString();
-    }
+    if (daysOfWeek.includes(d.getUTCDay()) && d > now) return d.toISOString();
   }
   return '';
 }

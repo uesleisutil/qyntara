@@ -384,16 +384,14 @@ const AdminInvestorPage: React.FC = () => {
       <div style={{ ...card, marginBottom: '1.5rem' }}>
         <SectionTitle num={4} icon={<Shield size={16} color="#ef4444" />} title="Painel Admin — DLOps" color="#ef4444" />
         <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '1rem' }}>
-          Visibilidade total sobre a saúde do sistema de DL. Drift detection, custos, qualidade de dados e gestão de usuários.
+          Visibilidade total sobre a saúde do sistema de DL. Ensemble de modelos, custos, qualidade de dados e gestão de usuários.
           {!isAdmin && <span style={{ color: '#f59e0b', fontWeight: 500 }}> Links admin requerem permissão de administrador.</span>}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '0.6rem' }}>
           {[
-            { icon: <BarChart3 size={15} />, title: 'Visão Geral', desc: 'KPIs, health checks de serviços AWS, pipeline status.', path: '/admin', color: '#3b82f6' },
-            { icon: <Brain size={15} />, title: 'Drift Detection', desc: 'Data Drift (KS test), Concept Drift, alertas de retreinamento.', path: '/admin/drift', color: '#3b82f6' },
+            { icon: <Layers size={15} />, title: 'Modelos & Features', desc: 'Ensemble DL, performance individual, feature store, pipeline.', path: '/admin/models', color: '#3b82f6' },
             { icon: <DollarSign size={15} />, title: 'Custos AWS', desc: 'Custos por serviço, anomalias, budget alerts, ROI.', path: '/admin/costs', color: '#f59e0b' },
             { icon: <Database size={15} />, title: 'Qualidade de Dados', desc: 'Completude, freshness, cobertura, anomalias.', path: '/admin/data-quality', color: '#10b981' },
-            { icon: <Layers size={15} />, title: 'Modelos & Features', desc: 'Versionamento, feature store, triggers de retrain.', path: '/admin/models', color: '#3b82f6' },
             { icon: <CheckCircle size={15} />, title: 'Validação', desc: 'Previsto vs real, acurácia temporal, outliers.', path: '/admin/validation', color: '#ec4899' },
             { icon: <Users size={15} />, title: 'Usuários', desc: 'Planos, roles, assinaturas, métricas de crescimento.', path: '/admin/users', color: '#ef4444' },
             { icon: <Bot size={15} />, title: 'Agentes IA & Chat', desc: 'Suporte IA, notificações inteligentes, chat admin.', path: '/admin/agents', color: '#0ea5e9' },
