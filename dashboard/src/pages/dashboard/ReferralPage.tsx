@@ -45,9 +45,13 @@ const ReferralPage: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        setStats(await res.json());
+        const data = await res.json();
+        if (data && data.referralCode) {
+          setStats(data);
+        } else {
+          setStats(null);
+        }
       } else {
-        // No referral code yet — generate one
         setStats(null);
       }
     } catch { /* silent */ }

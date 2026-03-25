@@ -61,19 +61,48 @@ const ChallengesPage: React.FC = () => {
   const [joining, setJoining] = useState(false);
   const [tab, setTab] = useState<'challenge' | 'leaderboard' | 'badges'>('challenge');
 
-  const token = localStorage.getItem('authToken');
-  const headers = { Authorization: `Bearer ${token}` };
+  const getHeaders = () => {
+    const token = localStorage.getItem('authToken');
+    return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+  };
 
   const fetchData = useCallback(async () => {
     try {
+      const h = getHeaders();
       const [cRes, lRes, bRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/auth/stats?type=challenge`, { headers }),
-        fetch(`${API_BASE_URL}/auth/stats?type=leaderboard`, { headers }),
-        fetch(`${API_BASE_URL}/auth/stats?type=achievements`, { headers }),
+        fetch(`${API_BASE_URL}/auth/stats?type=challenge`, { headers: h }),
+        fetch(`${API_BASE_URL}/auth/stats?type=leaderboard`, { headers: h }),
+        fetch(`${API_BASE_URL}/auth/stats?type=achievements`, { headers: h }),
       ]);
-      if (cRes.ok) setChallenge(await cRes.json());
-      if (lRes.ok) setLeaderboard(await lRes.json());
-      if (bRes.ok) setBadges(await bRes.json());
+      if (cRes.ok) {
+        const data = await cRes.json();
+        if (data && data.active) {
+          setChallenge({
+            active: true,
+            startDate: data.startDate || '',
+            endDate: data.endDate || '',
+            userReturn: data.userReturn || 0,
+            ibovReturn: data.ibovReturn || 0,
+            isBeating: data.isBeating || false,
+            streak: data.streak || 0,
+            bestStreak: data.bestStreak || 0,
+            rank: data.rank || 1,
+            totalParticipants: data.totalParticipants || 1,
+            portfolio: data.portfolio || [],
+            history: data.history || [],
+          });
+        } else {
+          setChallenge(null);
+        }
+      }
+      if (lRes.ok) {
+        const lData = await lRes.json();
+        setLeaderboard(Array.isArray(lData) ? lData : []);
+      }
+      if (bRes.ok) {
+        const bData = await bRes.json();
+        setBadges(Array.isArray(bData) ? bData : []);
+      }
     } catch { /* silent */ }
     finally { setLoading(false); }
   }, []);
@@ -85,7 +114,7 @@ const ChallengesPage: React.FC = () => {
     try {
       const res = await fetch(`${API_BASE_URL}/auth/free-ticker`, {
         method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ action: 'join-challenge' }),
       });
       if (res.ok) await fetchData();
