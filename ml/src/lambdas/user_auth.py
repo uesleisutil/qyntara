@@ -2943,7 +2943,7 @@ def _handle_set_free_ticker(event: dict) -> dict:
 
     # ── Join challenge ──
     if action == "join-challenge":
-        return _action_join_challenge(email)
+        return _action_join_challenge(email, body)
 
     # ── Default: update user preferences (ticker, onboarding, profile) ──
 
@@ -3021,28 +3021,54 @@ def _action_generate_referral(email: str) -> dict:
         return _cors_response(500, {"message": "Erro ao gerar código"})
 
 
-def _action_join_challenge(email: str) -> dict:
-    """Join the monthly IBOV challenge."""
+def _action_join_challenge(email: str, body: dict) -> dict:
+    """Join the monthly IBOV challenge with a specific carteira."""
+    carteira_id = _sanitize_string(body.get("carteiraId", ""), 20)
+
+    # Validate carteira exists and belongs to user
+    if carteira_id:
+        try:
+            cart_table = dynamodb.Table(CARTEIRAS_TABLE)
+            result = cart_table.get_item(Key={"userEmail": email, "carteiraId": carteira_id})
+            if "Item" not in result:
+                return _cors_response(400, {"message": "Carteira não encontrada"})
+        except Exception:
+            return _cors_response(500, {"message": "Erro ao validar carteira"})
+
     table = dynamodb.Table(USERS_TABLE)
     now = datetime.now(UTC)
     now_iso = now.isoformat()
+    month_key = now.strftime("%Y-%m")
     start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
     if now.month == 12:
         end_date = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
     else:
         end_date = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+
     challenge_data = {
-        "active": True, "startDate": start_date, "endDate": end_date,
-        "joinedAt": now_iso, "userReturn": 0, "ibovReturn": 0, "streak": 0, "bestStreak": 0,
+        "active": True, "month": month_key, "startDate": start_date, "endDate": end_date,
+        "joinedAt": now_iso, "carteiraId": carteira_id,
+        "userReturn": 0, "ibovReturn": 0, "streak": 0, "bestStreak": 0,
     }
+
     try:
+        # Save current challenge + append to history
+        item = table.get_item(Key={"email": email}).get("Item", {})
+        challenge_history = item.get("challengeHistory", [])
+
+        # If there's an existing active challenge for a different month, archive it
+        old_challenge = item.get("challenge")
+        if old_challenge and old_challenge.get("month") and old_challenge.get("month") != month_key:
+            challenge_history.append(old_challenge)
+
         table.update_item(
             Key={"email": email},
-            UpdateExpression="SET challenge = :c, updatedAt = :now",
-            ExpressionAttributeValues={":c": challenge_data, ":now": now_iso},
+            UpdateExpression="SET challenge = :c, challengeHistory = :h, updatedAt = :now",
+            ExpressionAttributeValues={":c": challenge_data, ":h": challenge_history, ":now": now_iso},
         )
         return _cors_response(200, {
-            "active": True, "startDate": start_date, "endDate": end_date,
+            "active": True, "month": month_key, "startDate": start_date, "endDate": end_date,
+            "carteiraId": carteira_id,
             "userReturn": 0, "ibovReturn": 0, "isBeating": False,
             "streak": 0, "bestStreak": 0, "rank": 1, "totalParticipants": 1,
             "portfolio": [], "history": [],
@@ -3100,11 +3126,30 @@ def _handle_user_data(event: dict) -> dict:
 
     if data_type == "challenge":
         try:
-            result = table.get_item(Key={"email": email}, ProjectionExpression="challenge")
+            result = table.get_item(Key={"email": email}, ProjectionExpression="challenge, challengeHistory")
             item = result.get("Item", {})
             challenge = item.get("challenge")
             if not challenge or not challenge.get("active"):
                 return _cors_response(200, {"active": False})
+
+            # Auto-reset if month changed
+            current_month = datetime.now(UTC).strftime("%Y-%m")
+            challenge_month = challenge.get("month", "")
+            if challenge_month and challenge_month != current_month:
+                # Archive old challenge and deactivate
+                history = item.get("challengeHistory", [])
+                history.append(challenge)
+                table.update_item(
+                    Key={"email": email},
+                    UpdateExpression="SET challenge = :c, challengeHistory = :h, updatedAt = :now",
+                    ExpressionAttributeValues={
+                        ":c": {"active": False},
+                        ":h": history,
+                        ":now": datetime.now(UTC).isoformat(),
+                    },
+                )
+                return _cors_response(200, {"active": False})
+
             challenge["isBeating"] = challenge.get("userReturn", 0) > challenge.get("ibovReturn", 0)
             challenge["rank"] = 1
             challenge["totalParticipants"] = 1
@@ -3116,23 +3161,34 @@ def _handle_user_data(event: dict) -> dict:
             return _cors_response(200, {"active": False})
 
     if data_type == "leaderboard":
+        filter_month = qs.get("month", datetime.now(UTC).strftime("%Y-%m"))
         try:
             result = table.scan(
-                ProjectionExpression="#n, email, challenge",
+                ProjectionExpression="#n, email, challenge, challengeHistory",
                 ExpressionAttributeNames={"#n": "name"},
-                FilterExpression="attribute_exists(challenge)",
+                FilterExpression="attribute_exists(challenge) OR attribute_exists(challengeHistory)",
             )
             items = result.get("Items", [])
             entries = []
             for item in items:
                 ch = item.get("challenge", {})
-                if not ch.get("active"):
-                    continue
-                entries.append({
-                    "name": item.get("name", "Anônimo"),
-                    "email": item.get("email", ""),
-                    "return": ch.get("userReturn", 0),
-                })
+                # Check current challenge
+                if ch.get("active") and ch.get("month") == filter_month:
+                    entries.append({
+                        "name": item.get("name", "Anônimo"),
+                        "email": item.get("email", ""),
+                        "return": ch.get("userReturn", 0),
+                    })
+                else:
+                    # Check history
+                    for hist in item.get("challengeHistory", []):
+                        if hist.get("month") == filter_month:
+                            entries.append({
+                                "name": item.get("name", "Anônimo"),
+                                "email": item.get("email", ""),
+                                "return": hist.get("userReturn", 0),
+                            })
+                            break
             entries.sort(key=lambda x: x["return"], reverse=True)
             leaderboard = []
             for i, e in enumerate(entries):
@@ -3145,6 +3201,22 @@ def _handle_user_data(event: dict) -> dict:
             return _cors_response(200, leaderboard)
         except Exception as e:
             logger.error(f"Error fetching leaderboard: {e}")
+            return _cors_response(200, [])
+
+    if data_type == "past-months":
+        # Return list of months that have challenge data
+        try:
+            result = table.get_item(Key={"email": email}, ProjectionExpression="challenge, challengeHistory")
+            item = result.get("Item", {})
+            months = set()
+            ch = item.get("challenge", {})
+            if ch.get("month"):
+                months.add(ch["month"])
+            for hist in item.get("challengeHistory", []):
+                if hist.get("month"):
+                    months.add(hist["month"])
+            return _cors_response(200, sorted(months, reverse=True))
+        except Exception:
             return _cors_response(200, [])
 
     if data_type == "achievements":
