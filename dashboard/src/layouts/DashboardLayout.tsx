@@ -6,7 +6,7 @@ import {
   BarChart3, Brain, TestTubes, Moon, Sun, User, Lock,
   Briefcase, LineChart, Crown, Bell, Phone, Bot, Users, MessageCircle,
   Settings, Mail, Shield, DollarSign, Database, CheckSquare, Activity, Layers,
-  Landmark,
+  Landmark, Gift, Trophy,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationCenter from '../components/shared/features/NotificationCenter';
@@ -46,18 +46,16 @@ const DashboardLayout: React.FC = () => {
 
   React.useEffect(() => {
     if (isAdminRoute) return; // Never show onboarding/tour on admin pages
+    // Wait until user is loaded before deciding
+    if (!user) return;
     if (shouldShowOnboarding(user)) {
-      const timer = setTimeout(() => setShowOnboarding(true), 600);
-      return () => clearTimeout(timer);
-    } else if (!isPro && !user?.freeTicker) {
-      // Free user who skipped onboarding without choosing a ticker — show it again
       const timer = setTimeout(() => setShowOnboarding(true), 600);
       return () => clearTimeout(timer);
     } else if (shouldShowTour()) {
       const timer = setTimeout(() => setShowTour(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, [isPro, user?.freeTicker, user?.onboardingDone, isAdminRoute]);
+  }, [user, isAdminRoute]);
 
   React.useEffect(() => {
     const goOnline = () => setIsOffline(false);
@@ -190,6 +188,8 @@ const DashboardLayout: React.FC = () => {
           {sectionLabel('Extras')}
         </div>
         {renderNavButton({ path: '/dashboard/support', label: 'Suporte', icon: <MessageCircle size={18} /> })}
+        {renderNavButton({ path: '/dashboard/referral', label: 'Indique e Ganhe', icon: <Gift size={18} /> })}
+        {renderNavButton({ path: '/dashboard/challenges', label: 'Desafio IBOV', icon: <Trophy size={18} /> })}
         {renderNavButton({ path: '/dashboard/investor', label: 'Investor Deck', icon: <Landmark size={18} /> })}
 
         {/* Admin sections */}
@@ -288,6 +288,8 @@ const DashboardLayout: React.FC = () => {
     if (p === '/dashboard/change-phone') return 'Alertas WhatsApp';
     if (p === '/dashboard/support') return 'Fale Conosco';
     if (p === '/dashboard/settings') return 'Configurações';
+    if (p === '/dashboard/referral') return 'Indique e Ganhe';
+    if (p === '/dashboard/challenges') return 'Desafio: Bata o IBOVESPA';
     if (p === '/dashboard/investor') return 'Investor Deck';
     return 'Dashboard';
   };

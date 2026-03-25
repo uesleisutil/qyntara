@@ -33,6 +33,8 @@ import AdminModelsPage from './pages/admin/AdminModelsPage';
 import AdminInvestorPage from './pages/admin/AdminInvestorPage';
 import SupportChatPage from './pages/dashboard/SupportChatPage';
 import CarteirasPage from './pages/dashboard/CarteirasPage';
+import ReferralPage from './pages/dashboard/ReferralPage';
+import ChallengesPage from './pages/dashboard/ChallengesPage';
 
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
@@ -118,6 +120,8 @@ const AppRoutes: React.FC = () => {
         <Route path="change-phone" element={<ChangePhonePage />} />
         <Route path="support" element={<SupportChatPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="referral" element={<ReferralPage />} />
+        <Route path="challenges" element={<ChallengesPage />} />
         <Route path="investor" element={<AdminInvestorPage />} />
       </Route>
 

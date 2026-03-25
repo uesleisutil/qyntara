@@ -1,7 +1,7 @@
 import { brand } from '../styles/theme';
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, AlertCircle, CheckCircle, RefreshCw, Gift } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const accent = '#3b82f6';
@@ -10,11 +10,13 @@ const gradient = 'linear-gradient(135deg, #2563eb, #3b82f6, #3b82f6)';
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [referralCode, setReferralCode] = useState(() => searchParams.get('ref') || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [dark] = useState(() => {
@@ -50,7 +52,7 @@ const RegisterPage: React.FC = () => {
     if (!passwordChecks.every(c => c.valid)) { setError('A senha não atende aos requisitos mínimos.'); return; }
     setLoading(true);
     try {
-      await register(name, email, password);
+      await register(name, email, password, referralCode || undefined);
       navigate('/verify-email');
     } catch (err: any) {
       setError(err.message || 'Erro ao criar conta. Tente novamente.');
@@ -119,6 +121,22 @@ const RegisterPage: React.FC = () => {
               <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                 placeholder="••••••••" required style={inputStyle}
                 onFocus={e => e.currentTarget.style.borderColor = accent} onBlur={e => e.currentTarget.style.borderColor = t.inputBorder} />
+            </div>
+            {/* Referral code */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', color: t.label, fontSize: '0.85rem', marginBottom: '0.4rem', fontWeight: 500 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <Gift size={14} color="#10b981" /> Código de indicação <span style={{ fontWeight: 400, color: t.textSecondary }}>(opcional)</span>
+                </span>
+              </label>
+              <input type="text" value={referralCode} onChange={e => setReferralCode(e.target.value.trim())}
+                placeholder="Ex: ABC123" style={inputStyle}
+                onFocus={e => e.currentTarget.style.borderColor = accent} onBlur={e => e.currentTarget.style.borderColor = t.inputBorder} />
+              {referralCode && (
+                <div style={{ fontSize: '0.75rem', color: '#10b981', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <CheckCircle size={12} /> Código aplicado — vocês dois ganham 1 mês Pro grátis
+                </div>
+              )}
             </div>
             <button type="submit" disabled={loading} style={{
               width: '100%', padding: '0.8rem', background: gradient,

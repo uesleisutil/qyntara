@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
-import { Settings, Trash2, Shield, Lock, CreditCard, AlertTriangle, CheckCircle, ExternalLink, Bell, Keyboard } from 'lucide-react';
+import { Settings, Trash2, Shield, Lock, CreditCard, AlertTriangle, CheckCircle, ExternalLink, Bell, Keyboard, Target, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_BASE_URL } from '../../config';
+import { brand } from '../../styles/theme';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
 const SettingsPage: React.FC = () => {
   const { darkMode } = useOutletContext<DashboardContext>();
-  const { user, logout } = useAuth();
+  const { user, logout, completeOnboarding } = useAuth();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
@@ -17,6 +18,8 @@ const SettingsPage: React.FC = () => {
   const [deleteSuccess, setDeleteSuccess] = useState(false);
   const [emailNotif, setEmailNotif] = useState(() => localStorage.getItem('b3tr_email_notif') === 'true');
   const [emailNotifSaving, setEmailNotifSaving] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const isPro = user?.plan === 'pro';
 
   const theme = {
@@ -71,6 +74,7 @@ const SettingsPage: React.FC = () => {
             { label: 'Email', value: user?.email || '—' },
             { label: 'Nome', value: user?.name || '—' },
             { label: 'Plano', value: user?.plan === 'pro' ? 'Pro' : 'Gratuito' },
+            { label: 'Perfil investidor', value: user?.investorProfile ? user.investorProfile.charAt(0).toUpperCase() + user.investorProfile.slice(1) : 'Não definido' },
             { label: 'Email verificado', value: user?.emailVerified ? 'Sim ✓' : 'Não — verifique seu email' },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: `1px solid ${theme.border}` }}>
@@ -103,6 +107,46 @@ const SettingsPage: React.FC = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Investor Profile */}
+      <div style={cardStyle}>
+        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Target size={16} /> Perfil de Investidor
+        </h3>
+        <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.75rem', lineHeight: 1.5 }}>
+          Seu perfil ajuda a personalizar as recomendações.
+        </p>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {([
+            { id: 'conservador' as const, label: 'Conservador', icon: <Shield size={14} />, color: '#10b981' },
+            { id: 'moderado' as const, label: 'Moderado', icon: <Target size={14} />, color: '#3b82f6' },
+            { id: 'arrojado' as const, label: 'Arrojado', icon: <Zap size={14} />, color: '#f59e0b' },
+          ]).map(p => {
+            const selected = user?.investorProfile === p.id;
+            return (
+              <button key={p.id} disabled={profileSaving} onClick={async () => {
+                setProfileSaving(true); setProfileSaved(false);
+                try { await completeOnboarding(p.id); setProfileSaved(true); setTimeout(() => setProfileSaved(false), 2000); } catch { /* silent */ }
+                finally { setProfileSaving(false); }
+              }} style={{
+                padding: '0.5rem 0.85rem', borderRadius: 8, cursor: profileSaving ? 'wait' : 'pointer',
+                border: selected ? `2px solid ${p.color}` : `1px solid ${theme.border}`,
+                background: selected ? `${p.color}12` : 'transparent',
+                color: selected ? p.color : theme.textSecondary,
+                fontSize: '0.82rem', fontWeight: selected ? 600 : 400,
+                display: 'flex', alignItems: 'center', gap: '0.35rem', transition: 'all 0.15s',
+              }}>
+                {p.icon} {p.label} {selected && <CheckCircle size={12} />}
+              </button>
+            );
+          })}
+        </div>
+        {profileSaved && (
+          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <CheckCircle size={12} /> Perfil atualizado
+          </div>
+        )}
       </div>
 
       {/* Email Notifications */}
