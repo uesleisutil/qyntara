@@ -3,7 +3,6 @@ import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Settings, Trash2, Shield, Lock, CreditCard, AlertTriangle, CheckCircle, ExternalLink, Bell, Keyboard, Target, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_BASE_URL } from '../../config';
-import { brand } from '../../styles/theme';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
