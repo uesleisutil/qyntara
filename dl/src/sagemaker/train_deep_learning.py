@@ -169,7 +169,9 @@ class DeepLearningTrainer:
         self.metrics: dict = {}
 
     def _prepare_tensors(self, X: np.ndarray, y: np.ndarray = None):
-        X_scaled = self.scaler.transform(X) if hasattr(self.scaler, 'mean_') else self.scaler.fit_transform(X)
+        X_clean = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+        X_scaled = self.scaler.transform(X_clean) if hasattr(self.scaler, 'mean_') else self.scaler.fit_transform(X_clean)
+        X_scaled = np.nan_to_num(X_scaled, nan=0.0, posinf=0.0, neginf=0.0)
         X_t = torch.FloatTensor(X_scaled).to(self.device)
         if y is not None:
             y_t = torch.FloatTensor(y).unsqueeze(1).to(self.device)

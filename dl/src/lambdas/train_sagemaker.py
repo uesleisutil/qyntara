@@ -365,6 +365,17 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     X = train_df[feature_cols].fillna(0).values
     y = train_df[target_col].fillna(0).values
 
+    # Limpar NaN/Inf que podem vir de features fundamentalistas ou macro
+    X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+    y = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0)
+
+    # Remover amostras com target extremo (outliers > 5 desvios)
+    y_std = np.std(y)
+    if y_std > 0:
+        mask = np.abs(y) < 5 * y_std
+        X, y = X[mask], y[mask]
+        logger.info(f"Após limpeza de outliers: {len(X)} amostras (removidas {(~mask).sum()})")
+
     # Split temporal (80/20)
     split_idx = int(len(X) * 0.8)
     X_train, X_val = X[:split_idx], X[split_idx:]
