@@ -202,90 +202,155 @@ const SettingsPage: React.FC = () => {
 
       {/* Notificações — Preferências */}
       <div style={cardStyle}>
-        <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Bell size={16} /> Notificações
-        </h3>
-        <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.75rem', lineHeight: 1.5 }}>
-          Escolha quais tipos de notificação deseja receber.
-          {!isPro && <span style={{ color: '#f59e0b' }}> Disponível apenas para assinantes Pro.</span>}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text, margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Bell size={16} /> Notificações
+          </h3>
+          {!isPro && (
+            <span style={{
+              fontSize: '0.68rem', fontWeight: 600, padding: '0.2rem 0.55rem', borderRadius: 10,
+              background: 'rgba(245,158,11,0.1)', color: '#f59e0b',
+            }}>Apenas Pro</span>
+          )}
+        </div>
+        <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '1rem', lineHeight: 1.5 }}>
+          Escolha quais alertas receber e por qual canal.
         </p>
 
-        {/* Email types */}
-        <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem' }}>Email</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            {notifCategories.map(cat => {
-              const checked = emailTypes.includes(cat.id);
-              return (
-                <label key={cat.id} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.45rem 0.6rem',
-                  borderRadius: 8, border: `1px solid ${checked ? '#3b82f640' : theme.border}`,
-                  background: checked ? (darkMode ? '#3b82f60a' : '#3b82f606') : 'transparent',
-                  cursor: isPro ? 'pointer' : 'not-allowed', opacity: isPro ? 1 : 0.5,
-                  transition: 'border-color 0.15s, background 0.15s',
-                }}>
-                  <input type="checkbox" checked={checked} disabled={!isPro}
-                    onChange={() => toggleCategory(emailTypes, setEmailTypes, cat.id)}
-                    style={{ width: 15, height: 15, cursor: isPro ? 'pointer' : 'not-allowed', accentColor: '#3b82f6' }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>{cat.label}</div>
-                    <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{cat.desc}</div>
-                  </div>
-                </label>
-              );
-            })}
+        {/* Channel matrix — categories as rows, channels as columns */}
+        <div style={{
+          borderRadius: 10, border: `1px solid ${theme.border}`, overflow: 'hidden',
+          opacity: isPro ? 1 : 0.5, pointerEvents: isPro ? 'auto' : 'none',
+        }}>
+          {/* Header */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: '1fr 60px 60px',
+            padding: '0.55rem 0.75rem', gap: '0.5rem',
+            background: darkMode ? '#13151d' : '#f4f5f7',
+            borderBottom: `1px solid ${theme.border}`,
+          }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Categoria</span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>Email</span>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>SMS</span>
           </div>
-        </div>
 
-        {/* SMS types */}
-        <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem' }}>SMS (apenas alertas críticos)</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            {notifCategories.map(cat => {
-              const checked = smsTypes.includes(cat.id);
-              return (
-                <label key={cat.id} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.45rem 0.6rem',
-                  borderRadius: 8, border: `1px solid ${checked ? '#10b98140' : theme.border}`,
-                  background: checked ? (darkMode ? '#10b9810a' : '#10b98106') : 'transparent',
-                  cursor: isPro ? 'pointer' : 'not-allowed', opacity: isPro ? 1 : 0.5,
-                  transition: 'border-color 0.15s, background 0.15s',
-                }}>
-                  <input type="checkbox" checked={checked} disabled={!isPro}
-                    onChange={() => toggleCategory(smsTypes, setSmsTypes, cat.id)}
-                    style={{ width: 15, height: 15, cursor: isPro ? 'pointer' : 'not-allowed', accentColor: '#10b981' }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>{cat.label}</div>
+          {/* Rows */}
+          {notifCategories.map((cat, i) => {
+            const emailOn = emailTypes.includes(cat.id);
+            const smsOn = smsTypes.includes(cat.id);
+            const isLast = i === notifCategories.length - 1;
+            const catIcons: Record<string, string> = { degradation: '🔻', drift: '📉', anomaly: '⚠️', cost: '💰', system: '🛡️' };
+            return (
+              <div key={cat.id} style={{
+                display: 'grid', gridTemplateColumns: '1fr 60px 60px',
+                padding: '0.6rem 0.75rem', gap: '0.5rem', alignItems: 'center',
+                borderBottom: isLast ? 'none' : `1px solid ${theme.border}`,
+                transition: 'background 0.12s',
+              }}
+                onMouseEnter={e => { if (isPro) e.currentTarget.style.background = darkMode ? 'rgba(59,130,246,0.04)' : 'rgba(59,130,246,0.02)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>{catIcons[cat.id] || '🔔'}</span>
+                  <div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text, lineHeight: 1.3 }}>{cat.label}</div>
+                    <div style={{ fontSize: '0.68rem', color: theme.textSecondary, lineHeight: 1.3 }}>{cat.desc}</div>
                   </div>
-                </label>
-              );
-            })}
-          </div>
+                </div>
+                {/* Email toggle */}
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => toggleCategory(emailTypes, setEmailTypes, cat.id)}
+                    aria-label={`Email ${cat.label} ${emailOn ? 'ativado' : 'desativado'}`}
+                    role="switch"
+                    aria-checked={emailOn}
+                    style={{
+                      width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
+                      background: emailOn ? '#3b82f6' : (darkMode ? '#2a2e3a' : '#d1d5db'),
+                      position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                      WebkitAppearance: 'none' as any,
+                    }}
+                  >
+                    <span style={{
+                      position: 'absolute', top: 2, left: emailOn ? 18 : 2,
+                      width: 16, height: 16, borderRadius: '50%', background: 'white',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }} />
+                  </button>
+                </div>
+                {/* SMS toggle */}
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => toggleCategory(smsTypes, setSmsTypes, cat.id)}
+                    aria-label={`SMS ${cat.label} ${smsOn ? 'ativado' : 'desativado'}`}
+                    role="switch"
+                    aria-checked={smsOn}
+                    style={{
+                      width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
+                      background: smsOn ? '#10b981' : (darkMode ? '#2a2e3a' : '#d1d5db'),
+                      position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                      WebkitAppearance: 'none' as any,
+                    }}
+                  >
+                    <span style={{
+                      position: 'absolute', top: 2, left: smsOn ? 18 : 2,
+                      width: 16, height: 16, borderRadius: '50%', background: 'white',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                    }} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Quiet hours */}
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: isPro ? 'pointer' : 'not-allowed', opacity: isPro ? 1 : 0.5 }}>
-            <input type="checkbox" checked={quietEnabled} disabled={!isPro}
-              onChange={e => setQuietEnabled(e.target.checked)}
-              style={{ width: 15, height: 15, cursor: isPro ? 'pointer' : 'not-allowed' }}
-            />
-            <span style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>Horário silencioso (pausar notificações não-críticas)</span>
-          </label>
-          {quietEnabled && isPro && (
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', marginLeft: '1.5rem' }}>
+        <div style={{
+          marginTop: '1rem', padding: '0.65rem 0.75rem', borderRadius: 10,
+          border: `1px solid ${quietEnabled ? (darkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)') : theme.border}`,
+          background: quietEnabled ? (darkMode ? 'rgba(99,102,241,0.06)' : 'rgba(99,102,241,0.03)') : 'transparent',
+          opacity: isPro ? 1 : 0.5, pointerEvents: isPro ? 'auto' : 'none',
+          transition: 'border-color 0.2s, background 0.2s',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.95rem' }}>🌙</span>
               <div>
-                <label htmlFor="qstart" style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Início</label>
+                <div style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>Horário silencioso</div>
+                <div style={{ fontSize: '0.68rem', color: theme.textSecondary }}>Pausar alertas não-críticos durante a noite</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setQuietEnabled(!quietEnabled)}
+              aria-label={`Horário silencioso ${quietEnabled ? 'ativado' : 'desativado'}`}
+              role="switch"
+              aria-checked={quietEnabled}
+              style={{
+                width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer',
+                background: quietEnabled ? '#6366f1' : (darkMode ? '#2a2e3a' : '#d1d5db'),
+                position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+                WebkitAppearance: 'none' as any,
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 2, left: quietEnabled ? 18 : 2,
+                width: 16, height: 16, borderRadius: '50%', background: 'white',
+                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }} />
+            </button>
+          </div>
+          {quietEnabled && (
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.65rem', paddingTop: '0.6rem', borderTop: `1px solid ${darkMode ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.1)'}` }}>
+              <div style={{ flex: 1 }}>
+                <label htmlFor="qstart" style={{ fontSize: '0.68rem', color: theme.textSecondary, fontWeight: 500, display: 'block', marginBottom: '0.25rem' }}>Início</label>
                 <input id="qstart" type="time" value={quietStart} onChange={e => setQuietStart(e.target.value)}
-                  style={{ display: 'block', padding: '0.35rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.bg, color: theme.text, fontSize: '0.82rem' }}
+                  style={{ width: '100%', padding: '0.4rem 0.5rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: darkMode ? '#0f1117' : '#f8f9fb', color: theme.text, fontSize: '0.82rem', boxSizing: 'border-box' as const }}
                 />
               </div>
-              <div>
-                <label htmlFor="qend" style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Fim</label>
+              <div style={{ flex: 1 }}>
+                <label htmlFor="qend" style={{ fontSize: '0.68rem', color: theme.textSecondary, fontWeight: 500, display: 'block', marginBottom: '0.25rem' }}>Fim</label>
                 <input id="qend" type="time" value={quietEnd} onChange={e => setQuietEnd(e.target.value)}
-                  style={{ display: 'block', padding: '0.35rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.bg, color: theme.text, fontSize: '0.82rem' }}
+                  style={{ width: '100%', padding: '0.4rem 0.5rem', borderRadius: 8, border: `1px solid ${theme.border}`, background: darkMode ? '#0f1117' : '#f8f9fb', color: theme.text, fontSize: '0.82rem', boxSizing: 'border-box' as const }}
                 />
               </div>
             </div>
@@ -293,18 +358,19 @@ const SettingsPage: React.FC = () => {
         </div>
 
         {/* Save button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem' }}>
           <button onClick={saveNotifPrefs} disabled={!isPro || notifSaving} style={{
-            padding: '0.5rem 1rem', borderRadius: 8, border: 'none', fontSize: '0.82rem', fontWeight: 600,
-            background: isPro ? '#3b82f6' : '#64748b', color: 'white',
+            padding: '0.5rem 1.25rem', borderRadius: 8, border: 'none', fontSize: '0.82rem', fontWeight: 600,
+            background: isPro ? 'linear-gradient(135deg, #2563eb, #3b82f6)' : '#64748b', color: 'white',
             cursor: isPro && !notifSaving ? 'pointer' : 'not-allowed',
-            opacity: notifSaving ? 0.6 : 1, transition: 'background 0.15s',
+            opacity: notifSaving ? 0.6 : 1, transition: 'opacity 0.15s',
+            boxShadow: isPro ? '0 2px 8px rgba(37,99,235,0.2)' : 'none',
           }}>
             {notifSaving ? 'Salvando...' : 'Salvar preferências'}
           </button>
           {notifSaved && (
             <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <CheckCircle size={12} /> Preferências salvas
+              <CheckCircle size={12} /> Salvo
             </span>
           )}
           {notifError && <span style={{ fontSize: '0.75rem', color: '#f87171' }}>{notifError}</span>}

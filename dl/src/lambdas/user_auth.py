@@ -1333,14 +1333,14 @@ def _handle_create_notification(event: dict) -> dict:
 
     title = _sanitize_string(body.get("title", ""), 200)
     message = _sanitize_string(body.get("message", ""), 1000)
-    notif_type = body.get("type", "manual")  # manual, auto_model_run, auto_recommendations, auto_strong_signals, auto_history
+    notif_type = body.get("type", "manual")  # manual, auto_model_run, auto_recommendations, auto_strong_signals, auto_history, auto_signal_change, auto_drift, auto_anomaly, auto_cost_alert, auto_degradation
     target = body.get("target", "all")  # all, free, pro
     enabled = body.get("enabled", True)
 
     if not title or not message:
         return _cors_response(400, {"message": "Título e mensagem são obrigatórios"})
 
-    if notif_type not in ("manual", "auto_model_run", "auto_recommendations", "auto_strong_signals", "auto_history"):
+    if notif_type not in ("manual", "auto_model_run", "auto_recommendations", "auto_strong_signals", "auto_history", "auto_signal_change", "auto_drift", "auto_anomaly", "auto_cost_alert", "auto_degradation"):
         return _cors_response(400, {"message": "Tipo inválido"})
 
     if target not in ("all", "free", "pro"):

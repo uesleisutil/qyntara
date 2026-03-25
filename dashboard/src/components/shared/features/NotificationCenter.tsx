@@ -26,6 +26,11 @@ const TYPE_ICONS: Record<string, { icon: React.ReactNode; color: string }> = {
   auto_recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
   auto_strong_signals: { icon: <AlertTriangle size={16} />, color: '#f59e0b' },
   auto_history: { icon: <Clock size={16} />, color: '#3b82f6' },
+  auto_signal_change: { icon: <Activity size={16} />, color: '#8b5cf6' },
+  auto_drift: { icon: <AlertTriangle size={16} />, color: '#f97316' },
+  auto_anomaly: { icon: <AlertTriangle size={16} />, color: '#ec4899' },
+  auto_cost_alert: { icon: <AlertTriangle size={16} />, color: '#eab308' },
+  auto_degradation: { icon: <Activity size={16} />, color: '#dc2626' },
   manual: { icon: <Send size={16} />, color: '#3b82f6' },
   system: { icon: <CheckCircle size={16} />, color: '#10b981' },
   recommendations: { icon: <TrendingUp size={16} />, color: '#10b981' },
@@ -56,11 +61,20 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
       case 'recommendations':
         return 'degradation'; // model output = performance category
       case 'auto_strong_signals':
+      case 'auto_signal_change':
       case 'alert':
         return 'anomaly';
       case 'auto_history':
       case 'system':
         return 'system';
+      case 'auto_drift':
+        return 'drift';
+      case 'auto_anomaly':
+        return 'anomaly';
+      case 'auto_cost_alert':
+        return 'cost';
+      case 'auto_degradation':
+        return 'degradation';
       case 'manual':
         return null; // always show manual/admin notifications
       default:
