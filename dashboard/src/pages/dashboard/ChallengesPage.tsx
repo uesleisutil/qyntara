@@ -3,10 +3,11 @@ import { useOutletContext, useNavigate } from 'react-router-dom';
 import {
   Trophy, TrendingUp, Target, Flame, Medal,
   ChevronUp, ChevronDown, Loader2, Calendar, BarChart3,
-  Award, Star, Zap, Crown, Briefcase,
+  Award, Star, Zap, Crown, Briefcase, RefreshCw,
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config';
 import { brand } from '../../styles/theme';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface ChallengeData {
@@ -17,7 +18,7 @@ interface ChallengeData {
   portfolio: { ticker: string; weight: number; return: number }[];
   history: { date: string; userReturn: number; ibovReturn: number }[];
 }
-interface LeaderboardEntry { rank: number; name: string; return: number; isCurrentUser: boolean; }
+interface LeaderboardEntry { rank: number; name: string; return: number; isCurrentUser: boolean; avatar?: string; carteiraName?: string; tickerCount?: number; }
 interface Badge { id: string; name: string; description: string; icon: string; earned: boolean; earnedAt?: string; }
 interface Carteira { carteiraId: string; name: string; icon: string; color: string; tickers: string[]; }
 
@@ -33,8 +34,11 @@ const getHeaders = () => {
   return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 };
 
+const AVATARS = ['🐂', '🦁', '🦅', '🐺', '🦊', '🐻', '🦈', '🐉', '🦉', '🐯', '🦇', '🐸', '🦖', '🐧', '🦋', '🐝'];
+
 const ChallengesPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [challenge, setChallenge] = useState<ChallengeData | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -48,6 +52,9 @@ const ChallengesPage: React.FC = () => {
   const [showCarteiraSelect, setShowCarteiraSelect] = useState(false);
   const [selectedCarteira, setSelectedCarteira] = useState('');
   const [tab, setTab] = useState<'challenge' | 'leaderboard' | 'badges'>('challenge');
+  const [updating, setUpdating] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const isAdmin = user?.role === 'admin';
 
   const currentMonth = new Date().toISOString().slice(0, 7);
 
@@ -124,6 +131,28 @@ const ChallengesPage: React.FC = () => {
       if (res.ok) await fetchData();
     } catch { /* silent */ }
     finally { setQuitting(false); }
+  };
+
+  const triggerUpdate = async () => {
+    setUpdating(true);
+    try {
+      await fetch(`${API_BASE_URL}/auth/free-ticker`, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ action: 'update-challenges' }),
+      });
+      await fetchData();
+    } catch { /* silent */ }
+    finally { setUpdating(false); }
+  };
+
+  const setAvatar = async (emoji: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/free-ticker`, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ action: 'set-avatar', avatar: emoji }),
+      });
+      if (res.ok) { setShowAvatarPicker(false); await fetchData(); }
+    } catch { /* silent */ }
   };
 
   const card: React.CSSProperties = {
@@ -310,6 +339,20 @@ const ChallengesPage: React.FC = () => {
                 <span style={{ marginLeft: 'auto', fontSize: '0.75rem' }}>{challenge.totalParticipants} participantes</span>
               </div>
 
+              {/* Admin: update returns button */}
+              {isAdmin && (
+                <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+                  <button onClick={triggerUpdate} disabled={updating} style={{
+                    padding: '0.4rem 1rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+                    background: 'transparent', color: theme.textSecondary, cursor: 'pointer', fontSize: '0.75rem',
+                    display: 'inline-flex', alignItems: 'center', gap: '0.35rem', opacity: updating ? 0.5 : 1,
+                  }}>
+                    <RefreshCw size={13} style={updating ? { animation: 'spin 1s linear infinite' } : {}} />
+                    {updating ? 'Atualizando retornos...' : 'Atualizar retornos (admin)'}
+                  </button>
+                </div>
+              )}
+
               {/* Tickers in challenge */}
               {challenge.tickers && challenge.tickers.length > 0 && (
                 <div style={{ ...card, marginBottom: '1.25rem' }}>
@@ -364,18 +407,47 @@ const ChallengesPage: React.FC = () => {
             <h2 style={{ fontSize: '1rem', fontWeight: 600, color: theme.text, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
               <BarChart3 size={16} /> Ranking {selectedMonth ? fmtMonth(selectedMonth) : 'atual'}
             </h2>
-            {pastMonths.length > 0 && (
-              <select value={selectedMonth || currentMonth} onChange={e => setSelectedMonth(e.target.value)} style={{
-                padding: '0.35rem 0.6rem', borderRadius: 6, border: `1px solid ${theme.border}`,
-                background: darkMode ? '#0f1117' : '#f8f9fb', color: theme.text, fontSize: '0.78rem',
-              }}>
-                <option value={currentMonth}>Mês atual</option>
-                {pastMonths.filter(m => m !== currentMonth).map(m => (
-                  <option key={m} value={m}>{fmtMonth(m)}</option>
-                ))}
-              </select>
-            )}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {/* Avatar picker */}
+              <button onClick={() => setShowAvatarPicker(!showAvatarPicker)} style={{
+                padding: '0.3rem 0.6rem', borderRadius: 6, border: `1px solid ${theme.border}`,
+                background: 'transparent', cursor: 'pointer', fontSize: '0.9rem',
+              }} title="Mudar avatar">
+                {user?.avatar || '🐂'}
+              </button>
+              {pastMonths.length > 0 && (
+                <select value={selectedMonth || currentMonth} onChange={e => setSelectedMonth(e.target.value)} style={{
+                  padding: '0.35rem 0.6rem', borderRadius: 6, border: `1px solid ${theme.border}`,
+                  background: darkMode ? '#0f1117' : '#f8f9fb', color: theme.text, fontSize: '0.78rem',
+                }}>
+                  <option value={currentMonth}>Mês atual</option>
+                  {pastMonths.filter(m => m !== currentMonth).map(m => (
+                    <option key={m} value={m}>{fmtMonth(m)}</option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
+
+          {/* Avatar picker dropdown */}
+          {showAvatarPicker && (
+            <div style={{
+              marginBottom: '1rem', padding: '0.75rem', borderRadius: 10,
+              background: darkMode ? '#0f1117' : '#f8f9fb', border: `1px solid ${theme.border}`,
+            }}>
+              <div style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.5rem' }}>Escolha seu avatar para o ranking:</div>
+              <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                {AVATARS.map(a => (
+                  <button key={a} onClick={() => setAvatar(a)} style={{
+                    width: 36, height: 36, borderRadius: 8, border: user?.avatar === a ? '2px solid #3b82f6' : `1px solid ${theme.border}`,
+                    background: user?.avatar === a ? brand.alpha(0.12) : 'transparent',
+                    cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{a}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {leaderboard.length === 0 ? (
             <p style={{ color: theme.textSecondary, fontSize: '0.88rem', textAlign: 'center', padding: '2rem 0' }}>
               Nenhum participante {selectedMonth && selectedMonth !== currentMonth ? 'nesse mês' : 'ainda'}.
@@ -384,19 +456,34 @@ const ChallengesPage: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {leaderboard.map(entry => {
                 const mc = entry.rank === 1 ? '#f59e0b' : entry.rank === 2 ? '#94a3b8' : entry.rank === 3 ? '#cd7f32' : undefined;
+                const topBorder = entry.rank <= 3 ? `1px solid ${mc}40` : `1px solid ${theme.border}`;
                 return (
                   <div key={entry.rank} style={{
-                    display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.75rem', borderRadius: 8,
+                    display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.65rem 0.75rem', borderRadius: 10,
                     background: entry.isCurrentUser ? (darkMode ? brand.alpha(0.1) : brand.alpha(0.05)) : (darkMode ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'),
-                    border: entry.isCurrentUser ? `1px solid ${brand.alpha(0.25)}` : `1px solid ${theme.border}`,
+                    border: entry.isCurrentUser ? `1px solid ${brand.alpha(0.25)}` : topBorder,
                   }}>
+                    {/* Rank badge */}
                     <div style={{ width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, background: mc ? `${mc}20` : (darkMode ? '#2a2e3a' : '#e0e2e8'), color: mc || theme.textSecondary }}>
                       {entry.rank <= 3 ? <Medal size={14} /> : entry.rank}
                     </div>
-                    <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: entry.isCurrentUser ? 600 : 400, color: theme.text }}>
-                      {entry.name} {entry.isCurrentUser && '(você)'}
-                    </span>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: pctColor(entry.return) }}>{fmtPct(entry.return)}</span>
+                    {/* Avatar */}
+                    <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{entry.avatar || '🐂'}</span>
+                    {/* Name + carteira */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: entry.isCurrentUser ? 600 : 400, color: theme.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {entry.name} {entry.isCurrentUser && '(você)'}
+                      </div>
+                      {entry.carteiraName && (
+                        <div style={{ fontSize: '0.68rem', color: theme.textSecondary, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          📁 {entry.carteiraName} · {entry.tickerCount || 0} ações
+                        </div>
+                      )}
+                    </div>
+                    {/* Return */}
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: pctColor(entry.return), flexShrink: 0 }}>{fmtPct(entry.return)}</span>
+                    {/* Top 3 crown */}
+                    {entry.rank <= 3 && <span style={{ fontSize: '0.9rem' }}>{entry.rank === 1 ? '👑' : entry.rank === 2 ? '🥈' : '🥉'}</span>}
                   </div>
                 );
               })}

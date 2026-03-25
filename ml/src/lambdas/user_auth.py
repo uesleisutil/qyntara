@@ -984,6 +984,7 @@ def _handle_me(event: dict) -> dict:
             "canViewCosts": item.get("canViewCosts", False),
             "onboardingDone": item.get("onboardingDone", False),
             "investorProfile": item.get("investorProfile", ""),
+            "avatar": item.get("avatar", ""),
         })
     except Exception:
         # Fallback to JWT data
@@ -2968,6 +2969,22 @@ def _handle_set_free_ticker(event: dict) -> dict:
             return _update_all_challenge_returns()
         return _cors_response(403, {"message": "Admin only"})
 
+    # ── Set avatar ──
+    if action == "set-avatar":
+        avatar = _sanitize_string(body.get("avatar", ""), 4)
+        if not avatar:
+            return _cors_response(400, {"message": "Avatar é obrigatório"})
+        try:
+            dynamodb.Table(USERS_TABLE).update_item(
+                Key={"email": email},
+                UpdateExpression="SET avatar = :a, updatedAt = :now",
+                ExpressionAttributeValues={":a": avatar, ":now": datetime.now(UTC).isoformat()},
+            )
+            return _cors_response(200, {"message": "Avatar atualizado", "avatar": avatar})
+        except ClientError as e:
+            logger.error(f"Error setting avatar for {email}: {e}")
+            return _cors_response(500, {"message": "Erro ao salvar avatar"})
+
     # ── Default: update user preferences (ticker, onboarding, profile) ──
 
     ticker = _sanitize_string(body.get("ticker", ""), 10).upper()
@@ -3238,31 +3255,42 @@ def _handle_user_data(event: dict) -> dict:
         filter_month = qs.get("month", datetime.now(UTC).strftime("%Y-%m"))
         try:
             result = table.scan(
-                ProjectionExpression="#n, email, challenge, challengeHistory",
+                ProjectionExpression="#n, email, challenge, challengeHistory, avatar",
                 ExpressionAttributeNames={"#n": "name"},
                 FilterExpression="attribute_exists(challenge) OR attribute_exists(challengeHistory)",
             )
+            cart_table = dynamodb.Table(os.environ.get("CARTEIRAS_TABLE", "B3Dashboard-Carteiras"))
             items = result.get("Items", [])
             entries = []
             for item in items:
                 ch = item.get("challenge", {})
-                # Check current challenge
+                matched_ch = None
                 if ch.get("active") and ch.get("month") == filter_month:
+                    matched_ch = ch
+                else:
+                    for hist in item.get("challengeHistory", []):
+                        if hist.get("month") == filter_month:
+                            matched_ch = hist
+                            break
+                if matched_ch:
+                    # Get carteira name
+                    cart_name = ""
+                    cart_id = matched_ch.get("carteiraId", "")
+                    if cart_id:
+                        try:
+                            cr = cart_table.get_item(Key={"userEmail": item["email"], "carteiraId": cart_id}, ProjectionExpression="#n, icon", ExpressionAttributeNames={"#n": "name"})
+                            ci = cr.get("Item", {})
+                            cart_name = ci.get("name", "")
+                        except Exception:
+                            pass
                     entries.append({
                         "name": item.get("name", "Anônimo"),
                         "email": item.get("email", ""),
-                        "return": ch.get("userReturn", 0),
+                        "return": matched_ch.get("userReturn", 0),
+                        "avatar": item.get("avatar", ""),
+                        "carteiraName": cart_name,
+                        "tickers": matched_ch.get("tickers", []),
                     })
-                else:
-                    # Check history
-                    for hist in item.get("challengeHistory", []):
-                        if hist.get("month") == filter_month:
-                            entries.append({
-                                "name": item.get("name", "Anônimo"),
-                                "email": item.get("email", ""),
-                                "return": hist.get("userReturn", 0),
-                            })
-                            break
             entries.sort(key=lambda x: x["return"], reverse=True)
             leaderboard = []
             for i, e in enumerate(entries):
@@ -3271,6 +3299,9 @@ def _handle_user_data(event: dict) -> dict:
                     "name": _format_display_name(e["name"]),
                     "return": e["return"],
                     "isCurrentUser": e["email"] == email,
+                    "avatar": e["avatar"],
+                    "carteiraName": e["carteiraName"],
+                    "tickerCount": len(e["tickers"]),
                 })
             return _cors_response(200, leaderboard)
         except Exception as e:

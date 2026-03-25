@@ -13,7 +13,7 @@ interface User {
   freeTicker?: string;
   onboardingDone?: boolean;
   investorProfile?: 'conservador' | 'moderado' | 'arrojado';
-  referralCode?: string;
+  avatar?: string;
 }
 
 interface AuthContextType {
@@ -66,6 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 freeTicker: data.freeTicker || '',
                 onboardingDone: data.onboardingDone ?? false,
                 investorProfile: data.investorProfile || undefined,
+                avatar: data.avatar || '',
               };
               setUser(freshUser);
               // Keep localStorage in sync so fallback is never stale
@@ -184,6 +185,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       freeTicker: data.freeTicker || '',
       onboardingDone: data.onboardingDone ?? false,
       investorProfile: data.investorProfile || undefined,
+      avatar: data.avatar || '',
     });
   }, []);
 
