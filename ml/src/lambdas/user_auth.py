@@ -2780,57 +2780,8 @@ def _handle_carteiras_delete(event: dict) -> dict:
         return _cors_response(500, {"message": "Erro ao excluir carteira"})
 
 
-def _handle_complete_onboarding(event: dict) -> dict:
-    """POST /auth/complete-onboarding — mark onboarding as done and save investor profile."""
-    user = _get_authenticated_user(event)
-    if not user:
-        return _cors_response(401, {"message": "Token inválido"})
-
-    email = user.get("email", "")
-    if not email:
-        return _cors_response(401, {"message": "Token inválido"})
-
-    raw_body = event.get("body", "") or ""
-    if len(raw_body) > MAX_BODY_SIZE:
-        return _cors_response(413, {"message": "Request muito grande"})
-    try:
-        body = json.loads(raw_body)
-    except (json.JSONDecodeError, TypeError):
-        body = {}
-
-    investor_profile = _sanitize_string(body.get("investorProfile", ""), 20).lower()
-    valid_profiles = ("conservador", "moderado", "arrojado")
-    if investor_profile and investor_profile not in valid_profiles:
-        investor_profile = ""
-
-    table = dynamodb.Table(USERS_TABLE)
-    now = datetime.now(UTC).isoformat()
-
-    update_expr = "SET onboardingDone = :done, updatedAt = :now"
-    expr_values: dict = {":done": True, ":now": now}
-
-    if investor_profile:
-        update_expr += ", investorProfile = :profile"
-        expr_values[":profile"] = investor_profile
-
-    try:
-        table.update_item(
-            Key={"email": email},
-            UpdateExpression=update_expr,
-            ExpressionAttributeValues=expr_values,
-        )
-        return _cors_response(200, {
-            "message": "Onboarding concluído",
-            "onboardingDone": True,
-            "investorProfile": investor_profile,
-        })
-    except ClientError as e:
-        logger.error(f"Error completing onboarding for {email}: {e}")
-        return _cors_response(500, {"message": "Erro ao salvar onboarding"})
-
-
 def _handle_set_free_ticker(event: dict) -> dict:
-    """POST /auth/free-ticker — save the free-tier ticker preference for a user."""
+    """POST /auth/free-ticker — save free-tier ticker and/or complete onboarding."""
     user = _get_authenticated_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
@@ -2848,22 +2799,51 @@ def _handle_set_free_ticker(event: dict) -> dict:
         return _cors_response(400, {"message": "JSON inválido"})
 
     ticker = _sanitize_string(body.get("ticker", ""), 10).upper()
-    if not ticker:
-        return _cors_response(400, {"message": "Ticker é obrigatório"})
+    onboarding_done = body.get("onboardingDone", False) is True
+    investor_profile = _sanitize_string(body.get("investorProfile", ""), 20).lower()
+    valid_profiles = ("conservador", "moderado", "arrojado")
+    if investor_profile and investor_profile not in valid_profiles:
+        investor_profile = ""
+
+    # At least one field must be provided
+    if not ticker and not onboarding_done and not investor_profile:
+        return _cors_response(400, {"message": "Nenhum campo para atualizar"})
 
     table = dynamodb.Table(USERS_TABLE)
     now = datetime.now(UTC).isoformat()
 
+    update_parts = ["updatedAt = :now"]
+    expr_values: dict = {":now": now}
+
+    if ticker:
+        update_parts.append("freeTicker = :t")
+        expr_values[":t"] = ticker
+    if onboarding_done:
+        update_parts.append("onboardingDone = :done")
+        expr_values[":done"] = True
+    if investor_profile:
+        update_parts.append("investorProfile = :profile")
+        expr_values[":profile"] = investor_profile
+
+    update_expr = "SET " + ", ".join(update_parts)
+
     try:
         table.update_item(
             Key={"email": email},
-            UpdateExpression="SET freeTicker = :t, updatedAt = :now",
-            ExpressionAttributeValues={":t": ticker, ":now": now},
+            UpdateExpression=update_expr,
+            ExpressionAttributeValues=expr_values,
         )
-        return _cors_response(200, {"message": "Ticker salvo", "freeTicker": ticker})
+        resp: dict = {"message": "Atualizado"}
+        if ticker:
+            resp["freeTicker"] = ticker
+        if onboarding_done:
+            resp["onboardingDone"] = True
+        if investor_profile:
+            resp["investorProfile"] = investor_profile
+        return _cors_response(200, resp)
     except ClientError as e:
-        logger.error(f"Error saving free ticker for {email}: {e}")
-        return _cors_response(500, {"message": "Erro ao salvar ticker"})
+        logger.error(f"Error updating user prefs for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao salvar"})
 
 
 def handler(event: dict, context: Any = None) -> dict:
@@ -2880,8 +2860,6 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_login(event)
     elif path.endswith("/auth/me") and method == "GET":
         return _handle_me(event)
-    elif path.endswith("/auth/me") and method == "PUT":
-        return _handle_complete_onboarding(event)
     elif path.endswith("/auth/me") and method == "DELETE":
         return _handle_delete_account(event)
     elif path.endswith("/auth/verify-email") and method == "POST":

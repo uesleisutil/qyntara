@@ -1080,7 +1080,6 @@ export class InfraStack extends cdk.Stack {
     const authMe = authResource.addResource("me");
     authMe.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
     authMe.addMethod("DELETE", userAuthIntegration, { apiKeyRequired: false });
-    authMe.addMethod("PUT", userAuthIntegration, { apiKeyRequired: false });
 
     // Email verification & password reset routes
     const authVerifyEmail = authResource.addResource("verify-email");

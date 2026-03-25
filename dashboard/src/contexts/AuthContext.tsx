@@ -320,10 +320,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const completeOnboarding = useCallback(async (profile?: string) => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('Não autenticado');
-    const res = await fetch(`${AUTH_URL}/me`, {
-      method: 'PUT',
+    const res = await fetch(`${AUTH_URL}/free-ticker`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ investorProfile: profile || undefined }),
+      body: JSON.stringify({ onboardingDone: true, investorProfile: profile || undefined }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
