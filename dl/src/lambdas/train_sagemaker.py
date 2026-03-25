@@ -29,8 +29,8 @@ s3 = boto3.client("s3")
 sagemaker = boto3.client("sagemaker")
 
 
-def load_monthly_data_for_training(bucket: str, days: int) -> dict[str, list[float]]:
-    """Carrega dados históricos."""
+def load_monthly_data_for_training(bucket: str, days: int) -> tuple[dict[str, list[float]], dict[str, list[float]]]:
+    """Carrega dados históricos (preços + volumes)."""
     paginator = s3.get_paginator("list_objects_v2")
     all_data = []
 
@@ -45,9 +45,15 @@ def load_monthly_data_for_training(bucket: str, days: int) -> dict[str, list[flo
             reader = csv.DictReader(lines)
 
             for row in reader:
-                all_data.append(
-                    {"date": row["date"], "ticker": row["ticker"], "close": float(row["close"])}
-                )
+                entry = {"date": row["date"], "ticker": row["ticker"], "close": float(row["close"])}
+                if "volume" in row and row["volume"]:
+                    try:
+                        entry["volume"] = float(row["volume"])
+                    except (ValueError, TypeError):
+                        entry["volume"] = 0.0
+                else:
+                    entry["volume"] = 0.0
+                all_data.append(entry)
 
     all_data.sort(key=lambda x: x["date"])
 
@@ -61,28 +67,40 @@ def load_monthly_data_for_training(bucket: str, days: int) -> dict[str, list[flo
         recent_data = []
 
     series = {}
+    volumes = {}
     for row in recent_data:
         ticker = row["ticker"]
         if ticker not in series:
             series[ticker] = []
+            volumes[ticker] = []
         series[ticker].append(row["close"])
+        volumes[ticker].append(row["volume"])
 
-    return series
+    return series, volumes
 
 
-def prepare_training_data(series: dict[str, list[float]], target_horizon: int = 20) -> pd.DataFrame:
-    """Prepara dados de treino com features avançadas."""
-    logger.info("Gerando features avançadas...")
-    
-    # Usar o feature engineer avançado
+def prepare_training_data(
+    series: dict[str, list[float]],
+    target_horizon: int = 20,
+    volumes: dict[str, list[float]] = None,
+    fundamentals_dict: dict[str, dict] = None,
+    macro_features: dict[str, float] = None,
+    sentiment_dict: dict[str, float] = None,
+) -> pd.DataFrame:
+    """Prepara dados de treino com TODAS as features avançadas."""
+    logger.info("Gerando features avançadas (preço + volume + fundamentals + macro + setor + sentimento)...")
+
     train_df = create_training_dataset(
         series_dict=series,
         target_horizon=target_horizon,
-        min_history=120
+        min_history=120,
+        volumes_dict=volumes,
+        fundamentals_dict=fundamentals_dict,
+        macro_features=macro_features,
+        sentiment_dict=sentiment_dict,
     )
-    
-    logger.info(f"Features geradas: {len(train_df.columns)} colunas")
-    
+
+    logger.info(f"Features geradas: {len(train_df.columns)} colunas, {len(train_df)} amostras")
     return train_df
 
 
@@ -232,14 +250,11 @@ def start_training_job(
 
 def handler(event, context):
     """
-    Handler principal — treina modelo DL (Transformer+BiLSTM).
-
-    Pode treinar localmente na Lambda (para modelos menores) ou via SageMaker.
+    Handler principal — treina ensemble DL com TODAS as features.
 
     Event pode conter:
-    - instance_type: Tipo de instância SageMaker (ml.m5.xlarge, etc)
-    - lookback_days: Dias de histórico para treino
-    - epochs: Número de épocas (default: 80)
+    - lookback_days: Dias de histórico (default: 730 = 2 anos)
+    - epochs: Número de épocas (default: 120)
     - train_local: Se True, treina na Lambda (default: True)
     """
     cfg = load_runtime_config()
@@ -250,62 +265,87 @@ def handler(event, context):
 
     logger.info(f"Iniciando treino DL para {dt}")
 
-    lookback_days = event.get('lookback_days', 365)
-    epochs = event.get('epochs', 80)
+    lookback_days = event.get('lookback_days', 730)
+    epochs = event.get('epochs', 120)
     train_local = event.get('train_local', True)
 
-    # Carregar dados
+    # 1. Carregar preços + volumes
     logger.info(f"Carregando {lookback_days} dias de histórico...")
-    series = load_monthly_data_for_training(bucket, lookback_days)
+    series, volumes = load_monthly_data_for_training(bucket, lookback_days)
     logger.info(f"Séries carregadas: {len(series)} tickers")
 
     if not series:
         raise RuntimeError("Sem dados suficientes para treino.")
 
-    # Preparar dados de treino
-    logger.info("Preparando dados de treino...")
-    train_df = prepare_training_data(series)
+    # 2. Carregar dados macro do BCB
+    macro_features = None
+    try:
+        from dl.src.features.macro_features import fetch_all_macro_data, calculate_macro_features as calc_macro
+        macro_data = fetch_all_macro_data(days=90)
+        macro_features = calc_macro(macro_data)
+        logger.info(f"Macro features carregadas: {len(macro_features)} features")
+    except Exception as e:
+        logger.warning(f"Não foi possível carregar dados macro: {e}")
+
+    # 3. Carregar fundamentalistas do Feature Store
+    fundamentals_dict = None
+    try:
+        from dl.src.features.feature_store import FeatureStore
+        store = FeatureStore(bucket)
+        fundamentals_dict = {}
+        for ticker in series.keys():
+            fund = store.load_features_with_fallback("fundamentals", ticker, dt, fallback_days=30)
+            if fund:
+                fundamentals_dict[ticker] = fund
+        if fundamentals_dict:
+            logger.info(f"Fundamentals carregados: {len(fundamentals_dict)} tickers")
+    except Exception as e:
+        logger.warning(f"Não foi possível carregar fundamentals: {e}")
+
+    # 4. Carregar sentimento do Feature Store
+    sentiment_dict = None
+    try:
+        from dl.src.features.feature_store import FeatureStore as FS2
+        store2 = FS2(bucket)
+        sentiment_dict = {}
+        for ticker in series.keys():
+            sent = store2.load_features_with_fallback("sentiment", ticker, dt, fallback_days=3)
+            if sent and "sentiment_score" in sent:
+                sentiment_dict[ticker] = sent["sentiment_score"]
+        if sentiment_dict:
+            logger.info(f"Sentimento carregado: {len(sentiment_dict)} tickers")
+    except Exception as e:
+        logger.warning(f"Não foi possível carregar sentimento: {e}")
+
+    # 5. Preparar dados de treino com TODAS as features
+    logger.info("Preparando dados de treino com features completas...")
+    train_df = prepare_training_data(
+        series,
+        volumes=volumes,
+        fundamentals_dict=fundamentals_dict,
+        macro_features=macro_features,
+        sentiment_dict=sentiment_dict,
+    )
     logger.info(f"Dados de treino: {len(train_df)} amostras, {len(train_df.columns)} colunas")
 
     if train_df.empty:
         raise RuntimeError("Nenhum dado de treino gerado.")
 
     if train_local:
-        # Treinar localmente na Lambda
         return _train_local(train_df, bucket, dt, epochs, event)
     else:
-        # Treinar via SageMaker
         instance_type = event.get('instance_type', 'ml.m5.xlarge')
-        hyperparameters = event.get('hyperparameters', {
-            'max_depth': '6',
-            'learning_rate': '0.1',
-            'n_estimators': '100'
-        })
-
+        hyperparameters = event.get('hyperparameters', {})
         train_prefix = f"training/ensemble/{dt}"
         train_data_s3 = upload_training_data(train_df, bucket, train_prefix)
-
         job_name = f"b3tr-dl-{dt.replace('-', '')}-{now.strftime('%H%M%S')}"
         output_s3 = f"s3://{bucket}/models/deep_learning/{dt}"
-
         job_name = start_training_job(
-            job_name=job_name,
-            train_data_s3=train_data_s3,
-            output_s3=output_s3,
-            role_arn=cfg.sagemaker_role_arn,
-            bucket=bucket,
-            instance_type=instance_type,
-            hyperparameters=hyperparameters
+            job_name=job_name, train_data_s3=train_data_s3, output_s3=output_s3,
+            role_arn=cfg.sagemaker_role_arn, bucket=bucket,
+            instance_type=instance_type, hyperparameters=hyperparameters,
         )
-
-        return {
-            "ok": True,
-            "dt": dt,
-            "training_job_name": job_name,
-            "method": "sagemaker",
-            "instance_type": instance_type,
-            "train_samples": len(train_df),
-        }
+        return {"ok": True, "dt": dt, "training_job_name": job_name, "method": "sagemaker", "train_samples": len(train_df)}
 
 
 def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, event: dict) -> dict:
@@ -332,7 +372,7 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
 
     logger.info(f"Train: {len(X_train)}, Val: {len(X_val)}, Features: {len(feature_cols)}")
 
-    # Treinar ensemble de 3 modelos
+    # Treinar ensemble de 3 modelos com hiperparâmetros otimizados
     ensemble = EnsembleDLTrainer(
         n_features=len(feature_cols),
         model_names=['transformer_bilstm', 'residual_mlp', 'temporal_cnn'],
@@ -342,9 +382,9 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     metrics = ensemble.train_all(
         X_train, y_train, X_val, y_val,
         epochs=epochs,
-        batch_size=min(64, len(X_train)),
-        lr=1e-3,
-        patience=15,
+        batch_size=min(128, len(X_train)),
+        lr=5e-4,
+        patience=20,
     )
     for trainer in ensemble.trainers.values():
         trainer.feature_names = feature_cols

@@ -194,9 +194,12 @@ class DeepLearningTrainer:
         dataset = TensorDataset(X_t, y_t)
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=1e-4)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
-        criterion = nn.HuberLoss(delta=0.05)
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=1e-3)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            optimizer, max_lr=lr, epochs=epochs, steps_per_epoch=len(loader),
+        )
+        # Combinação de HuberLoss (robusta a outliers) + penalidade direcional
+        huber = nn.HuberLoss(delta=0.02)
 
         best_val_loss = float('inf')
         best_state = None
@@ -210,19 +213,26 @@ class DeepLearningTrainer:
             for xb, yb in loader:
                 optimizer.zero_grad()
                 pred = self.model(xb)
-                loss = criterion(pred, yb)
+                # Loss = Huber + penalidade por errar a direção
+                loss_huber = huber(pred, yb)
+                dir_penalty = torch.mean(torch.clamp(-pred * yb, min=0)) * 0.5
+                loss = loss_huber + dir_penalty
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 optimizer.step()
+                scheduler.step()
                 train_losses.append(loss.item())
-            scheduler.step()
 
             avg_train = np.mean(train_losses)
             history['train_loss'].append(avg_train)
 
             # Validate
             if X_val is not None:
-                val_loss = self._evaluate(X_val, y_val, criterion)
+                self.model.eval()
+                with torch.no_grad():
+                    X_vt, y_vt = self._prepare_tensors(X_val, y_val)
+                    vpred = self.model(X_vt)
+                    val_loss = huber(vpred, y_vt).item()
                 history['val_loss'].append(val_loss)
 
                 if val_loss < best_val_loss:
@@ -498,15 +508,15 @@ class TemporalCNNModel(nn.Module):
 MODEL_REGISTRY = {
     'transformer_bilstm': {
         'class': TransformerBiLSTMModel,
-        'default_kwargs': {'d_model': 128, 'nhead': 4, 'num_encoder_layers': 2, 'lstm_hidden': 64},
+        'default_kwargs': {'d_model': 192, 'nhead': 6, 'num_encoder_layers': 3, 'lstm_hidden': 96, 'dropout': 0.15},
     },
     'residual_mlp': {
         'class': ResidualMLPModel,
-        'default_kwargs': {'hidden': 128, 'n_blocks': 3},
+        'default_kwargs': {'hidden': 192, 'n_blocks': 4, 'dropout': 0.15},
     },
     'temporal_cnn': {
         'class': TemporalCNNModel,
-        'default_kwargs': {'channels': 64, 'kernel_size': 3, 'n_layers': 3},
+        'default_kwargs': {'channels': 96, 'kernel_size': 3, 'n_layers': 4, 'dropout': 0.15},
     },
 }
 
