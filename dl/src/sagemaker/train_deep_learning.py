@@ -206,17 +206,33 @@ class DeepLearningTrainer:
         lr: float = 1e-3,
         patience: int = 15,
     ) -> dict:
-        """Treina o modelo com early stopping. Normaliza apenas X (não y)."""
+        """
+        Treina com curriculum learning + multi-task.
+        
+        Fase 1 (0-30%): só amostras com |retorno| > percentil 70 (movimentos claros)
+        Fase 2 (30-60%): amostras com |retorno| > percentil 40 (movimentos médios)
+        Fase 3 (60-100%): todas as amostras (incluindo ambíguas)
+        """
         self.scaler.fit(X_train)
-        X_t, y_t = self._prepare_tensors(X_train, y_train)
 
-        dataset = TensorDataset(X_t, y_t)
-        loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        # Preparar curriculum: ordenar por dificuldade (|retorno| decrescente = mais fácil primeiro)
+        abs_returns = np.abs(y_train)
+        p70 = np.percentile(abs_returns, 70)
+        p40 = np.percentile(abs_returns, 40)
+
+        easy_mask = abs_returns >= p70       # ~30% das amostras (movimentos fortes)
+        medium_mask = abs_returns >= p40     # ~60% das amostras
+        # full = todas
+
+        curriculum_phases = [
+            (0.0, 0.3, easy_mask, "fácil (|ret| > p70)"),
+            (0.3, 0.6, medium_mask, "médio (|ret| > p40)"),
+            (0.6, 1.0, np.ones(len(y_train), dtype=bool), "completo (todas)"),
+        ]
+
+        logger.info(f"Curriculum: easy={easy_mask.sum()} medium={medium_mask.sum()} full={len(y_train)} amostras")
 
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=1e-3)
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            optimizer, max_lr=lr, epochs=epochs, steps_per_epoch=len(loader),
-        )
         huber = nn.HuberLoss(delta=0.05)
         bce = nn.BCEWithLogitsLoss()
 
@@ -226,6 +242,30 @@ class DeepLearningTrainer:
         history = {'train_loss': [], 'val_loss': []}
 
         for epoch in range(epochs):
+            # Determinar fase do curriculum
+            progress = epoch / max(epochs - 1, 1)
+            current_mask = np.ones(len(y_train), dtype=bool)
+            phase_name = "completo"
+            for start, end, mask, name in curriculum_phases:
+                if start <= progress < end:
+                    current_mask = mask
+                    phase_name = name
+                    break
+
+            # Criar dataset da fase atual
+            X_phase = X_train[current_mask]
+            y_phase = y_train[current_mask]
+            X_pt, y_pt = self._prepare_tensors(X_phase, y_phase)
+            dataset = TensorDataset(X_pt, y_pt)
+            loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+            # Scheduler por fase (recria a cada mudança de fase)
+            if epoch == 0 or (epoch > 0 and progress in [0.3, 0.6]):
+                remaining = epochs - epoch
+                scheduler = torch.optim.lr_scheduler.OneCycleLR(
+                    optimizer, max_lr=lr, epochs=remaining, steps_per_epoch=len(loader),
+                )
+
             # Train
             self.model.train()
             train_losses = []
@@ -233,31 +273,29 @@ class DeepLearningTrainer:
                 optimizer.zero_grad()
                 reg_out, cls_logit = self.model(xb)
 
-                # Task 1: Regressão (magnitude do retorno)
                 loss_reg = huber(reg_out, yb)
-
-                # Task 2: Classificação (direção sobe/desce)
                 target_dir = (yb > 0).float()
                 loss_cls = bce(cls_logit, target_dir)
-
-                # Multi-task: 50% regressão + 50% classificação
                 loss = 0.5 * loss_reg + 0.5 * loss_cls
 
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 optimizer.step()
-                scheduler.step()
+                try:
+                    scheduler.step()
+                except Exception:
+                    pass
                 train_losses.append(loss.item())
 
             avg_train = np.mean(train_losses)
             history['train_loss'].append(avg_train)
 
-            # Validate
+            # Validate (sempre no dataset completo)
             if X_val is not None:
                 self.model.eval()
                 with torch.no_grad():
                     X_vt, y_vt = self._prepare_tensors(X_val, y_val)
-                    vpred = self.model(X_vt)  # inferência: retorna combinado
+                    vpred = self.model(X_vt)
                     val_loss = huber(vpred, y_vt).item()
                 history['val_loss'].append(val_loss)
 
@@ -269,19 +307,18 @@ class DeepLearningTrainer:
                     no_improve += 1
 
                 if epoch % 10 == 0:
-                    logger.info(f"Epoch {epoch}: train={avg_train:.6f} val={val_loss:.6f} best={best_val_loss:.6f}")
+                    logger.info(f"Epoch {epoch} [{phase_name}]: train={avg_train:.6f} val={val_loss:.6f} best={best_val_loss:.6f}")
 
                 if no_improve >= patience:
                     logger.info(f"Early stopping at epoch {epoch}")
                     break
             else:
                 if epoch % 10 == 0:
-                    logger.info(f"Epoch {epoch}: train={avg_train:.6f}")
+                    logger.info(f"Epoch {epoch} [{phase_name}]: train={avg_train:.6f}")
 
         if best_state:
             self.model.load_state_dict(best_state)
 
-        # Compute final metrics
         self.model.eval()
         metrics = {'epochs_trained': epoch + 1, 'best_val_loss': best_val_loss}
         if X_val is not None:
