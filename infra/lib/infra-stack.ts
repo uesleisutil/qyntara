@@ -1041,11 +1041,17 @@ export class InfraStack extends cdk.Stack {
     // admin/agents goes to agentHubFn, everything else to userAuthFn
     const adminResource = api.root.addResource("admin");
 
-    // /admin/agents/{proxy+} — agent hub routes (separate Lambda)
+    // /admin/agents routes — agent hub (separate Lambda)
+    // Uses {agentId} path param (not {proxy+}) because API Gateway
+    // doesn't allow two variable path parts as siblings.
     const adminAgents = adminResource.addResource("agents");
     adminAgents.addMethod("GET", agentHubIntegration, { apiKeyRequired: false });
-    const adminAgentProxy = adminAgents.addResource("{proxy+}");
-    adminAgentProxy.addMethod("ANY", agentHubIntegration, { apiKeyRequired: false });
+    const adminAgentById = adminAgents.addResource("{agentId}");
+    adminAgentById.addMethod("GET", agentHubIntegration, { apiKeyRequired: false });
+    const adminAgentChat = adminAgentById.addResource("chat");
+    adminAgentChat.addMethod("POST", agentHubIntegration, { apiKeyRequired: false });
+    const adminAgentTasks = adminAgentById.addResource("tasks");
+    adminAgentTasks.addMethod("PUT", agentHubIntegration, { apiKeyRequired: false });
 
     // /admin/{proxy+} — all other admin routes → userAuthFn
     // NOTE: CDK doesn't allow {proxy+} at the same level as named children (agents).
