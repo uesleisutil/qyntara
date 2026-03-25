@@ -114,7 +114,7 @@ const ChallengesPage: React.FC = () => {
   };
 
   const quitChallenge = async () => {
-    if (!confirm('Tem certeza que deseja sair do desafio? Seu progresso será arquivado.')) return;
+    if (!window.confirm('Tem certeza que deseja sair do desafio? Seu progresso será arquivado.')) return;
     setQuitting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/auth/free-ticker`, {
