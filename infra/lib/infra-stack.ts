@@ -513,115 +513,30 @@ export class InfraStack extends cdk.Stack {
       allowTestInvoke: false,
     });
 
-    // Add API endpoints - Req 13.1, 13.6
-    const apiResource = api.root.addResource("api");
-    
-    // /api/recommendations/latest
-    const recommendationsResource = apiResource.addResource("recommendations");
-    const recommendationsLatestResource = recommendationsResource.addResource("latest");
-    recommendationsLatestResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/recommendations/history
-    const recommendationsHistoryResource = recommendationsResource.addResource("history");
-    recommendationsHistoryResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/recommendations/validation
-    const recommendationsValidationResource = recommendationsResource.addResource("validation");
-    recommendationsValidationResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
+    // -----------------------
+    // API Routes — using {proxy+} to avoid Lambda resource policy size limit (20KB).
+    // Each individual route adds a statement to the Lambda's resource-based policy.
+    // With 50+ routes, we hit the limit. Using proxy+ reduces to ~1 statement per resource.
+    // The Python handlers already do internal path routing, so no backend changes needed.
+    // -----------------------
 
-    // /api/monitoring/*
-    const monitoringResource = apiResource.addResource("monitoring");
-    
-    // /api/monitoring/data-quality
-    const dataQualityResource = monitoringResource.addResource("data-quality");
-    dataQualityResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/data-quality/* endpoints (Req 80.1, 80.10)
-    const dataQualityRootResource = apiResource.addResource("data-quality");
-    
-    // /api/data-quality/completeness
-    const completenessResource = dataQualityRootResource.addResource("completeness");
-    completenessResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/data-quality/anomalies
-    const anomaliesResource = dataQualityRootResource.addResource("anomalies");
-    anomaliesResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/data-quality/freshness
-    const freshnessResource = dataQualityRootResource.addResource("freshness");
-    freshnessResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/data-quality/coverage
-    const coverageResource = dataQualityRootResource.addResource("coverage");
-    coverageResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/monitoring/model-performance
-    const modelPerformanceResource = monitoringResource.addResource("model-performance");
-    modelPerformanceResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/monitoring/drift
-    const driftResource = monitoringResource.addResource("drift");
-    driftResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/monitoring/costs
-    const costsResource = monitoringResource.addResource("costs");
-    costsResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // /api/monitoring/ensemble-weights
-    const ensembleWeightsResource = monitoringResource.addResource("ensemble-weights");
-    ensembleWeightsResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
+    // /api/{proxy+} — all dashboard data routes (API key required)
+    const apiResource = api.root.addResource("api");
+    const apiProxy = apiResource.addResource("{proxy+}");
+    apiProxy.addMethod("GET", dashboardIntegration, { apiKeyRequired: true });
+
     // Legacy endpoints (backward compatibility)
     const metricsResource = api.root.addResource("metrics");
-    metricsResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
+    metricsResource.addMethod("GET", dashboardIntegration, { apiKeyRequired: true });
 
     const qualityResource = api.root.addResource("quality");
-    qualityResource.addMethod("GET", dashboardIntegration, {
-      apiKeyRequired: true,
-    });
-    
-    // S3 Proxy endpoints
+    qualityResource.addMethod("GET", dashboardIntegration, { apiKeyRequired: true });
+
+    // /s3-proxy/{proxy+} — S3 data proxy (API key required)
     const s3ProxyResource = api.root.addResource("s3-proxy");
-    s3ProxyResource.addMethod("GET", s3ProxyIntegration, {
-      apiKeyRequired: true,
-      requestParameters: {
-        'method.request.querystring.key': false
-      }
-    });
-    
-    const s3ProxyListResource = s3ProxyResource.addResource("list");
-    s3ProxyListResource.addMethod("GET", s3ProxyIntegration, {
-      apiKeyRequired: true,
-      requestParameters: {
-        'method.request.querystring.prefix': false
-      }
-    });
+    s3ProxyResource.addMethod("GET", s3ProxyIntegration, { apiKeyRequired: true });
+    const s3ProxyProxy = s3ProxyResource.addResource("{proxy+}");
+    s3ProxyProxy.addMethod("GET", s3ProxyIntegration, { apiKeyRequired: true });
     
     // Advanced Features Lambdas
     const backtestingFn = new lambda.Function(this, "Backtesting", {
@@ -1075,95 +990,6 @@ export class InfraStack extends cdk.Stack {
       allowTestInvoke: false,
     });
 
-    // /auth routes (NO API key required - public endpoints)
-    const authResource = api.root.addResource("auth");
-    const authRegister = authResource.addResource("register");
-    authRegister.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authLogin = authResource.addResource("login");
-    authLogin.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authMe = authResource.addResource("me");
-    authMe.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    authMe.addMethod("DELETE", userAuthIntegration, { apiKeyRequired: false });
-
-    // Email verification & password reset routes
-    const authVerifyEmail = authResource.addResource("verify-email");
-    authVerifyEmail.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authResendCode = authResource.addResource("resend-code");
-    authResendCode.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authForgotPassword = authResource.addResource("forgot-password");
-    authForgotPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authResetPassword = authResource.addResource("reset-password");
-    authResetPassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authChangePassword = authResource.addResource("change-password");
-    authChangePassword.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authStats = authResource.addResource("stats");
-    authStats.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    const authPhone = authResource.addResource("phone");
-    authPhone.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    authPhone.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-
-    // Stripe payment routes
-    const authCreateCheckout = authResource.addResource("create-checkout");
-    authCreateCheckout.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authStripeWebhook = authResource.addResource("stripe-webhook");
-    authStripeWebhook.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const authCheckSession = authResource.addResource("check-session");
-    authCheckSession.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    const authManageBilling = authResource.addResource("manage-billing");
-    authManageBilling.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-
-    // Free-tier ticker preference
-    const authFreeTicker = authResource.addResource("free-ticker");
-    authFreeTicker.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-
-    // /admin/notifications routes (JWT-protected, admin only)
-    const adminResource = api.root.addResource("admin");
-    const adminNotifications = adminResource.addResource("notifications");
-    adminNotifications.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    adminNotifications.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    adminNotifications.addMethod("PUT", userAuthIntegration, { apiKeyRequired: false });
-    adminNotifications.addMethod("DELETE", userAuthIntegration, { apiKeyRequired: false });
-
-    // /admin/whatsapp route (JWT-protected, admin only)
-    const adminWhatsapp = adminResource.addResource("whatsapp");
-    adminWhatsapp.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-
-    // /admin/users routes (JWT-protected, admin only)
-    const adminUsers = adminResource.addResource("users");
-    adminUsers.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    const adminUsersSetPlan = adminUsers.addResource("set-plan");
-    adminUsersSetPlan.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const adminUsersSetRole = adminUsers.addResource("set-role");
-    adminUsersSetRole.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const adminUsersSetCostsAccess = adminUsers.addResource("set-costs-access");
-    adminUsersSetCostsAccess.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const adminUsersDelete = adminUsers.addResource("delete");
-    adminUsersDelete.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-
-    // /admin/chat routes (JWT-protected, admin only)
-    const adminChat = adminResource.addResource("chat");
-    adminChat.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    const adminChatReply = adminChat.addResource("reply");
-    adminChatReply.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const adminChatClose = adminChat.addResource("close");
-    adminChatClose.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const adminChatDelete = adminChat.addResource("delete");
-    adminChatDelete.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-
-    // /chat routes (JWT-protected, user-facing)
-    const chatResource = api.root.addResource("chat");
-    const chatMessages = chatResource.addResource("messages");
-    chatMessages.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    const chatTickets = chatResource.addResource("tickets");
-    chatTickets.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-
-    // /carteiras routes (JWT-protected, user-facing)
-    const carteirasResource = api.root.addResource("carteiras");
-    carteirasResource.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
-    carteirasResource.addMethod("POST", userAuthIntegration, { apiKeyRequired: false });
-    carteirasResource.addMethod("PUT", userAuthIntegration, { apiKeyRequired: false });
-    carteirasResource.addMethod("DELETE", userAuthIntegration, { apiKeyRequired: false });
-
     // -----------------------
     // Agent Hub (Multi-Agent Governance)
     // -----------------------
@@ -1206,17 +1032,47 @@ export class InfraStack extends cdk.Stack {
       allowTestInvoke: false,
     });
 
-    // /admin/agents routes
+    // /auth/{proxy+} — all auth routes (NO API key required - public endpoints)
+    const authResource = api.root.addResource("auth");
+    const authProxy = authResource.addResource("{proxy+}");
+    authProxy.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+
+    // /admin — JWT-protected admin routes
+    // admin/agents goes to agentHubFn, everything else to userAuthFn
+    const adminResource = api.root.addResource("admin");
+
+    // /admin/agents/{proxy+} — agent hub routes (separate Lambda)
     const adminAgents = adminResource.addResource("agents");
     adminAgents.addMethod("GET", agentHubIntegration, { apiKeyRequired: false });
-    const adminAgentById = adminAgents.addResource("{agentId}");
-    adminAgentById.addMethod("GET", agentHubIntegration, { apiKeyRequired: false });
-    const adminAgentChat = adminAgentById.addResource("chat");
-    adminAgentChat.addMethod("POST", agentHubIntegration, { apiKeyRequired: false });
-    const adminAgentTasks = adminAgentById.addResource("tasks");
-    adminAgentTasks.addMethod("PUT", agentHubIntegration, { apiKeyRequired: false });
+    const adminAgentProxy = adminAgents.addResource("{proxy+}");
+    adminAgentProxy.addMethod("ANY", agentHubIntegration, { apiKeyRequired: false });
 
-    // /notifications route (JWT-protected, user-facing)
+    // /admin/{proxy+} — all other admin routes → userAuthFn
+    // NOTE: CDK doesn't allow {proxy+} at the same level as named children (agents).
+    // So we define explicit sub-resources for the remaining admin paths.
+    const adminNotifications = adminResource.addResource("notifications");
+    adminNotifications.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+    const adminWhatsapp = adminResource.addResource("whatsapp");
+    adminWhatsapp.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+    const adminUsers = adminResource.addResource("users");
+    adminUsers.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+    const adminUsersProxy = adminUsers.addResource("{proxy+}");
+    adminUsersProxy.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+    const adminChat = adminResource.addResource("chat");
+    adminChat.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+    const adminChatProxy = adminChat.addResource("{proxy+}");
+    adminChatProxy.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+
+    // /chat/{proxy+} — user-facing chat routes
+    const chatResource = api.root.addResource("chat");
+    const chatProxy = chatResource.addResource("{proxy+}");
+    chatProxy.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+
+    // /carteiras — user portfolio routes
+    const carteirasResource = api.root.addResource("carteiras");
+    carteirasResource.addMethod("ANY", userAuthIntegration, { apiKeyRequired: false });
+
+    // /notifications — user-facing notifications
     const notificationsResource = api.root.addResource("notifications");
     notificationsResource.addMethod("GET", userAuthIntegration, { apiKeyRequired: false });
 
