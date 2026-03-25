@@ -1,25 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { Settings, Trash2, Shield, Lock, CreditCard, AlertTriangle, CheckCircle, ExternalLink, Bell, Keyboard, Target, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { API_BASE_URL } from '../../config';
 
+type NotifCategory = 'drift' | 'anomaly' | 'cost' | 'degradation' | 'system';
+
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
 const SettingsPage: React.FC = () => {
   const { darkMode } = useOutletContext<DashboardContext>();
-  const { user, logout, completeOnboarding } = useAuth();
+  const { user, logout, completeOnboarding, updateNotificationPreferences } = useAuth();
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [deleteSuccess, setDeleteSuccess] = useState(false);
-  const [emailNotif, setEmailNotif] = useState(() => localStorage.getItem('b3tr_email_notif') === 'true');
-  const [emailNotifSaving, setEmailNotifSaving] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
   const isPro = user?.plan === 'pro';
+
+  // Notification preferences (persisted to backend)
+  const notifCategories: { id: NotifCategory; label: string; desc: string }[] = [
+    { id: 'degradation', label: 'Degradação do modelo', desc: 'Queda de performance nas previsões' },
+    { id: 'drift', label: 'Data Drift', desc: 'Mudanças na distribuição dos dados' },
+    { id: 'anomaly', label: 'Anomalias de dados', desc: 'Problemas de qualidade e outliers' },
+    { id: 'cost', label: 'Alertas de custo', desc: 'Avisos de orçamento e picos de custo' },
+    { id: 'system', label: 'Saúde do sistema', desc: 'Infraestrutura e disponibilidade' },
+  ];
+
+  const savedPrefs = user?.notificationPreferences;
+  const [emailTypes, setEmailTypes] = useState<NotifCategory[]>(savedPrefs?.emailTypes as NotifCategory[] || ['degradation', 'system']);
+  const [smsTypes, setSmsTypes] = useState<NotifCategory[]>(savedPrefs?.smsTypes as NotifCategory[] || []);
+  const [quietEnabled, setQuietEnabled] = useState(savedPrefs?.quietHours?.enabled ?? false);
+  const [quietStart, setQuietStart] = useState(savedPrefs?.quietHours?.start ?? '22:00');
+  const [quietEnd, setQuietEnd] = useState(savedPrefs?.quietHours?.end ?? '08:00');
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifSaved, setNotifSaved] = useState(false);
+  const [notifError, setNotifError] = useState('');
+
+  // Sync state when user prefs change (e.g. after login refresh)
+  useEffect(() => {
+    if (savedPrefs) {
+      setEmailTypes(savedPrefs.emailTypes as NotifCategory[] || []);
+      setSmsTypes(savedPrefs.smsTypes as NotifCategory[] || []);
+      if (savedPrefs.quietHours) {
+        setQuietEnabled(savedPrefs.quietHours.enabled ?? false);
+        setQuietStart(savedPrefs.quietHours.start ?? '22:00');
+        setQuietEnd(savedPrefs.quietHours.end ?? '08:00');
+      }
+    }
+  }, [savedPrefs]);
+
+  const toggleCategory = useCallback((list: NotifCategory[], setList: React.Dispatch<React.SetStateAction<NotifCategory[]>>, cat: NotifCategory) => {
+    setList(list.includes(cat) ? list.filter(c => c !== cat) : [...list, cat]);
+  }, []);
+
+  const saveNotifPrefs = useCallback(async () => {
+    if (!isPro) return;
+    setNotifSaving(true); setNotifError(''); setNotifSaved(false);
+    try {
+      await updateNotificationPreferences({
+        emailTypes,
+        smsTypes,
+        quietHours: { enabled: quietEnabled, start: quietStart, end: quietEnd },
+      });
+      setNotifSaved(true);
+      setTimeout(() => setNotifSaved(false), 3000);
+    } catch {
+      setNotifError('Erro ao salvar preferências');
+    } finally { setNotifSaving(false); }
+  }, [isPro, emailTypes, smsTypes, quietEnabled, quietStart, quietEnd, updateNotificationPreferences]);
 
   const theme = {
     bg: darkMode ? '#0f1117' : '#f8f9fb',
@@ -148,57 +200,114 @@ const SettingsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Email Notifications */}
+      {/* Notificações — Preferências */}
       <div style={cardStyle}>
         <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Bell size={16} /> Notificações por Email
+          <Bell size={16} /> Notificações
         </h3>
         <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '0.75rem', lineHeight: 1.5 }}>
-          Receba um resumo diário das recomendações no seu email.
+          Escolha quais tipos de notificação deseja receber.
           {!isPro && <span style={{ color: '#f59e0b' }}> Disponível apenas para assinantes Pro.</span>}
         </p>
+
+        {/* Email types */}
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem' }}>Email</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            {notifCategories.map(cat => {
+              const checked = emailTypes.includes(cat.id);
+              return (
+                <label key={cat.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.45rem 0.6rem',
+                  borderRadius: 8, border: `1px solid ${checked ? '#3b82f640' : theme.border}`,
+                  background: checked ? (darkMode ? '#3b82f60a' : '#3b82f606') : 'transparent',
+                  cursor: isPro ? 'pointer' : 'not-allowed', opacity: isPro ? 1 : 0.5,
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}>
+                  <input type="checkbox" checked={checked} disabled={!isPro}
+                    onChange={() => toggleCategory(emailTypes, setEmailTypes, cat.id)}
+                    style={{ width: 15, height: 15, cursor: isPro ? 'pointer' : 'not-allowed', accentColor: '#3b82f6' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>{cat.label}</div>
+                    <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{cat.desc}</div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SMS types */}
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem' }}>SMS (apenas alertas críticos)</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            {notifCategories.map(cat => {
+              const checked = smsTypes.includes(cat.id);
+              return (
+                <label key={cat.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.45rem 0.6rem',
+                  borderRadius: 8, border: `1px solid ${checked ? '#10b98140' : theme.border}`,
+                  background: checked ? (darkMode ? '#10b9810a' : '#10b98106') : 'transparent',
+                  cursor: isPro ? 'pointer' : 'not-allowed', opacity: isPro ? 1 : 0.5,
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}>
+                  <input type="checkbox" checked={checked} disabled={!isPro}
+                    onChange={() => toggleCategory(smsTypes, setSmsTypes, cat.id)}
+                    style={{ width: 15, height: 15, cursor: isPro ? 'pointer' : 'not-allowed', accentColor: '#10b981' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>{cat.label}</div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Quiet hours */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: isPro ? 'pointer' : 'not-allowed', opacity: isPro ? 1 : 0.5 }}>
+            <input type="checkbox" checked={quietEnabled} disabled={!isPro}
+              onChange={e => setQuietEnabled(e.target.checked)}
+              style={{ width: 15, height: 15, cursor: isPro ? 'pointer' : 'not-allowed' }}
+            />
+            <span style={{ fontSize: '0.82rem', fontWeight: 500, color: theme.text }}>Horário silencioso (pausar notificações não-críticas)</span>
+          </label>
+          {quietEnabled && isPro && (
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem', marginLeft: '1.5rem' }}>
+              <div>
+                <label htmlFor="qstart" style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Início</label>
+                <input id="qstart" type="time" value={quietStart} onChange={e => setQuietStart(e.target.value)}
+                  style={{ display: 'block', padding: '0.35rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.bg, color: theme.text, fontSize: '0.82rem' }}
+                />
+              </div>
+              <div>
+                <label htmlFor="qend" style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Fim</label>
+                <input id="qend" type="time" value={quietEnd} onChange={e => setQuietEnd(e.target.value)}
+                  style={{ display: 'block', padding: '0.35rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: theme.bg, color: theme.text, fontSize: '0.82rem' }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Save button */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button
-            onClick={() => {
-              if (!isPro || emailNotifSaving) return;
-              setEmailNotifSaving(true);
-              const newVal = !emailNotif;
-              const token = localStorage.getItem('authToken');
-              fetch(`${API_BASE_URL}/auth/preferences`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ emailNotifications: newVal }),
-              }).catch(() => {}).finally(() => {
-                localStorage.setItem('b3tr_email_notif', String(newVal));
-                setEmailNotif(newVal);
-                setEmailNotifSaving(false);
-              });
-            }}
-            disabled={!isPro || emailNotifSaving}
-            aria-checked={emailNotif && isPro}
-            role="switch"
-            aria-label="Notificações por email"
-            style={{
-              width: 44, height: 24, borderRadius: 12, border: 'none', cursor: isPro ? 'pointer' : 'not-allowed',
-              background: emailNotif && isPro ? '#10b981' : (darkMode ? '#2a2e3a' : '#e0e2e8'),
-              position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-              opacity: isPro ? 1 : 0.5, padding: 0,
-              WebkitAppearance: 'none' as any,
-              MozAppearance: 'none' as any,
-              appearance: 'none' as any,
-            }}
-          >
-            <div style={{
-              width: 18, height: 18, borderRadius: '50%', background: 'white',
-              position: 'absolute', top: 3,
-              left: emailNotif && isPro ? 23 : 3,
-              transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-              pointerEvents: 'none',
-            }} />
+          <button onClick={saveNotifPrefs} disabled={!isPro || notifSaving} style={{
+            padding: '0.5rem 1rem', borderRadius: 8, border: 'none', fontSize: '0.82rem', fontWeight: 600,
+            background: isPro ? '#3b82f6' : '#64748b', color: 'white',
+            cursor: isPro && !notifSaving ? 'pointer' : 'not-allowed',
+            opacity: notifSaving ? 0.6 : 1, transition: 'background 0.15s',
+          }}>
+            {notifSaving ? 'Salvando...' : 'Salvar preferências'}
           </button>
-          <span style={{ fontSize: '0.82rem', color: theme.text }}>
-            {emailNotif && isPro ? 'Ativado' : 'Desativado'}
-          </span>
+          {notifSaved && (
+            <span style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <CheckCircle size={12} /> Preferências salvas
+            </span>
+          )}
+          {notifError && <span style={{ fontSize: '0.75rem', color: '#f87171' }}>{notifError}</span>}
         </div>
       </div>
 

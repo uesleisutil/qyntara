@@ -206,13 +206,13 @@ const AdminModelsPage: React.FC = () => {
         <div style={{ ...cardStyle, borderLeft: `3px solid ${(latest.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <TrendingUp size={16} color={theme.textSecondary} />
-            <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Acurácia Direcional</span>
+            <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Acurácia Dir. (Live)</span>
           </div>
           <div style={{ fontSize: '1rem', fontWeight: 700, color: (latest.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b' }}>
-            {latest.directional_accuracy ? `${fmt(latest.directional_accuracy * 100, 1)}%` : '—'}
+            {latest.directional_accuracy ? `${fmt(latest.directional_accuracy * 100, 1)}%` : meta.directional_accuracy ? `${fmt(meta.directional_accuracy * 100, 1)}%` : '—'}
           </div>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
-            MAPE: {latest.mape ? `${fmt(latest.mape, 2)}%` : '—'}
+            {latest.directional_accuracy ? 'Produção (preços reais)' : meta.directional_accuracy ? 'Validação (treino)' : '—'}
           </div>
         </div>
 
@@ -358,9 +358,9 @@ const AdminModelsPage: React.FC = () => {
               const weight = weights[name];
               const metrics = [
                 { label: 'Val RMSE', value: fmt(m.val_rmse ?? m.rmse, 4), tip: 'Root Mean Squared Error na validação.' },
-                { label: 'Val MAE', value: fmt(m.val_mae ?? m.mae, 4), tip: 'Mean Absolute Error na validação.' },
-                { label: 'Val MAPE', value: `${fmt(m.val_mape ?? m.mape)}%`, tip: 'Mean Absolute Percentage Error na validação.' },
                 { label: 'Acurácia Dir.', value: m.directional_accuracy != null ? `${fmt(m.directional_accuracy * 100, 1)}%` : '—', tip: 'Percentual de acertos na direção (alta/baixa).' },
+                { label: 'Épocas', value: m.epochs_trained != null ? `${m.epochs_trained}` : '—', tip: 'Épocas treinadas (com early stopping).' },
+                { label: 'Val MAE', value: fmt(m.val_mae ?? m.mae, 4), tip: 'Mean Absolute Error na validação.' },
               ];
 
               return (
@@ -401,26 +401,19 @@ const AdminModelsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Ensemble training metrics */}
+        {/* Ensemble training info */}
         {meta && Object.keys(meta).length > 0 && (
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <BarChart3 size={18} color="#3b82f6" />
-              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Métricas Consolidadas do Ensemble</span>
-              <InfoTooltip text="Métricas do ensemble final (média ponderada dos 3 modelos)." darkMode={darkMode} size={14} />
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Informações de Treino</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))', gap: '0.6rem' }}>
               {[
-                ...(meta.architecture ? [{ label: 'Arquitetura', value: meta.architecture, color: '#3b82f6', tip: 'Arquitetura do ensemble DL.' }] : []),
-                { label: 'Val RMSE', value: fmt(meta.val_rmse, 4), color: '#3b82f6', tip: 'RMSE ponderado do ensemble na validação.' },
-                ...(meta.val_mae != null ? [{ label: 'Val MAE', value: fmt(meta.val_mae, 4), color: '#3b82f6', tip: 'MAE ponderado do ensemble.' }] : []),
-                ...(meta.val_mape != null && meta.val_mape < 1000 ? [{ label: 'Val MAPE', value: `${fmt(meta.val_mape)}%`, color: meta.val_mape <= 15 ? '#10b981' : '#f59e0b', tip: 'MAPE ponderado do ensemble.' }] : []),
-                ...(meta.directional_accuracy != null ? [{ label: 'Acurácia Dir.', value: `${fmt(meta.directional_accuracy * 100, 1)}%`, color: meta.directional_accuracy >= 0.55 ? '#10b981' : '#f59e0b', tip: 'Acurácia direcional do ensemble.' }] : []),
-                ...(meta.epochs_trained != null ? [{ label: 'Épocas', value: `${meta.epochs_trained}`, color: '#3b82f6', tip: 'Épocas treinadas (early stopping).' }] : []),
-                { label: 'CV Avg RMSE', value: fmt(meta.cv_avg_rmse, 4), color: '#3b82f6', tip: 'RMSE médio do walk-forward CV.' },
-                ...(meta.cv_avg_mape != null && meta.cv_avg_mape < 1000 ? [{ label: 'CV Avg MAPE', value: `${fmt(meta.cv_avg_mape)}%`, color: meta.cv_avg_mape <= 15 ? '#10b981' : '#f59e0b', tip: 'MAPE médio do walk-forward CV.' }] : []),
-                ...(meta.n_features != null ? [{ label: 'Features', value: `${meta.n_features}`, color: '#3b82f6', tip: 'Número de features usadas.' }] : []),
+                ...(meta.n_features != null ? [{ label: 'Features', value: `${meta.n_features}`, color: '#3b82f6', tip: 'Número de features usadas pelo ensemble.' }] : []),
                 ...(meta.train_samples != null ? [{ label: 'Amostras', value: `${meta.train_samples}`, color: '#3b82f6', tip: 'Amostras de treino.' }] : []),
+                ...(meta.train_date ? [{ label: 'Data do Treino', value: fmtDate(meta.train_date), color: '#3b82f6', tip: 'Data do último treino.' }] : []),
+                ...(meta.architecture ? [{ label: 'Arquitetura', value: meta.architecture, color: '#3b82f6', tip: 'Tipo de ensemble.' }] : []),
               ].map((m, i) => (
                 <div key={i} style={{ padding: '0.6rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8 }}>
                   <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginBottom: 3, display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -474,7 +467,7 @@ const AdminModelsPage: React.FC = () => {
               padding: '0.5rem 1.5rem', borderRadius: 8, fontSize: '0.78rem', fontWeight: 600,
               background: darkMode ? '#0f1117' : '#f0f9ff', border: `1px solid ${darkMode ? '#2a2e3a' : '#bae6fd'}`, color: theme.text,
             }}>
-              📥 Features Normalizadas ({meta.n_features || '~83'} features)
+              📥 Features Normalizadas ({meta.n_features || '92'} features)
             </div>
             <div style={{ width: 2, height: 16, background: theme.border }} />
             <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>↓ input compartilhado</div>
@@ -725,11 +718,11 @@ const AdminModelsPage: React.FC = () => {
       {
         name: 'Feature Engineering', icon: <Layers size={20} />, color: '#3b82f6',
         items: [
-          { label: 'Técnicas', detail: 'RSI, MACD, Bollinger, ATR, momentum, volatilidade, regime · ~25 features', status: true },
-          { label: 'Volume', detail: 'OBV, VWAP, volume-price divergence, z-score · 11 features', status: true },
-          { label: 'Fundamentalistas', detail: 'Valuation, rentabilidade, crescimento, endividamento, scores · ~30 features', status: true },
+          { label: 'Técnicas', detail: 'RSI, MACD, Bollinger, ATR, momentum, volatilidade, regime · ~30 features', status: true },
+          { label: 'Volume', detail: 'OBV, VWAP, volume-price divergence, z-score · ~15 features', status: true },
+          { label: 'Fundamentalistas', detail: 'Valuation, rentabilidade, crescimento, endividamento, scores · ~25 features', status: true },
           { label: 'Macro', detail: 'Selic, IPCA, câmbio, CDI, variações · 10 features', status: true },
-          { label: 'Setoriais', detail: 'Correlação, relative strength, dispersão · 5 features', status: true },
+          { label: 'Setoriais', detail: 'Correlação, relative strength, dispersão · ~8 features', status: true },
           { label: 'Sentimento', detail: 'Score + interação com momentum · 2 features', status: false },
         ],
       },
@@ -748,7 +741,7 @@ const AdminModelsPage: React.FC = () => {
           { label: 'Residual MLP', detail: 'MLP com blocos residuais + LayerNorm + GELU (peso ~30%)', status: true },
           { label: 'Temporal 1D-CNN', detail: '1D convolutions + BatchNorm + global avg pooling (peso ~30%)', status: true },
           { label: 'Ensemble Ponderado', detail: 'Pesos inversamente proporcionais ao RMSE de validação', status: true },
-          { label: 'Early Stopping', detail: 'Patience=15, HuberLoss, CosineAnnealing LR', status: true },
+          { label: 'Early Stopping', detail: 'Patience=20, HuberLoss + penalidade direcional, OneCycleLR', status: true },
           { label: 'Retreino Semanal', detail: 'Domingo 22:00 UTC via EventBridge', status: true },
         ],
       },

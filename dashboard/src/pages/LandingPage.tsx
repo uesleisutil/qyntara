@@ -4,7 +4,7 @@ import {
   Shield, BarChart3, ArrowRight, CheckCircle, Menu, X,
   Target, Brain, TestTubes, Lock, Crown,
   ArrowUpRight, ArrowDownRight, Eye, RefreshCw, Zap,
-  Rocket, Landmark,
+  Rocket, Landmark, Trophy,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../config';
 import { brand as brandTokens } from '../styles/theme';
@@ -395,7 +395,7 @@ const LandingPage: React.FC = () => {
             { v: `${UNIVERSE_SIZE_FALLBACK}`, l: 'ações analisadas diariamente' },
             { v: userCount > 0 ? `${userCount}+` : '20+', l: 'investidores ativos' },
             { v: '20', l: 'pregões de previsão' },
-            { v: 'DeepAR', l: 'modelo AWS SageMaker' },
+            { v: 'IA', l: 'modelo de deep learning' },
           ].map((b, i) => (
             <div key={i} style={{ textAlign: 'center', flex: '1 1 140px' }}>
               <div style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 700, letterSpacing: '-0.03em', background: brand.gradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{b.v}</div>
@@ -419,7 +419,7 @@ const LandingPage: React.FC = () => {
           <RevealSection delay={0.15}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
               {[
-                { step: '01', icon: <Brain size={28} />, title: 'Modelo analisa', desc: 'DeepAR processa séries temporais de preço, volume e indicadores técnicos de cada ação da B3.' },
+                { step: '01', icon: <Brain size={28} />, title: 'Modelo analisa', desc: 'Nossa IA processa séries temporais de preço, volume e indicadores técnicos de cada ação da B3.' },
                 { step: '02', icon: <BarChart3 size={28} />, title: 'Sinais gerados', desc: 'Cada ação recebe um score de confiança e um sinal claro: Compra, Venda ou Neutro.' },
                 { step: '03', icon: <Target size={28} />, title: 'Você decide', desc: 'Acompanhe previsões, monte carteiras e tome decisões com dados — não com achismo.' },
               ].map((s, i) => (
@@ -489,7 +489,7 @@ const LandingPage: React.FC = () => {
           <RevealSection delay={0.1}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
               <FeatureCard icon={<BarChart3 size={24} />} title="Recomendações diárias" desc="Sinais de Compra, Venda e Neutro atualizados a cada pregão." />
-              <FeatureCard icon={<Brain size={24} />} title="Deep learning (DeepAR)" desc="Rede neural treinada com dados reais da B3 no AWS SageMaker." />
+              <FeatureCard icon={<Brain size={24} />} title="Inteligência Artificial" desc="Rede neural de deep learning treinada com dados reais da B3." />
               <FeatureCard icon={<TestTubes size={24} />} title="Backtesting completo" desc="Valide estratégias com dados históricos reais de mercado." />
               <FeatureCard icon={<Target size={24} />} title="Análise de acurácia" desc="Métricas de performance e taxa de acerto do modelo." />
               <FeatureCard icon={<Shield size={24} />} title="Análise de risco" desc="Volatilidade, drawdown e métricas de risco por ação." />
@@ -503,20 +503,18 @@ const LandingPage: React.FC = () => {
       <section style={{ background: brand.surfaceAlt, borderTop: `0.5px solid ${brand.borderSubtle}`, borderBottom: `0.5px solid ${brand.borderSubtle}` }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', padding: 'clamp(5rem, 12vw, 8rem) clamp(1rem, 4vw, 2rem)' }}>
           <RevealSection style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <div style={{ fontSize: '0.78rem', color: brand.pro, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-              <Crown size={13} /> Novo
-            </div>
+            <div style={{ fontSize: '0.78rem', color: brand.accent, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Carteiras & Desafio IBOV</div>
             <h2 style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '1rem' }}>
               Carteiras personalizadas.<br />
-              <span style={{ color: brand.textDim }}>Seu portfólio, do seu jeito.</span>
+              <span style={{ color: brand.textDim }}>E o desafio de bater o IBOV.</span>
             </h2>
             <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)', color: brand.textMuted, maxWidth: 560, margin: '0 auto', lineHeight: 1.6 }}>
-              Crie carteiras com as ações que você acompanha. Escolha ícones, cores e nomes personalizados.
+              Crie carteiras com as ações que você acompanha e participe do Desafio IBOV — monte sua estratégia e veja se consegue superar o índice.
             </p>
           </RevealSection>
 
           <RevealSection delay={0.15}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', maxWidth: 700, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', maxWidth: 900, margin: '0 auto' }}>
               {[
                 { icon: <Rocket size={20} />, name: 'Tech Brasil', color: '#2563eb', tickers: ['TOTS3', 'LWSA3', 'POSI3'] },
                 { icon: <Landmark size={20} />, name: 'Bancos', color: '#3b82f6', tickers: ['ITUB4', 'BBDC4', 'BBAS3'] },
@@ -544,6 +542,24 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+              {/* Desafio IBOV card */}
+              <div style={{
+                background: brand.surfaceCard, border: `0.5px solid ${brand.borderSubtle}`,
+                borderRadius: 16, padding: '1.5rem', position: 'relative', overflow: 'hidden',
+                transition: 'border-color 0.3s',
+              }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = '#fbbf2440')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = brand.borderSubtle)}
+              >
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: '#fbbf24' }} />
+                <div style={{
+                  width: 40, height: 40, borderRadius: 10, background: '#fbbf2418',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fbbf24', marginBottom: '0.75rem',
+                }}><Trophy size={20} /></div>
+                <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.5rem' }}>Desafio IBOV</div>
+                <div style={{ fontSize: '0.78rem', color: brand.textMuted, lineHeight: 1.5 }}>Monte sua carteira e tente bater o IBOVESPA.</div>
+              </div>
             </div>
           </RevealSection>
         </div>
