@@ -165,7 +165,7 @@ class DeepLearningTrainer:
         self.n_features = n_features
         self.model = TransformerBiLSTMModel(n_features=n_features, **model_kwargs).to(self.device)
         self.scaler = StandardScaler()       # normaliza features X
-        self.target_scaler = StandardScaler()  # normaliza target y
+        self.target_scaler = None            # NÃO normaliza target — retornos já são percentuais
         self.feature_names: list[str] = []
         self.metrics: dict = {}
 
@@ -175,13 +175,8 @@ class DeepLearningTrainer:
         X_scaled = np.nan_to_num(X_scaled, nan=0.0, posinf=0.0, neginf=0.0)
         X_t = torch.FloatTensor(X_scaled).to(self.device)
         if y is not None:
-            # Normalizar target também
-            y_clean = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0)
-            if hasattr(self.target_scaler, 'mean_'):
-                y_scaled = self.target_scaler.transform(y_clean.reshape(-1, 1)).flatten()
-            else:
-                y_scaled = self.target_scaler.fit_transform(y_clean.reshape(-1, 1)).flatten()
-            y_t = torch.FloatTensor(y_scaled).unsqueeze(1).to(self.device)
+            y_clean = np.nan_to_num(y, nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32)
+            y_t = torch.FloatTensor(y_clean).unsqueeze(1).to(self.device)
             return X_t, y_t
         return X_t
 
@@ -196,9 +191,8 @@ class DeepLearningTrainer:
         lr: float = 1e-3,
         patience: int = 15,
     ) -> dict:
-        """Treina o modelo com early stopping. Normaliza X e y."""
+        """Treina o modelo com early stopping. Normaliza apenas X (não y)."""
         self.scaler.fit(X_train)
-        self.target_scaler.fit(y_train.reshape(-1, 1))
         X_t, y_t = self._prepare_tensors(X_train, y_train)
 
         dataset = TensorDataset(X_t, y_t)
@@ -208,7 +202,7 @@ class DeepLearningTrainer:
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer, max_lr=lr, epochs=epochs, steps_per_epoch=len(loader),
         )
-        huber = nn.HuberLoss(delta=0.5)
+        huber = nn.HuberLoss(delta=0.05)  # delta adequado para retornos percentuais (~0.02 a 0.10)
 
         best_val_loss = float('inf')
         best_state = None
@@ -231,7 +225,7 @@ class DeepLearningTrainer:
                 dir_penalty = torch.mean(torch.clamp(-sign_match, min=0))
 
                 # Loss 3: Classificação binária da direção (BCE) com label smoothing
-                pred_prob = torch.sigmoid(pred * 3)
+                pred_prob = torch.sigmoid(pred * 20)  # amplifica retornos pequenos (~0.02) para sigmoid
                 target_dir = (yb > 0).float()
                 # Label smoothing: 0 -> 0.1, 1 -> 0.9 (evita overconfidence)
                 target_dir_smooth = target_dir * 0.8 + 0.1
@@ -255,11 +249,7 @@ class DeepLearningTrainer:
                 with torch.no_grad():
                     X_vt, y_vt = self._prepare_tensors(X_val, y_val)
                     vpred = self.model(X_vt)
-                    # Usar acurácia direcional como critério de early stopping (não loss)
-                    # Desnormalizar para calcular direção correta
-                    vpred_orig = self.target_scaler.inverse_transform(vpred.cpu().numpy().reshape(-1, 1)).flatten()
-                    val_dir_acc = float(np.mean(np.sign(vpred_orig) == np.sign(y_val)))
-                    val_loss = 1.0 - val_dir_acc  # menor = melhor
+                    val_loss = huber(vpred, y_vt).item()
                 history['val_loss'].append(val_loss)
 
                 if val_loss < best_val_loss:
@@ -316,15 +306,11 @@ class DeepLearningTrainer:
         }
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """Predição com desnormalização do target."""
+        """Predição — output já está na escala de retornos percentuais."""
         self.model.eval()
         with torch.no_grad():
             X_t = self._prepare_tensors(X)
-            y_scaled = self.model(X_t).cpu().numpy().flatten()
-        # Desnormalizar: voltar para escala original do target (retorno percentual)
-        if hasattr(self.target_scaler, 'mean_'):
-            return self.target_scaler.inverse_transform(y_scaled.reshape(-1, 1)).flatten()
-        return y_scaled
+            return self.model(X_t).cpu().numpy().flatten()
 
     def save(self, path: str):
         """Salva modelo, scaler e metadados."""
@@ -356,8 +342,6 @@ class DeepLearningTrainer:
             json.dump(model_config, f)
         with open(os.path.join(path, 'scaler.pkl'), 'wb') as f:
             pickle.dump(self.scaler, f)
-        with open(os.path.join(path, 'target_scaler.pkl'), 'wb') as f:
-            pickle.dump(self.target_scaler, f)
         if self.feature_names:
             with open(os.path.join(path, 'selected_features.json'), 'w') as f:
                 json.dump(self.feature_names, f)
@@ -412,11 +396,6 @@ class DeepLearningTrainer:
 
         with open(os.path.join(path, 'scaler.pkl'), 'rb') as f:
             trainer.scaler = pickle.load(f)
-
-        target_scaler_path = os.path.join(path, 'target_scaler.pkl')
-        if os.path.exists(target_scaler_path):
-            with open(target_scaler_path, 'rb') as f:
-                trainer.target_scaler = pickle.load(f)
 
         features_path = os.path.join(path, 'selected_features.json')
         if os.path.exists(features_path):
