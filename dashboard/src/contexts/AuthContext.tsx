@@ -13,6 +13,7 @@ interface User {
   freeTicker?: string;
   onboardingDone?: boolean;
   investorProfile?: 'conservador' | 'moderado' | 'arrojado';
+  referralCode?: string;
 }
 
 interface AuthContextType {
@@ -20,7 +21,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, referralCode?: string) => Promise<void>;
   verifyEmail: (email: string, code: string) => Promise<void>;
   resendCode: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -186,10 +187,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
+  const register = useCallback(async (name: string, email: string, password: string, referralCode?: string) => {
     const res = await fetch(`${AUTH_URL}/register`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, ...(referralCode ? { referralCode } : {}) }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -319,8 +320,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const completeOnboarding = useCallback(async (profile?: string) => {
     const token = localStorage.getItem('authToken');
     if (!token) throw new Error('Não autenticado');
-    const res = await fetch(`${AUTH_URL}/complete-onboarding`, {
-      method: 'POST',
+    const res = await fetch(`${AUTH_URL}/me`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ investorProfile: profile || undefined }),
     });

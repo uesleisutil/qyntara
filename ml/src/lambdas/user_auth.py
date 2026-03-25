@@ -2880,6 +2880,8 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_login(event)
     elif path.endswith("/auth/me") and method == "GET":
         return _handle_me(event)
+    elif path.endswith("/auth/me") and method == "PUT":
+        return _handle_complete_onboarding(event)
     elif path.endswith("/auth/me") and method == "DELETE":
         return _handle_delete_account(event)
     elif path.endswith("/auth/verify-email") and method == "POST":
@@ -2942,8 +2944,6 @@ def handler(event: dict, context: Any = None) -> dict:
         return _handle_manage_billing(event)
     elif path.endswith("/auth/free-ticker") and method == "POST":
         return _handle_set_free_ticker(event)
-    elif path.endswith("/auth/complete-onboarding") and method == "POST":
-        return _handle_complete_onboarding(event)
     elif path.endswith("/carteiras") and method == "GET":
         return _handle_carteiras_list(event)
     elif path.endswith("/carteiras") and method == "POST":
