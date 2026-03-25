@@ -16,7 +16,7 @@ export interface TimeSeriesMetric {
   deepar?: number;
   lstm?: number;
   prophet?: number;
-  xgboost?: number;
+  transformer?: number;
   upper?: number;
   lower?: number;
 }

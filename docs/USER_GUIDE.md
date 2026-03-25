@@ -4,7 +4,7 @@
 
 ## Overview
 
-The B3 Tactical Ranking Dashboard is an MLOps monitoring platform for the Brazilian stock market (B3). It provides real-time insights into ML model recommendations, performance, data quality, drift detection, explainability, backtesting, and cost management across 8 tabs.
+The B3 Tactical Ranking Dashboard is a DLOps monitoring platform for the Brazilian stock market (B3). It provides real-time insights into DL model recommendations, performance, data quality, drift detection, explainability, backtesting, and cost management across 8 tabs.
 
 ---
 
@@ -21,7 +21,7 @@ The B3 Tactical Ranking Dashboard is an MLOps monitoring platform for the Brazil
 
 ### 1. Recommendations
 
-View the latest ML model stock recommendations with filtering, comparison, and export.
+View the latest DL model stock recommendations with filtering, comparison, and export.
 
 | Feature | Description |
 |---------|-------------|

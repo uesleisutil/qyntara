@@ -100,7 +100,7 @@ export class SecurityStack extends cdk.Stack {
       functionName: "B3Dashboard-SecurityAudit",
       runtime: lambda.Runtime.PYTHON_3_11,
       code: props.lambdaCode,
-      handler: "ml.src.lambdas.security_audit.handler",
+      handler: "dl.src.lambdas.security_audit.handler",
       timeout: cdk.Duration.minutes(15),
       memorySize: 512,
       environment: {

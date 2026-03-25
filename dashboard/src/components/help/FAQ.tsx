@@ -19,7 +19,7 @@ const faqData: FAQEntry[] = [
   {
     id: 'gs-1',
     question: 'What is the Qyntara Dashboard?',
-    answer: 'The Qyntara Dashboard is an MLOps monitoring platform for tracking machine learning model recommendations for Brazilian stock market (B3) trading. It provides real-time insights into model performance, data quality, and cost optimization.',
+    answer: 'The Qyntara Dashboard is a DLOps monitoring platform for tracking deep learning model recommendations for Brazilian stock market (B3) trading. It provides real-time insights into model performance, data quality, and cost optimization.',
     category: 'getting-started',
     relatedDocs: ['User Guide', 'Quick Start'],
     helpfulCount: 45,
@@ -152,7 +152,7 @@ const faqData: FAQEntry[] = [
   {
     id: 'd-1',
     question: 'What data sources does the dashboard use?',
-    answer: 'The dashboard aggregates data from multiple sources including B3 market data, fundamental metrics, news feeds, and ML model predictions stored in AWS S3.',
+    answer: 'The dashboard aggregates data from multiple sources including B3 market data, fundamental metrics, news feeds, and DL model predictions stored in AWS S3.',
     category: 'data',
     relatedDocs: ['Data Architecture'],
     helpfulCount: 35,
@@ -210,7 +210,7 @@ const faqData: FAQEntry[] = [
   {
     id: 'tech-3',
     question: 'How is the ensemble model structured?',
-    answer: 'The ensemble combines multiple ML models (e.g., XGBoost, LightGBM, Neural Networks) with dynamic weighting. View individual model performance and ensemble weights in the Performance tab.',
+    answer: 'The system uses a Transformer+BiLSTM deep learning architecture with multi-head self-attention, bidirectional LSTM, and attention pooling. View model performance and training metrics in the Performance tab.',
     category: 'technical',
     relatedDocs: ['Model Architecture'],
     helpfulCount: 43,

@@ -20,8 +20,8 @@ Hardening de segurança, correção de workflows e limpeza do repositório.
 
 ### Fixed
 - Corrigido erro de build: imports não utilizados (`Eye`, `EyeOff`) em `AdminUsersPage.tsx`
-- Corrigido caminho do `requirements.txt` no `pip-audit` (era `/` → agora `ml/`)
-- Corrigido diretório do Dependabot para pip (era `/` → agora `/ml`)
+- Corrigido caminho do `requirements.txt` no `pip-audit` (era `/` → agora `dl/`)
+- Corrigido diretório do Dependabot para pip (era `/` → agora `/dl`)
 - Corrigido falso positivo no secrets-scan (exemplo AWS no `validate-no-secrets.sh`)
 - Corrigida variável sem aspas no `deploy.yml` (shell word splitting)
 
@@ -78,7 +78,7 @@ Release de lançamento com onboarding e feedback.
 
 ## [2.0.0] — 2026-03-12
 
-Major release: expansão de 4 para 8 tabs com monitoramento MLOps completo.
+Major release: expansão de 4 para 8 tabs com monitoramento DLOps completo.
 
 ### Added
 - Tabs: Data Quality, Drift Detection, Explainability, Backtesting
@@ -101,6 +101,6 @@ Major release: expansão de 4 para 8 tabs com monitoramento MLOps completo.
 Release inicial.
 
 ### Added
-- Ensemble ML (XGBoost, LightGBM, DeepAR) com 50+ features técnicas
+- Ensemble DL (Transformer+BiLSTM) com 100+ features técnicas
 - Dashboard com 4 tabs, ranking diário automatizado
 - Infraestrutura AWS CDK, deploy via GitHub Pages

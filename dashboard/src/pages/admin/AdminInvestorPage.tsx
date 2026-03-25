@@ -242,7 +242,7 @@ const AdminInvestorPage: React.FC = () => {
             </div>
           </div>
           <p style={{ color: theme.textSecondary, fontSize: '0.85rem', margin: 0, lineHeight: 1.65, maxWidth: 640 }}>
-            Plataforma SaaS de recomendação de ações da B3 com Machine Learning.
+            Plataforma SaaS de recomendação de ações da B3 com Deep Learning.
             Dados ao vivo do sistema em produção.
           </p>
         </div>
@@ -290,9 +290,9 @@ const AdminInvestorPage: React.FC = () => {
               <Zap size={13} /> A Solução
             </div>
             <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.75 }}>
-              SaaS com <span style={{ color: theme.text, fontWeight: 600 }}>ML (SageMaker DeepAR+)</span> que ranqueia as {UNIVERSE_SIZE_FALLBACK} ações
+              SaaS com <span style={{ color: theme.text, fontWeight: 600 }}>DL Ensemble (Transformer+BiLSTM · ResidualMLP · TemporalCNN)</span> que ranqueia as {UNIVERSE_SIZE_FALLBACK} ações
               mais líquidas diariamente. Previsão a 20 dias, sinais de compra/venda, explicabilidade SHAP,
-              backtesting e MLOps completo. Tudo por <span style={{ color: '#f59e0b', fontWeight: 700 }}>{PRO_PRICE}/mês</span>.
+              backtesting e DLOps completo. Tudo por <span style={{ color: '#f59e0b', fontWeight: 700 }}>{PRO_PRICE}/mês</span>.
             </div>
           </div>
         </div>
@@ -302,7 +302,7 @@ const AdminInvestorPage: React.FC = () => {
       <div style={{ ...card, marginBottom: '1.5rem' }}>
         <SectionTitle num={3} icon={<Layers size={16} color="#3b82f6" />} title="Produto" color="#3b82f6" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          {sectionHeaderBtn("recs", <BarChart3 size={16} color="white" />, "Recomendações Diárias", `${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de ML`, "#3b82f6")}
+          {sectionHeaderBtn("recs", <BarChart3 size={16} color="white" />, "Recomendações Diárias", `${UNIVERSE_SIZE_FALLBACK} ações ranqueadas por score de DL`, "#3b82f6")}
           {expandedSection === 'recs' && (
             <div style={{ ...card, marginLeft: '0.75rem', borderLeft: `3px solid #3b82f6`, borderRadius: '4px 12px 12px 4px' }}>
               <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '0.75rem' }}>
@@ -380,11 +380,11 @@ const AdminInvestorPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ═══ 04 — PAINEL ADMIN / MLOps ═══ */}
+      {/* ═══ 04 — PAINEL ADMIN / DLOps ═══ */}
       <div style={{ ...card, marginBottom: '1.5rem' }}>
-        <SectionTitle num={4} icon={<Shield size={16} color="#ef4444" />} title="Painel Admin — MLOps" color="#ef4444" />
+        <SectionTitle num={4} icon={<Shield size={16} color="#ef4444" />} title="Painel Admin — DLOps" color="#ef4444" />
         <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.7, marginBottom: '1rem' }}>
-          Visibilidade total sobre a saúde do sistema de ML. Drift detection, custos, qualidade de dados e gestão de usuários.
+          Visibilidade total sobre a saúde do sistema de DL. Drift detection, custos, qualidade de dados e gestão de usuários.
           {!isAdmin && <span style={{ color: '#f59e0b', fontWeight: 500 }}> Links admin requerem permissão de administrador.</span>}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(260px, 100%), 1fr))', gap: '0.6rem' }}>
@@ -424,7 +424,7 @@ const AdminInvestorPage: React.FC = () => {
           {[
             { layer: 'Frontend', items: ['React 18 + TypeScript', 'Recharts + D3.js', 'TanStack Table', 'React Query', 'PWA + Service Worker'], color: '#3b82f6' },
             { layer: 'Backend', items: ['AWS Lambda (Python)', 'API Gateway (REST)', 'Cognito (Auth)', 'Stripe (Pagamentos)', 'WebSocket'], color: '#10b981' },
-            { layer: 'ML Pipeline', items: ['Amazon SageMaker', 'DeepAR+ (forecasting)', 'SHAP (explicabilidade)', 'Auto-retrain triggers', 'Feature Store (S3)'], color: '#3b82f6' },
+            { layer: 'DL Pipeline', items: ['Amazon SageMaker', 'DeepAR+ (forecasting)', 'SHAP (explicabilidade)', 'Auto-retrain triggers', 'Feature Store (S3)'], color: '#3b82f6' },
             { layer: 'Dados', items: ['S3 (data lake)', 'DynamoDB', 'CloudFront CDN', 'CloudWatch (logs)'], color: '#f59e0b' },
           ].map((stack, i) => (
             <div key={i} style={{ padding: '0.75rem', borderRadius: 10, background: darkMode ? `${stack.color}06` : `${stack.color}03`, border: `1px solid ${stack.color}15` }}>
@@ -506,7 +506,7 @@ const AdminInvestorPage: React.FC = () => {
           {[
             { title: 'Transparência Total (SHAP)', desc: 'Único no mercado PF a mostrar POR QUE cada ação foi recomendada.', icon: <Eye size={15} />, color: '#3b82f6' },
             { title: 'Backtesting Verificável', desc: 'Simulação com dados reais. Casas de análise não oferecem isso.', icon: <TestTubes size={15} />, color: '#10b981' },
-            { title: 'MLOps Enterprise', desc: 'Drift detection, auto-retrain, data quality. Infra de hedge fund, preço de app.', icon: <Activity size={15} />, color: '#3b82f6' },
+            { title: 'DLOps Enterprise', desc: 'Drift detection, auto-retrain, data quality. Infra de hedge fund, preço de app.', icon: <Activity size={15} />, color: '#3b82f6' },
             { title: 'Custo Irrisório', desc: redact(metrics.costs ? `Serverless: ${fmtUsd(metrics.costs.monthlyProjectionUsd)}/mês. Escala sem dor.` : 'Serverless puro. Escala sem dor.', 'Serverless: $••••/mês. Escala sem dor.'), icon: <DollarSign size={15} />, color: '#f59e0b', blurDesc: true },
             { title: 'Produto Completo', desc: '11+ abas, auth, Stripe, PWA, dark mode, mobile-first. Não é MVP.', icon: <Globe size={15} />, color: '#ef4444' },
             { title: 'Mercado em Expansão', desc: '+5M CPFs na B3, +35%/ano. Geração que quer dados, não opiniões.', icon: <ArrowUpRight size={15} />, color: '#ec4899' },
@@ -565,7 +565,7 @@ const AdminInvestorPage: React.FC = () => {
         <SectionTitle num={9} icon={<TrendingUp size={16} color="#f59e0b" />} title="Roadmap" color="#f59e0b" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.6rem' }}>
           {[
-            { phase: 'Atual', badge: '✅ Live', items: ['Dashboard 11+ abas', 'ML pipeline automatizado', 'Auth + Stripe + PWA', 'Painel admin MLOps'], color: '#10b981' },
+            { phase: 'Atual', badge: '✅ Live', items: ['Dashboard 11+ abas', 'DL pipeline automatizado', 'Auth + Stripe + PWA', 'Painel admin DLOps'], color: '#10b981' },
             { phase: 'Próximo', badge: 'Q2 2026', items: ['App mobile (React Native)', 'Alertas WhatsApp/Telegram', 'Ensemble de modelos', 'FIIs e ETFs'], color: '#3b82f6' },
             { phase: 'Futuro', badge: 'Q4 2026+', items: ['API B2B (fintechs)', 'Outros mercados', 'Social trading', 'Plano Enterprise'], color: '#3b82f6' },
           ].map((p, i) => (
@@ -596,7 +596,7 @@ const AdminInvestorPage: React.FC = () => {
           Produto em produção. Receita recorrente.
         </div>
         <div style={{ fontSize: '0.82rem', color: theme.textSecondary, marginBottom: '1.25rem', lineHeight: 1.65, maxWidth: 560, margin: '0 auto 1.25rem' }}>
-          Pipeline de ML automatizado, infraestrutura escalável e usuários reais.
+          Pipeline de DL automatizado, infraestrutura escalável e usuários reais.
           Navegue pelas seções acima para explorar os dados ao vivo.
         </div>
         <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', flexWrap: 'wrap' }}>

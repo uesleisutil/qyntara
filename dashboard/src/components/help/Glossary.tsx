@@ -11,7 +11,7 @@ const categoryIcons = {
   metric: TrendingUp,
   technical: Code,
   financial: DollarSign,
-  ml: Cpu,
+  dl: Cpu,
   infrastructure: Code,
 };
 
@@ -19,7 +19,7 @@ const categoryLabels = {
   metric: 'Metrics',
   technical: 'Technical',
   financial: 'Financial',
-  ml: 'Machine Learning',
+  dl: 'Deep Learning',
   infrastructure: 'Infrastructure',
 };
 

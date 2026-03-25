@@ -96,7 +96,7 @@ This document captures the key architecture decisions for Qyntara.
 
 **Status:** Accepted
 
-**Context:** The backend processes ML predictions, serves API requests, monitors data quality, and handles webhooks. Traffic is bursty (concentrated around market hours).
+**Context:** The backend processes DL predictions, serves API requests, monitors data quality, and handles webhooks. Traffic is bursty (concentrated around market hours).
 
 **Decision:** Use AWS Lambda functions behind API Gateway for all backend compute.
 

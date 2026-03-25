@@ -1,7 +1,7 @@
 [project]
 name = "qyntara"
 version = "3.0.0"
-description = "ML-powered stock recommendation platform for B3"
+description = "DL-powered stock recommendation platform for B3"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 

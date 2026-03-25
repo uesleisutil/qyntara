@@ -8,7 +8,7 @@
 
 # Qyntara
 
-Plataforma de recomendações de ações para a B3 baseada em machine learning, com dashboard de monitoramento MLOps, treinamento automatizado, detecção de drift e otimização de custos.
+Plataforma de recomendações de ações para a B3 baseada em deep learning, com dashboard de monitoramento DLOps, treinamento automatizado, detecção de drift e otimização de custos.
 
 > **[qyntara.tech](https://qyntara.tech)**
 
@@ -16,7 +16,7 @@ Plataforma de recomendações de ações para a B3 baseada em machine learning, 
 
 ## Visão Geral
 
-O Qyntara combina um ensemble de modelos ML (XGBoost + DeepAR) com 50+ features técnicas para gerar um ranking diário das melhores oportunidades na bolsa brasileira. O sistema roda 100% serverless na AWS, com custo operacional inferior a US$ 1/mês.
+O Qyntara combina um modelo DL (Transformer+BiLSTM) com 100+ features técnicas para gerar um ranking diário das melhores oportunidades na bolsa brasileira. O sistema roda 100% serverless na AWS, com custo operacional inferior a US$ 1/mês.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -96,7 +96,7 @@ qyntara/
 │       ├── pages/       # Páginas (dashboard + admin)
 │       ├── services/    # API client, cache, WebSocket
 │       └── lib/         # Utilitários e formatters
-├── ml/                  # Backend ML (Python 3.11)
+├── dl/                  # Backend DL (Python 3.11)
 │   └── src/
 │       ├── lambdas/     # 28 Lambda handlers (deployed)
 │       ├── features/    # Feature engineering (50+ features)
@@ -160,7 +160,7 @@ O sistema roda automaticamente via EventBridge:
 | Frontend | React 18, TypeScript, Recharts, D3.js, TanStack Table v8 |
 | State | React Context + React Query + Zustand |
 | Backend | AWS Lambda (Python 3.11), API Gateway |
-| ML | SageMaker (XGBoost + DeepAR ensemble) |
+| DL | PyTorch (Transformer + BiLSTM) |
 | Storage | S3 (dados), DynamoDB (users, carteiras, agents) |
 | Auth | JWT + Stripe (planos Pro) |
 | Infra | AWS CDK, WAF, CloudWatch, SNS |

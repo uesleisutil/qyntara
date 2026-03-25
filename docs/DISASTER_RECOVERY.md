@@ -1,5 +1,5 @@
 # Disaster Recovery Plan
-## B3 Tactical Ranking MLOps Dashboard
+## B3 Tactical Ranking DLOps Dashboard
 
 **Version:** 1.0  
 **Last Updated:** 2024-01-15  
@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This document defines the disaster recovery (DR) strategy, procedures, and capabilities for the B3 Tactical Ranking MLOps Dashboard. The system is designed to recover from various failure scenarios while meeting defined Recovery Time Objectives (RTO) and Recovery Point Objectives (RPO).
+This document defines the disaster recovery (DR) strategy, procedures, and capabilities for the B3 Tactical Ranking DLOps Dashboard. The system is designed to recover from various failure scenarios while meeting defined Recovery Time Objectives (RTO) and Recovery Point Objectives (RPO).
 
 ### Key Metrics
 
@@ -44,7 +44,7 @@ This document defines the disaster recovery (DR) strategy, procedures, and capab
 **Components:**
 - S3 Bucket: `b3tr-<account>-us-east-1`
 - DynamoDB Tables: APIKeys, AuthLogs, RateLimits
-- Lambda Functions: 40+ functions for ML pipeline and API
+- Lambda Functions: 40+ functions for DL pipeline and API
 - API Gateway: REST API with API key authentication
 - CloudWatch: Monitoring and alerting
 - EventBridge: Scheduled automation

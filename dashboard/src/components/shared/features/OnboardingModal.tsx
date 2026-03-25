@@ -190,7 +190,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({ darkMode, onClose }) 
         Bem-vindo ao Qyntara
       </h2>
       <p style={{ fontSize: '0.88rem', color: textSecondary, lineHeight: 1.7, marginBottom: '1rem', maxWidth: 360, margin: '0 auto 1rem' }}>
-        Nosso modelo de Machine Learning analisa <strong style={{ color: textPrimary }}>{recs.length || UNIVERSE_SIZE_FALLBACK} ações</strong> da B3 diariamente
+        Nosso modelo de Deep Learning analisa <strong style={{ color: textPrimary }}>{recs.length || UNIVERSE_SIZE_FALLBACK} ações</strong> da B3 diariamente
         e gera sinais inteligentes de Compra, Venda ou Neutro.
       </p>
       <div style={{

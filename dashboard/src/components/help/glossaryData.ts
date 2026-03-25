@@ -7,7 +7,7 @@ export interface GlossaryEntry {
   pronunciation?: string;
   relatedTerms?: string[];
   relatedFAQs?: string[];
-  category: 'metric' | 'technical' | 'financial' | 'ml' | 'infrastructure';
+  category: 'metric' | 'technical' | 'financial' | 'dl' | 'infrastructure';
 }
 
 export const glossaryData: GlossaryEntry[] = [
@@ -141,10 +141,10 @@ export const glossaryData: GlossaryEntry[] = [
   {
     id: 'ensemble',
     term: 'Ensemble Model',
-    definition: 'A machine learning approach that combines predictions from multiple models to improve accuracy and robustness.',
-    example: 'The dashboard uses an ensemble of XGBoost, LightGBM, and Neural Networks.',
+    definition: 'A deep learning approach that combines predictions from multiple models to improve accuracy and robustness.',
+    example: 'The dashboard uses a Transformer+BiLSTM model with attention pooling.',
     relatedTerms: ['Model', 'Prediction', 'Weighting'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'shap',
@@ -154,7 +154,7 @@ export const glossaryData: GlossaryEntry[] = [
     example: 'A SHAP value of +0.05 for P/E ratio means this feature increased the prediction by 5%.',
     relatedTerms: ['Feature Importance', 'Explainability'],
     relatedFAQs: ['tech-2'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'feature-importance',
@@ -162,7 +162,7 @@ export const glossaryData: GlossaryEntry[] = [
     definition: 'A measure of how much each input feature contributes to model predictions. Higher importance means the feature has more influence.',
     example: 'If price momentum has 25% importance, it\'s the most influential feature in the model.',
     relatedTerms: ['SHAP Values', 'Feature'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'confusion-matrix',
@@ -171,7 +171,7 @@ export const glossaryData: GlossaryEntry[] = [
     example: 'A confusion matrix might show the model correctly predicted "up" 80% of the time.',
     relatedTerms: ['Precision', 'Recall', 'Accuracy'],
     relatedFAQs: ['tech-6'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'precision',
@@ -179,7 +179,7 @@ export const glossaryData: GlossaryEntry[] = [
     definition: 'The proportion of positive predictions that were correct. Precision = True Positives / (True Positives + False Positives).',
     example: 'Precision of 0.85 for "up" predictions means 85% of predicted ups were actually ups.',
     relatedTerms: ['Recall', 'Accuracy', 'Confusion Matrix'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'recall',
@@ -187,7 +187,7 @@ export const glossaryData: GlossaryEntry[] = [
     definition: 'The proportion of actual positives that were correctly identified. Recall = True Positives / (True Positives + False Negatives).',
     example: 'Recall of 0.75 for "up" means the model identified 75% of actual up movements.',
     relatedTerms: ['Precision', 'Accuracy', 'Confusion Matrix'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'data-drift',
@@ -196,7 +196,7 @@ export const glossaryData: GlossaryEntry[] = [
     example: 'If average P/E ratios shift from 15 to 25, this represents data drift.',
     relatedTerms: ['Concept Drift', 'Distribution', 'KS Test'],
     relatedFAQs: ['d-3'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'concept-drift',
@@ -205,7 +205,7 @@ export const glossaryData: GlossaryEntry[] = [
     example: 'If the correlation between momentum and returns changes from 0.6 to 0.2, this is concept drift.',
     relatedTerms: ['Data Drift', 'Correlation', 'Retraining'],
     relatedFAQs: ['d-4'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'ks-test',
@@ -361,29 +361,29 @@ export const glossaryData: GlossaryEntry[] = [
     category: 'financial',
   },
 
-  // ML/Data Science Terms
+  // DL/Data Science Terms
   {
-    id: 'xgboost',
-    term: 'XGBoost',
-    definition: 'Extreme Gradient Boosting - A popular machine learning algorithm that builds an ensemble of decision trees.',
-    pronunciation: 'ex-gee-boost',
+    id: 'transformer-bilstm',
+    term: 'Transformer + BiLSTM',
+    definition: 'A deep learning architecture combining Transformer Encoder (multi-head self-attention) with Bidirectional LSTM for temporal sequence modeling.',
+    pronunciation: 'trans-for-mer bye-el-es-tee-em',
     relatedTerms: ['LightGBM', 'Gradient Boosting', 'Ensemble'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'lightgbm',
     term: 'LightGBM',
     definition: 'Light Gradient Boosting Machine - A fast gradient boosting framework that uses tree-based learning algorithms.',
     pronunciation: 'light-gee-bee-em',
-    relatedTerms: ['XGBoost', 'Gradient Boosting'],
-    category: 'ml',
+    relatedTerms: ['Transformer', 'Gradient Boosting'],
+    category: 'dl',
   },
   {
     id: 'neural-network',
     term: 'Neural Network',
-    definition: 'A machine learning model inspired by biological neural networks, consisting of interconnected nodes (neurons) organized in layers.',
+    definition: 'A deep learning model inspired by biological neural networks, consisting of interconnected nodes (neurons) organized in layers.',
     relatedTerms: ['Deep Learning', 'Model'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'overfitting',
@@ -391,22 +391,22 @@ export const glossaryData: GlossaryEntry[] = [
     definition: 'When a model learns training data too well, including noise, resulting in poor performance on new data.',
     example: 'A model with 99% training accuracy but 60% test accuracy is overfitted.',
     relatedTerms: ['Underfitting', 'Generalization', 'Validation'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'cross-validation',
     term: 'Cross-Validation',
     definition: 'A technique for assessing model performance by training on different subsets of data and testing on held-out portions.',
     relatedTerms: ['Validation', 'Training', 'Test Set'],
-    category: 'ml',
+    category: 'dl',
   },
   {
     id: 'hyperparameter',
     term: 'Hyperparameter',
-    definition: 'A configuration setting for a machine learning algorithm that must be set before training (e.g., learning rate, tree depth).',
-    example: 'Learning rate of 0.01 and max depth of 5 are hyperparameters for XGBoost.',
+    definition: 'A configuration setting for a deep learning algorithm that must be set before training (e.g., learning rate, tree depth).',
+    example: 'Learning rate of 0.001 and d_model of 128 are hyperparameters for the Transformer+BiLSTM.',
     relatedTerms: ['Parameter', 'Tuning'],
-    category: 'ml',
+    category: 'dl',
   },
 
   // Dashboard-Specific Terms

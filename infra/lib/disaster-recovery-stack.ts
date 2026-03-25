@@ -117,7 +117,7 @@ export class DisasterRecoveryStack extends cdk.Stack {
       functionName: "B3Dashboard-BackupConfiguration",
       runtime: lambda.Runtime.PYTHON_3_11,
       code: props.lambdaCode,
-      handler: "ml.src.lambdas.backup_configuration.handler",
+      handler: "dl.src.lambdas.backup_configuration.handler",
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       environment: {
@@ -164,7 +164,7 @@ export class DisasterRecoveryStack extends cdk.Stack {
       functionName: "B3Dashboard-RestoreFromBackup",
       runtime: lambda.Runtime.PYTHON_3_11,
       code: props.lambdaCode,
-      handler: "ml.src.lambdas.restore_from_backup.handler",
+      handler: "dl.src.lambdas.restore_from_backup.handler",
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       environment: {
@@ -214,7 +214,7 @@ export class DisasterRecoveryStack extends cdk.Stack {
       functionName: "B3Dashboard-DRHealthCheck",
       runtime: lambda.Runtime.PYTHON_3_11,
       code: props.lambdaCode,
-      handler: "ml.src.lambdas.dr_health_check.handler",
+      handler: "dl.src.lambdas.dr_health_check.handler",
       timeout: cdk.Duration.minutes(5),
       memorySize: 512,
       environment: {

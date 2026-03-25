@@ -428,7 +428,7 @@ generate_report() {
 
 ## Executive Summary
 
-This report documents the disaster recovery drill conducted to validate backup and recovery procedures for the B3 Tactical Ranking MLOps Dashboard.
+This report documents the disaster recovery drill conducted to validate backup and recovery procedures for the B3 Tactical Ranking DLOps Dashboard.
 
 ## Drill Objectives
 

@@ -156,11 +156,11 @@ echo ""
 echo "7. Verificando arquivos locais..."
 
 FILES=(
-    "ml/src/features/advanced_features.py"
-    "ml/src/sagemaker/train_ensemble.py"
-    "ml/src/sagemaker/hyperparameter_tuning.py"
-    "ml/src/lambdas/train_sagemaker.py"
-    "ml/src/lambdas/rank_sagemaker.py"
+    "dl/src/features/advanced_features.py"
+    "dl/src/sagemaker/train_ensemble.py"
+    "dl/src/sagemaker/hyperparameter_tuning.py"
+    "dl/src/lambdas/train_sagemaker.py"
+    "dl/src/lambdas/rank_sagemaker.py"
     "PRODUCTION_DEPLOYMENT.md"
     "SAGEMAKER_ENSEMBLE.md"
     "IMPLEMENTATION_SUMMARY.md"
@@ -177,12 +177,12 @@ done
 # Verificar dependências Python
 echo ""
 echo "8. Verificando dependências Python..."
-if [ -f "ml/requirements.txt" ]; then
+if [ -f "dl/requirements.txt" ]; then
     check_pass "requirements.txt existe"
     
-    REQUIRED_DEPS=("boto3" "pandas" "numpy" "xgboost")
+    REQUIRED_DEPS=("boto3" "pandas" "numpy" "torch")
     for DEP in "${REQUIRED_DEPS[@]}"; do
-        if grep -q "$DEP" ml/requirements.txt; then
+        if grep -q "$DEP" dl/requirements.txt; then
             check_pass "   - $DEP"
         else
             check_warn "   - $DEP não encontrado em requirements.txt"

@@ -413,4 +413,4 @@ Deletes a notification.
 
 ## OpenAPI Specification
 
-The full OpenAPI 3.0 spec is available at `ml/src/lambdas/api_documentation.yaml`.
+The full OpenAPI 3.0 spec is available at `dl/src/lambdas/api_documentation.yaml`.

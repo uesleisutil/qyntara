@@ -90,7 +90,7 @@ export class InfraStack extends cdk.Stack {
     // Config (via env)
     // -----------------------
     const deepArImageUri = envOr("DEEPAR_IMAGE_URI", "382416733822.dkr.ecr.us-east-1.amazonaws.com/forecasting-deepar:1");
-    const ensembleImageUri = envOr("ENSEMBLE_IMAGE_URI", "");  // Vazio = usar XGBoost da AWS
+    const ensembleImageUri = envOr("ENSEMBLE_IMAGE_URI", "");  // Vazio = usar imagem padrão
     const brapiSecretId = envOr("BRAPI_SECRET_ID", "brapi/pro/token");
 
     const universeS3Key = envOr("B3TR_UNIVERSE_S3_KEY", "config/universe.txt");
@@ -288,11 +288,11 @@ export class InfraStack extends cdk.Stack {
       "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python311:25"
     );
 
-    // Docker image para Lambdas ML (XGBoost + scipy + pandas + requests)
-    const mlDockerCode = lambda.DockerImageCode.fromImageAsset(
+    // Docker image para Lambdas DL (PyTorch + scipy + pandas + requests)
+    const dlDockerCode = lambda.DockerImageCode.fromImageAsset(
       path.join(__dirname, "..", ".."),
       {
-        file: "ml/Dockerfile.rank",
+        file: "dl/Dockerfile.rank",
         exclude: ["infra", ".git", ".venv", "node_modules", "dashboard", "**/__pycache__", "**/*.pyc"],
         platform: cdk.aws_ecr_assets.Platform.LINUX_AMD64,
       }
@@ -359,14 +359,14 @@ export class InfraStack extends cdk.Stack {
       return fn;
     };
 
-    // Factory para Lambdas com ML dependencies (Docker container)
-    const mkMLLambda = (
+    // Factory para Lambdas com DL dependencies (Docker container)
+    const mkDLLambda = (
       logicalId: string,
       handlerPath: string,
       extraEnv?: Record<string, string>,
     ): lambda.Function => {
       const fn = new lambda.DockerImageFunction(this, logicalId, {
-        code: mlDockerCode,
+        code: dlDockerCode,
         timeout: cdk.Duration.minutes(15),
         memorySize: 2048,
         logRetention: logs.RetentionDays.ONE_WEEK,
@@ -384,7 +384,7 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     // Lambdas
     // -----------------------
-    const ingestFn = mkPyLambda("Quotes5mIngest", "ml.src.lambdas.ingest_quotes.handler", {
+    const ingestFn = mkPyLambda("Quotes5mIngest", "dl.src.lambdas.ingest_quotes.handler", {
       BRAPI_SECRET_ID: brapiSecretId,
     });
     ingestFn.addToRolePolicy(secretsPolicy);
@@ -411,35 +411,35 @@ export class InfraStack extends cdk.Stack {
       resources: [sagemakerRole.roleArn],
     });
 
-    // SageMaker: Treinar modelos
-    const trainSageMakerFn = mkPyLambda("TrainSageMaker", "ml.src.lambdas.train_sagemaker.handler");
+    // SageMaker: Treinar modelos (precisa de PyTorch para treino local do ensemble DL)
+    const trainSageMakerFn = mkDLLambda("TrainSageMaker", "dl.src.lambdas.train_sagemaker.handler");
     trainSageMakerFn.addToRolePolicy(sagemakerApiPolicy);
     trainSageMakerFn.addToRolePolicy(passRolePolicy);
     
-    // SageMaker: Ranking com inferência (precisa de XGBoost)
-    const rankSageMakerFn = mkMLLambda("RankSageMaker", "ml.src.lambdas.rank_sagemaker.handler");
+    // SageMaker: Ranking com inferência (Transformer+BiLSTM)
+    const rankSageMakerFn = mkDLLambda("RankSageMaker", "dl.src.lambdas.rank_sagemaker.handler");
     rankSageMakerFn.addToRolePolicy(sagemakerApiPolicy);
 
     // Monitoramento
-    const monitorIngestionFn = mkPyLambda("MonitorIngestion", "ml.src.lambdas.monitor_ingestion.handler");
-    const monitorQualityFn = mkPyLambda("MonitorModelQuality", "ml.src.lambdas.monitor_model_quality.handler");
-    const monitorPerformanceFn = mkPyLambda("MonitorModelPerformance", "ml.src.lambdas.monitor_model_performance.handler", {
+    const monitorIngestionFn = mkPyLambda("MonitorIngestion", "dl.src.lambdas.monitor_ingestion.handler");
+    const monitorQualityFn = mkPyLambda("MonitorModelQuality", "dl.src.lambdas.monitor_model_quality.handler");
+    const monitorPerformanceFn = mkPyLambda("MonitorModelPerformance", "dl.src.lambdas.monitor_model_performance.handler", {
       ALERTS_TOPIC_ARN: alertsTopic.topicArn,
     });
-    const monitorCostsFn = mkPyLambda("MonitorCosts", "ml.src.lambdas.monitor_costs.handler");
-    const monitorSageMakerFn = mkPyLambda("MonitorSageMaker", "ml.src.lambdas.monitor_sagemaker.handler", {
+    const monitorCostsFn = mkPyLambda("MonitorCosts", "dl.src.lambdas.monitor_costs.handler");
+    const monitorSageMakerFn = mkPyLambda("MonitorSageMaker", "dl.src.lambdas.monitor_sagemaker.handler", {
       ALERTS_TOPIC_ARN: alertsTopic.topicArn,
     });
-    const monitorDriftFn = mkPyLambda("MonitorDrift", "ml.src.lambdas.monitor_drift.handler");
-    const generateEnsembleInsightsFn = mkPyLambda("GenerateEnsembleInsights", "ml.src.lambdas.generate_ensemble_insights.handler");
-    const generateFeatureImportanceFn = mkPyLambda("GenerateFeatureImportance", "ml.src.lambdas.generate_feature_importance.handler");
-    const generatePredictionIntervalsFn = mkPyLambda("GeneratePredictionIntervals", "ml.src.lambdas.generate_prediction_intervals.handler");
-    const generateModelMetricsFn = mkPyLambda("GenerateModelMetrics", "ml.src.lambdas.generate_model_metrics.handler");
+    const monitorDriftFn = mkPyLambda("MonitorDrift", "dl.src.lambdas.monitor_drift.handler");
+    const generateEnsembleInsightsFn = mkPyLambda("GenerateEnsembleInsights", "dl.src.lambdas.generate_ensemble_insights.handler");
+    const generateFeatureImportanceFn = mkPyLambda("GenerateFeatureImportance", "dl.src.lambdas.generate_feature_importance.handler");
+    const generatePredictionIntervalsFn = mkPyLambda("GeneratePredictionIntervals", "dl.src.lambdas.generate_prediction_intervals.handler");
+    const generateModelMetricsFn = mkPyLambda("GenerateModelMetrics", "dl.src.lambdas.generate_model_metrics.handler");
 
     // Bootstrap histórico diário (incremental + idempotente)
     const bootstrapHistoryFn = mkPyLambda(
       "BootstrapHistoryDaily",
-      "ml.src.lambdas.bootstrap_history_daily.handler",
+      "dl.src.lambdas.bootstrap_history_daily.handler",
       {
         B3TR_HISTORY_RANGE: historyRange,
         BOOTSTRAP_TICKERS_PER_RUN: bootstrapTickersPerRun,
@@ -450,7 +450,7 @@ export class InfraStack extends cdk.Stack {
 
     const dashboardApiFn = mkPyLambda(
       "DashboardAPI",
-      "ml.src.lambdas.dashboard_api.handler"
+      "dl.src.lambdas.dashboard_api.handler"
     );
 
     // Permissions for /api/monitoring/infrastructure endpoint
@@ -470,7 +470,7 @@ export class InfraStack extends cdk.Stack {
     // S3 Proxy Lambda para dashboard acessar dados do S3 via API
     const s3ProxyFn = mkPyLambda(
       "S3Proxy",
-      "ml.src.lambdas.s3_proxy.handler"
+      "dl.src.lambdas.s3_proxy.handler"
     );
     
     // -----------------------
@@ -556,7 +556,7 @@ export class InfraStack extends cdk.Stack {
     const backtestingFn = new lambda.Function(this, "Backtesting", {
       runtime: lambda.Runtime.PYTHON_3_11,
       code: lambdaCode,
-      handler: "ml.src.lambdas.run_backtest.handler",
+      handler: "dl.src.lambdas.run_backtest.handler",
       timeout: cdk.Duration.minutes(15),
       memorySize: 2048,
       logRetention: logs.RetentionDays.ONE_WEEK,
@@ -570,7 +570,7 @@ export class InfraStack extends cdk.Stack {
     const portfolioOptimizerFn = new lambda.Function(this, "PortfolioOptimizer", {
       runtime: lambda.Runtime.PYTHON_3_11,
       code: lambdaCode,
-      handler: "ml.src.lambdas.optimize_portfolio.handler",
+      handler: "dl.src.lambdas.optimize_portfolio.handler",
       timeout: cdk.Duration.minutes(10),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_WEEK,
@@ -584,7 +584,7 @@ export class InfraStack extends cdk.Stack {
     const sentimentAnalysisFn = new lambda.Function(this, "SentimentAnalysis", {
       runtime: lambda.Runtime.PYTHON_3_11,
       code: lambdaCode,
-      handler: "ml.src.lambdas.analyze_sentiment.handler",
+      handler: "dl.src.lambdas.analyze_sentiment.handler",
       timeout: cdk.Duration.minutes(15),
       memorySize: 1024,
       logRetention: logs.RetentionDays.ONE_WEEK,
@@ -598,13 +598,13 @@ export class InfraStack extends cdk.Stack {
 
     const stopLossCalculatorFn = mkPyLambda(
       "StopLossCalculator",
-      "ml.src.lambdas.calculate_stop_loss.handler"
+      "dl.src.lambdas.calculate_stop_loss.handler"
     );
 
     // Preparação automática de dados de treino
     const prepareTrainingFn = mkPyLambda(
       "PrepareTrainingData", 
-      "ml.src.lambdas.prepare_training_data.handler"
+      "dl.src.lambdas.prepare_training_data.handler"
     );
 
     bootstrapHistoryFn.addToRolePolicy(secretsPolicy);
@@ -900,7 +900,7 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     const storageOptimizerFn = mkPyLambda(
       "StorageOptimizer",
-      "ml.src.lambdas.storage_optimizer.handler"
+      "dl.src.lambdas.storage_optimizer.handler"
     );
     
     // Grant additional S3 permissions for storage analysis
@@ -954,7 +954,7 @@ export class InfraStack extends cdk.Stack {
     const adminEmail = envOr("ADMIN_EMAIL", "");
 
     // User Auth Lambda
-    const userAuthFn = mkPyLambda("UserAuth", "ml.src.lambdas.user_auth.handler", {
+    const userAuthFn = mkPyLambda("UserAuth", "dl.src.lambdas.user_auth.handler", {
       USERS_TABLE: usersTable.tableName,
       AUTH_LOGS_TABLE: "B3Dashboard-AuthLogs",
       RATE_LIMITS_TABLE: "B3Dashboard-RateLimits",
@@ -1033,7 +1033,7 @@ export class InfraStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
-    const agentHubFn = mkPyLambda("AgentHub", "ml.src.lambdas.agent_hub.handler", {
+    const agentHubFn = mkPyLambda("AgentHub", "dl.src.lambdas.agent_hub.handler", {
       AGENTS_TABLE: agentsTable.tableName,
       USERS_TABLE: usersTable.tableName,
       JWT_SECRET: jwtSecret,
@@ -1258,7 +1258,7 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     const ingestFeaturesFn = mkPyLambda(
       "IngestFeatures",
-      "ml.src.lambdas.ingest_features.handler",
+      "dl.src.lambdas.ingest_features.handler",
       { BRAPI_SECRET_ID: brapiSecretId }
     );
     ingestFeaturesFn.addToRolePolicy(secretsPolicy);
@@ -1274,7 +1274,7 @@ export class InfraStack extends cdk.Stack {
     // -----------------------
     const weeklyRetrainFn = mkPyLambda(
       "WeeklyRetrain",
-      "ml.src.lambdas.weekly_retrain.handler",
+      "dl.src.lambdas.weekly_retrain.handler",
       { TRAIN_FUNCTION_NAME: trainSageMakerFn.functionName }
     );
     // Permissão para invocar a Lambda de treino

@@ -49,7 +49,7 @@ jobs:
       - name: Python audit
         run: |
           pip install pip-audit
-          pip-audit -r ml/requirements.txt || true
+          pip-audit -r dl/requirements.txt || true
         continue-on-error: true
 
       - name: Dashboard audit
@@ -103,7 +103,7 @@ jobs:
       - name: Bandit
         run: |
           pip install bandit[toml]
-          bandit -r ml/ --exclude .venv,node_modules -ll || true
+          bandit -r dl/ --exclude .venv,node_modules -ll || true
         continue-on-error: true
 
       - name: Semgrep

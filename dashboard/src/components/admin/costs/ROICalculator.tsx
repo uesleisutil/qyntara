@@ -1,7 +1,7 @@
 /**
  * ROICalculator Component
  * 
- * Calculates and displays return on investment for the ML system.
+ * Calculates and displays return on investment for the DL system.
  * 
  * Features:
  * - Input portfolio value managed by system

@@ -152,7 +152,7 @@ TRAIN_PAYLOAD=$(cat <<EOF
 {
   "features_s3_path": "s3://$BUCKET_NAME/features/2024-01-01/features.csv",
   "output_bucket": "$BUCKET_NAME",
-  "models_to_train": ["lstm", "prophet", "xgboost"],
+  "models_to_train": ["lstm", "prophet", "transformer"],
   "target_column": "target",
   "parallel": false
 }
@@ -188,7 +188,7 @@ PREDICT_PAYLOAD=$(cat <<EOF
   "model_versions": {
     "lstm": "v1",
     "prophet": "v1",
-    "xgboost": "v1"
+    "transformer": "v1"
   },
   "output_bucket": "$BUCKET_NAME",
   "stock_symbols": ["PETR4", "VALE3"],

@@ -40,7 +40,7 @@ const releases: ReleaseEntry[] = [
     date: '2025-01-15',
     highlights: [
       'Initial release with 4 tabs: Recommendations, Performance, Validation, Costs',
-      'ML ensemble model (XGBoost, LightGBM, DeepAR)',
+      'DL model (Transformer + BiLSTM)',
       'Automated daily ranking and validation pipeline',
     ],
   },

@@ -21,7 +21,7 @@ const AdminOverviewPage: React.FC = () => {
     { name: 'Lambda Auth', desc: 'Autenticação', status: 'loading' },
     { name: 'S3 Proxy', desc: 'Dados curados', status: 'loading' },
     { name: 'DynamoDB', desc: 'Users + Notifications', status: 'loading' },
-    { name: 'Recomendações', desc: 'ML pipeline', status: 'loading' },
+    { name: 'Recomendações', desc: 'DL pipeline', status: 'loading' },
   ]);
 
   const runHealthChecks = async () => {
@@ -32,7 +32,7 @@ const AdminOverviewPage: React.FC = () => {
       { name: 'Lambda Auth', desc: 'Autenticação', fn: () => fetch(`${API_BASE_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } }) },
       { name: 'S3 Proxy', desc: 'Dados curados', fn: () => fetch(`${API_BASE_URL}/s3-proxy?key=${getCurrentMonthPriceKey()}`, { headers }) },
       { name: 'DynamoDB', desc: 'Users + Notifications', fn: () => fetch(`${API_BASE_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${token}` } }) },
-      { name: 'Recomendações', desc: 'ML pipeline', fn: () => fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }) },
+      { name: 'Recomendações', desc: 'DL pipeline', fn: () => fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }) },
     ];
     const results: HealthStatus[] = [];
     for (const check of checks) {

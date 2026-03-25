@@ -1,0 +1,20 @@
+FROM public.ecr.aws/lambda/python:3.11
+
+# Dependências DL para a Lambda de ranking (Ensemble: Transformer+BiLSTM · ResidualMLP · TemporalCNN)
+# boto3/botocore já vem na base image da Lambda
+RUN pip install --no-cache-dir \
+    torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir \
+    numpy==1.26.4 \
+    scipy==1.12.0 \
+    pandas==2.1.4 \
+    scikit-learn==1.4.0 \
+    requests>=2.31.0 \
+    python-dateutil>=2.8.2 \
+    pytz>=2023.3
+
+# Copiar código da aplicação
+COPY dl/ ${LAMBDA_TASK_ROOT}/dl/
+COPY config/ ${LAMBDA_TASK_ROOT}/config/
+
+CMD ["dl.src.lambdas.rank_sagemaker.handler"]

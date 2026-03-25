@@ -100,7 +100,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ darkMode }) => 
         notes.push({
           id: `model-${recDate}`, type: 'model_run',
           title: 'Modelo executado com sucesso',
-          message: `Pipeline ML concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
+          message: `Pipeline DL concluído. ${recs.length} previsões geradas para os próximos 20 pregões.`,
           time: new Date(recDate + 'T08:00:00'), read: readIds.includes(`model-${recDate}`),
           icon: <Activity size={16} />, color: '#3b82f6',
         });

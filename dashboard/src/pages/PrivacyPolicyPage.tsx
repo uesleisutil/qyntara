@@ -47,7 +47,7 @@ const PrivacyPolicyPage: React.FC = () => {
             <p style={pStyle}>Seus dados são utilizados exclusivamente para:</p>
             <ul style={{ listStyle: 'disc', paddingLeft: '1rem' }}>
               <li style={liStyle}>Autenticação e controle de acesso à plataforma</li>
-              <li style={liStyle}>Geração e entrega de recomendações de investimento baseadas em Machine Learning</li>
+              <li style={liStyle}>Geração e entrega de recomendações de investimento baseadas em Deep Learning</li>
               <li style={liStyle}>Processamento de pagamentos via Stripe (não armazenamos dados de cartão)</li>
               <li style={liStyle}>Comunicação sobre o serviço (verificação de email, notificações)</li>
               <li style={liStyle}>Segurança (detecção de acessos suspeitos, rate limiting)</li>

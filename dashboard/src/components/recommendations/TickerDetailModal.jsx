@@ -114,7 +114,7 @@ const TickerDetailModal = ({ ticker, onClose }) => {
 
   // Modelos do ensemble
   const models = [
-    { name: 'XGBoost', weight: ticker.model_weights?.xgboost || 0.25, prediction: ticker.predictions?.xgboost || 0 },
+    { name: 'Transformer', weight: ticker.model_weights?.transformer || 0.25, prediction: ticker.predictions?.transformer || 0 },
     { name: 'LSTM', weight: ticker.model_weights?.lstm || 0.25, prediction: ticker.predictions?.lstm || 0 },
     { name: 'Prophet', weight: ticker.model_weights?.prophet || 0.25, prediction: ticker.predictions?.prophet || 0 },
     { name: 'DeepAR', weight: ticker.model_weights?.deepar || 0.25, prediction: ticker.predictions?.deepar || 0 }

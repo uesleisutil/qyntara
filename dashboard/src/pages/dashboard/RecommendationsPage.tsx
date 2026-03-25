@@ -182,13 +182,13 @@ const RecommendationsPage: React.FC = () => {
         <div style={{ minWidth: 0 }}>
           <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.2rem' }}>Recomendações</h1>
           <p style={{ color: theme.textSecondary, fontSize: '0.78rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-            Top ações ranqueadas por ML{date && <span> — {date}</span>}
+            Top ações ranqueadas por DL{date && <span> — {date}</span>}
             {lastUpdated && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.7rem', color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '0.12rem 0.45rem', borderRadius: 10 }}>
                 <Clock size={10} /> {getRelativeTime(lastUpdated)}
               </span>
             )}
-            <InfoTooltip text={`Nosso modelo de ML analisa indicadores técnicos e fundamentalistas de cada ação da B3 diariamente. Score ≥ ${SCORE_BUY_THRESHOLD} = Compra, ≤ ${SCORE_SELL_THRESHOLD} = Venda, restante = Neutro.`} darkMode={darkMode} size={13} />
+            <InfoTooltip text={`Nosso modelo de DL analisa indicadores técnicos e fundamentalistas de cada ação da B3 diariamente. Score ≥ ${SCORE_BUY_THRESHOLD} = Compra, ≤ ${SCORE_SELL_THRESHOLD} = Venda, restante = Neutro.`} darkMode={darkMode} size={13} />
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
@@ -328,7 +328,7 @@ const RecommendationsPage: React.FC = () => {
                 { label: 'Ticker', tip: 'Código da ação na B3. Clique na ★ para favoritar.', align: 'left' as const },
                 { label: '', tip: '', align: 'center' as const }, // sparkline column
                 { label: 'Sinal', tip: `Compra (score ≥ ${SCORE_BUY_THRESHOLD}), Venda (≤ ${SCORE_SELL_THRESHOLD}) ou Neutro.`, align: 'right' as const },
-                { label: 'Score', tip: 'Score do modelo ML. Quanto maior, mais forte o sinal de compra. A barra indica confiança.', align: 'right' as const },
+                { label: 'Score', tip: 'Score do modelo DL. Quanto maior, mais forte o sinal de compra. A barra indica confiança.', align: 'right' as const },
                 { label: 'Preço Atual', tip: 'Último preço de fechamento disponível.', align: 'right' as const },
                 { label: 'Preço Previsto', tip: 'Preço previsto pelo modelo para daqui 20 pregões.', align: 'right' as const },
                 { label: 'Retorno Previsto', tip: 'Retorno esperado em 20 pregões: (previsto - atual) / atual.', align: 'right' as const },

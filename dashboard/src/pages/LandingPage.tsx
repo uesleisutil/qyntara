@@ -134,21 +134,23 @@ const LandingPage: React.FC = () => {
         for (let i = 0; i < sortedDates.length - 1; i++) {
           const predDate = sortedDates[i], nextDate = sortedDates[i + 1];
           const buyReturns: number[] = [], allReturns: number[] = [];
-          Object.entries(history).forEach(([ticker, entries]) => {
+          const histEntries = Object.entries(history);
+          for (const [ticker, entries] of histEntries) {
             const entry = entries.find(e => e.date === predDate);
-            if (!entry) return;
+            if (!entry) continue;
             const tp = priceMap[ticker];
-            if (!tp || !tp[predDate] || !tp[nextDate]) return;
+            if (!tp || !tp[predDate] || !tp[nextDate]) continue;
             const dayReturn = (tp[nextDate] - tp[predDate]) / tp[predDate];
             if (entry.score >= SCORE_BUY_THRESHOLD) {
               buyReturns.push(dayReturn);
               totalBuySignals++;
               if (dayReturn > 0) winningBuySignals++;
             }
-          });
-          Object.values(priceMap).forEach(tp => {
+          }
+          const priceEntries = Object.values(priceMap);
+          for (const tp of priceEntries) {
             if (tp[predDate] && tp[nextDate]) allReturns.push((tp[nextDate] - tp[predDate]) / tp[predDate]);
-          });
+          }
           const br = buyReturns.length ? buyReturns.reduce((s, r) => s + r, 0) / buyReturns.length : 0;
           const ir = allReturns.length ? allReturns.reduce((s, r) => s + r, 0) / allReturns.length : 0;
           cumBuy *= (1 + br); cumIbov *= (1 + ir);

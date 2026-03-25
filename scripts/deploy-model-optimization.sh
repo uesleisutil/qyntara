@@ -113,7 +113,7 @@ fi
 
 source .venv/bin/activate
 pip install -q --upgrade pip
-pip install -q -r ml/requirements.txt
+pip install -q -r dl/requirements.txt
 echo -e "${GREEN}✓ Python dependencies installed${NC}"
 
 # Install CDK dependencies

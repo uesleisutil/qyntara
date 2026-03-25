@@ -16,7 +16,7 @@ Usamos [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```
 feat(dashboard): adiciona filtro por setor
-fix(ml): corrige cálculo de stop-loss
+fix(dl): corrige cálculo de stop-loss
 chore(deps): atualiza react para 18.3
 docs: atualiza API reference
 refactor(infra): simplifica IAM policies
@@ -26,7 +26,7 @@ Prefixos: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`.
 
 ## Padrões de Código
 
-### Python (ml/)
+### Python (dl/)
 - Python 3.11+
 - Formatação: Black (line-length=100)
 - Linting: Ruff

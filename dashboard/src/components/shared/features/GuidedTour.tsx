@@ -29,7 +29,7 @@ const steps: Step[] = [
   },
   {
     target: '[data-tour="nav-recommendations"]',
-    content: 'Todas as ações da B3 ranqueadas pelo modelo de ML. Veja scores, sinais de compra/venda, retorno esperado e volatilidade.',
+    content: 'Todas as ações da B3 ranqueadas pelo modelo de DL. Veja scores, sinais de compra/venda, retorno esperado e volatilidade.',
     title: '📊 Recomendações',
     placement: 'right',
   },

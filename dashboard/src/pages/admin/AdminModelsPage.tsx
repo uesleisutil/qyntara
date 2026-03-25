@@ -205,7 +205,7 @@ const AdminModelsPage: React.FC = () => {
             Governança de Modelos
           </h1>
           <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0 }}>
-            Rastreabilidade, auditoria de features e status do pipeline ML
+            Rastreabilidade, auditoria de features e status do pipeline DL
           </p>
         </div>
         <button onClick={fetchData} style={{
@@ -220,13 +220,13 @@ const AdminModelsPage: React.FC = () => {
       {/* Health summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
         {/* Model status */}
-        <div style={{ ...cardStyle, borderLeft: `3px solid ${recData.method === 'xgboost_ensemble' ? '#10b981' : '#f59e0b'}` }}>
+        <div style={{ ...cardStyle, borderLeft: `3px solid ${recData.method?.startsWith('dl_') ? '#10b981' : '#f59e0b'}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Cpu size={16} color={theme.textSecondary} />
             <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Modelo em Produção</span>
           </div>
           <div style={{ fontSize: '1rem', fontWeight: 700, color: theme.text, marginBottom: 4 }}>
-            {recData.method === 'xgboost_ensemble' ? 'XGBoost Ensemble' : recData.method === 'momentum_fallback' ? 'Momentum (fallback)' : recData.method || '—'}
+            {recData.method?.startsWith('dl_') ? 'DL Ensemble (3 Modelos)' : recData.method === 'momentum_fallback' ? 'Momentum (fallback)' : recData.method || '—'}
           </div>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
             {recData.dt ? `Último ranking: ${fmtDate(recData.dt)}` : 'Sem ranking'}
@@ -317,10 +317,10 @@ const AdminModelsPage: React.FC = () => {
             <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Modelo Ativo em Produção</span>
             <span style={{
               marginLeft: 'auto', padding: '0.2rem 0.6rem', borderRadius: 20, fontSize: '0.68rem', fontWeight: 600,
-              background: recD.method === 'xgboost_ensemble' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
-              color: recD.method === 'xgboost_ensemble' ? '#10b981' : '#f59e0b',
+              background: recD.method?.startsWith('dl_') ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
+              color: recD.method?.startsWith('dl_') ? '#10b981' : '#f59e0b',
             }}>
-              {recD.method === 'xgboost_ensemble' ? '● ML Ativo' : '● Fallback'}
+              {recD.method?.startsWith('dl_') ? '● DL Ativo' : '● Fallback'}
             </span>
           </div>
 
@@ -328,7 +328,7 @@ const AdminModelsPage: React.FC = () => {
             <div>
               <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 2 }}>Método</div>
               <div style={{ fontSize: '0.88rem', fontWeight: 600, color: theme.text }}>
-                {recD.method === 'xgboost_ensemble' ? 'XGBoost + SHAP Selection' : recD.method || '—'}
+                {recD.method?.startsWith('dl_') ? 'DL Ensemble (Transformer+BiLSTM · ResidualMLP · TemporalCNN)' : recD.method || '—'}
               </div>
             </div>
             <div>
@@ -353,18 +353,34 @@ const AdminModelsPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <BarChart3 size={18} color="#3b82f6" />
             <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Métricas de Treino</span>
-            <InfoTooltip text="Métricas do último treino do modelo XGBoost com walk-forward cross-validation." darkMode={darkMode} size={14} />
+            <InfoTooltip text="Métricas do ensemble DL (média ponderada de Transformer+BiLSTM, ResidualMLP e TemporalCNN)." darkMode={darkMode} size={14} />
           </div>
 
           {meta && Object.keys(meta).length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem' }}>
               {[
-                { label: 'Train RMSE', value: fmt(meta.train_rmse, 4), color: '#3b82f6', tip: 'Root Mean Squared Error no conjunto de treino.' },
+                ...(meta.architecture ? [{
+                  label: 'Arquitetura', value: meta.architecture,
+                  color: '#3b82f6', tip: 'Arquitetura do modelo Deep Learning.',
+                }] : []),
                 { label: 'Val RMSE', value: fmt(meta.val_rmse, 4), color: '#3b82f6', tip: 'RMSE no conjunto de validação.' },
+                ...(meta.val_mae != null ? [{
+                  label: 'Val MAE', value: fmt(meta.val_mae, 4),
+                  color: '#3b82f6', tip: 'Mean Absolute Error na validação.',
+                }] : []),
                 ...(meta.val_mape != null && meta.val_mape < 1000 ? [{
                   label: 'Val MAPE', value: `${fmt(meta.val_mape)}%`,
                   color: meta.val_mape <= 15 ? '#10b981' : '#f59e0b',
                   tip: 'Mean Absolute Percentage Error na validação.',
+                }] : []),
+                ...(meta.directional_accuracy != null ? [{
+                  label: 'Acurácia Dir.', value: `${fmt(meta.directional_accuracy * 100, 1)}%`,
+                  color: meta.directional_accuracy >= 0.55 ? '#10b981' : '#f59e0b',
+                  tip: 'Acurácia direcional (% de vezes que acertou a direção).',
+                }] : []),
+                ...(meta.epochs_trained != null ? [{
+                  label: 'Épocas', value: `${meta.epochs_trained}`,
+                  color: '#3b82f6', tip: 'Número de épocas treinadas (com early stopping).',
                 }] : []),
                 { label: 'CV Avg RMSE', value: fmt(meta.cv_avg_rmse, 4), color: '#3b82f6', tip: 'RMSE médio do walk-forward cross-validation.' },
                 ...(meta.cv_avg_mape != null && meta.cv_avg_mape < 1000 ? [{
@@ -374,7 +390,7 @@ const AdminModelsPage: React.FC = () => {
                 }] : []),
                 ...(meta.n_features != null ? [{
                   label: 'Features', value: `${meta.n_features}`,
-                  color: '#3b82f6', tip: 'Número de features selecionadas pelo SHAP.',
+                  color: '#3b82f6', tip: 'Número de features usadas pelo modelo.',
                 }] : []),
                 ...(meta.train_samples != null ? [{
                   label: 'Amostras', value: `${meta.train_samples}`,
@@ -396,6 +412,52 @@ const AdminModelsPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Individual model metrics (ensemble breakdown) */}
+        {meta?.individual_metrics && (
+          <div style={{ ...cardStyle }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Layers size={18} color="#8b5cf6" />
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Modelos Individuais do Ensemble</span>
+              <InfoTooltip text="Métricas de cada modelo DL que compõe o ensemble. Pesos são calculados inversamente ao RMSE." darkMode={darkMode} size={14} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: '0.75rem' }}>
+              {Object.entries(meta.individual_metrics).map(([name, m]: [string, any]) => {
+                const weight = meta.weights?.[name];
+                const labels: Record<string, string> = {
+                  transformer_bilstm: '🧠 Transformer + BiLSTM',
+                  residual_mlp: '🔗 Residual MLP',
+                  temporal_cnn: '📊 Temporal 1D-CNN',
+                };
+                return (
+                  <div key={name} style={{ padding: '0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8, borderLeft: '3px solid #8b5cf6' }}>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: 8 }}>
+                      {labels[name] || name}
+                      {weight != null && (
+                        <span style={{ marginLeft: 8, padding: '0.1rem 0.4rem', borderRadius: 10, fontSize: '0.65rem', fontWeight: 700, background: 'rgba(139,92,246,0.15)', color: '#8b5cf6' }}>
+                          peso: {fmt(weight * 100, 1)}%
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                      {[
+                        { label: 'RMSE', value: fmt(m.val_rmse ?? m.rmse, 4) },
+                        { label: 'MAE', value: fmt(m.val_mae ?? m.mae, 4) },
+                        { label: 'MAPE', value: `${fmt(m.val_mape ?? m.mape)}%` },
+                        { label: 'Dir. Acc', value: m.directional_accuracy != null ? `${fmt(m.directional_accuracy * 100, 1)}%` : '—' },
+                      ].map((item, j) => (
+                        <div key={j}>
+                          <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{item.label}</div>
+                          <div style={{ fontSize: '0.88rem', fontWeight: 600, color: theme.text }}>{item.value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Monitor metrics (live) */}
         {monitorData?.latest && (
@@ -588,25 +650,25 @@ const AdminModelsPage: React.FC = () => {
       },
       {
         name: 'WeeklyRetrain',
-        description: 'Retreina XGBoost com SHAP-based feature selection, walk-forward CV, multi-target (retorno + volatilidade).',
+        description: 'Retreina ensemble DL (Transformer+BiLSTM · ResidualMLP · TemporalCNN) com walk-forward CV e pesos adaptativos.',
         schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)',
         lambda: 'B3TacticalRankingStackV2-WeeklyRetrain',
         status: pipeline?.weekly_retrain,
         icon: <Cpu size={18} />,
         color: '#3b82f6',
-        outputs: ['models/ensemble/{date}/model.tar.gz', 'models/ensemble/{date}/metrics.json', 'models/ensemble/{date}/selected_features.json'],
+        outputs: ['models/deep_learning/{date}/model.tar.gz', 'models/deep_learning/{date}/metrics.json', 'models/deep_learning/{date}/selected_features.json'],
         inputs: ['curated/daily_monthly/', 'feature_store/'],
       },
       {
         name: 'DailyRanking',
-        description: 'Gera ranking diário usando modelo treinado + features avançadas (volume, fundamentals, macro, setor, sentimento).',
+        description: 'Gera ranking diário usando ensemble DL (3 modelos) + features avançadas (volume, fundamentals, macro, setor, sentimento).',
         schedule: 'Diário, SEG-SEX 21:30 UTC (18:30 BRT)',
         lambda: 'B3TacticalRankingStackV2-RankSageMaker',
         status: pipeline?.daily_ranking,
         icon: <TrendingUp size={18} />,
         color: '#10b981',
         outputs: ['recommendations/dt={date}/top50.json'],
-        inputs: ['curated/daily_monthly/', 'feature_store/', 'models/ensemble/'],
+        inputs: ['curated/daily_monthly/', 'feature_store/', 'models/deep_learning/'],
       },
     ];
 
@@ -713,8 +775,8 @@ const AdminModelsPage: React.FC = () => {
         icon: <Zap size={20} />,
         color: '#f59e0b',
         items: [
-          { label: 'SHAP-based Selection', detail: 'Seleciona features com maior importância via SHAP values', status: true },
-          { label: 'Fallback F-stat', detail: 'SelectKBest com f_regression se SHAP falhar', status: true },
+          { label: 'StandardScaler', detail: 'Normalização de features para input do modelo DL', status: true },
+          { label: 'Walk-Forward CV', detail: 'Validação temporal sem data leakage', status: true },
           { label: 'Feature Store S3', detail: 'Particionado por data, evita training-serving skew', status: true },
         ],
       },
@@ -723,9 +785,11 @@ const AdminModelsPage: React.FC = () => {
         icon: <Cpu size={20} />,
         color: '#ef4444',
         items: [
-          { label: 'XGBoost', detail: 'Multi-target: retorno + volatilidade', status: true },
-          { label: 'Walk-Forward CV', detail: '5 folds temporais, sem data leakage', status: true },
-          { label: 'Adaptive Weights', detail: 'Pesos baseados em performance recente', status: true },
+          { label: 'Transformer + BiLSTM', detail: 'Multi-head self-attention + BiLSTM + attention pooling (peso ~40%)', status: true },
+          { label: 'Residual MLP', detail: 'MLP com blocos residuais + LayerNorm + GELU (peso ~30%)', status: true },
+          { label: 'Temporal 1D-CNN', detail: '1D convolutions + BatchNorm + global avg pooling (peso ~30%)', status: true },
+          { label: 'Ensemble Ponderado', detail: 'Pesos inversamente proporcionais ao RMSE de validação', status: true },
+          { label: 'Early Stopping', detail: 'Patience=15, HuberLoss, CosineAnnealing LR', status: true },
           { label: 'Retreino Semanal', detail: 'Domingo 22:00 UTC via EventBridge', status: true },
         ],
       },
@@ -734,8 +798,8 @@ const AdminModelsPage: React.FC = () => {
         icon: <TrendingUp size={20} />,
         color: '#10b981',
         items: [
-          { label: 'Ranking Diário', detail: 'Top 50 ações por score ajustado por risco', status: true },
-          { label: 'Score = retorno / volatilidade', detail: 'Predição de retorno dividida por vol_20d', status: true },
+          { label: 'Ranking Diário', detail: 'Top 50 ações por score ajustado por risco (ensemble de 3 modelos)', status: true },
+          { label: 'Score = retorno / volatilidade', detail: 'Predição ensemble dividida por vol_20d', status: true },
           { label: 'Fallback Momentum', detail: 'Se modelo não disponível, usa momentum ponderado', status: true },
         ],
       },

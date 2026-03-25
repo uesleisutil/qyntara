@@ -170,7 +170,7 @@ const AdminPerformancePage: React.FC = () => {
         <div>
           <h1 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', fontWeight: 700, color: theme.text, marginBottom: '0.25rem' }}>Performance do Modelo</h1>
           <p style={{ color: theme.textSecondary, fontSize: '0.8rem', margin: 0 }}>
-            Métricas reais calculadas a partir de preços de mercado + métricas do monitor de ML
+            Métricas reais calculadas a partir de preços de mercado + métricas do monitor de DL
           </p>
         </div>
         <button onClick={fetchAll} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
@@ -250,9 +250,9 @@ const AdminPerformancePage: React.FC = () => {
         </div>
       )}
 
-      {/* Section 2: ML Monitor Metrics */}
+      {/* Section 2: DL Monitor Metrics */}
       <div style={{ ...cardStyle, marginBottom: '1rem', padding: '0.75rem 1rem', background: darkMode ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.03)', borderColor: darkMode ? 'rgba(59,130,246,0.15)' : 'rgba(59,130,246,0.1)' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: 2 }}>🤖 Métricas do Monitor de ML</div>
+        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: 2 }}>🤖 Métricas do Monitor de DL</div>
         <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>Métricas calculadas pelo pipeline de monitoramento (previsão vs realidade).</div>
       </div>
 
@@ -328,7 +328,7 @@ const AdminPerformancePage: React.FC = () => {
         </>
       ) : (
         <div style={{ ...cardStyle, textAlign: 'center', padding: '2rem', color: theme.textSecondary }}>
-          Sem dados do monitor de ML disponíveis.
+          Sem dados do monitor de DL disponíveis.
         </div>
       )}
     </div>
