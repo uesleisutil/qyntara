@@ -829,6 +829,7 @@ def _handle_login(event: dict) -> dict:
         "role": item.get("role", "viewer"),
         "name": item.get("name", ""),
         "plan": item.get("plan", "free"),
+        "emailVerified": bool(item.get("emailVerified", False)),
         "exp": int(time.time()) + SESSION_HOURS * 3600,
     })
 
@@ -2051,11 +2052,21 @@ def _get_authenticated_user(event: dict) -> Optional[dict]:
     return _verify_jwt(token)
 
 
+def _get_verified_user(event: dict) -> Optional[dict]:
+    """Verify JWT and ensure email is verified. Returns None if invalid or unverified."""
+    user = _get_authenticated_user(event)
+    if not user:
+        return None
+    if not user.get("emailVerified", False):
+        return None
+    return user
+
+
 # ── Support Chat ──
 
 def _handle_chat_send(event: dict) -> dict:
     """POST /chat/messages — user sends a message (creates ticket if needed)."""
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
 
@@ -2145,7 +2156,7 @@ def _handle_chat_send(event: dict) -> dict:
 
 def _handle_chat_get_user_tickets(event: dict) -> dict:
     """GET /chat/tickets — get current user's tickets."""
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
 
@@ -2739,7 +2750,7 @@ MAX_TICKERS_PER_CARTEIRA = 30
 
 def _handle_carteiras_list(event: dict) -> dict:
     """GET /carteiras — list user's carteiras."""
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
 
@@ -2765,7 +2776,7 @@ def _handle_carteiras_list(event: dict) -> dict:
 
 def _handle_carteiras_create(event: dict) -> dict:
     """POST /carteiras — create a new carteira."""
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
 
@@ -2833,7 +2844,7 @@ def _handle_carteiras_create(event: dict) -> dict:
 
 def _handle_carteiras_update(event: dict) -> dict:
     """PUT /carteiras — update a carteira (name, color, icon, tickers)."""
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
 
@@ -2904,7 +2915,7 @@ def _handle_carteiras_update(event: dict) -> dict:
 
 def _handle_carteiras_delete(event: dict) -> dict:
     """DELETE /carteiras — delete a carteira."""
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
 
@@ -2932,7 +2943,7 @@ def _handle_carteiras_delete(event: dict) -> dict:
 
 def _handle_set_free_ticker(event: dict) -> dict:
     """POST /auth/free-ticker — multi-purpose user action endpoint."""
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
 
@@ -3168,7 +3179,7 @@ def _handle_user_data(event: dict) -> dict:
             return _cors_response(200, {"userCount": 0})
 
     # All typed requests require auth
-    user = _get_authenticated_user(event)
+    user = _get_verified_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
     email = user.get("email", "")
