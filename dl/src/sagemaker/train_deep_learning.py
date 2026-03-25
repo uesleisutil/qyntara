@@ -226,18 +226,19 @@ class DeepLearningTrainer:
                 # Loss 1: Huber para magnitude (no espaço normalizado)
                 loss_magnitude = huber(pred, yb)
 
-                # Loss 2: Penalidade direcional forte
-                # Quando pred e yb têm sinais opostos, penaliza proporcionalmente
-                sign_match = (pred * yb)  # positivo = mesma direção, negativo = direção errada
+                # Loss 2: Penalidade direcional
+                sign_match = (pred * yb)
                 dir_penalty = torch.mean(torch.clamp(-sign_match, min=0))
 
-                # Loss 3: Classificação binária da direção (BCE)
-                pred_prob = torch.sigmoid(pred * 5)  # amplifica sinal para sigmoid
+                # Loss 3: Classificação binária da direção (BCE) com label smoothing
+                pred_prob = torch.sigmoid(pred * 3)
                 target_dir = (yb > 0).float()
-                dir_bce = nn.functional.binary_cross_entropy(pred_prob, target_dir)
+                # Label smoothing: 0 -> 0.1, 1 -> 0.9 (evita overconfidence)
+                target_dir_smooth = target_dir * 0.8 + 0.1
+                dir_bce = nn.functional.binary_cross_entropy(pred_prob, target_dir_smooth)
 
-                # Combinação: 30% magnitude + 30% penalidade direcional + 40% BCE direcional
-                loss = 0.3 * loss_magnitude + 0.3 * dir_penalty + 0.4 * dir_bce
+                # Combinação: 50% magnitude + 20% penalidade + 30% BCE
+                loss = 0.5 * loss_magnitude + 0.2 * dir_penalty + 0.3 * dir_bce
 
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
