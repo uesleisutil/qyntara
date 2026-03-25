@@ -2781,7 +2781,7 @@ def _handle_carteiras_delete(event: dict) -> dict:
 
 
 def _handle_set_free_ticker(event: dict) -> dict:
-    """POST /auth/free-ticker — save free-tier ticker and/or complete onboarding."""
+    """POST /auth/free-ticker — multi-purpose user action endpoint."""
     user = _get_authenticated_user(event)
     if not user:
         return _cors_response(401, {"message": "Token inválido"})
@@ -2797,6 +2797,18 @@ def _handle_set_free_ticker(event: dict) -> dict:
         body = json.loads(raw_body)
     except (json.JSONDecodeError, TypeError):
         return _cors_response(400, {"message": "JSON inválido"})
+
+    action = body.get("action", "")
+
+    # ── Generate referral code ──
+    if action == "generate-referral":
+        return _action_generate_referral(email)
+
+    # ── Join challenge ──
+    if action == "join-challenge":
+        return _action_join_challenge(email)
+
+    # ── Default: update user preferences (ticker, onboarding, profile) ──
 
     ticker = _sanitize_string(body.get("ticker", ""), 10).upper()
     onboarding_done = body.get("onboardingDone", False) is True
@@ -2844,6 +2856,184 @@ def _handle_set_free_ticker(event: dict) -> dict:
     except ClientError as e:
         logger.error(f"Error updating user prefs for {email}: {e}")
         return _cors_response(500, {"message": "Erro ao salvar"})
+
+
+def _action_generate_referral(email: str) -> dict:
+    """Generate a unique referral code for the user."""
+    import hashlib
+    table = dynamodb.Table(USERS_TABLE)
+    now = datetime.now(UTC).isoformat()
+    try:
+        result = table.get_item(Key={"email": email}, ProjectionExpression="referralCode")
+        existing = result.get("Item", {}).get("referralCode", "")
+        if existing:
+            return _cors_response(200, {"referralCode": existing})
+    except Exception:
+        pass
+    raw = hashlib.sha256(f"{email}-{now}".encode()).hexdigest()[:8].upper()
+    code = f"QYN{raw}"
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET referralCode = :c, updatedAt = :now",
+            ExpressionAttributeValues={":c": code, ":now": now},
+        )
+        return _cors_response(200, {"referralCode": code})
+    except ClientError as e:
+        logger.error(f"Error generating referral code for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao gerar código"})
+
+
+def _action_join_challenge(email: str) -> dict:
+    """Join the monthly IBOV challenge."""
+    table = dynamodb.Table(USERS_TABLE)
+    now = datetime.now(UTC)
+    now_iso = now.isoformat()
+    start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+    if now.month == 12:
+        end_date = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+    else:
+        end_date = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+    challenge_data = {
+        "active": True, "startDate": start_date, "endDate": end_date,
+        "joinedAt": now_iso, "userReturn": 0, "ibovReturn": 0, "streak": 0, "bestStreak": 0,
+    }
+    try:
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET challenge = :c, updatedAt = :now",
+            ExpressionAttributeValues={":c": challenge_data, ":now": now_iso},
+        )
+        return _cors_response(200, {
+            "active": True, "startDate": start_date, "endDate": end_date,
+            "userReturn": 0, "ibovReturn": 0, "isBeating": False,
+            "streak": 0, "bestStreak": 0, "rank": 1, "totalParticipants": 1,
+            "portfolio": [], "history": [],
+        })
+    except ClientError as e:
+        logger.error(f"Error joining challenge for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao entrar no desafio"})
+
+
+def _handle_user_data(event: dict) -> dict:
+    """GET /auth/stats?type=X — return referral stats, challenge status, leaderboard, or achievements."""
+    qs = event.get("queryStringParameters") or {}
+    data_type = qs.get("type", "")
+
+    if not data_type:
+        # Default: public stats
+        try:
+            table = dynamodb.Table(USERS_TABLE)
+            result = table.scan(Select="COUNT")
+            return _cors_response(200, {"userCount": result.get("Count", 0)})
+        except Exception:
+            return _cors_response(200, {"userCount": 0})
+
+    # All typed requests require auth
+    user = _get_authenticated_user(event)
+    if not user:
+        return _cors_response(401, {"message": "Token inválido"})
+    email = user.get("email", "")
+    if not email:
+        return _cors_response(401, {"message": "Token inválido"})
+
+    table = dynamodb.Table(USERS_TABLE)
+
+    if data_type == "referral":
+        try:
+            result = table.get_item(Key={"email": email}, ProjectionExpression="referralCode, referrals")
+            item = result.get("Item", {})
+            code = item.get("referralCode", "")
+            referrals = item.get("referrals", [])
+            if not code:
+                return _cors_response(200, {})
+            qualified = [r for r in referrals if r.get("status") == "qualified"]
+            pending = [r for r in referrals if r.get("status") in ("pending", "paid")]
+            return _cors_response(200, {
+                "referralCode": code,
+                "totalReferred": len(referrals),
+                "activePaid": len(qualified),
+                "rewardsEarned": len(qualified),
+                "pendingRewards": len(pending),
+                "referrals": referrals,
+            })
+        except Exception as e:
+            logger.error(f"Error fetching referral stats for {email}: {e}")
+            return _cors_response(500, {"message": "Erro ao buscar dados"})
+
+    if data_type == "challenge":
+        try:
+            result = table.get_item(Key={"email": email}, ProjectionExpression="challenge")
+            item = result.get("Item", {})
+            challenge = item.get("challenge")
+            if not challenge or not challenge.get("active"):
+                return _cors_response(200, {"active": False})
+            challenge["isBeating"] = challenge.get("userReturn", 0) > challenge.get("ibovReturn", 0)
+            challenge["rank"] = 1
+            challenge["totalParticipants"] = 1
+            challenge["portfolio"] = challenge.get("portfolio", [])
+            challenge["history"] = challenge.get("history", [])
+            return _cors_response(200, challenge)
+        except Exception as e:
+            logger.error(f"Error fetching challenge for {email}: {e}")
+            return _cors_response(200, {"active": False})
+
+    if data_type == "leaderboard":
+        try:
+            result = table.scan(
+                ProjectionExpression="#n, email, challenge",
+                ExpressionAttributeNames={"#n": "name"},
+                FilterExpression="attribute_exists(challenge)",
+            )
+            items = result.get("Items", [])
+            entries = []
+            for item in items:
+                ch = item.get("challenge", {})
+                if not ch.get("active"):
+                    continue
+                entries.append({
+                    "name": item.get("name", "Anônimo"),
+                    "email": item.get("email", ""),
+                    "return": ch.get("userReturn", 0),
+                })
+            entries.sort(key=lambda x: x["return"], reverse=True)
+            leaderboard = []
+            for i, e in enumerate(entries):
+                leaderboard.append({
+                    "rank": i + 1,
+                    "name": e["name"],
+                    "return": e["return"],
+                    "isCurrentUser": e["email"] == email,
+                })
+            return _cors_response(200, leaderboard)
+        except Exception as e:
+            logger.error(f"Error fetching leaderboard: {e}")
+            return _cors_response(200, [])
+
+    if data_type == "achievements":
+        try:
+            result = table.get_item(Key={"email": email}, ProjectionExpression="challenge, badges")
+            item = result.get("Item", {})
+            badges = item.get("badges", [])
+            if not badges:
+                ch = item.get("challenge", {})
+                # Generate default badge list
+                badges = [
+                    {"id": "first_challenge", "name": "Primeiro Desafio", "description": "Entrou no desafio pela primeira vez", "icon": "first_challenge", "earned": ch.get("active", False), "earnedAt": ch.get("joinedAt", "")},
+                    {"id": "beat_ibov_week", "name": "Semana Vitoriosa", "description": "Bateu o IBOV por 5 dias seguidos", "icon": "beat_ibov_week", "earned": False},
+                    {"id": "beat_ibov_month", "name": "Mês de Ouro", "description": "Bateu o IBOV no mês inteiro", "icon": "beat_ibov_month", "earned": False},
+                    {"id": "streak_3", "name": "Sequência de 3", "description": "3 dias consecutivos batendo o IBOV", "icon": "streak_3", "earned": ch.get("streak", 0) >= 3},
+                    {"id": "streak_7", "name": "Sequência de 7", "description": "7 dias consecutivos batendo o IBOV", "icon": "streak_7", "earned": ch.get("streak", 0) >= 7},
+                    {"id": "top_10", "name": "Top 10", "description": "Ficou entre os 10 melhores do ranking", "icon": "top_10", "earned": False},
+                    {"id": "top_3", "name": "Pódio", "description": "Ficou entre os 3 melhores do ranking", "icon": "top_3", "earned": False},
+                    {"id": "consistent", "name": "Consistente", "description": "Participou de 3 desafios consecutivos", "icon": "consistent", "earned": False},
+                ]
+            return _cors_response(200, badges)
+        except Exception as e:
+            logger.error(f"Error fetching achievements for {email}: {e}")
+            return _cors_response(200, [])
+
+    return _cors_response(400, {"message": f"Tipo desconhecido: {data_type}"})
 
 
 def handler(event: dict, context: Any = None) -> dict:
@@ -2911,7 +3101,7 @@ def handler(event: dict, context: Any = None) -> dict:
     elif path.endswith("/notifications") and method == "GET" and not path.endswith("/admin/notifications"):
         return _handle_get_user_notifications(event)
     elif path.endswith("/auth/stats") and method == "GET":
-        return _handle_stats(event)
+        return _handle_user_data(event)
     elif path.endswith("/auth/create-checkout") and method == "POST":
         return _handle_create_checkout(event)
     elif path.endswith("/auth/stripe-webhook") and method == "POST":

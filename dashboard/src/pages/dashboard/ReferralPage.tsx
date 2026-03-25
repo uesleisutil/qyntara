@@ -41,7 +41,7 @@ const ReferralPage: React.FC = () => {
   const fetchStats = useCallback(async () => {
     try {
       const token = localStorage.getItem('authToken');
-      const res = await fetch(`${API_BASE_URL}/auth/referral-stats`, {
+      const res = await fetch(`${API_BASE_URL}/auth/stats?type=referral`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -60,9 +60,10 @@ const ReferralPage: React.FC = () => {
     setGenerating(true);
     try {
       const token = localStorage.getItem('authToken');
-      const res = await fetch(`${API_BASE_URL}/auth/generate-referral-code`, {
+      const res = await fetch(`${API_BASE_URL}/auth/free-ticker`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate-referral' }),
       });
       if (res.ok) await fetchStats();
     } catch { /* silent */ }

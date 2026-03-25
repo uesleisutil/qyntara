@@ -67,9 +67,9 @@ const ChallengesPage: React.FC = () => {
   const fetchData = useCallback(async () => {
     try {
       const [cRes, lRes, bRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/gamification/challenge-status`, { headers }),
-        fetch(`${API_BASE_URL}/api/gamification/leaderboard`, { headers }),
-        fetch(`${API_BASE_URL}/api/gamification/achievements`, { headers }),
+        fetch(`${API_BASE_URL}/auth/stats?type=challenge`, { headers }),
+        fetch(`${API_BASE_URL}/auth/stats?type=leaderboard`, { headers }),
+        fetch(`${API_BASE_URL}/auth/stats?type=achievements`, { headers }),
       ]);
       if (cRes.ok) setChallenge(await cRes.json());
       if (lRes.ok) setLeaderboard(await lRes.json());
@@ -83,8 +83,10 @@ const ChallengesPage: React.FC = () => {
   const joinChallenge = async () => {
     setJoining(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/gamification/join-challenge`, {
-        method: 'POST', headers,
+      const res = await fetch(`${API_BASE_URL}/auth/free-ticker`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'join-challenge' }),
       });
       if (res.ok) await fetchData();
     } catch { /* silent */ }
