@@ -11,6 +11,7 @@ import { brand } from '../../styles/theme';
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface ChallengeData {
   active: boolean; month?: string; startDate: string; endDate: string; carteiraId?: string;
+  tickers?: string[];
   userReturn: number; ibovReturn: number; isBeating: boolean;
   streak: number; bestStreak: number; rank: number; totalParticipants: number;
   portfolio: { ticker: string; weight: number; return: number }[];
@@ -43,6 +44,7 @@ const ChallengesPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [quitting, setQuitting] = useState(false);
   const [showCarteiraSelect, setShowCarteiraSelect] = useState(false);
   const [selectedCarteira, setSelectedCarteira] = useState('');
   const [tab, setTab] = useState<'challenge' | 'leaderboard' | 'badges'>('challenge');
@@ -104,8 +106,24 @@ const ChallengesPage: React.FC = () => {
 
   const handleJoinClick = () => {
     if (carteiras.length === 0) { setShowCarteiraSelect(true); return; }
-    if (carteiras.length === 1) { joinChallenge(carteiras[0].carteiraId); return; }
+    if (carteiras.length === 1) {
+      if ((carteiras[0].tickers?.length || 0) < 3) { setShowCarteiraSelect(true); return; }
+      joinChallenge(carteiras[0].carteiraId); return;
+    }
     setShowCarteiraSelect(true);
+  };
+
+  const quitChallenge = async () => {
+    if (!confirm('Tem certeza que deseja sair do desafio? Seu progresso será arquivado.')) return;
+    setQuitting(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/free-ticker`, {
+        method: 'POST', headers: getHeaders(),
+        body: JSON.stringify({ action: 'quit-challenge' }),
+      });
+      if (res.ok) await fetchData();
+    } catch { /* silent */ }
+    finally { setQuitting(false); }
   };
 
   const card: React.CSSProperties = {
@@ -194,22 +212,29 @@ const ChallengesPage: React.FC = () => {
                       </h2>
                       <p style={{ color: theme.textSecondary, fontSize: '0.82rem', marginBottom: '1rem' }}>
                         O retorno dessa carteira será comparado com o IBOVESPA durante o mês.
+                        <br /><span style={{ fontSize: '0.75rem', color: '#f59e0b' }}>Mínimo de 3 ações na carteira.</span>
                       </p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: 360, margin: '0 auto 1rem' }}>
-                        {carteiras.map(c => (
-                          <button key={c.carteiraId} onClick={() => setSelectedCarteira(c.carteiraId)} style={{
+                        {carteiras.map(c => {
+                          const hasEnough = (c.tickers?.length || 0) >= 3;
+                          return (
+                          <button key={c.carteiraId} onClick={() => hasEnough && setSelectedCarteira(c.carteiraId)} style={{
                             display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.7rem 0.85rem',
-                            borderRadius: 10, cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s',
+                            borderRadius: 10, cursor: hasEnough ? 'pointer' : 'not-allowed', textAlign: 'left', transition: 'all 0.15s',
                             border: selectedCarteira === c.carteiraId ? `2px solid ${c.color || '#3b82f6'}` : `1px solid ${theme.border}`,
                             background: selectedCarteira === c.carteiraId ? `${c.color || '#3b82f6'}10` : 'transparent',
+                            opacity: hasEnough ? 1 : 0.5,
                           }}>
                             <span style={{ fontSize: '1.2rem' }}>{c.icon || '💼'}</span>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: '0.88rem', fontWeight: 600, color: theme.text }}>{c.name}</div>
-                              <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{c.tickers?.length || 0} ações</div>
+                              <div style={{ fontSize: '0.72rem', color: hasEnough ? theme.textSecondary : '#ef4444' }}>
+                                {c.tickers?.length || 0} ações {!hasEnough && '(mín. 3)'}
+                              </div>
                             </div>
                           </button>
-                        ))}
+                          );
+                        })}
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                         <button onClick={() => setShowCarteiraSelect(false)} style={{
@@ -279,10 +304,33 @@ const ChallengesPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: theme.textSecondary, marginBottom: '1.25rem' }}>
+              <div style={{ ...card, display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: theme.textSecondary, marginBottom: '1.25rem', flexWrap: 'wrap' }}>
                 <Calendar size={14} />
                 {fmtMonth(challenge.month || currentMonth)} · {new Date(challenge.startDate).toLocaleDateString('pt-BR')} — {new Date(challenge.endDate).toLocaleDateString('pt-BR')}
                 <span style={{ marginLeft: 'auto', fontSize: '0.75rem' }}>{challenge.totalParticipants} participantes</span>
+              </div>
+
+              {/* Tickers in challenge */}
+              {challenge.tickers && challenge.tickers.length > 0 && (
+                <div style={{ ...card, marginBottom: '1.25rem' }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text, marginBottom: '0.5rem' }}>Ações no desafio</div>
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    {challenge.tickers.map(t => (
+                      <span key={t} style={{ padding: '0.25rem 0.5rem', borderRadius: 6, fontSize: '0.72rem', fontWeight: 600, background: darkMode ? '#0f1117' : '#f1f2f6', border: `1px solid ${theme.border}`, color: theme.text }}>{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quit button */}
+              <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+                <button onClick={quitChallenge} disabled={quitting} style={{
+                  padding: '0.45rem 1rem', borderRadius: 8, border: `1px solid ${darkMode ? 'rgba(239,68,68,0.3)' : 'rgba(239,68,68,0.2)'}`,
+                  background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '0.78rem',
+                  opacity: quitting ? 0.5 : 0.7, transition: 'opacity 0.15s',
+                }}>
+                  {quitting ? 'Saindo...' : 'Sair do desafio'}
+                </button>
               </div>
               {challenge.history.length > 0 && (
                 <div style={{ ...card, marginBottom: '1.25rem' }}>

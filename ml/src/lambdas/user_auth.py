@@ -45,7 +45,9 @@ logger.setLevel(logging.INFO)
 
 dynamodb = boto3.resource("dynamodb")
 secrets_client = boto3.client("secretsmanager")
+s3_client = boto3.client("s3")
 
+BUCKET = os.environ.get("BUCKET", "")
 USERS_TABLE = os.environ.get("USERS_TABLE", "B3Dashboard-Users")
 AUTH_LOGS_TABLE = os.environ.get("AUTH_LOGS_TABLE", "B3Dashboard-AuthLogs")
 RATE_LIMITS_TABLE = os.environ.get("RATE_LIMITS_TABLE", "B3Dashboard-RateLimits")
@@ -329,6 +331,16 @@ def _sanitize_string(s: str, max_len: int) -> str:
     # Remove control characters
     s = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", s)
     return s.strip()[:max_len]
+
+
+def _format_display_name(name: str) -> str:
+    """Format name for public display: 'João Silva' -> 'João S.'"""
+    if not name:
+        return "Anônimo"
+    parts = name.strip().split()
+    if len(parts) == 1:
+        return parts[0]
+    return f"{parts[0]} {parts[-1][0]}."
 
 
 def _normalize_email(email: str) -> str:
@@ -2945,6 +2957,10 @@ def _handle_set_free_ticker(event: dict) -> dict:
     if action == "join-challenge":
         return _action_join_challenge(email, body)
 
+    # ── Quit challenge ──
+    if action == "quit-challenge":
+        return _action_quit_challenge(email)
+
     # ── Default: update user preferences (ticker, onboarding, profile) ──
 
     ticker = _sanitize_string(body.get("ticker", ""), 10).upper()
@@ -3025,13 +3041,17 @@ def _action_join_challenge(email: str, body: dict) -> dict:
     """Join the monthly IBOV challenge with a specific carteira."""
     carteira_id = _sanitize_string(body.get("carteiraId", ""), 20)
 
-    # Validate carteira exists and belongs to user
+    # Validate carteira exists and belongs to user + snapshot tickers
+    snapshot_tickers = []
     if carteira_id:
         try:
             cart_table = dynamodb.Table(CARTEIRAS_TABLE)
             result = cart_table.get_item(Key={"userEmail": email, "carteiraId": carteira_id})
             if "Item" not in result:
                 return _cors_response(400, {"message": "Carteira não encontrada"})
+            snapshot_tickers = result["Item"].get("tickers", [])
+            if len(snapshot_tickers) < 3:
+                return _cors_response(400, {"message": "A carteira precisa ter pelo menos 3 ações para participar do desafio."})
         except Exception:
             return _cors_response(500, {"message": "Erro ao validar carteira"})
 
@@ -3047,7 +3067,7 @@ def _action_join_challenge(email: str, body: dict) -> dict:
 
     challenge_data = {
         "active": True, "month": month_key, "startDate": start_date, "endDate": end_date,
-        "joinedAt": now_iso, "carteiraId": carteira_id,
+        "joinedAt": now_iso, "carteiraId": carteira_id, "tickers": snapshot_tickers,
         "userReturn": 0, "ibovReturn": 0, "streak": 0, "bestStreak": 0,
     }
 
@@ -3076,6 +3096,37 @@ def _action_join_challenge(email: str, body: dict) -> dict:
     except ClientError as e:
         logger.error(f"Error joining challenge for {email}: {e}")
         return _cors_response(500, {"message": "Erro ao entrar no desafio"})
+
+
+def _action_quit_challenge(email: str) -> dict:
+    """Quit the current active challenge, archiving it."""
+    table = dynamodb.Table(USERS_TABLE)
+    now_iso = datetime.now(UTC).isoformat()
+    try:
+        item = table.get_item(Key={"email": email}).get("Item", {})
+        challenge = item.get("challenge", {})
+        if not challenge.get("active"):
+            return _cors_response(400, {"message": "Você não está em um desafio ativo."})
+
+        # Archive current challenge
+        challenge["active"] = False
+        challenge["quitAt"] = now_iso
+        history = item.get("challengeHistory", [])
+        history.append(challenge)
+
+        table.update_item(
+            Key={"email": email},
+            UpdateExpression="SET challenge = :c, challengeHistory = :h, updatedAt = :now",
+            ExpressionAttributeValues={
+                ":c": {"active": False},
+                ":h": history,
+                ":now": now_iso,
+            },
+        )
+        return _cors_response(200, {"message": "Desafio encerrado.", "active": False})
+    except ClientError as e:
+        logger.error(f"Error quitting challenge for {email}: {e}")
+        return _cors_response(500, {"message": "Erro ao sair do desafio"})
 
 
 def _handle_user_data(event: dict) -> dict:
@@ -3151,10 +3202,26 @@ def _handle_user_data(event: dict) -> dict:
                 return _cors_response(200, {"active": False})
 
             challenge["isBeating"] = challenge.get("userReturn", 0) > challenge.get("ibovReturn", 0)
-            challenge["rank"] = 1
-            challenge["totalParticipants"] = 1
             challenge["portfolio"] = challenge.get("portfolio", [])
             challenge["history"] = challenge.get("history", [])
+            challenge["tickers"] = challenge.get("tickers", [])
+
+            # Count total participants for this month
+            try:
+                all_users = table.scan(
+                    FilterExpression="attribute_exists(challenge)",
+                    ProjectionExpression="challenge",
+                ).get("Items", [])
+                active_count = sum(1 for u in all_users if u.get("challenge", {}).get("active") and u.get("challenge", {}).get("month") == challenge.get("month"))
+                challenge["totalParticipants"] = max(active_count, 1)
+                # Calculate rank
+                user_ret = float(challenge.get("userReturn", 0))
+                better_count = sum(1 for u in all_users if u.get("challenge", {}).get("active") and u.get("challenge", {}).get("month") == challenge.get("month") and float(u.get("challenge", {}).get("userReturn", 0)) > user_ret)
+                challenge["rank"] = better_count + 1
+            except Exception:
+                challenge["rank"] = 1
+                challenge["totalParticipants"] = 1
+
             return _cors_response(200, challenge)
         except Exception as e:
             logger.error(f"Error fetching challenge for {email}: {e}")
@@ -3194,7 +3261,7 @@ def _handle_user_data(event: dict) -> dict:
             for i, e in enumerate(entries):
                 leaderboard.append({
                     "rank": i + 1,
-                    "name": (e["name"] or "Anônimo").split()[0],
+                    "name": _format_display_name(e["name"]),
                     "return": e["return"],
                     "isCurrentUser": e["email"] == email,
                 })
@@ -3225,17 +3292,17 @@ def _handle_user_data(event: dict) -> dict:
             item = result.get("Item", {})
             badges = item.get("badges", [])
             if not badges:
+                # No persisted badges yet — show defaults (daily job will populate them)
                 ch = item.get("challenge", {})
-                # Generate default badge list
                 badges = [
                     {"id": "first_challenge", "name": "Primeiro Desafio", "description": "Entrou no desafio pela primeira vez", "icon": "first_challenge", "earned": ch.get("active", False), "earnedAt": ch.get("joinedAt", "")},
-                    {"id": "beat_ibov_week", "name": "Semana Vitoriosa", "description": "Bateu o IBOV por 5 dias seguidos", "icon": "beat_ibov_week", "earned": False},
-                    {"id": "beat_ibov_month", "name": "Mês de Ouro", "description": "Bateu o IBOV no mês inteiro", "icon": "beat_ibov_month", "earned": False},
-                    {"id": "streak_3", "name": "Sequência de 3", "description": "3 dias consecutivos batendo o IBOV", "icon": "streak_3", "earned": ch.get("streak", 0) >= 3},
-                    {"id": "streak_7", "name": "Sequência de 7", "description": "7 dias consecutivos batendo o IBOV", "icon": "streak_7", "earned": ch.get("streak", 0) >= 7},
-                    {"id": "top_10", "name": "Top 10", "description": "Ficou entre os 10 melhores do ranking", "icon": "top_10", "earned": False},
-                    {"id": "top_3", "name": "Pódio", "description": "Ficou entre os 3 melhores do ranking", "icon": "top_3", "earned": False},
-                    {"id": "consistent", "name": "Consistente", "description": "Participou de 3 desafios consecutivos", "icon": "consistent", "earned": False},
+                    {"id": "beat_ibov_week", "name": "Semana Vitoriosa", "description": "Bateu o IBOV por 5 dias seguidos", "icon": "beat_ibov_week", "earned": False, "earnedAt": ""},
+                    {"id": "beat_ibov_month", "name": "Mês de Ouro", "description": "Bateu o IBOV no mês inteiro", "icon": "beat_ibov_month", "earned": False, "earnedAt": ""},
+                    {"id": "streak_3", "name": "Sequência de 3", "description": "3 dias consecutivos batendo o IBOV", "icon": "streak_3", "earned": False, "earnedAt": ""},
+                    {"id": "streak_7", "name": "Sequência de 7", "description": "7 dias consecutivos batendo o IBOV", "icon": "streak_7", "earned": False, "earnedAt": ""},
+                    {"id": "top_10", "name": "Top 10", "description": "Ficou entre os 10 melhores do ranking", "icon": "top_10", "earned": False, "earnedAt": ""},
+                    {"id": "top_3", "name": "Pódio", "description": "Ficou entre os 3 melhores do ranking", "icon": "top_3", "earned": False, "earnedAt": ""},
+                    {"id": "consistent", "name": "Consistente", "description": "Participou de 3 desafios consecutivos", "icon": "consistent", "earned": False, "earnedAt": ""},
                 ]
             return _cors_response(200, badges)
         except Exception as e:
@@ -3245,8 +3312,321 @@ def _handle_user_data(event: dict) -> dict:
     return _cors_response(400, {"message": f"Tipo desconhecido: {data_type}"})
 
 
+def _fetch_ibov_monthly_prices(month_start: str) -> dict:
+    """Fetch real IBOV (^BVSP) daily prices for the current month via BRAPI."""
+    import urllib.request
+    brapi_secret_id = os.environ.get("BRAPI_SECRET_ID", "brapi/pro/token")
+    try:
+        resp = secrets_client.get_secret_value(SecretId=brapi_secret_id)
+        secret_str = resp.get("SecretString", "")
+        try:
+            token = json.loads(secret_str).get("token", "")
+        except (json.JSONDecodeError, TypeError):
+            token = secret_str.strip()
+        if not token:
+            return {}
+    except Exception as e:
+        logger.error(f"Error loading BRAPI token: {e}")
+        return {}
+
+    # Fetch ^BVSP 1mo history
+    url = f"https://brapi.dev/api/quote/%5EBVSP?range=1mo&interval=1d&token={token}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "QyntaraBot/1.0"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read().decode("utf-8"))
+        results = data.get("results", [{}])[0]
+        hist = results.get("historicalDataPrice", [])
+        ibov_prices: dict = {}
+        for point in hist:
+            ts = point.get("date", 0)
+            close = point.get("close", 0)
+            if ts and close:
+                dt = datetime.fromtimestamp(ts, tz=UTC)
+                date_str = dt.strftime("%Y-%m-%d")
+                if date_str >= month_start:
+                    ibov_prices[date_str] = float(close)
+        logger.info(f"Fetched {len(ibov_prices)} IBOV daily prices")
+        return ibov_prices
+    except Exception as e:
+        logger.error(f"Error fetching IBOV from BRAPI: {e}")
+        return {}
+
+
+def _persist_badges(users_table, email: str, challenge: dict, rank: int, total: int) -> list:
+    """Evaluate and persist badges for a user. Returns the updated badge list."""
+    now_iso = datetime.now(UTC).isoformat()
+    streak = challenge.get("streak", 0)
+    best_streak = challenge.get("bestStreak", 0)
+    is_beating = challenge.get("userReturn", 0) > challenge.get("ibovReturn", 0)
+    history = challenge.get("history", [])
+    beating_days = sum(1 for h in history if h.get("userReturn", 0) > h.get("ibovReturn", 0))
+
+    # Load existing badges
+    try:
+        result = users_table.get_item(Key={"email": email}, ProjectionExpression="badges")
+        existing = result.get("Item", {}).get("badges", [])
+    except Exception:
+        existing = []
+
+    earned_ids = {b["id"] for b in existing if b.get("earned")}
+
+    badge_defs = [
+        {"id": "first_challenge", "name": "Primeiro Desafio", "description": "Entrou no desafio pela primeira vez", "check": True},
+        {"id": "beat_ibov_week", "name": "Semana Vitoriosa", "description": "Bateu o IBOV por 5 dias seguidos", "check": best_streak >= 5},
+        {"id": "beat_ibov_month", "name": "Mês de Ouro", "description": "Bateu o IBOV no mês inteiro", "check": len(history) >= 15 and beating_days == len(history)},
+        {"id": "streak_3", "name": "Sequência de 3", "description": "3 dias consecutivos batendo o IBOV", "check": best_streak >= 3},
+        {"id": "streak_7", "name": "Sequência de 7", "description": "7 dias consecutivos batendo o IBOV", "check": best_streak >= 7},
+        {"id": "top_10", "name": "Top 10", "description": "Ficou entre os 10 melhores do ranking", "check": rank <= 10 and total >= 10},
+        {"id": "top_3", "name": "Pódio", "description": "Ficou entre os 3 melhores do ranking", "check": rank <= 3 and total >= 3},
+        {"id": "consistent", "name": "Consistente", "description": "Participou de 3 desafios consecutivos", "check": False},
+    ]
+
+    badges = []
+    changed = False
+    for bd in badge_defs:
+        already = bd["id"] in earned_ids
+        newly_earned = not already and bd["check"]
+        badges.append({
+            "id": bd["id"], "name": bd["name"], "description": bd["description"],
+            "icon": bd["id"], "earned": already or newly_earned,
+            "earnedAt": now_iso if newly_earned else next((b.get("earnedAt", "") for b in existing if b.get("id") == bd["id"] and b.get("earned")), ""),
+        })
+        if newly_earned:
+            changed = True
+
+    if changed:
+        try:
+            users_table.update_item(
+                Key={"email": email},
+                UpdateExpression="SET badges = :b",
+                ExpressionAttributeValues={":b": badges},
+            )
+        except Exception as e:
+            logger.error(f"Error persisting badges for {email}: {e}")
+
+    return badges
+
+
+def _backfill_plan_started_at(users_table) -> int:
+    """One-time backfill: set planStartedAt for existing Pro users who don't have it."""
+    try:
+        result = users_table.scan(
+            FilterExpression="attribute_not_exists(planStartedAt) AND #p = :pro",
+            ExpressionAttributeNames={"#p": "plan"},
+            ExpressionAttributeValues={":pro": "pro"},
+            ProjectionExpression="email, upgradedAt, createdAt",
+        )
+        items = result.get("Items", [])
+        count = 0
+        for item in items:
+            email = item.get("email", "")
+            started = item.get("upgradedAt") or item.get("createdAt") or datetime.now(UTC).isoformat()
+            try:
+                users_table.update_item(
+                    Key={"email": email},
+                    UpdateExpression="SET planStartedAt = :s",
+                    ExpressionAttributeValues={":s": started},
+                )
+                count += 1
+            except Exception:
+                pass
+        if count:
+            logger.info(f"Backfilled planStartedAt for {count} Pro users")
+        return count
+    except Exception as e:
+        logger.error(f"Error backfilling planStartedAt: {e}")
+        return 0
+
+
+def _update_all_challenge_returns() -> dict:
+    """Daily job: calculate portfolio returns vs real IBOV, persist badges, backfill planStartedAt."""
+    import csv as csv_mod
+    from io import StringIO
+
+    if not BUCKET:
+        logger.error("BUCKET env var not set")
+        return {"statusCode": 200, "body": "BUCKET not configured"}
+
+    now = datetime.now(UTC)
+    current_month = now.strftime("%Y-%m")
+    year = now.year
+    month = now.month
+    month_start = f"{year}-{month:02d}-01"
+
+    # Backfill planStartedAt for existing Pro users (runs once, then no-ops)
+    users_table = dynamodb.Table(USERS_TABLE)
+    _backfill_plan_started_at(users_table)
+
+    # 1. Load price data from S3
+    price_map: dict = {}
+    for m_offset in range(2):
+        dt_m = datetime(year, month, 1) - timedelta(days=m_offset * 30)
+        key = f"curated/daily_monthly/year={dt_m.year}/month={dt_m.month:02d}/daily.csv"
+        try:
+            obj = s3_client.get_object(Bucket=BUCKET, Key=key)
+            content = obj["Body"].read().decode("utf-8")
+            for row in csv_mod.DictReader(StringIO(content)):
+                t, d, c = row.get("ticker", ""), row.get("date", ""), row.get("close", "")
+                if t and d and c:
+                    price_map.setdefault(t, {})[d] = float(c)
+        except Exception:
+            continue
+
+    if not price_map:
+        logger.warning("No price data found")
+        return {"statusCode": 200, "body": "No price data"}
+
+    # 2. Fetch real IBOV prices
+    ibov_prices = _fetch_ibov_monthly_prices(month_start)
+
+    all_dates = sorted(set(d for td in price_map.values() for d in td))
+    month_dates = [d for d in all_dates if d >= month_start]
+
+    if len(month_dates) < 2:
+        return {"statusCode": 200, "body": "Not enough data"}
+
+    first_date = month_dates[0]
+    last_date = month_dates[-1]
+
+    # Real IBOV return (fallback to proxy if BRAPI fails)
+    if ibov_prices and first_date in ibov_prices and last_date in ibov_prices and ibov_prices[first_date] > 0:
+        ibov_return = (ibov_prices[last_date] - ibov_prices[first_date]) / ibov_prices[first_date]
+        logger.info(f"Using real IBOV return: {ibov_return:.4f}")
+    else:
+        # Fallback: equal-weight proxy
+        proxy_rets = []
+        for ticker, dates in price_map.items():
+            if first_date in dates and last_date in dates and dates[first_date] > 0:
+                proxy_rets.append((dates[last_date] - dates[first_date]) / dates[first_date])
+        ibov_return = sum(proxy_rets) / len(proxy_rets) if proxy_rets else 0.0
+        logger.info(f"Using proxy IBOV return: {ibov_return:.4f}")
+
+    # 3. Scan active challenges
+    cart_table = dynamodb.Table(os.environ.get("CARTEIRAS_TABLE", "B3Dashboard-Carteiras"))
+    try:
+        result = users_table.scan(FilterExpression="attribute_exists(challenge)", ProjectionExpression="email, challenge")
+        items = result.get("Items", [])
+    except Exception as e:
+        logger.error(f"Error scanning: {e}")
+        return {"statusCode": 500, "body": str(e)}
+
+    # First pass: calculate all returns for ranking
+    user_returns: dict = {}
+    for item in items:
+        email = item.get("email", "")
+        ch = item.get("challenge", {})
+        if not ch.get("active") or ch.get("month") != current_month:
+            continue
+
+        tickers = ch.get("tickers", [])
+        if not tickers and ch.get("carteiraId"):
+            try:
+                cr = cart_table.get_item(Key={"userEmail": email, "carteiraId": ch["carteiraId"]})
+                tickers = cr.get("Item", {}).get("tickers", [])
+            except Exception:
+                continue
+
+        if not tickers:
+            continue
+
+        rets = []
+        detail = []
+        for ticker in tickers:
+            if ticker in price_map and first_date in price_map[ticker] and last_date in price_map[ticker]:
+                p0 = price_map[ticker][first_date]
+                p1 = price_map[ticker][last_date]
+                if p0 > 0:
+                    r = (p1 - p0) / p0
+                    rets.append(r)
+                    detail.append({"ticker": ticker, "weight": round(1.0 / len(tickers), 4), "return": round(r, 6)})
+
+        if rets:
+            ur = sum(rets) / len(rets)
+            user_returns[email] = {"return": ur, "detail": detail, "tickers": tickers, "challenge": ch}
+
+    # Sort for ranking
+    sorted_users = sorted(user_returns.items(), key=lambda x: x[1]["return"], reverse=True)
+    rank_map = {email: i + 1 for i, (email, _) in enumerate(sorted_users)}
+    total_participants = len(sorted_users)
+
+    # Second pass: update each user
+    updated = 0
+    for email, data in user_returns.items():
+        ur = data["return"]
+        detail = data["detail"]
+        tickers = data["tickers"]
+        ch = data["challenge"]
+        rank = rank_map.get(email, 1)
+
+        # Daily history with real IBOV
+        history = []
+        for d in month_dates:
+            day_rets = []
+            for ticker in tickers:
+                if ticker in price_map and first_date in price_map[ticker] and d in price_map[ticker]:
+                    p0 = price_map[ticker][first_date]
+                    if p0 > 0:
+                        day_rets.append((price_map[ticker][d] - p0) / p0)
+
+            day_ibov = 0.0
+            if ibov_prices and first_date in ibov_prices and d in ibov_prices and ibov_prices[first_date] > 0:
+                day_ibov = (ibov_prices[d] - ibov_prices[first_date]) / ibov_prices[first_date]
+            elif day_rets:
+                # Proxy fallback for daily
+                proxy = []
+                for t, dates in price_map.items():
+                    if first_date in dates and d in dates and dates[first_date] > 0:
+                        proxy.append((dates[d] - dates[first_date]) / dates[first_date])
+                day_ibov = sum(proxy) / len(proxy) if proxy else 0.0
+
+            if day_rets:
+                history.append({"date": d, "userReturn": round(sum(day_rets) / len(day_rets), 6), "ibovReturn": round(day_ibov, 6)})
+
+        # Streak
+        streak = 0
+        for h in reversed(history):
+            if h["userReturn"] > h["ibovReturn"]:
+                streak += 1
+            else:
+                break
+        best_streak = max(streak, int(ch.get("bestStreak", 0)))
+
+        # Update challenge
+        try:
+            users_table.update_item(
+                Key={"email": email},
+                UpdateExpression="SET challenge.userReturn = :ur, challenge.ibovReturn = :ir, challenge.streak = :s, challenge.bestStreak = :bs, challenge.portfolio = :p, challenge.history = :h, updatedAt = :now",
+                ExpressionAttributeValues={
+                    ":ur": Decimal(str(round(ur, 6))),
+                    ":ir": Decimal(str(round(ibov_return, 6))),
+                    ":s": streak, ":bs": best_streak,
+                    ":p": detail, ":h": history,
+                    ":now": now.isoformat(),
+                },
+            )
+            updated += 1
+        except Exception as e:
+            logger.error(f"Error updating challenge for {email}: {e}")
+            continue
+
+        # Persist badges
+        _persist_badges(users_table, email, {
+            "userReturn": ur, "ibovReturn": ibov_return,
+            "streak": streak, "bestStreak": best_streak, "history": history,
+        }, rank, total_participants)
+
+    logger.info(f"Challenge update: {updated} users, IBOV: {ibov_return:.4f}, participants: {total_participants}")
+    return {"statusCode": 200, "body": json.dumps({"updated": updated, "ibovReturn": round(ibov_return, 6)})}
+
+
 def handler(event: dict, context: Any = None) -> dict:
     """Lambda handler — routes to register/login/me/verify/reset/change-password/notifications."""
+
+    # EventBridge scheduled event — update challenge returns
+    if event.get("action") == "update-challenges" or event.get("source") == "aws.events":
+        return _update_all_challenge_returns()
+
     method = event.get("httpMethod", "")
     if method == "OPTIONS":
         return _cors_response(200, {})

@@ -1038,9 +1038,21 @@ export class InfraStack extends cdk.Stack {
       STRIPE_WEBHOOK_SECRET: envOr("STRIPE_WEBHOOK_SECRET", ""),
       STRIPE_PRICE_ID: envOr("STRIPE_PRICE_ID", ""),
       FRONTEND_URL: "https://qyntara.tech",
+      BUCKET: bucket.bucketName,
+      BRAPI_SECRET_ID: brapiSecretId,
     });
     usersTable.grantReadWriteData(userAuthFn);
     carteirasTable.grantReadWriteData(userAuthFn);
+    bucket.grantRead(userAuthFn);
+    userAuthFn.addToRolePolicy(secretsPolicy);
+
+    // Schedule: update challenge returns daily after market close (19:00 BRT = 22:00 UTC)
+    const updateChallengesRule = new events.Rule(this, "UpdateChallengesDaily", {
+      schedule: events.Schedule.expression("cron(0 22 ? * MON-FRI *)"),
+    });
+    updateChallengesRule.addTarget(new targets.LambdaFunction(userAuthFn, {
+      event: events.RuleTargetInput.fromObject({ action: "update-challenges" }),
+    }));
 
     // Grant auth logs write + delete (for LGPD account deletion)
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
