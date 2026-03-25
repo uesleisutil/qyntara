@@ -100,7 +100,7 @@ const AdminValidationPage: React.FC = () => {
     { label: 'Validadas', value: completed.toString(), color: '#10b981', icon: <CheckCircle size={16} />, tip: 'Predições que já podem ser comparadas com preços reais (20+ dias passados).' },
     { label: 'Pendentes', value: pending.toString(), color: '#f59e0b', icon: <Clock size={16} />, tip: 'Predições aguardando 20 pregões para validação contra preços reais.' },
     { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100, 1)}%` : allPending ? 'Aguardando' : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de predições que acertaram a direção (alta/baixa).' },
-    { label: 'Erro Médio Absoluto', value: mae != null ? `${fmt(mae * 100)}%` : allPending ? 'Aguardando' : '—', color: mae != null && mae < 0.05 ? '#10b981' : '#ef4444', icon: <AlertTriangle size={16} />, tip: 'Erro médio absoluto entre retorno previsto e realizado.' },
+    { label: 'Erro Médio Absoluto', value: mae != null ? `${fmt(mae * 100, 2)}%` : allPending ? 'Aguardando' : '—', color: mae != null && mae <= 0.05 ? '#10b981' : '#f59e0b', icon: <AlertTriangle size={16} />, tip: 'Erro médio absoluto entre retorno previsto e realizado.' },
     { label: 'RMSE', value: rmse != null ? fmt(rmse, 4) : allPending ? 'Aguardando' : '—', color: '#06b6d4', icon: <BarChart3 size={16} />, tip: 'Root Mean Square Error — penaliza erros grandes mais que o MAE.' },
   ];
 

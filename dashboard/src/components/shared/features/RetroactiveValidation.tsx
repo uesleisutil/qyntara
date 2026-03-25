@@ -92,7 +92,7 @@ const RetroactiveValidation: React.FC<RetroactiveValidationProps> = ({ darkMode,
           </div>
           <div style={{ fontSize: '0.72rem', color: theme.textSecondary, marginTop: 2 }}>
             Previsões de {new Date(targetDate + 'T12:00:00').toLocaleDateString('pt-BR')} vs preços reais de hoje ·{' '}
-            <span style={{ color: accuracy >= 60 ? '#10b981' : accuracy >= 45 ? '#f59e0b' : '#ef4444', fontWeight: 600 }}>
+            <span style={{ color: accuracy >= 60 ? '#10b981' : accuracy >= 50 ? '#f59e0b' : '#ef4444', fontWeight: 600 }}>
               {fmt(accuracy, 0)}% de acerto
             </span>
             {' '}({totalCorrect}/{totalSignals} sinais)

@@ -730,7 +730,7 @@ export const BacktestingTab: React.FC<BacktestingTabProps> = ({ darkMode = false
               { label: 'Sortino Ratio', value: fmt(result.metrics.sortinoRatio), color: '#3b82f6', tip: 'Similar ao Sharpe, mas só penaliza quedas.' },
               { label: 'Max Drawdown', value: fmtPct(result.metrics.maxDrawdown), color: '#ef4444', tip: 'Maior queda do pico ao vale.' },
               { label: 'Duração Média DD', value: `${result.metrics.averageDrawdownDuration}d`, color: theme.text, tip: 'Tempo médio de recuperação de quedas.' },
-              { label: 'Win Rate', value: fmtPct(result.metrics.winRate), color: '#10b981', tip: 'Percentual de dias com retorno positivo.' },
+              { label: 'Win Rate', value: fmtPct(result.metrics.winRate), color: result.metrics.winRate >= 0.55 ? '#10b981' : '#f59e0b', tip: 'Percentual de dias com retorno positivo.' },
               { label: 'Ganho Médio', value: fmtPct(result.metrics.averageGain), color: '#10b981', tip: 'Retorno médio nos dias positivos.' },
               { label: 'Perda Média', value: fmtPct(result.metrics.averageLoss), color: '#ef4444', tip: 'Retorno médio nos dias negativos.' },
               { label: 'Turnover', value: fmtPct(result.metrics.turnoverRate), color: theme.textSecondary, tip: 'Custo estimado de rotação da carteira.' },

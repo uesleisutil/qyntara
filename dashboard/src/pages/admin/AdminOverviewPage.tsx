@@ -126,7 +126,7 @@ const AdminOverviewPage: React.FC = () => {
   const freshnessRate = freshness.currentSourcesPercentage;
 
   const issues: string[] = [];
-  if (dirAcc != null && dirAcc < 0.5) issues.push('Acurácia direcional abaixo de 50%');
+  if (dirAcc != null && dirAcc < 0.6) issues.push('Acurácia direcional abaixo de 60%');
   if (mape != null && mape > 3) issues.push('MAPE acima de 3%');
   if (threshold.exceeded) issues.push('Orçamento mensal excedido');
   if (anomalies.length > 2) issues.push(`${anomalies.length} anomalias de custo`);
@@ -134,13 +134,13 @@ const AdminOverviewPage: React.FC = () => {
   const verdictOk = issues.length === 0;
 
   const kpis = [
-    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100)}%` : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b', icon: <TrendingUp size={16} />, tip: 'Percentual de previsões que acertaram a direção (alta/baixa) do preço.' },
-    { label: 'MAPE', value: mape != null ? `${fmt(mape)}%` : '—', color: mape != null && mape <= 1 ? '#10b981' : mape != null && mape <= 2 ? '#f59e0b' : '#ef4444', icon: <Activity size={16} />, tip: 'Erro percentual absoluto médio. Quanto menor, mais preciso.' },
+    { label: 'Acurácia Direcional', value: dirAcc != null ? `${fmt(dirAcc * 100, 1)}%` : '—', color: dirAcc != null && dirAcc >= 0.6 ? '#10b981' : '#f59e0b', icon: <TrendingUp size={16} />, tip: 'Percentual de previsões que acertaram a direção (alta/baixa) do preço.' },
+    { label: 'MAPE', value: mape != null ? `${fmt(mape, 2)}%` : '—', color: mape != null && mape <= 1 ? '#10b981' : mape != null && mape <= 2 ? '#f59e0b' : '#ef4444', icon: <Activity size={16} />, tip: 'Erro percentual absoluto médio. Quanto menor, mais preciso.' },
     { label: 'Sharpe Ratio', value: sharpe != null ? `${fmt(sharpe, 2)}` : '—', color: sharpe != null && sharpe >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Razão retorno/risco. Positivo = retorno acima do CDI ajustado ao risco.' },
     { label: 'Projeção Mensal', value: projBrl != null ? `R$ ${fmt(projBrl, 2)}` : '—', color: '#f59e0b', icon: <DollarSign size={16} />, tip: 'Projeção de custo AWS para o mês atual em reais.' },
     { label: 'Custo 7d (USD)', value: cost7d != null ? `$${fmt(cost7d, 2)}` : '—', color: '#3b82f6', icon: <Server size={16} />, tip: 'Custo total dos últimos 7 dias em dólares.' },
-    { label: 'Completude', value: overallCompleteness != null ? `${fmt(overallCompleteness * 100)}%` : '—', color: overallCompleteness != null && overallCompleteness >= 0.95 ? '#10b981' : '#f59e0b', icon: <Database size={16} />, tip: 'Percentual médio de dados presentes vs esperados.' },
-    { label: 'Freshness', value: freshnessRate != null ? `${fmt(freshnessRate * 100)}%` : '—', color: freshnessRate != null && freshnessRate >= 0.9 ? '#10b981' : '#f59e0b', icon: <Clock size={16} />, tip: 'Percentual de fontes de dados atualizadas no prazo.' },
+    { label: 'Completude', value: overallCompleteness != null ? `${fmt(overallCompleteness * 100, 1)}%` : '—', color: overallCompleteness != null && overallCompleteness >= 0.95 ? '#10b981' : '#f59e0b', icon: <Database size={16} />, tip: 'Percentual médio de dados presentes vs esperados.' },
+    { label: 'Freshness', value: freshnessRate != null ? `${fmt(freshnessRate * 100, 1)}%` : '—', color: freshnessRate != null && freshnessRate >= 0.9 ? '#10b981' : '#f59e0b', icon: <Clock size={16} />, tip: 'Percentual de fontes de dados atualizadas no prazo.' },
     { label: 'Anomalias Custo', value: `${anomalies.length}`, color: anomalies.length > 0 ? '#ef4444' : '#10b981', icon: <AlertTriangle size={16} />, tip: 'Picos inesperados de custo em serviços AWS.' },
   ];
 

@@ -197,7 +197,7 @@ const TopPicks: React.FC<{
                     }
                   </td>
                   <td style={{ ...tdS, textAlign: 'right', fontWeight: 600, color: '#3b82f6' }}>
-                    {fmt(r.score, 1)}
+                    {fmt(r.score, 2)}
                   </td>
                   <td style={{ ...tdS, textAlign: 'right' }}>
                     <ProValue isPro={isPro} style={{ fontWeight: 600, color: retPct >= 0 ? '#10b981' : '#ef4444', fontSize: '0.78rem' }} placeholder="+0.0%">

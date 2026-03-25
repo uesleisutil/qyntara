@@ -4,6 +4,7 @@ import { MessageSquare, TrendingUp, TrendingDown, ChevronRight } from 'lucide-re
 import InfoTooltip from '../shared/ui/InfoTooltip';
 import ProValue from '../shared/pro/ProValue';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
+import { fmt } from '../../lib/formatters';
 
 interface TickerData {
   ticker: string; last_close: number; pred_price_t_plus_20: number;
@@ -38,20 +39,20 @@ function deriveExplanation(td: TickerData) {
 
   // Técnicas
   if (ret > 0.02) {
-    posFactors.push({ name: 'Momentum Positivo', detail: `Retorno esperado de ${(ret * 100).toFixed(1)}% indica tendência de alta`, impact: `+${(ret * 100).toFixed(1)}%`, category: 'Técnica' });
+    posFactors.push({ name: 'Momentum Positivo', detail: `Retorno esperado de ${fmt(ret * 100, 1)}% indica tendência de alta`, impact: `+${fmt(ret * 100, 1)}%`, category: 'Técnica' });
   } else if (ret < -0.02) {
-    negFactors.push({ name: 'Momentum Negativo', detail: `Retorno esperado de ${(ret * 100).toFixed(1)}% indica pressão vendedora`, impact: `${(ret * 100).toFixed(1)}%`, category: 'Técnica' });
+    negFactors.push({ name: 'Momentum Negativo', detail: `Retorno esperado de ${fmt(ret * 100, 1)}% indica pressão vendedora`, impact: `${fmt(ret * 100, 1)}%`, category: 'Técnica' });
   }
   if (vol < 0.02) {
-    posFactors.push({ name: 'Baixa Volatilidade', detail: `Vol de ${(vol * 100).toFixed(1)}% — ação estável, Bollinger estreito`, impact: '+estabilidade', category: 'Técnica' });
+    posFactors.push({ name: 'Baixa Volatilidade', detail: `Vol de ${fmt(vol * 100, 1)}% — ação estável, Bollinger estreito`, impact: '+estabilidade', category: 'Técnica' });
   } else if (vol > 0.04) {
-    negFactors.push({ name: 'Alta Volatilidade', detail: `Vol de ${(vol * 100).toFixed(1)}% — risco elevado, bandas largas`, impact: '-risco', category: 'Técnica' });
+    negFactors.push({ name: 'Alta Volatilidade', detail: `Vol de ${fmt(vol * 100, 1)}% — risco elevado, bandas largas`, impact: '-risco', category: 'Técnica' });
   }
 
   // Volume
-  if (ret > 0 && absScore > 1.5) {
+  if (ret > 0 && absScore > SCORE_BUY_THRESHOLD) {
     posFactors.push({ name: 'Volume Confirma Alta', detail: 'OBV em tendência de alta, VWAP acima da média', impact: '+confirmação', category: 'Volume' });
-  } else if (ret < 0 && absScore > 1.5) {
+  } else if (ret < 0 && absScore > SCORE_BUY_THRESHOLD) {
     negFactors.push({ name: 'Volume Confirma Queda', detail: 'OBV em tendência de baixa, divergência volume-preço', impact: '-pressão', category: 'Volume' });
   }
 
@@ -70,9 +71,9 @@ function deriveExplanation(td: TickerData) {
 
   // Setorial
   if (riskReward > 1) {
-    posFactors.push({ name: 'Força Relativa Setorial', detail: `Ação supera o setor com risco/retorno de ${riskReward.toFixed(1)}x`, impact: '+setor', category: 'Setorial' });
+    posFactors.push({ name: 'Força Relativa Setorial', detail: `Ação supera o setor com risco/retorno de ${fmt(riskReward, 1)}x`, impact: '+setor', category: 'Setorial' });
   } else if (riskReward < 0.3 && riskReward >= 0) {
-    negFactors.push({ name: 'Fraqueza Setorial', detail: `Risco/retorno de apenas ${riskReward.toFixed(1)}x vs setor`, impact: '-setor', category: 'Setorial' });
+    negFactors.push({ name: 'Fraqueza Setorial', detail: `Risco/retorno de apenas ${fmt(riskReward, 1)}x vs setor`, impact: '-setor', category: 'Setorial' });
   }
 
   return { confidence, posFactors, negFactors };
@@ -153,14 +154,14 @@ const ExplanationText: React.FC<ExplanationTextProps> = ({ ticker, tickerData, d
           O modelo ensemble analisa <strong>~83 features</strong> (técnicas, volume, fundamentalistas, macro, setoriais e sentimento)
           e prevê que <strong>{ticker}</strong> atingirá{' '}
           <ProValue isPro={isPro} style={{ color: '#3b82f6', fontWeight: 700 }} placeholder="R$ ••••">
-            R$ {tickerData.pred_price_t_plus_20.toFixed(2)}
+            R$ {fmt(tickerData.pred_price_t_plus_20, 2)}
           </ProValue>{' '}
           nos próximos 20 pregões (retorno de{' '}
           <ProValue isPro={isPro} style={{ color: tickerData.exp_return_20 >= 0 ? '#10b981' : '#ef4444', fontWeight: 700 }} placeholder="±••%">
-            {(tickerData.exp_return_20 * 100).toFixed(1)}%
+            {fmt(tickerData.exp_return_20 * 100, 1)}%
           </ProValue>).
-          Sinal: <strong>{signal}</strong> · Score: <strong style={{ color: '#3b82f6' }}>{tickerData.score.toFixed(2)}</strong> ·
-          Confiança: <strong style={{ color: confColor }}>{confLabel} ({(confidence * 100).toFixed(0)}%)</strong>
+          Sinal: <strong>{signal}</strong> · Score: <strong style={{ color: '#3b82f6' }}>{fmt(tickerData.score, 2)}</strong> ·
+          Confiança: <strong style={{ color: confColor }}>{confLabel} ({fmt(confidence * 100, 0)}%)</strong>
         </p>
 
         {renderFactors(posFactors, true)}

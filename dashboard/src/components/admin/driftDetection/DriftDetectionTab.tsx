@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { AlertTriangle, TrendingDown, RefreshCw, Target } from 'lucide-react';
 import { useDrift } from '../../../hooks/useDrift';
 import InfoTooltip from '../../shared/ui/InfoTooltip';
+import { fmt } from '../../../lib/formatters';
 import { DataDriftChart } from './DataDriftChart';
 import { ConceptDriftHeatmap } from './ConceptDriftHeatmap';
 import { DegradationAlerts } from './DegradationAlerts';
@@ -191,7 +192,7 @@ export const DriftDetectionTab: React.FC<DriftDetectionTabProps> = ({
         {[
           { label: 'Features com Drift', value: `${data.driftedFeaturesCount} / ${data.totalFeatures}`, color: data.driftPercentage > 30 ? '#ef4444' : '#10b981', icon: <TrendingDown size={16} />, tip: 'Quantidade de features cujas distribuições mudaram significativamente em relação ao baseline (teste KS, p-valor < 0.05).' },
           { label: 'Status Performance', value: data.performanceDegraded ? 'Degradada' : 'Estável', color: data.performanceDegraded ? '#ef4444' : '#10b981', icon: <Target size={16} />, tip: 'Indica se as métricas de performance do modelo (MAPE, acurácia) estão dentro dos limites aceitáveis.' },
-          { label: 'Variação MAPE', value: `${data.mapeChangePct >= 0 ? '+' : ''}${data.mapeChangePct.toFixed(1)}%`, color: Math.abs(data.mapeChangePct) < 20 ? '#10b981' : '#ef4444', icon: <AlertTriangle size={16} />, tip: 'Variação percentual do MAPE atual em relação ao baseline. Acima de 20% indica degradação significativa.' },
+          { label: 'Variação MAPE', value: `${data.mapeChangePct >= 0 ? '+' : ''}${fmt(data.mapeChangePct, 1)}%`, color: Math.abs(data.mapeChangePct) < 20 ? '#10b981' : '#ef4444', icon: <AlertTriangle size={16} />, tip: 'Variação percentual do MAPE atual em relação ao baseline. Acima de 20% indica degradação significativa.' },
           { label: 'Retreinamento', value: data.driftPercentage > 30 || data.performanceDegraded ? 'Recomendado' : 'Não Necessário', color: data.driftPercentage > 30 || data.performanceDegraded ? '#f59e0b' : '#10b981', icon: <RefreshCw size={16} />, tip: 'Recomendação automática baseada no nível de drift e degradação detectados.' },
         ].map((kpi, i) => (
           <div key={i} style={cardStyle}>

@@ -55,7 +55,7 @@ const PersonalPerformance: React.FC<Props> = ({ theme }) => {
   return (
     <div style={{ display: 'flex', gap: '0.5rem' }}>
       {metric('P&L', `${totalPnl >= 0 ? '+' : ''}R$${Math.round(totalPnl)}`, totalPnl >= 0 ? '#10b981' : '#ef4444')}
-      {metric('Win Rate', `${fmt(winRate, 0)}%`, winRate >= 50 ? '#10b981' : '#f59e0b')}
+      {metric('Win Rate', `${fmt(winRate, 0)}%`, winRate >= 55 ? '#10b981' : '#f59e0b')}
       {metric('Posições', `${winners}/${stats.length}`, theme.text)}
     </div>
   );

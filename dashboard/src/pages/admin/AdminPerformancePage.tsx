@@ -188,9 +188,9 @@ const AdminPerformancePage: React.FC = () => {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
             {[
-              { label: 'Retorno realizado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn)}%`, color: perfData.totalReturn >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Retorno real acumulado seguindo sinais de Compra.' },
-              { label: 'Média do universo', value: `${perfData.universeReturn >= 0 ? '+' : ''}${fmt(perfData.universeReturn)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />, tip: `Retorno acumulado de todas as ${UNIVERSE_SIZE_FALLBACK} ações com peso igual.` },
-              { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha)}pp`, color: perfData.alpha >= 0 ? '#10b981' : '#ef4444', icon: <Award size={16} />, tip: 'Diferença entre retorno da estratégia e média do universo.' },
+              { label: 'Retorno realizado', value: `${perfData.totalReturn >= 0 ? '+' : ''}${fmt(perfData.totalReturn, 2)}%`, color: perfData.totalReturn >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Retorno real acumulado seguindo sinais de Compra.' },
+              { label: 'Média do universo', value: `${perfData.universeReturn >= 0 ? '+' : ''}${fmt(perfData.universeReturn, 2)}%`, color: theme.textSecondary, icon: <BarChart3 size={16} />, tip: `Retorno acumulado de todas as ${UNIVERSE_SIZE_FALLBACK} ações com peso igual.` },
+              { label: 'Alpha', value: `${perfData.alpha >= 0 ? '+' : ''}${fmt(perfData.alpha, 2)}pp`, color: perfData.alpha >= 0 ? '#10b981' : '#ef4444', icon: <Award size={16} />, tip: 'Diferença entre retorno da estratégia e média do universo.' },
               { label: 'Win rate (Compra)', value: `${fmt(perfData.buyWinRate * 100, 0)}%`, color: perfData.buyWinRate >= 0.55 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno positivo nos sinais de Compra.' },
               { label: 'Win rate (Venda)', value: `${fmt(perfData.sellWinRate * 100, 0)}%`, color: perfData.sellWinRate >= 0.55 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de períodos com retorno negativo nos sinais de Venda (acerto).' },
               { label: 'Pregões', value: `${perfData.totalDays}`, color: '#3b82f6', icon: <Calendar size={16} />, tip: 'Número de pregões analisados.' },
@@ -262,7 +262,7 @@ const AdminPerformancePage: React.FC = () => {
             {[
               { label: 'Acurácia Direcional', value: `${fmt(latest.directional_accuracy * 100, 1)}%`, color: latest.directional_accuracy >= 0.6 ? '#10b981' : '#f59e0b', tip: 'Percentual de previsões que acertaram a direção (alta/baixa).' },
               { label: 'MAPE', value: `${fmt(latest.mape, 2)}%`, color: latest.mape <= 1 ? '#10b981' : latest.mape <= 2 ? '#f59e0b' : '#ef4444', tip: 'Erro percentual absoluto médio das previsões de preço.' },
-              { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: '#3b82f6', tip: 'Erro absoluto médio das previsões de retorno.' },
+              { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: latest.mae <= 0.05 ? '#10b981' : '#f59e0b', tip: 'Erro absoluto médio das previsões de retorno.' },
               { label: 'Hit Rate', value: `${fmt(latest.hit_rate * 100, 1)}%`, color: latest.hit_rate >= 0.5 ? '#10b981' : '#f59e0b', tip: 'Taxa de acerto geral do modelo.' },
               { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio, 2), color: latest.sharpe_ratio >= 0 ? '#10b981' : '#ef4444', tip: 'Razão retorno/risco. Negativo indica que a estratégia perdeu para o CDI.' },
               { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#3b82f6', tip: 'Número de tickers analisados.' },
@@ -314,7 +314,7 @@ const AdminPerformancePage: React.FC = () => {
                   const h = (d.accuracy || 0) * 100;
                   return (
                     <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }} title={`${d.date}: ${fmt((d.accuracy || 0) * 100, 1)}%`}>
-                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.accuracy || 0) >= 0.7 ? '#10b981' : (d.accuracy || 0) >= 0.5 ? '#f59e0b' : '#ef4444', transition: 'height 0.3s' }} />
+                      <div style={{ width: '100%', height: `${h}%`, minHeight: 2, borderRadius: '3px 3px 0 0', background: (d.accuracy || 0) >= 0.6 ? '#10b981' : (d.accuracy || 0) >= 0.5 ? '#f59e0b' : '#ef4444', transition: 'height 0.3s' }} />
                     </div>
                   );
                 })}

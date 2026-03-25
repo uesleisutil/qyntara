@@ -257,7 +257,7 @@ const AdminModelsPage: React.FC = () => {
             {latest.directional_accuracy ? `${fmt(latest.directional_accuracy * 100, 1)}%` : '—'}
           </div>
           <div style={{ fontSize: '0.7rem', color: theme.textSecondary }}>
-            MAPE: {latest.mape ? `${fmt(latest.mape)}%` : '—'}
+            MAPE: {latest.mape ? `${fmt(latest.mape, 2)}%` : '—'}
           </div>
         </div>
 
@@ -409,10 +409,10 @@ const AdminModelsPage: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(140px, 100%), 1fr))', gap: '0.75rem' }}>
               {[
                 { label: 'Acurácia Direcional', value: `${fmt(latest.directional_accuracy * 100, 1)}%`, color: latest.directional_accuracy >= 0.6 ? '#10b981' : '#f59e0b' },
-                { label: 'MAPE', value: `${fmt(latest.mape)}%`, color: latest.mape <= 1 ? '#10b981' : '#f59e0b' },
-                { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: '#3b82f6' },
+                { label: 'MAPE', value: `${fmt(latest.mape, 2)}%`, color: latest.mape <= 1 ? '#10b981' : latest.mape <= 2 ? '#f59e0b' : '#ef4444' },
+                { label: 'MAE', value: `${fmt(latest.mae * 100, 2)}%`, color: latest.mae <= 0.05 ? '#10b981' : '#f59e0b' },
                 { label: 'Hit Rate', value: `${fmt(latest.hit_rate * 100, 1)}%`, color: latest.hit_rate >= 0.5 ? '#10b981' : '#f59e0b' },
-                { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio), color: latest.sharpe_ratio >= 0 ? '#10b981' : '#ef4444' },
+                { label: 'Sharpe Ratio', value: fmt(latest.sharpe_ratio, 2), color: latest.sharpe_ratio >= 0 ? '#10b981' : '#ef4444' },
                 { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#3b82f6' },
               ].map((m, i) => (
                 <div key={i} style={{ padding: '0.75rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 8 }}>
