@@ -116,7 +116,7 @@ class TransformerBiLSTMModel(nn.Module):
         # Attention pooling
         self.attn_pool = nn.Linear(lstm_hidden * 2, 1)
 
-        # MLP head
+        # MLP head — tanh na saída limita predições a (-1, +1), escalado para (-0.3, +0.3)
         mlp_input = lstm_hidden * 2
         self.head = nn.Sequential(
             nn.Linear(mlp_input, 64),
@@ -127,7 +127,9 @@ class TransformerBiLSTMModel(nn.Module):
             nn.GELU(),
             nn.Dropout(dropout * 0.5),
             nn.Linear(32, 1),
+            nn.Tanh(),  # limita output a (-1, +1)
         )
+        self.output_scale = 0.15  # escala para retornos realistas (±15%)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -154,7 +156,7 @@ class TransformerBiLSTMModel(nn.Module):
         pooled = (lstm_out * attn_weights).sum(dim=1)  # (batch, lstm_hidden*2)
 
         # MLP head
-        return self.head(pooled)  # (batch, 1)
+        return self.head(pooled) * self.output_scale  # (batch, 1) scaled to ±15%
 
 
 class DeepLearningTrainer:
@@ -475,12 +477,13 @@ class ResidualMLPModel(nn.Module):
         self.n_blocks = n_blocks
         self.input_proj = nn.Sequential(nn.Linear(n_features, hidden), nn.LayerNorm(hidden), nn.GELU())
         self.blocks = nn.Sequential(*[ResidualBlock(hidden, dropout) for _ in range(n_blocks)])
-        self.head = nn.Sequential(nn.Linear(hidden, 32), nn.GELU(), nn.Linear(32, 1))
+        self.head = nn.Sequential(nn.Linear(hidden, 32), nn.GELU(), nn.Linear(32, 1), nn.Tanh())
+        self.output_scale = 0.15
 
     def forward(self, x):
         if x.dim() == 3:
             x = x[:, -1, :]
-        return self.head(self.blocks(self.input_proj(x)))
+        return self.head(self.blocks(self.input_proj(x))) * self.output_scale
 
 
 # ═══════════════════════════════════════════════════════════
@@ -505,7 +508,8 @@ class TemporalCNNModel(nn.Module):
                 nn.Dropout(dropout),
             ])
         self.conv = nn.Sequential(*layers)
-        self.head = nn.Sequential(nn.Linear(channels, 32), nn.GELU(), nn.Linear(32, 1))
+        self.head = nn.Sequential(nn.Linear(channels, 32), nn.GELU(), nn.Linear(32, 1), nn.Tanh())
+        self.output_scale = 0.15
 
     def forward(self, x):
         if x.dim() == 2:
@@ -514,7 +518,7 @@ class TemporalCNNModel(nn.Module):
         x = x.transpose(1, 2)           # (B, channels, seq)
         x = self.conv(x)                # (B, channels, seq)
         x = x.mean(dim=2)               # (B, channels) — global avg pool
-        return self.head(x)
+        return self.head(x) * self.output_scale
 
 
 # ═══════════════════════════════════════════════════════════
