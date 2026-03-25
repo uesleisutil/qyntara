@@ -2961,6 +2961,13 @@ def _handle_set_free_ticker(event: dict) -> dict:
     if action == "quit-challenge":
         return _action_quit_challenge(email)
 
+    # ── Update all challenge returns (admin or cron trigger) ──
+    if action == "update-challenges":
+        user_data = _get_authenticated_user(event)
+        if user_data and user_data.get("role") == "admin":
+            return _update_all_challenge_returns()
+        return _cors_response(403, {"message": "Admin only"})
+
     # ── Default: update user preferences (ticker, onboarding, profile) ──
 
     ticker = _sanitize_string(body.get("ticker", ""), 10).upper()

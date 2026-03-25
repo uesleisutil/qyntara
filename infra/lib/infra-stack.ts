@@ -1046,14 +1046,6 @@ export class InfraStack extends cdk.Stack {
     bucket.grantRead(userAuthFn);
     userAuthFn.addToRolePolicy(secretsPolicy);
 
-    // Schedule: update challenge returns daily after market close (19:00 BRT = 22:00 UTC)
-    const updateChallengesRule = new events.Rule(this, "UpdateChallengesDaily", {
-      schedule: events.Schedule.expression("cron(0 22 ? * MON-FRI *)"),
-    });
-    updateChallengesRule.addTarget(new targets.LambdaFunction(userAuthFn, {
-      event: events.RuleTargetInput.fromObject({ action: "update-challenges" }),
-    }));
-
     // Grant auth logs write + delete (for LGPD account deletion)
     userAuthFn.addToRolePolicy(new iam.PolicyStatement({
       actions: ["dynamodb:PutItem", "dynamodb:Query", "dynamodb:BatchWriteItem"],
