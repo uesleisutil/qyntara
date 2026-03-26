@@ -517,7 +517,7 @@ def _train_single_model(
                 'VolumeSizeInGB': 30,
             },
             HyperParameters=hyperparameters,
-            StoppingCondition={'MaxRuntimeInSeconds': 3600},  # 1 hora max
+            StoppingCondition={'MaxRuntimeInSeconds': 7200},  # 2 horas max
         )
         logger.info(f"SageMaker Training Job iniciado: {job_name}")
     except Exception as e:
