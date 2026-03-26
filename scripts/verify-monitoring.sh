@@ -230,21 +230,21 @@ fi
 
 # Check environment variables
 if [ -f ".env.production" ]; then
-  if grep -q "REACT_APP_SENTRY_DSN" .env.production; then
-    check_pass "REACT_APP_SENTRY_DSN configured"
+  if grep -q "VITE_SENTRY_DSN" .env.production; then
+    check_pass "VITE_SENTRY_DSN configured"
   else
-    check_fail "REACT_APP_SENTRY_DSN not in .env.production"
+    check_fail "VITE_SENTRY_DSN not in .env.production"
   fi
 
-  if grep -q "REACT_APP_SENTRY_SAMPLE_RATE" .env.production; then
-    RATE=$(grep "REACT_APP_SENTRY_SAMPLE_RATE" .env.production | cut -d= -f2)
+  if grep -q "VITE_SENTRY_SAMPLE_RATE" .env.production; then
+    RATE=$(grep "VITE_SENTRY_SAMPLE_RATE" .env.production | cut -d= -f2)
     if [ "$RATE" = "0" ]; then
       check_warn "Sentry sample rate is 0 (no errors will be captured)"
     else
       check_pass "Sentry sample rate: ${RATE}"
     fi
   else
-    check_warn "REACT_APP_SENTRY_SAMPLE_RATE not configured"
+    check_warn "VITE_SENTRY_SAMPLE_RATE not configured"
   fi
 fi
 echo ""

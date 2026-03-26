@@ -192,10 +192,10 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     if [ -n "$ACCESS_KEY_ID" ]; then
         cat > dashboard/.env << EOF
-REACT_APP_AWS_REGION=$REGION
-REACT_APP_AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID
-REACT_APP_AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY
-REACT_APP_S3_BUCKET=$BUCKET_NAME
+VITE_AWS_REGION=$REGION
+VITE_AWS_ACCESS_KEY_ID=$ACCESS_KEY_ID
+VITE_AWS_SECRET_ACCESS_KEY=$SECRET_ACCESS_KEY
+VITE_S3_BUCKET=$BUCKET_NAME
 EOF
         print_success "Arquivo dashboard/.env criado"
         print_warning "ATENÇÃO: Não faça commit deste arquivo!"

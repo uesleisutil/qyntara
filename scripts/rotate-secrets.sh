@@ -57,7 +57,7 @@ fi
 echo ""
 
 # ── 2. Rotate API Key ──
-echo -e "${YELLOW}[2/3] REACT_APP_API_KEY${NC}"
+echo -e "${YELLOW}[2/3] VITE_API_KEY (GitHub Secret: REACT_APP_API_KEY)${NC}"
 echo "  This is the API Gateway key. Rotate via AWS Console or CLI:"
 echo ""
 echo "    aws apigateway create-api-key --name 'qyntara-prod-rotated' --enabled"

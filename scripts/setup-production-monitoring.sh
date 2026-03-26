@@ -599,25 +599,25 @@ verify_sentry_integration() {
     log_ok "Sentry configuration file exists: ${SENTRY_CONFIG}"
 
     # Verify DSN is configured in production env
-    if grep -q "REACT_APP_SENTRY_DSN" .env.production 2>/dev/null; then
-      log_ok "REACT_APP_SENTRY_DSN configured in .env.production"
+    if grep -q "VITE_SENTRY_DSN" .env.production 2>/dev/null; then
+      log_ok "VITE_SENTRY_DSN configured in .env.production"
     else
-      log_warn "REACT_APP_SENTRY_DSN not found in .env.production"
+      log_warn "VITE_SENTRY_DSN not found in .env.production"
       FAIL=$((FAIL + 1))
     fi
 
     # Verify Sentry environment is set
-    if grep -q "REACT_APP_ENVIRONMENT=production" .env.production 2>/dev/null; then
-      log_ok "REACT_APP_ENVIRONMENT=production is set"
+    if grep -q "VITE_ENVIRONMENT=production" .env.production 2>/dev/null; then
+      log_ok "VITE_ENVIRONMENT=production is set"
     else
-      log_warn "REACT_APP_ENVIRONMENT not set to production"
+      log_warn "VITE_ENVIRONMENT not set to production"
     fi
 
     # Verify sample rate
-    if grep -q "REACT_APP_SENTRY_SAMPLE_RATE" .env.production 2>/dev/null; then
+    if grep -q "VITE_SENTRY_SAMPLE_RATE" .env.production 2>/dev/null; then
       log_ok "Sentry sample rate configured"
     else
-      log_warn "REACT_APP_SENTRY_SAMPLE_RATE not configured"
+      log_warn "VITE_SENTRY_SAMPLE_RATE not configured"
     fi
   else
     log_warn "Sentry config not found at ${SENTRY_CONFIG}. Creating default config..."

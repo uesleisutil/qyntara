@@ -51,10 +51,11 @@ jobs:
       - name: Build dashboard
         working-directory: ./dashboard
         env:
-          REACT_APP_API_BASE_URL: 'https://og8m3nnj60.execute-api.us-east-1.amazonaws.com/prod'
-          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
-          REACT_APP_ENVIRONMENT: production
-          REACT_APP_VERSION: ${{ github.sha }}
+          VITE_API_BASE_URL: 'https://og8m3nnj60.execute-api.us-east-1.amazonaws.com/prod'
+          VITE_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+          VITE_WS_URL: ${{ vars.VITE_WS_URL || 'wss://3w2shl5513.execute-api.us-east-1.amazonaws.com/prod' }}
+          VITE_ENVIRONMENT: production
+          VITE_VERSION: ${{ github.sha }}
           CI: false
         run: npm run build
 
@@ -135,10 +136,11 @@ jobs:
       - name: Build dashboard for production
         working-directory: ./dashboard
         env:
-          REACT_APP_API_BASE_URL: ${{ vars.PROD_API_URL || 'https://og8m3nnj60.execute-api.us-east-1.amazonaws.com/prod' }}
-          REACT_APP_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
-          REACT_APP_ENVIRONMENT: production
-          REACT_APP_VERSION: ${{ github.sha }}
+          VITE_API_BASE_URL: ${{ vars.PROD_API_URL || 'https://og8m3nnj60.execute-api.us-east-1.amazonaws.com/prod' }}
+          VITE_API_KEY: ${{ secrets.REACT_APP_API_KEY }}
+          VITE_WS_URL: ${{ vars.VITE_WS_URL || 'wss://3w2shl5513.execute-api.us-east-1.amazonaws.com/prod' }}
+          VITE_ENVIRONMENT: production
+          VITE_VERSION: ${{ github.sha }}
           CI: false
         run: npm run build
 

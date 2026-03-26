@@ -39,7 +39,7 @@ DRY_RUN=false
 
 # Deployment metadata
 DEPLOY_TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-DEPLOY_VERSION="${REACT_APP_VERSION:-$(git describe --tags --always 2>/dev/null || echo "unknown")}"
+DEPLOY_VERSION="${VITE_VERSION:-$(git describe --tags --always 2>/dev/null || echo "unknown")}"
 DEPLOY_LOG="$PROJECT_ROOT/deploy-production-${DEPLOY_TIMESTAMP}.log"
 
 for arg in "$@"; do
@@ -360,7 +360,7 @@ if [ "$SKIP_FRONTEND" = false ]; then
   run_or_dry npm ci
 
   # Resolve production API URL from CDK outputs or env
-  PROD_API_URL="${REACT_APP_API_BASE_URL:-}"
+  PROD_API_URL="${VITE_API_BASE_URL:-}"
   if [ -f "$PROJECT_ROOT/prod-outputs.json" ]; then
     DETECTED_URL=$(node -e "
       const o = require('$PROJECT_ROOT/prod-outputs.json');
@@ -375,11 +375,12 @@ if [ "$SKIP_FRONTEND" = false ]; then
 
   log "${YELLOW}🔨 Building frontend for production...${NC}"
   run_or_dry env \
-    REACT_APP_API_BASE_URL="${PROD_API_URL}" \
-    REACT_APP_API_KEY="${REACT_APP_API_KEY:-}" \
-    REACT_APP_ENVIRONMENT=production \
-    REACT_APP_SENTRY_DSN="${REACT_APP_SENTRY_DSN:-}" \
-    REACT_APP_VERSION="${DEPLOY_VERSION}" \
+    VITE_API_BASE_URL="${PROD_API_URL}" \
+    VITE_API_KEY="${VITE_API_KEY:-}" \
+    VITE_WS_URL="${VITE_WS_URL:-wss://3w2shl5513.execute-api.us-east-1.amazonaws.com/prod}" \
+    VITE_ENVIRONMENT=production \
+    VITE_SENTRY_DSN="${VITE_SENTRY_DSN:-}" \
+    VITE_VERSION="${DEPLOY_VERSION}" \
     npm run build
 
   if [ $? -ne 0 ]; then
@@ -446,7 +447,7 @@ fi
 
 # Check 3: Verify API Gateway endpoint responds
 log "${YELLOW}🩺 Checking API Gateway health...${NC}"
-PROD_API_ENDPOINT="${REACT_APP_API_BASE_URL:-}"
+PROD_API_ENDPOINT="${VITE_API_BASE_URL:-}"
 if [ -f "$PROJECT_ROOT/prod-outputs.json" ]; then
   PROD_API_ENDPOINT=$(node -e "
     const o = require('$PROJECT_ROOT/prod-outputs.json');
