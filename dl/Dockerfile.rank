@@ -17,7 +17,7 @@ RUN pip install --no-cache-dir \
 
 # TabPFN (foundation model) — instalar sem resolver dependências de torch
 RUN pip install --no-cache-dir --no-deps tabpfn && \
-    pip install --no-cache-dir tabpfn-common-utils posthog backoff
+    pip install --no-cache-dir tabpfn-common-utils posthog backoff packaging eval-type-backport
 
 # Copiar código da aplicação
 COPY dl/ ${LAMBDA_TASK_ROOT}/dl/
