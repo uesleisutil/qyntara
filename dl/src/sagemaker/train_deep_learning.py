@@ -206,9 +206,7 @@ class DeepLearningTrainer:
         lr: float = 1e-3,
         patience: int = 15,
     ) -> dict:
-        """
-        Multi-task potencializado: Focal Loss + Label Smoothing + Mixup + SWA.
-        """
+        """Treina com multi-task potencializado: Focal Loss + gradient blending."""
         self.scaler.fit(X_train)
         X_t, y_t = self._prepare_tensors(X_train, y_train)
 
@@ -221,11 +219,6 @@ class DeepLearningTrainer:
         )
         huber = nn.HuberLoss(delta=0.05)
 
-        # SWA: acumular pesos nas últimas 20% das épocas
-        swa_start = int(epochs * 0.8)
-        swa_state = None
-        swa_count = 0
-
         best_val_loss = float('inf')
         best_state = None
         no_improve = 0
@@ -235,36 +228,28 @@ class DeepLearningTrainer:
             self.model.train()
             train_losses = []
             for xb, yb in loader:
-                # --- Mixup augmentation ---
-                if xb.size(0) > 1:
-                    lam = np.random.beta(0.4, 0.4)  # alpha=0.4 para mixup suave
-                    idx = torch.randperm(xb.size(0), device=xb.device)
-                    xb_mix = lam * xb + (1 - lam) * xb[idx]
-                    yb_mix = lam * yb + (1 - lam) * yb[idx]
-                else:
-                    xb_mix, yb_mix = xb, yb
-                    lam = 1.0
-
                 optimizer.zero_grad()
-                reg_out, cls_logit = self.model(xb_mix)
+                reg_out, cls_logit = self.model(xb)
 
-                # Task 1: Regressão com Huber
-                loss_reg = huber(reg_out, yb_mix)
+                # Task 1: Regressão
+                loss_reg = huber(reg_out, yb)
 
-                # Task 2: Focal Loss + Label Smoothing
-                target_dir = (yb_mix > 0).float()
-                # Label smoothing: 0 -> 0.05, 1 -> 0.95
-                target_dir_smooth = target_dir * 0.9 + 0.05
+                # Task 2: Focal Loss para classificação (penaliza exemplos de baixa confiança)
+                target_dir = (yb > 0).float()
                 p = torch.sigmoid(cls_logit)
-                pt = p * target_dir_smooth + (1 - p) * (1 - target_dir_smooth)
+                # Focal Loss: -alpha * (1-pt)^gamma * log(pt)
+                # gamma=2 foca nos exemplos difíceis, alpha balanceia classes
+                pt = p * target_dir + (1 - p) * (1 - target_dir)
                 focal_weight = (1 - pt) ** 2  # gamma=2
                 bce_raw = nn.functional.binary_cross_entropy_with_logits(
-                    cls_logit, target_dir_smooth, reduction='none'
+                    cls_logit, target_dir, reduction='none'
                 )
                 loss_cls = (focal_weight * bce_raw).mean()
 
-                # 60% classificação, 40% regressão
-                loss = 0.4 * loss_reg + 0.6 * loss_cls
+                # Gradient blending: normalizar gradientes para que nenhuma task domine
+                # Peso dinâmico: mais classificação no início, equilibra depois
+                cls_weight = 0.6  # 60% classificação, 40% regressão
+                loss = (1 - cls_weight) * loss_reg + cls_weight * loss_cls
 
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
@@ -274,16 +259,6 @@ class DeepLearningTrainer:
 
             avg_train = np.mean(train_losses)
             history['train_loss'].append(avg_train)
-
-            # --- SWA: acumular pesos ---
-            if epoch >= swa_start:
-                if swa_state is None:
-                    swa_state = {k: v.cpu().clone() for k, v in self.model.state_dict().items()}
-                    swa_count = 1
-                else:
-                    for k, v in self.model.state_dict().items():
-                        swa_state[k] = swa_state[k] + v.cpu()
-                    swa_count += 1
 
             if X_val is not None:
                 self.model.eval()
@@ -310,25 +285,7 @@ class DeepLearningTrainer:
                 if epoch % 10 == 0:
                     logger.info(f"Epoch {epoch}: train={avg_train:.6f}")
 
-        # --- Aplicar SWA se disponível ---
-        if swa_state and swa_count > 1:
-            logger.info(f"Aplicando SWA (média de {swa_count} checkpoints)")
-            swa_avg = {k: v / swa_count for k, v in swa_state.items()}
-            self.model.load_state_dict(swa_avg)
-            # Verificar se SWA é melhor que best_state
-            if X_val is not None:
-                swa_metrics = self._compute_metrics(X_val, y_val)
-                swa_dir_acc = swa_metrics.get('directional_accuracy', 0)
-                best_metrics = self._compute_metrics_from_state(best_state, X_val, y_val) if best_state else {}
-                best_dir_acc = best_metrics.get('directional_accuracy', 0)
-                logger.info(f"SWA DirAcc={swa_dir_acc:.1%} vs Best DirAcc={best_dir_acc:.1%}")
-                if swa_dir_acc > best_dir_acc:
-                    logger.info("SWA é melhor — usando SWA")
-                else:
-                    logger.info("Best checkpoint é melhor — usando best")
-                    if best_state:
-                        self.model.load_state_dict(best_state)
-        elif best_state:
+        if best_state:
             self.model.load_state_dict(best_state)
 
         self.model.eval()
@@ -336,14 +293,6 @@ class DeepLearningTrainer:
         if X_val is not None:
             metrics.update(self._compute_metrics(X_val, y_val))
         self.metrics = metrics
-        return metrics
-
-    def _compute_metrics_from_state(self, state: dict, X: np.ndarray, y: np.ndarray) -> dict:
-        """Calcula métricas usando um state_dict específico."""
-        current_state = {k: v.clone() for k, v in self.model.state_dict().items()}
-        self.model.load_state_dict(state)
-        metrics = self._compute_metrics(X, y)
-        self.model.load_state_dict(current_state)
         return metrics
 
     def _evaluate(self, X: np.ndarray, y: np.ndarray, criterion) -> float:
@@ -404,9 +353,6 @@ class DeepLearningTrainer:
             model_config['channels'] = model.channels
             model_config['kernel_size'] = model.kernel_size
             model_config['n_layers'] = model.n_layers
-        if hasattr(model, 'gru'):
-            model_config['hidden'] = model.hidden
-            model_config['n_layers'] = model.n_layers
         with open(os.path.join(path, 'model_config.json'), 'w') as f:
             json.dump(model_config, f)
         with open(os.path.join(path, 'scaler.pkl'), 'wb') as f:
@@ -448,11 +394,6 @@ class DeepLearningTrainer:
                 'kernel_size': config.get('kernel_size', 3),
                 'n_layers': config.get('n_layers', 3),
             }
-        elif model_class_name == 'GRUModel':
-            model_kwargs = {
-                'hidden': config.get('hidden', 96),
-                'n_layers': config.get('n_layers', 2),
-            }
 
         trainer = cls(n_features=n_features, device=device)
         # Criar modelo do tipo correto
@@ -460,7 +401,6 @@ class DeepLearningTrainer:
             'TransformerBiLSTMModel': TransformerBiLSTMModel,
             'ResidualMLPModel': ResidualMLPModel,
             'TemporalCNNModel': TemporalCNNModel,
-            'GRUModel': GRUModel,
         }
         model_cls = model_classes.get(model_class_name, TransformerBiLSTMModel)
         trainer.model = model_cls(n_features=n_features, **model_kwargs).to(torch.device(device))
@@ -611,39 +551,7 @@ class TemporalCNNModel(nn.Module):
 
 
 # ═══════════════════════════════════════════════════════════
-# Modelo 4: GRU (Gated Recurrent Unit)
-# ═══════════════════════════════════════════════════════════
-
-class GRUModel(nn.Module):
-    """GRU bidirecional — captura padrões sequenciais com menos parâmetros que LSTM."""
-    def __init__(self, n_features: int, hidden: int = 96, n_layers: int = 2, dropout: float = 0.2):
-        super().__init__()
-        self.n_features = n_features
-        self.hidden = hidden
-        self.n_layers = n_layers
-        self.gru = nn.GRU(n_features, hidden, num_layers=n_layers, batch_first=True,
-                          dropout=dropout if n_layers > 1 else 0, bidirectional=True)
-        self.shared = nn.Sequential(nn.Linear(hidden * 2, 64), nn.LayerNorm(64), nn.GELU())
-        self.reg_head = nn.Sequential(nn.Linear(64, 1), nn.Tanh())
-        self.cls_head = nn.Linear(64, 1)
-        self.output_scale = 0.15
-
-    def forward(self, x):
-        if x.dim() == 2:
-            x = x.unsqueeze(1)
-        out, _ = self.gru(x)
-        pooled = out[:, -1, :]
-        shared = self.shared(pooled)
-        reg_out = self.reg_head(shared) * self.output_scale
-        cls_logit = self.cls_head(shared)
-        if self.training:
-            return reg_out, cls_logit
-        else:
-            return torch.tanh(cls_logit) * torch.abs(reg_out)
-
-
-# ═══════════════════════════════════════════════════════════
-# Ensemble DL: combina os 4 modelos
+# Ensemble DL: combina os 3 modelos
 # ═══════════════════════════════════════════════════════════
 
 MODEL_REGISTRY = {
@@ -659,15 +567,11 @@ MODEL_REGISTRY = {
         'class': TemporalCNNModel,
         'default_kwargs': {'channels': 96, 'kernel_size': 3, 'n_layers': 4, 'dropout': 0.15},
     },
-    'gru': {
-        'class': GRUModel,
-        'default_kwargs': {'hidden': 96, 'n_layers': 2, 'dropout': 0.15},
-    },
 }
 
 
 class EnsembleDLTrainer:
-    """Treina e gerencia ensemble de 4 modelos DL."""
+    """Treina e gerencia ensemble de 3 modelos DL."""
 
     def __init__(self, n_features: int, model_names: list[str] = None, device: str = 'cpu'):
         self.n_features = n_features
