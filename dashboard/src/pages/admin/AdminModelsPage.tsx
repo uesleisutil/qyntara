@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
   RefreshCw, Database, Activity, CheckCircle2, XCircle, Clock,
@@ -6,11 +6,17 @@ import {
   ChevronRight, Cpu, Zap, TrendingUp, Eye, FileText, Box,
   ArrowDown, Settings, Target, Brain, Gauge, Radio,
   Server, HardDrive, Workflow, Network, Hash,
-  Sigma, Flame, Layers3,
+  Sigma, Flame, Layers3, Award,
 } from 'lucide-react';
+import {
+  ResponsiveContainer, LineChart, Line, AreaChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend,
+  ReferenceLine,
+} from 'recharts';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { fmt, fmtDate } from '../../lib/formatters';
+import { useLiveData } from '../../hooks/useLiveData';
 
 /* ─── Types ─── */
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
@@ -27,7 +33,7 @@ interface PipelineStatus {
 }
 interface FeatureAudit { ticker: string; populated: number; total: number; missing: string[]; }
 
-type TabKey = 'overview' | 'architecture' | 'features' | 'pipeline' | 'training' | 'inference';
+type TabKey = 'overview' | 'performance' | 'architecture' | 'features' | 'pipeline' | 'training' | 'inference';
 
 /* ─── Helpers ─── */
 const fmtDateTime = (iso: string) => {
@@ -188,21 +194,102 @@ const TRAINING_CONFIG = {
    ═══════════════════════════════════════════════════ */
 const AdminModelsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   const [expandedTicker, setExpandedTicker] = useState<string | null>(null);
   const [expandedModel, setExpandedModel] = useState<string | null>(null);
   const [expandedFeatureCat, setExpandedFeatureCat] = useState<string | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [featureStore, setFeatureStore] = useState<FeatureStoreStatus | null>(null);
-  const [pipeline, setPipeline] = useState<PipelineStatus | null>(null);
-  const [featureAudit, setFeatureAudit] = useState<FeatureAudit[]>([]);
-  const [latestRec, setLatestRec] = useState<any>(null);
-  const [monitorData, setMonitorData] = useState<any>(null);
 
   const headers = useMemo(() => ({ 'x-api-key': API_KEY }), []);
+
+  /* ─── Fetchers individuais (cada um é uma função estável) ─── */
+  const fetchRec = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers });
+    return res.ok ? res.json() : null;
+  }, [headers]);
+
+  const fetchPerfHistory = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/api/monitoring/model-performance?days=90`, { headers });
+    return res.ok ? res.json() : null;
+  }, [headers]);
+
+  const fetchEnsembleWeights = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/api/monitoring/ensemble-weights?days=90`, { headers });
+    return res.ok ? res.json() : null;
+  }, [headers]);
+
+  const fetchFeatureStore = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/s3-proxy/list?prefix=feature_store/fundamentals/`, { headers });
+    if (!res.ok) return null;
+    const fsData = await res.json();
+    const objects = fsData.objects || [];
+    const fundamentalFiles = objects.map((o: any) => o.Key).filter((k: string) => k.includes('fundamentals/'));
+    const dates = fundamentalFiles.map((f: string) => { const m = f.match(/dt=(\d{4}-\d{2}-\d{2})/); return m ? m[1] : null; }).filter(Boolean);
+    const latestDate = dates.sort().pop() || '';
+    const latestFiles = fundamentalFiles.filter((f: string) => f.includes(`dt=${latestDate}`));
+
+    const sampleTickers: FeatureAudit[] = [];
+    for (const file of latestFiles.slice(0, 5)) {
+      try {
+        const tickerMatch = file.match(/\/([A-Z0-9]+)\.json$/);
+        if (!tickerMatch) continue;
+        const ticker = tickerMatch[1];
+        const sampleRes = await fetch(`${API_BASE_URL}/s3-proxy?key=${file}`, { headers });
+        if (sampleRes.ok) {
+          const data = await sampleRes.json();
+          const allFields = [
+            'pe_ratio','forward_pe','pb_ratio','dividend_yield','ev_to_ebitda','ev_to_revenue','peg_ratio','price_to_sales',
+            'roe','roa','profit_margin','operating_margin','ebitda_margin','gross_margin',
+            'earnings_growth','revenue_growth','earnings_quarterly_growth',
+            'debt_to_equity','debt_to_ebitda','current_ratio','quick_ratio','interest_coverage','net_debt',
+            'market_cap','enterprise_value','free_cash_flow','operating_cash_flow',
+            'total_assets','total_liabilities','total_equity','total_revenue','net_income','ebitda','total_debt','cash','asset_turnover',
+            'sector','industry',
+          ];
+          const populated = allFields.filter(f => data[f] != null).length;
+          const missing = allFields.filter(f => data[f] == null);
+          sampleTickers.push({ ticker, populated, total: allFields.length, missing });
+        }
+      } catch { /* skip */ }
+    }
+    return {
+      store: {
+        fundamentals: { count: latestFiles.length, date: latestDate },
+        macro: { ok: true, date: latestDate },
+        sentiment: { count: 0, date: latestDate },
+      } as FeatureStoreStatus,
+      audit: sampleTickers,
+    };
+  }, [headers]);
+
+  /* ─── Live data streams (fetch once + WebSocket push quando dados novos chegam) ─── */
+  const rec = useLiveData(fetchRec, 'recommendations');
+  const perf = useLiveData(fetchPerfHistory, 'performance');
+  const ew = useLiveData(fetchEnsembleWeights, 'ensemble_weights');
+  const fs = useLiveData(fetchFeatureStore, 'feature_store');
+
+  /* ─── Pipeline (calculado localmente, sem fetch) ─── */
+  const pipeline = useMemo<PipelineStatus>(() => ({
+    ingest_features: { last_run: new Date().toISOString(), next_run: getNextSchedule(21, 0, [1,2,3,4,5]), status: 'active' },
+    weekly_retrain: { last_run: undefined, next_run: getNextSchedule(22, 0, [0]), status: 'active' },
+    daily_ranking: { last_run: undefined, next_run: getNextSchedule(21, 30, [1,2,3,4,5]), status: 'active' },
+  }), []);
+
+  /* ─── Derived data ─── */
+  const latestRec = rec.data;
+  const perfHistory = perf.data;
+  const ensembleWeightsHistory = ew.data;
+  const featureStore = fs.data?.store || null;
+  const featureAudit = fs.data?.audit || [];
+
+  const refreshAll = useCallback(() => {
+    rec.refresh(); perf.refresh(); ew.refresh(); fs.refresh();
+  }, [rec, perf, ew, fs]);
+
+  // Timestamp mais recente entre todos os streams
+  const lastRefresh = useMemo(() => {
+    const times = [rec.lastUpdated, perf.lastUpdated, ew.lastUpdated, fs.lastUpdated].filter(Boolean) as Date[];
+    return times.length > 0 ? new Date(Math.max(...times.map(t => t.getTime()))) : new Date();
+  }, [rec.lastUpdated, perf.lastUpdated, ew.lastUpdated, fs.lastUpdated]);
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
@@ -217,78 +304,6 @@ const AdminModelsPage: React.FC = () => {
     borderRadius: 8,
   };
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [recRes, monRes, fsListRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers }),
-        fetch(`${API_BASE_URL}/api/monitoring/model-performance`, { headers }),
-        fetch(`${API_BASE_URL}/s3-proxy/list?prefix=feature_store/fundamentals/`, { headers }),
-      ]);
-
-      if (recRes.ok) setLatestRec(await recRes.json());
-      if (monRes.ok) setMonitorData(await monRes.json());
-
-      if (fsListRes.ok) {
-        const fsData = await fsListRes.json();
-        const objects = fsData.objects || [];
-        const fundamentalFiles = objects.map((o: any) => o.Key).filter((k: string) => k.includes('fundamentals/'));
-        const dates = fundamentalFiles.map((f: string) => { const m = f.match(/dt=(\d{4}-\d{2}-\d{2})/); return m ? m[1] : null; }).filter(Boolean);
-        const latestDate = dates.sort().pop() || '';
-        const latestFiles = fundamentalFiles.filter((f: string) => f.includes(`dt=${latestDate}`));
-
-        const sampleTickers: FeatureAudit[] = [];
-        for (const file of latestFiles.slice(0, 5)) {
-          try {
-            const tickerMatch = file.match(/\/([A-Z0-9]+)\.json$/);
-            if (!tickerMatch) continue;
-            const ticker = tickerMatch[1];
-            const sampleRes = await fetch(`${API_BASE_URL}/s3-proxy?key=${file}`, { headers });
-            if (sampleRes.ok) {
-              const data = await sampleRes.json();
-              const allFields = [
-                'pe_ratio','forward_pe','pb_ratio','dividend_yield','ev_to_ebitda','ev_to_revenue','peg_ratio','price_to_sales',
-                'roe','roa','profit_margin','operating_margin','ebitda_margin','gross_margin',
-                'earnings_growth','revenue_growth','earnings_quarterly_growth',
-                'debt_to_equity','debt_to_ebitda','current_ratio','quick_ratio','interest_coverage','net_debt',
-                'market_cap','enterprise_value','free_cash_flow','operating_cash_flow',
-                'total_assets','total_liabilities','total_equity','total_revenue','net_income','ebitda','total_debt','cash','asset_turnover',
-                'sector','industry',
-              ];
-              const populated = allFields.filter(f => data[f] != null).length;
-              const missing = allFields.filter(f => data[f] == null);
-              sampleTickers.push({ ticker, populated, total: allFields.length, missing });
-            }
-          } catch { /* skip */ }
-        }
-        setFeatureAudit(sampleTickers);
-        setFeatureStore({
-          fundamentals: { count: latestFiles.length, date: latestDate },
-          macro: { ok: true, date: latestDate },
-          sentiment: { count: 0, date: latestDate },
-        });
-      }
-
-      const now = new Date();
-      setPipeline({
-        ingest_features: { last_run: now.toISOString(), next_run: getNextSchedule(21, 0, [1,2,3,4,5]), status: 'active' },
-        weekly_retrain: { last_run: undefined, next_run: getNextSchedule(22, 0, [0]), status: 'active' },
-        daily_ranking: { last_run: undefined, next_run: getNextSchedule(21, 30, [1,2,3,4,5]), status: 'active' },
-      });
-      setLastRefresh(new Date());
-    } catch (err) { console.error('AdminModelsPage fetch error:', err); }
-    finally { setLoading(false); }
-  }, [headers]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  // Auto-refresh every 60s
-  useEffect(() => {
-    autoRefreshRef.current = setInterval(() => { fetchData(); }, 60000);
-    return () => { if (autoRefreshRef.current) clearInterval(autoRefreshRef.current); };
-  }, [fetchData]);
-
-  const latest = monitorData?.latest || {};
   const recData = latestRec?.data || {};
   const meta = recData.model_metadata || {};
   const individualMetrics = meta?.individual_metrics || {};
@@ -296,7 +311,10 @@ const AdminModelsPage: React.FC = () => {
   const hasIndividual = Object.keys(individualMetrics).length > 0;
   const isDL = recData.method?.startsWith('dl_');
 
-  if (loading) {
+  // Só mostra skeleton no primeiro load (quando nenhum stream tem dados ainda)
+  const isFirstLoad = rec.initialLoading && perf.initialLoading && fs.initialLoading;
+
+  if (isFirstLoad) {
     const sk: React.CSSProperties = {
       background: `linear-gradient(90deg, ${darkMode ? '#1a1d27' : '#e2e8f0'} 25%, ${darkMode ? '#2a2e3a' : '#f1f5f9'} 50%, ${darkMode ? '#1a1d27' : '#e2e8f0'} 75%)`,
       backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', borderRadius: 8,
@@ -316,6 +334,7 @@ const AdminModelsPage: React.FC = () => {
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: 'overview', label: 'Visão Geral (Live)', icon: <Radio size={15} /> },
+    { key: 'performance', label: 'Performance', icon: <Activity size={15} /> },
     { key: 'architecture', label: 'Arquitetura DL', icon: <Brain size={15} /> },
     { key: 'features', label: 'Feature Engineering', icon: <Layers3 size={15} /> },
     { key: 'pipeline', label: 'Pipeline', icon: <Workflow size={15} /> },
@@ -343,9 +362,9 @@ const AdminModelsPage: React.FC = () => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: '0.68rem', color: theme.textSecondary }}>
-            Atualizado: {lastRefresh.toLocaleTimeString('pt-BR')} · Auto-refresh 60s
+            Atualizado: {lastRefresh.toLocaleTimeString('pt-BR')} · Live polling
           </span>
-          <button onClick={fetchData} style={{
+          <button onClick={refreshAll} style={{
             display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem',
             background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white',
             borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500,
@@ -369,14 +388,14 @@ const AdminModelsPage: React.FC = () => {
           <StatusDot ok={!!isDL} label={isDL ? 'DL Ativo' : 'Fallback'} pulse={!!isDL} />
         </div>
 
-        <div style={{ ...cardStyle, borderLeft: `3px solid ${(latest.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b'}`, padding: '0.6rem 0.75rem' }}>
+        <div style={{ ...cardStyle, borderLeft: `3px solid ${(perfHistory?.latest?.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b'}`, padding: '0.6rem 0.75rem' }}>
           <div style={{ fontSize: '0.65rem', color: theme.textSecondary, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
             <Target size={12} /> Acurácia Direcional
           </div>
-          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: (latest.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b' }}>
-            {latest.directional_accuracy ? `${fmt(latest.directional_accuracy * 100, 1)}%` : meta.directional_accuracy ? `${fmt(meta.directional_accuracy * 100, 1)}%` : '—'}
+          <div style={{ fontSize: '0.88rem', fontWeight: 700, color: (perfHistory?.latest?.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b' }}>
+            {perfHistory?.latest?.directional_accuracy != null ? `${fmt(perfHistory.latest.directional_accuracy * 100, 1)}%` : meta.directional_accuracy ? `${fmt(meta.directional_accuracy * 100, 1)}%` : '—'}
           </div>
-          <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>{latest.directional_accuracy ? 'Live (preços reais)' : 'Validação'}</div>
+          <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>{perfHistory?.latest?.directional_accuracy != null ? 'Live (preços reais)' : 'Validação'}</div>
         </div>
 
         <div style={{ ...cardStyle, borderLeft: `3px solid ${(featureStore?.fundamentals.count || 0) > 0 ? '#10b981' : '#ef4444'}`, padding: '0.6rem 0.75rem' }}>
@@ -421,6 +440,7 @@ const AdminModelsPage: React.FC = () => {
       </div>
 
       {activeTab === 'overview' && renderOverview()}
+      {activeTab === 'performance' && renderPerformance()}
       {activeTab === 'architecture' && renderArchitecture()}
       {activeTab === 'features' && renderFeatures()}
       {activeTab === 'pipeline' && renderPipeline()}
@@ -518,33 +538,6 @@ const AdminModelsPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Live production metrics */}
-        {monitorData?.latest && (
-          <div style={cardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Activity size={18} color="#10b981" />
-              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Métricas em Produção (Live)</span>
-              <Badge text="REAL-TIME" color="#10b981" bg="rgba(16,185,129,0.12)" />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(130px, 100%), 1fr))', gap: '0.6rem' }}>
-              {[
-                { label: 'Acurácia Dir.', value: latest.directional_accuracy ? `${fmt(latest.directional_accuracy * 100, 1)}%` : '—', color: (latest.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b', tip: 'Percentual de acertos na direção (alta/baixa) comparando com preços reais.' },
-                { label: 'MAPE', value: latest.mape ? `${fmt(latest.mape, 2)}%` : '—', color: (latest.mape || 0) <= 1 ? '#10b981' : (latest.mape || 0) <= 2 ? '#f59e0b' : '#ef4444', tip: 'Mean Absolute Percentage Error.' },
-                { label: 'MAE', value: latest.mae ? `${fmt(latest.mae * 100, 2)}%` : '—', color: (latest.mae || 0) <= 0.05 ? '#10b981' : '#f59e0b', tip: 'Mean Absolute Error.' },
-                { label: 'Hit Rate', value: latest.hit_rate ? `${fmt(latest.hit_rate * 100, 1)}%` : '—', color: (latest.hit_rate || 0) >= 0.5 ? '#10b981' : '#f59e0b', tip: 'Taxa de acerto geral.' },
-                { label: 'Sharpe Ratio', value: latest.sharpe_ratio != null ? fmt(latest.sharpe_ratio, 2) : '—', color: (latest.sharpe_ratio || 0) >= 0 ? '#10b981' : '#ef4444', tip: 'Retorno ajustado por risco.' },
-                { label: 'Amostra', value: `${latest.sample_size || '—'}`, color: '#3b82f6', tip: 'Número de predições avaliadas.' },
-              ].map((m, i) => (
-                <div key={i} style={subCardStyle}>
-                  <div style={{ fontSize: '0.62rem', color: theme.textSecondary, marginBottom: 3, display: 'flex', alignItems: 'center', gap: 3 }}>
-                    {m.label} <InfoTooltip text={m.tip} darkMode={darkMode} size={10} />
-                  </div>
-                  <div style={{ fontSize: '1rem', fontWeight: 700, color: m.color }}>{m.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Ensemble composition quick view */}
         {hasIndividual && (
@@ -632,7 +625,304 @@ const AdminModelsPage: React.FC = () => {
 
 
   /* ═══════════════════════════════════════════════════
-     TAB 2: ARCHITECTURE — Detalhes de cada modelo DL
+     TAB 2: PERFORMANCE — KPIs atuais + histórico temporal
+     ═══════════════════════════════════════════════════ */
+  function renderPerformance() {
+    const ts = perfHistory?.time_series || {};
+    const summary = perfHistory?.summary || {};
+    const period = perfHistory?.period || {};
+    const perfLatest = perfHistory?.latest || {};
+    const ewTs = ensembleWeightsHistory?.time_series || [];
+
+    const mapeData = (ts.mape || []).map((d: any) => ({ date: d.date?.slice(5), mape: d.mape != null ? +(d.mape * 100).toFixed(2) : null }));
+    const dirAccData = (ts.directional_accuracy || []).map((d: any) => ({ date: d.date?.slice(5), accuracy: d.accuracy != null ? +(d.accuracy * 100).toFixed(1) : null }));
+    const maeData = (ts.mae || []).map((d: any) => ({ date: d.date?.slice(5), mae: d.mae != null ? +(d.mae * 100).toFixed(2) : null }));
+    const sharpeData = (ts.sharpe_ratio || []).map((d: any) => ({ date: d.date?.slice(5), sharpe: d.sharpe != null ? +d.sharpe.toFixed(2) : null }));
+    const hitRateData = (ts.hit_rate || []).map((d: any) => ({ date: d.date?.slice(5), hit_rate: d.hit_rate != null ? +(d.hit_rate * 100).toFixed(1) : null }));
+
+    // Ensemble weight history
+    const weightModels = ['transformer_bilstm', 'tab_transformer', 'ft_transformer'];
+    const weightData = ewTs.map((d: any) => {
+      const w = d.weights || {};
+      return {
+        date: d.date?.slice(5),
+        ...Object.fromEntries(weightModels.map(m => [m, w[m] != null ? +(w[m] * 100).toFixed(1) : null])),
+      };
+    });
+
+    const chartMargin = { top: 5, right: 10, left: -10, bottom: 0 };
+    const axisStyle = { fontSize: '0.62rem', fill: theme.textSecondary };
+    const gridColor = darkMode ? '#2a2e3a' : '#e2e8f0';
+
+    const noData = mapeData.length === 0;
+
+    // KPI cards with trend
+    const kpis = [
+      { label: 'Acurácia Direcional', value: perfLatest.directional_accuracy != null ? `${fmt(perfLatest.directional_accuracy * 100, 1)}%` : '—', avg: summary.avg_directional_accuracy ? `${fmt(summary.avg_directional_accuracy * 100, 1)}%` : '—', color: (perfLatest.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b', icon: <Target size={16} />, tip: 'Percentual de acertos na direção (alta/baixa). Meta: ≥60%.' },
+      { label: 'MAPE', value: perfLatest.mape != null ? `${fmt(perfLatest.mape * 100, 2)}%` : '—', avg: summary.avg_mape ? `${fmt(summary.avg_mape * 100, 2)}%` : '—', color: (perfLatest.mape || 0) <= 0.05 ? '#10b981' : (perfLatest.mape || 0) <= 0.15 ? '#f59e0b' : '#ef4444', icon: <Gauge size={16} />, tip: 'Mean Absolute Percentage Error. Menor é melhor.' },
+      { label: 'MAE', value: perfLatest.mae != null ? `${fmt(perfLatest.mae * 100, 2)}%` : '—', avg: summary.avg_mae ? `${fmt(summary.avg_mae * 100, 2)}%` : '—', color: (perfLatest.mae || 0) <= 0.05 ? '#10b981' : '#f59e0b', icon: <BarChart3 size={16} />, tip: 'Mean Absolute Error. Menor é melhor.' },
+      { label: 'Hit Rate', value: perfLatest.hit_rate != null ? `${fmt(perfLatest.hit_rate * 100, 1)}%` : '—', avg: summary.avg_hit_rate ? `${fmt(summary.avg_hit_rate * 100, 1)}%` : '—', color: (perfLatest.hit_rate || 0) >= 0.5 ? '#10b981' : '#f59e0b', icon: <Award size={16} />, tip: 'Taxa de acerto nas predições positivas. Meta: ≥50%.' },
+      { label: 'Sharpe Ratio', value: perfLatest.sharpe_ratio != null ? fmt(perfLatest.sharpe_ratio, 2) : '—', avg: summary.avg_sharpe_ratio ? fmt(summary.avg_sharpe_ratio, 2) : '—', color: (perfLatest.sharpe_ratio || 0) >= 0 ? '#10b981' : '#ef4444', icon: <TrendingUp size={16} />, tip: 'Retorno ajustado por risco (anualizado). Positivo é bom.' },
+      { label: 'Amostra', value: `${perfLatest.sample_size || '—'}`, avg: '—', color: '#3b82f6', icon: <Hash size={16} />, tip: 'Número de predições avaliadas no último dia.' },
+    ];
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {/* KPI Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(160px, 100%), 1fr))', gap: '0.6rem' }}>
+          {kpis.map((kpi, i) => (
+            <div key={i} style={{ ...cardStyle, padding: '0.6rem 0.75rem', borderLeft: `3px solid ${kpi.color}` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                <span style={{ color: kpi.color }}>{kpi.icon}</span>
+                <span style={{ fontSize: '0.68rem', color: theme.textSecondary }}>{kpi.label}</span>
+                <InfoTooltip text={kpi.tip} darkMode={darkMode} size={10} />
+              </div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 700, color: kpi.color, marginBottom: 2 }}>{kpi.value}</div>
+              <div style={{ fontSize: '0.62rem', color: theme.textSecondary }}>Média 90d: {kpi.avg}</div>
+            </div>
+          ))}
+        </div>
+
+        {noData && (
+          <div style={{ ...cardStyle, textAlign: 'center', padding: '2rem', color: theme.textSecondary }}>
+            <Activity size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, marginBottom: 4 }}>Sem dados históricos disponíveis</div>
+            <div style={{ fontSize: '0.75rem' }}>Os gráficos aparecerão quando houver pelo menos 5 dias de recomendações com preços reais.</div>
+          </div>
+        )}
+
+        {!noData && (
+          <>
+            {/* Directional Accuracy over time */}
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Target size={18} color="#10b981" />
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Acurácia Direcional (Histórico)</span>
+                <Badge text="META ≥60%" color="#10b981" bg="rgba(16,185,129,0.12)" />
+              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={dirAccData} margin={chartMargin}>
+                  <defs>
+                    <linearGradient id="gradAcc" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="date" tick={axisStyle} tickLine={false} />
+                  <YAxis tick={axisStyle} tickLine={false} domain={[0, 100]} unit="%" />
+                  <RechartsTooltip contentStyle={{ background: darkMode ? '#1a1d27' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.75rem' }} />
+                  <ReferenceLine y={60} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: 'Meta 60%', position: 'right', fill: '#f59e0b', fontSize: 10 }} />
+                  <Area type="monotone" dataKey="accuracy" stroke="#10b981" fill="url(#gradAcc)" strokeWidth={2} name="Acurácia Dir. (%)" dot={false} connectNulls />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* MAPE over time */}
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Gauge size={18} color="#3b82f6" />
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>MAPE — Mean Absolute Percentage Error (Histórico)</span>
+                <Badge text="MENOR É MELHOR" color="#3b82f6" bg="rgba(59,130,246,0.12)" />
+              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={mapeData} margin={chartMargin}>
+                  <defs>
+                    <linearGradient id="gradMape" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="date" tick={axisStyle} tickLine={false} />
+                  <YAxis tick={axisStyle} tickLine={false} unit="%" />
+                  <RechartsTooltip contentStyle={{ background: darkMode ? '#1a1d27' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.75rem' }} />
+                  <Area type="monotone" dataKey="mape" stroke="#3b82f6" fill="url(#gradMape)" strokeWidth={2} name="MAPE (%)" dot={false} connectNulls />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* MAE + Hit Rate side by side */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(350px, 100%), 1fr))', gap: '0.75rem' }}>
+              <div style={cardStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <BarChart3 size={18} color="#8b5cf6" />
+                  <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>MAE (Histórico)</span>
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart data={maeData} margin={chartMargin}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                    <XAxis dataKey="date" tick={axisStyle} tickLine={false} />
+                    <YAxis tick={axisStyle} tickLine={false} unit="%" />
+                    <RechartsTooltip contentStyle={{ background: darkMode ? '#1a1d27' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.75rem' }} />
+                    <Line type="monotone" dataKey="mae" stroke="#8b5cf6" strokeWidth={2} name="MAE (%)" dot={false} connectNulls />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div style={cardStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <Award size={18} color="#f59e0b" />
+                  <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Hit Rate (Histórico)</span>
+                  <Badge text="META ≥50%" color="#f59e0b" bg="rgba(245,158,11,0.12)" />
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <AreaChart data={hitRateData} margin={chartMargin}>
+                    <defs>
+                      <linearGradient id="gradHit" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                    <XAxis dataKey="date" tick={axisStyle} tickLine={false} />
+                    <YAxis tick={axisStyle} tickLine={false} domain={[0, 100]} unit="%" />
+                    <RechartsTooltip contentStyle={{ background: darkMode ? '#1a1d27' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.75rem' }} />
+                    <ReferenceLine y={50} stroke="#ef4444" strokeDasharray="4 4" label={{ value: '50%', position: 'right', fill: '#ef4444', fontSize: 10 }} />
+                    <Area type="monotone" dataKey="hit_rate" stroke="#f59e0b" fill="url(#gradHit)" strokeWidth={2} name="Hit Rate (%)" dot={false} connectNulls />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Sharpe Ratio over time */}
+            <div style={cardStyle}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <TrendingUp size={18} color="#10b981" />
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Sharpe Ratio (Histórico)</span>
+                <Badge text="POSITIVO = BOM" color="#10b981" bg="rgba(16,185,129,0.12)" />
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={sharpeData} margin={chartMargin}>
+                  <defs>
+                    <linearGradient id="gradSharpe" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="date" tick={axisStyle} tickLine={false} />
+                  <YAxis tick={axisStyle} tickLine={false} />
+                  <RechartsTooltip contentStyle={{ background: darkMode ? '#1a1d27' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.75rem' }} />
+                  <ReferenceLine y={0} stroke={theme.textSecondary} strokeDasharray="4 4" />
+                  <Area type="monotone" dataKey="sharpe" stroke="#10b981" fill="url(#gradSharpe)" strokeWidth={2} name="Sharpe Ratio" dot={false} connectNulls />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Ensemble Weight Evolution */}
+            {weightData.length > 0 && (
+              <div style={cardStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <Network size={18} color="#8b5cf6" />
+                  <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Evolução dos Pesos do Ensemble</span>
+                  <InfoTooltip text="Como os pesos de cada modelo no ensemble evoluíram ao longo do tempo. Pesos são recalculados a cada retreino semanal (1/RMSE)." darkMode={darkMode} size={14} />
+                </div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <AreaChart data={weightData} margin={chartMargin}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                    <XAxis dataKey="date" tick={axisStyle} tickLine={false} />
+                    <YAxis tick={axisStyle} tickLine={false} unit="%" domain={[0, 100]} />
+                    <RechartsTooltip contentStyle={{ background: darkMode ? '#1a1d27' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.75rem' }} />
+                    <Legend wrapperStyle={{ fontSize: '0.72rem' }} />
+                    <Area type="monotone" dataKey="transformer_bilstm" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.6} name="🧠 Transformer+BiLSTM" connectNulls />
+                    <Area type="monotone" dataKey="tab_transformer" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name="🔮 TabTransformer" connectNulls />
+                    <Area type="monotone" dataKey="ft_transformer" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="⚡ FT-Transformer" connectNulls />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Individual model metrics comparison */}
+        {hasIndividual && (
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Brain size={18} color="#8b5cf6" />
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Comparação de Modelos Individuais (Último Treino)</span>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: `2px solid ${theme.border}` }}>
+                    <th style={{ textAlign: 'left', padding: '0.5rem 0.75rem', color: theme.textSecondary, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase' }}>Modelo</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: theme.textSecondary, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase' }}>Peso</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: theme.textSecondary, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase' }}>Val RMSE</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: theme.textSecondary, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase' }}>Val MAE</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: theme.textSecondary, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase' }}>Dir. Acc.</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: theme.textSecondary, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase' }}>Épocas</th>
+                    <th style={{ textAlign: 'center', padding: '0.5rem 0.75rem', color: theme.textSecondary, fontWeight: 600, fontSize: '0.68rem', textTransform: 'uppercase' }}>Best Loss</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(MODEL_DEFS).map(([key, info]) => {
+                    const m = individualMetrics[key] || {};
+                    const w = weights[key];
+                    const allRmses = Object.values(individualMetrics).map((x: any) => x.val_rmse ?? x.rmse ?? 999).filter(Boolean);
+                    const bestRmse = Math.min(...allRmses);
+                    const isBest = (m.val_rmse ?? m.rmse) === bestRmse;
+                    return (
+                      <tr key={key} style={{ borderBottom: `1px solid ${theme.border}`, background: isBest ? (darkMode ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)') : undefined }}>
+                        <td style={{ padding: '0.6rem 0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: '1rem' }}>{info.emoji}</span>
+                          <div>
+                            <div style={{ fontWeight: 600, color: info.color }}>{info.name}</div>
+                            {isBest && <Badge text="MELHOR RMSE" color="#10b981" bg="rgba(16,185,129,0.12)" />}
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            <div style={{ width: Math.max(8, (w || 0) * 100 * 0.8), height: 8, borderRadius: 4, background: info.color }} />
+                            <span style={{ fontWeight: 700, color: info.color }}>{w != null ? `${fmt(w * 100, 1)}%` : '—'}</span>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', fontWeight: 600, color: theme.text, fontFamily: 'monospace' }}>{fmt(m.val_rmse ?? m.rmse, 4)}</td>
+                        <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', color: theme.text, fontFamily: 'monospace' }}>{fmt(m.val_mae ?? m.mae, 4)}</td>
+                        <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', fontWeight: 600, color: (m.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b' }}>
+                          {m.directional_accuracy != null ? `${fmt(m.directional_accuracy * 100, 1)}%` : '—'}
+                        </td>
+                        <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', color: theme.text }}>{m.epochs_trained ?? '—'}</td>
+                        <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', color: theme.textSecondary, fontFamily: 'monospace', fontSize: '0.68rem' }}>{m.best_val_loss != null ? fmt(m.best_val_loss, 6) : '—'}</td>
+                      </tr>
+                    );
+                  })}
+                  {/* Ensemble row */}
+                  <tr style={{ borderTop: `2px solid ${theme.border}`, background: darkMode ? 'rgba(59,130,246,0.05)' : 'rgba(59,130,246,0.03)' }}>
+                    <td style={{ padding: '0.6rem 0.75rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '1rem' }}>🏆</span>
+                      <div>
+                        <div style={{ fontWeight: 700, color: '#3b82f6' }}>Ensemble (Ponderado)</div>
+                        <Badge text="PRODUÇÃO" color="#3b82f6" bg="rgba(59,130,246,0.12)" />
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', fontWeight: 700, color: '#3b82f6' }}>100%</td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', fontWeight: 700, color: '#3b82f6', fontFamily: 'monospace' }}>{meta.val_rmse != null ? fmt(meta.val_rmse, 4) : '—'}</td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', fontWeight: 700, color: '#3b82f6', fontFamily: 'monospace' }}>{meta.val_mae != null ? fmt(meta.val_mae, 4) : '—'}</td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', fontWeight: 700, color: (meta.directional_accuracy || 0) >= 0.6 ? '#10b981' : '#f59e0b' }}>
+                      {meta.directional_accuracy != null ? `${fmt(meta.directional_accuracy * 100, 1)}%` : '—'}
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', color: theme.textSecondary }}>—</td>
+                    <td style={{ textAlign: 'center', padding: '0.6rem 0.75rem', color: theme.textSecondary }}>—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Performance period info */}
+        {period.start_date && (
+          <div style={{ fontSize: '0.68rem', color: theme.textSecondary, textAlign: 'center', padding: '0.25rem' }}>
+            Período: {fmtDate(period.start_date)} — {fmtDate(period.end_date)} · {period.days || 90} dias · {perfLatest.using_real_prices ? '✅ Preços reais' : '⚠️ Estimativa com ruído'}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ═══════════════════════════════════════════════════
+     TAB 3: ARCHITECTURE — Detalhes de cada modelo DL
      ═══════════════════════════════════════════════════ */
   function renderArchitecture() {
     return (

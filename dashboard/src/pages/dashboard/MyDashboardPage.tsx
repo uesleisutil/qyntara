@@ -7,6 +7,7 @@ import {
   TrendingUp, TrendingDown, Layers, Crown,
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
+import { useLiveData } from '../../hooks/useLiveData';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD } from '../../constants';
 import DailyHighlight from '../../components/shared/features/DailyHighlight';
 import SignalChangesDropdown from '../../components/shared/features/SignalChangesDropdown';
@@ -347,13 +348,7 @@ const MyDashboardPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
   const isPro = useIsPro();
   const navigate = useNavigate();
-  const [recs, setRecs] = useState<Rec[]>([]);
-  const [date, setDate] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [prefsOpen, setPrefsOpen] = useState(false);
-  const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => load(COLLAPSED_KEY, {}));
   const [order, setOrder] = useState<string[]>(() =>
     load<{ order: string[] } | null>(PREFS_KEY, null)?.order || WIDGETS.map(w => w.id),
@@ -376,46 +371,43 @@ const MyDashboardPage: React.FC = () => {
   useEffect(() => { localStorage.setItem(PREFS_KEY, JSON.stringify({ order, enabled })); }, [order, enabled]);
   useEffect(() => { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsed)); }, [collapsed]);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers: { 'x-api-key': API_KEY } });
-      if (!res.ok) throw new Error(`Erro ${res.status}`);
-      const d = await res.json();
-      setRecs(d.recommendations || []);
-      setDate(d.date || '');
-      setLastUpdated(new Date());
-    } catch (err: any) {
-      setError(err.message || 'Falha ao carregar dados');
-    } finally { setLoading(false); }
-  }, []);
-
-  // Fetch sparkline data
-  useEffect(() => {
-    (async () => {
+  const fetchDashboardData = useCallback(async () => {
+    const headers = { 'x-api-key': API_KEY };
+    const now = new Date();
+    const key = `prices/year=${now.getFullYear()}/month=${String(now.getMonth() + 1).padStart(2, '0')}/daily_prices.json`;
+    const [recsRes, pricesRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers }),
+      fetch(`${API_BASE_URL}/s3-proxy?key=${key}`, { headers }).catch(() => null),
+    ]);
+    if (!recsRes.ok) throw new Error(`Erro ${recsRes.status}`);
+    const recsData = await recsRes.json();
+    let sparklineData: Record<string, number[]> = {};
+    if (pricesRes?.ok) {
       try {
-        const now = new Date();
-        const key = `prices/year=${now.getFullYear()}/month=${String(now.getMonth() + 1).padStart(2, '0')}/daily_prices.json`;
-        const res = await fetch(`${API_BASE_URL}/s3-proxy?key=${key}`, { headers: { 'x-api-key': API_KEY } });
-        if (!res.ok) return;
-        const rows: { date: string; ticker: string; close: string }[] = await res.json();
+        const rows: { date: string; ticker: string; close: string }[] = await pricesRes.json();
         const map: Record<string, { date: string; close: number }[]> = {};
         rows.forEach(r => {
           if (!map[r.ticker]) map[r.ticker] = [];
           map[r.ticker].push({ date: r.date, close: parseFloat(r.close) });
         });
-        const sp: Record<string, number[]> = {};
         Object.entries(map).forEach(([ticker, entries]) => {
           entries.sort((a, b) => a.date.localeCompare(b.date));
-          sp[ticker] = entries.slice(-20).map(e => e.close);
+          sparklineData[ticker] = entries.slice(-20).map(e => e.close);
         });
-        setSparklines(sp);
       } catch { /* silent */ }
-    })();
+    }
+    return {
+      recs: (recsData.recommendations || []) as Rec[],
+      date: (recsData.date || '') as string,
+      sparklines: sparklineData,
+    };
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const { data: dashData, initialLoading: loading, lastUpdated, error, refresh: fetchData } = useLiveData(fetchDashboardData, 'recommendations');
+  const recs = dashData?.recs ?? [];
+  const date = dashData?.date ?? '';
+  const sparklines = dashData?.sparklines ?? {};
+
   useEffect(() => { markChecklistItem('viewedDashboard'); }, []);
 
   const topTicker = recs.length ? recs.reduce((a, b) => a.score > b.score ? a : b) : null;

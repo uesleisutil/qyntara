@@ -117,4 +117,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     except Exception as e:
         logger.warning(f"Sentimento não disponível: {e}")
 
+    # Broadcast via WebSocket para dashboard real-time
+    try:
+        from dl.src.lambdas.ws_broadcast import notify
+        notify("feature_store", results)
+    except Exception:
+        pass
+
     return {"ok": True, **results}

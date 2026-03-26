@@ -12,8 +12,8 @@ import { API_BASE_URL, API_KEY } from '../config';
 export const validateCredentials = () => {
   const missingVars = [];
   
-  if (!API_BASE_URL) missingVars.push('REACT_APP_API_BASE_URL');
-  if (!API_KEY) missingVars.push('REACT_APP_API_KEY');
+  if (!API_BASE_URL) missingVars.push('VITE_API_BASE_URL');
+  if (!API_KEY) missingVars.push('VITE_API_KEY');
 
   return {
     isValid: missingVars.length === 0,
@@ -68,7 +68,7 @@ export const createS3Client = () => {
 /**
  * Gets the S3 bucket name from environment variables
  * @returns {string} S3 bucket name
- * @throws {Error} If REACT_APP_S3_BUCKET is not set
+ * @throws {Error} If VITE_S3_BUCKET is not set
  */
 export const getBucketName = () => {
   // Not needed for API Gateway approach, but kept for compatibility

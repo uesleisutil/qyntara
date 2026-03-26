@@ -1,31 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { RefreshCw, CheckCircle, AlertTriangle, XCircle, Database, Clock, Shield, Search, ChevronDown, ChevronRight } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { fmt } from '../../lib/formatters';
+import { useLiveData } from '../../hooks/useLiveData';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
 const AdminDataQualityPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [tickerSearch, setTickerSearch] = useState('');
   const [expandedSection, setExpandedSection] = useState<string | null>('completeness');
   const [sortBy, setSortBy] = useState<'ticker' | 'completeness'>('completeness');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const fetchQuality = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/monitoring/data-quality`, { headers: { 'x-api-key': API_KEY } });
-      if (res.ok) setData(await res.json());
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
+  const fetchQuality = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/api/monitoring/data-quality`, { headers: { 'x-api-key': API_KEY } });
+    if (res.ok) return res.json();
+    return null;
+  }, []);
 
-  useEffect(() => { fetchQuality(); }, []);
+  const { data, initialLoading: loading, refresh } = useLiveData(fetchQuality, 'data_quality');
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
@@ -112,7 +108,7 @@ const AdminDataQualityPage: React.FC = () => {
             {completeness.dateRange && <span> · {completeness.dateRange.start} a {completeness.dateRange.end}</span>}
           </p>
         </div>
-        <button onClick={fetchQuality} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={refresh} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

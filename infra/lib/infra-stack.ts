@@ -21,6 +21,8 @@ import * as cr from "aws-cdk-lib/custom-resources";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import * as apigwv2 from "aws-cdk-lib/aws-apigatewayv2";
+import * as apigwv2integrations from "aws-cdk-lib/aws-apigatewayv2-integrations";
 
 
 
@@ -1224,8 +1226,60 @@ export class InfraStack extends cdk.Stack {
     });
 
     // -----------------------
+    // WebSocket API (real-time dashboard updates)
+    // -----------------------
+    const wsConnectionsTable = new cdk.aws_dynamodb.Table(this, "WsConnectionsTable", {
+      tableName: "B3Dashboard-WsConnections",
+      partitionKey: { name: "connectionId", type: cdk.aws_dynamodb.AttributeType.STRING },
+      billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      timeToLiveAttribute: "ttl",
+    });
+
+    const wsHandlerFn = mkPyLambda("WsHandler", "dl.src.lambdas.ws_handler.handler", {
+      WS_CONNECTIONS_TABLE: wsConnectionsTable.tableName,
+    });
+    wsConnectionsTable.grantReadWriteData(wsHandlerFn);
+
+    const wsApi = new apigwv2.WebSocketApi(this, "B3TRWebSocketApi", {
+      apiName: "B3TR-WebSocket",
+      connectRouteOptions: {
+        integration: new apigwv2integrations.WebSocketLambdaIntegration("WsConnect", wsHandlerFn),
+      },
+      disconnectRouteOptions: {
+        integration: new apigwv2integrations.WebSocketLambdaIntegration("WsDisconnect", wsHandlerFn),
+      },
+      defaultRouteOptions: {
+        integration: new apigwv2integrations.WebSocketLambdaIntegration("WsDefault", wsHandlerFn),
+      },
+    });
+
+    const wsStage = new apigwv2.WebSocketStage(this, "WsStage", {
+      webSocketApi: wsApi,
+      stageName: "prod",
+      autoDeploy: true,
+    });
+
+    // Endpoint para broadcast (https://xxx.execute-api.region.amazonaws.com/prod)
+    const wsManagementEndpoint = `https://${wsApi.apiId}.execute-api.${cdk.Aws.REGION}.amazonaws.com/${wsStage.stageName}`;
+
+    // Grant manage connections to ws handler (for broadcast)
+    wsHandlerFn.addEnvironment("WS_ENDPOINT", wsManagementEndpoint);
+    wsHandlerFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ["execute-api:ManageConnections"],
+      resources: [`arn:aws:execute-api:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:${wsApi.apiId}/${wsStage.stageName}/*`],
+    }));
+
+    // Grant WS broadcast to all Lambdas that produce data
+    // NOTE: moved to after all Lambda declarations (see below)
+
+    // -----------------------
     // Outputs
     // -----------------------
+    new cdk.CfnOutput(this, "WebSocketUrl", {
+      value: wsStage.url,
+      description: "WebSocket URL for real-time dashboard updates",
+    });
     new cdk.CfnOutput(this, "BucketName", { value: bucket.bucketName });
     new cdk.CfnOutput(this, "AlertsTopicArn", { value: alertsTopic.topicArn });
     new cdk.CfnOutput(this, "SageMakerRoleArn", { value: sagemakerRole.roleArn });
@@ -1311,5 +1365,20 @@ export class InfraStack extends cdk.Stack {
       value: apiKey.keyId,
       description: "Dashboard API Key ID (use 'aws apigateway get-api-key' to retrieve value)"
     });
+
+    // -----------------------
+    // WebSocket broadcast permissions (after all Lambda declarations)
+    // -----------------------
+    const wsPolicy = new iam.PolicyStatement({
+      actions: ["execute-api:ManageConnections"],
+      resources: [`arn:aws:execute-api:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:${wsApi.apiId}/${wsStage.stageName}/*`],
+    });
+
+    for (const fn of [rankSageMakerFn, monitorPerformanceFn, ingestFeaturesFn, trainSageMakerFn, monitorDriftFn, generateEnsembleInsightsFn, monitorCostsFn, monitorQualityFn, dashboardApiFn]) {
+      fn.addEnvironment("WS_CONNECTIONS_TABLE", wsConnectionsTable.tableName);
+      fn.addEnvironment("WS_ENDPOINT", wsManagementEndpoint);
+      fn.addToRolePolicy(wsPolicy);
+      wsConnectionsTable.grantReadWriteData(fn);
+    }
   }
 }

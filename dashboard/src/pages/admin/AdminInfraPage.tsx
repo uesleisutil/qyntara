@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
   RefreshCw, CheckCircle, AlertTriangle, XCircle, Database,
@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
+import { useLiveData } from '../../hooks/useLiveData';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
@@ -32,25 +33,19 @@ const fmt = (n: number, d = 0) => n != null ? n.toLocaleString('pt-BR', { maximu
 
 const AdminInfraPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['overview', 'lambdas', 'alarms']));
   const [lambdaFilter, setLambdaFilter] = useState<string>('all');
   const [lambdaSort, setLambdaSort] = useState<'name' | 'errors' | 'invocations'>('errors');
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/monitoring/infrastructure`, {
-        headers: { 'x-api-key': API_KEY },
-      });
-      if (res.ok) { setData(await res.json()); setLastUpdated(new Date()); }
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+    const res = await fetch(`${API_BASE_URL}/api/monitoring/infrastructure`, {
+      headers: { 'x-api-key': API_KEY },
+    });
+    if (res.ok) return res.json();
+    return null;
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const { data, initialLoading: loading, lastUpdated, refresh } = useLiveData(fetchData, 'infrastructure');
 
   const toggleSection = (s: string) => {
     setExpandedSections(prev => {
@@ -138,7 +133,7 @@ const AdminInfraPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={fetchData} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', opacity: loading ? 0.7 : 1 }}>
+        <button onClick={refresh} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', opacity: loading ? 0.7 : 1 }}>
           <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Atualizar
         </button>
       </div>

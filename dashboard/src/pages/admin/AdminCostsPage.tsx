@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { DollarSign, TrendingDown, TrendingUp, RefreshCw, AlertTriangle, Clock, XCircle, CheckCircle, EyeOff, Calendar } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { fmt } from '../../lib/formatters';
 import { useCanViewCosts } from '../../components/shared/pro/ProGate';
+import { useLiveData } from '../../hooks/useLiveData';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
@@ -26,9 +27,6 @@ const PERIOD_OPTIONS = [
 const AdminCostsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
   const canViewCosts = useCanViewCosts();
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [periodValue, setPeriodValue] = useState(-1); // default: mês atual
 
   // Resolve actual days from period value (-1 = current month)
@@ -38,22 +36,15 @@ const AdminCostsPage: React.FC = () => {
   const R: React.FC<{ children: React.ReactNode; ph?: string }> = ({ children, ph }) =>
     canViewCosts ? <>{children}</> : <span style={redactedStyle} aria-hidden="true">{ph || PLACEHOLDER}</span>;
 
-  const fetchCosts = useCallback(async (days: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=${days}`, {
-        headers: { 'x-api-key': API_KEY },
-      });
-      if (res.ok) { setData(await res.json()); setLastUpdated(new Date()); }
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  }, []);
-
-  // Re-fetch whenever the period changes
-  useEffect(() => {
+  const fetchCosts = useCallback(async () => {
     const days = periodValue === -1 ? new Date().getDate() : periodValue;
-    fetchCosts(days);
-  }, [periodValue, fetchCosts]);
+    const res = await fetch(`${API_BASE_URL}/api/monitoring/costs?days=${days}`, {
+      headers: { 'x-api-key': API_KEY },
+    });
+    return res.ok ? res.json() : null;
+  }, [periodValue]);
+
+  const { data, initialLoading: loading, lastUpdated, refresh } = useLiveData(fetchCosts, 'costs');
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
@@ -141,7 +132,7 @@ const AdminCostsPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={() => fetchCosts(costDays)} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any, opacity: loading ? 0.6 : 1 }}>
+        <button onClick={() => refresh()} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any, opacity: loading ? 0.6 : 1 }}>
           <RefreshCw size={14} style={loading ? { animation: 'spin 1s linear infinite' } : undefined} /> {loading ? 'Carregando...' : 'Atualizar'}
         </button>
       </div>

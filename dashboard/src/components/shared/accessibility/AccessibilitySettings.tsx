@@ -84,7 +84,7 @@ export function AccessibilitySettings() {
         </div>
       </section>
       
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <section className="settings-section">
           <h3 className="section-title">Accessibility Audit</h3>
           <p className="section-description">

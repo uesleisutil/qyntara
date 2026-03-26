@@ -14,6 +14,7 @@ import { getSector, ALL_SECTORS } from '../../constants/sectors';
 import MonthlyReport from '../../components/shared/features/MonthlyReport';
 import ProValue from '../../components/shared/pro/ProValue';
 import { fmt } from '../../lib/formatters';
+import { useLiveData } from '../../hooks/useLiveData';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface Recommendation {
@@ -25,22 +26,27 @@ const RecommendationsPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
   const isPro = useIsPro();
   const freeTicker = useFreeTicker();
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
-  const [date, setDate] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('score');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [signalFilter, setSignalFilter] = useState<'ALL' | 'Compra' | 'Venda' | 'Neutro' | 'Favoritos'>('ALL');
   const [sectorFilter, setSectorFilter] = useState('ALL');
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sparklineData, setSparklineData] = useState<Record<string, number[]>>({});
   const [watchlistVersion, setWatchlistVersion] = useState(0);
 
-  useEffect(() => { fetchRecommendations(); }, []);
+  const fetchRecs = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers: { 'x-api-key': API_KEY } });
+    if (!res.ok) throw new Error(`Erro ${res.status} ao carregar recomendações`);
+    const data = await res.json();
+    markChecklistItem('viewedRecommendations');
+    return data;
+  }, []);
 
-  // Fetch sparkline price data
+  const { data: recData, initialLoading: loading, lastUpdated, error: fetchError, refresh: fetchRecommendations } = useLiveData(fetchRecs, 'recommendations');
+  const recommendations: Recommendation[] = recData?.recommendations || [];
+  const date = recData?.date || '';
+  const error = fetchError;
+
   useEffect(() => {
     (async () => {
       try {
@@ -69,26 +75,6 @@ const RecommendationsPage: React.FC = () => {
     window.addEventListener('watchlist-change', handler);
     return () => window.removeEventListener('watchlist-change', handler);
   }, []);
-  const fetchRecommendations = async () => {
-    setLoading(true); setError(null);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/recommendations/latest`, { headers: { 'x-api-key': API_KEY } });
-      if (!res.ok) throw new Error(`Erro ${res.status} ao carregar recomendações`);
-      const data = await res.json();
-      setRecommendations(data.recommendations || []);
-      setDate(data.date || '');
-      setLastUpdated(new Date());
-      markChecklistItem('viewedRecommendations');
-    } catch (err: any) {
-      const msg = err.message === 'Load failed' || err.message === 'Failed to fetch'
-        ? 'Falha de conexão com o servidor. Verifique sua internet e tente novamente.'
-        : err.message;
-      setError(msg);
-    }
-    finally { setLoading(false); }
-  };
-
-  // getSignal and getSignalColor imported from constants
 
   const handleSort = useCallback((field: string) => {
     if (sortBy === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc');

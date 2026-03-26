@@ -4,7 +4,7 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
@@ -17,10 +17,11 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
+    "types": ["vite/client", "node"],
     "baseUrl": "src",
     "paths": {
       "@components/*": ["components/*"],
@@ -35,5 +36,5 @@
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "build", "**/*.test.ts", "**/*.test.tsx", "**/*.test.js", "**/*.test.jsx"]
+  "exclude": ["node_modules", "build"]
 }

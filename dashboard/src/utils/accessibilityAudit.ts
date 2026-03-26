@@ -173,7 +173,7 @@ export function checkColorContrast(element: HTMLElement): boolean {
  * Initialize accessibility monitoring in development
  */
 export function initAccessibilityMonitoring(): void {
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     // Run audit on initial load
     setTimeout(async () => {
       const result = await runAccessibilityAudit();

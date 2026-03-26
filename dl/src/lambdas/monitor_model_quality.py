@@ -164,4 +164,11 @@ def handler(event, context):
         "top_n": reco.get("top_n"),
     }
     report_key = put_report(s.bucket, now, report)
+
+    try:
+        from dl.src.lambdas.ws_broadcast import notify
+        notify("data_quality", {"report_key": report_key, "mape": mape})
+    except Exception:
+        pass
+
     return {"ok": True, "skipped": False, "report_key": report_key, "mape": mape}

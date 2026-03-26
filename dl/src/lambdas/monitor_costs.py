@@ -428,7 +428,7 @@ def handler(event, context):
         except Exception as e:
             logger.error(f"Error publishing CloudWatch metrics: {e}")
         
-        return {
+        result = {
             "ok": True,
             "total_7_days_usd": total_7_days_usd,
             "monthly_projection_brl": monthly_projection_brl,
@@ -436,6 +436,14 @@ def handler(event, context):
             "anomalies_count": len(anomalies),
             "cost_key": cost_key
         }
+
+        try:
+            from dl.src.lambdas.ws_broadcast import notify
+            notify("costs", result)
+        except Exception:
+            pass
+
+        return result
         
     except Exception as e:
         logger.error(f"Error in cost monitoring: {e}", exc_info=True)

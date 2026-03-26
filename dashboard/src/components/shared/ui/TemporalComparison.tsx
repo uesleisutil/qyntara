@@ -235,7 +235,7 @@ export const ChartComparisonOverlay: React.FC<ChartComparisonOverlayProps> = ({
   const { enabled } = useTemporalComparison();
 
   // Prevent unused variable warning
-  if (process.env.NODE_ENV === 'development' && currentData) {
+  if (import.meta.env.DEV && currentData) {
     // currentData is available for future use
   }
 

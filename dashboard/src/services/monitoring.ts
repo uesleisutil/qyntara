@@ -12,9 +12,9 @@ import { BrowserTracing } from '@sentry/tracing';
 import api from './api';
 
 // Configuration
-const SENTRY_DSN = process.env.REACT_APP_SENTRY_DSN || '';
-const SENTRY_ENVIRONMENT = process.env.REACT_APP_ENVIRONMENT || 'development';
-const SENTRY_SAMPLE_RATE = parseFloat(process.env.REACT_APP_SENTRY_SAMPLE_RATE || '1.0');
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN || '';
+const SENTRY_ENVIRONMENT = import.meta.env.VITE_ENVIRONMENT || 'development';
+const SENTRY_SAMPLE_RATE = parseFloat(import.meta.env.VITE_SENTRY_SAMPLE_RATE || '1.0');
 const ANALYTICS_ENDPOINT = '/api/analytics/track';
 
 // Performance metrics interface
@@ -91,7 +91,7 @@ export function initializeSentry(): void {
     initialScope: {
       tags: {
         app: 'b3-dashboard',
-        version: process.env.REACT_APP_VERSION || 'unknown',
+        version: import.meta.env.VITE_VERSION || 'unknown',
       },
     },
   });

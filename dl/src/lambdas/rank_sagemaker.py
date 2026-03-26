@@ -600,6 +600,13 @@ def handler(event, context):
 
     logger.info(f"Recomendações salvas em {rec_key}")
 
+    # Broadcast via WebSocket para dashboard real-time
+    try:
+        from dl.src.lambdas.ws_broadcast import notify
+        notify("recommendations", {"dt": dt, "method": method, "count": len(ranking)})
+    except Exception:
+        pass
+
     return {
         "ok": True,
         "dt": dt,

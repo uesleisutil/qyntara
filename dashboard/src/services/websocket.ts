@@ -216,7 +216,7 @@ class WebSocketService {
 
 // Create singleton instance
 // In production, this URL would come from environment config
-const WS_URL = process.env.REACT_APP_WS_URL || 'wss://your-websocket-api.execute-api.us-east-1.amazonaws.com/prod';
+const WS_URL = import.meta.env.VITE_WS_URL || 'wss://your-websocket-api.execute-api.us-east-1.amazonaws.com/prod';
 const websocketService = new WebSocketService(WS_URL);
 
 export default websocketService;

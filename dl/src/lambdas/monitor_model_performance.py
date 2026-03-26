@@ -447,7 +447,7 @@ aws lambda invoke --function-name TrainSageMaker --payload '{{"lookback_days": 3
         if topic_arn:
             send_alert(topic_arn, "B3TR: Re-treino Necessário", alert_message)
     
-    return {
+    result = {
         "ok": True,
         "date": today,
         "prediction_date": prediction_date,
@@ -459,3 +459,12 @@ aws lambda invoke --function-name TrainSageMaker --payload '{{"lookback_days": 3
         "drift_detected": drift_detected,
         "model_date": model_metadata.get('model_date') if model_metadata else None,
     }
+
+    # Broadcast via WebSocket para dashboard real-time
+    try:
+        from dl.src.lambdas.ws_broadcast import notify
+        notify("performance", result)
+    except Exception:
+        pass
+
+    return result

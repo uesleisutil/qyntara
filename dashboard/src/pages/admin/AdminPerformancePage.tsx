@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { RefreshCw, TrendingUp, Target, BarChart3, Award, Calendar, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { SCORE_BUY_THRESHOLD, SCORE_SELL_THRESHOLD, getPriceDataKeys, UNIVERSE_SIZE_FALLBACK } from '../../constants';
 import { fmt } from '../../lib/formatters';
+import { useLiveData } from '../../hooks/useLiveData';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface PriceRow { date: string; ticker: string; close: string; }
@@ -12,45 +13,42 @@ interface HistoryEntry { date: string; exp_return_20: number; score: number; }
 
 const AdminPerformancePage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
-  const [history, setHistory] = useState<Record<string, HistoryEntry[]>>({});
-  const [prices, setPrices] = useState<Record<string, Record<string, number>>>({});
-  const [monitorData, setMonitorData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
     border: `1px solid ${theme.border}`, borderRadius: 12, padding: 'clamp(0.75rem, 3vw, 1.25rem)',
   };
 
-  const fetchAll = async () => {
-    setLoading(true);
-    try {
-      const headers = { 'x-api-key': API_KEY };
-      const [curKey, prevKey] = getPriceDataKeys();
-      const [histRes, marRes, febRes, monRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
-        fetch(`${API_BASE_URL}/s3-proxy?key=${curKey}`, { headers }),
-        fetch(`${API_BASE_URL}/s3-proxy?key=${prevKey}`, { headers }),
-        fetch(`${API_BASE_URL}/api/monitoring/model-performance`, { headers }),
-      ]);
-      if (histRes.ok) { const hd = await histRes.json(); setHistory(hd.data || {}); }
-      const priceMap: Record<string, Record<string, number>> = {};
-      for (const res of [febRes, marRes]) {
-        if (res.ok) {
-          const rows: PriceRow[] = await res.json();
-          rows.forEach(r => {
-            if (!priceMap[r.ticker]) priceMap[r.ticker] = {};
-            priceMap[r.ticker][r.date] = parseFloat(r.close);
-          });
-        }
+  const fetchAll = useCallback(async () => {
+    const headers = { 'x-api-key': API_KEY };
+    const [curKey, prevKey] = getPriceDataKeys();
+    const [histRes, marRes, febRes, monRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/api/recommendations/history`, { headers }),
+      fetch(`${API_BASE_URL}/s3-proxy?key=${curKey}`, { headers }),
+      fetch(`${API_BASE_URL}/s3-proxy?key=${prevKey}`, { headers }),
+      fetch(`${API_BASE_URL}/api/monitoring/model-performance`, { headers }),
+    ]);
+    let history: Record<string, HistoryEntry[]> = {};
+    if (histRes.ok) { const hd = await histRes.json(); history = hd.data || {}; }
+    const prices: Record<string, Record<string, number>> = {};
+    for (const res of [febRes, marRes]) {
+      if (res.ok) {
+        const rows: PriceRow[] = await res.json();
+        rows.forEach(r => {
+          if (!prices[r.ticker]) prices[r.ticker] = {};
+          prices[r.ticker][r.date] = parseFloat(r.close);
+        });
       }
-      setPrices(priceMap);
-      if (monRes.ok) setMonitorData(await monRes.json());
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
+    }
+    let monitorData: any = null;
+    if (monRes.ok) monitorData = await monRes.json();
+    return { history, prices, monitorData };
+  }, []);
 
-  useEffect(() => { fetchAll(); }, []);
+  const { data: fetchedData, initialLoading: loading, refresh } = useLiveData(fetchAll, 'performance');
+
+  const history = fetchedData?.history ?? {};
+  const prices = fetchedData?.prices ?? {};
+  const monitorData = fetchedData?.monitorData ?? null;
 
   // Compute real performance from history + prices (same logic as client PerformanceTab)
   const perfData = useMemo(() => {
@@ -173,7 +171,7 @@ const AdminPerformancePage: React.FC = () => {
             Métricas reais calculadas a partir de preços de mercado + métricas do monitor de DL
           </p>
         </div>
-        <button onClick={fetchAll} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
+        <button onClick={refresh} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>

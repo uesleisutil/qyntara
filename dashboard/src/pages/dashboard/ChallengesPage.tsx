@@ -8,6 +8,7 @@ import {
 import { API_BASE_URL } from '../../config';
 import { brand } from '../../styles/theme';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLiveData } from '../../hooks/useLiveData';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 interface ChallengeData {
@@ -46,7 +47,6 @@ const ChallengesPage: React.FC = () => {
   const [carteiras, setCarteiras] = useState<Carteira[]>([]);
   const [pastMonths, setPastMonths] = useState<string[]>([]);
   const [selectedMonth, setSelectedMonth] = useState('');
-  const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [quitting, setQuitting] = useState(false);
   const [showCarteiraSelect, setShowCarteiraSelect] = useState(false);
@@ -58,37 +58,50 @@ const ChallengesPage: React.FC = () => {
 
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const h = getHeaders();
-      const [cRes, lRes, bRes, cartRes, mRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/auth/stats?type=challenge`, { headers: h }),
-        fetch(`${API_BASE_URL}/auth/stats?type=leaderboard`, { headers: h }),
-        fetch(`${API_BASE_URL}/auth/stats?type=achievements`, { headers: h }),
-        fetch(`${API_BASE_URL}/carteiras`, { headers: h }),
-        fetch(`${API_BASE_URL}/auth/stats?type=past-months`, { headers: h }),
-      ]);
-      if (cRes.ok) {
-        const data = await cRes.json();
-        if (data && data.active) {
-          setChallenge({
-            active: true, month: data.month || '', startDate: data.startDate || '', endDate: data.endDate || '',
-            carteiraId: data.carteiraId || '', userReturn: data.userReturn || 0, ibovReturn: data.ibovReturn || 0,
-            isBeating: data.isBeating || false, streak: data.streak || 0, bestStreak: data.bestStreak || 0,
-            rank: data.rank || 1, totalParticipants: data.totalParticipants || 1,
-            portfolio: data.portfolio || [], history: data.history || [],
-          });
-        } else { setChallenge(null); }
+  const fetchAll = useCallback(async () => {
+    const h = getHeaders();
+    const [cRes, lRes, bRes, cartRes, mRes] = await Promise.all([
+      fetch(`${API_BASE_URL}/auth/stats?type=challenge`, { headers: h }),
+      fetch(`${API_BASE_URL}/auth/stats?type=leaderboard`, { headers: h }),
+      fetch(`${API_BASE_URL}/auth/stats?type=achievements`, { headers: h }),
+      fetch(`${API_BASE_URL}/carteiras`, { headers: h }),
+      fetch(`${API_BASE_URL}/auth/stats?type=past-months`, { headers: h }),
+    ]);
+    let challengeData: ChallengeData | null = null;
+    let leaderboardData: LeaderboardEntry[] = [];
+    let badgesData: Badge[] = [];
+    let carteirasData: Carteira[] = [];
+    let pastMonthsData: string[] = [];
+    if (cRes.ok) {
+      const data = await cRes.json();
+      if (data && data.active) {
+        challengeData = {
+          active: true, month: data.month || '', startDate: data.startDate || '', endDate: data.endDate || '',
+          carteiraId: data.carteiraId || '', userReturn: data.userReturn || 0, ibovReturn: data.ibovReturn || 0,
+          isBeating: data.isBeating || false, streak: data.streak || 0, bestStreak: data.bestStreak || 0,
+          rank: data.rank || 1, totalParticipants: data.totalParticipants || 1,
+          portfolio: data.portfolio || [], history: data.history || [],
+        };
       }
-      if (lRes.ok) { const d = await lRes.json(); setLeaderboard(Array.isArray(d) ? d : []); }
-      if (bRes.ok) { const d = await bRes.json(); setBadges(Array.isArray(d) ? d : []); }
-      if (cartRes.ok) { const d = await cartRes.json(); setCarteiras(d.carteiras || []); }
-      if (mRes.ok) { const d = await mRes.json(); setPastMonths(Array.isArray(d) ? d : []); }
-    } catch { /* silent */ }
-    finally { setLoading(false); }
+    }
+    if (lRes.ok) { const d = await lRes.json(); leaderboardData = Array.isArray(d) ? d : []; }
+    if (bRes.ok) { const d = await bRes.json(); badgesData = Array.isArray(d) ? d : []; }
+    if (cartRes.ok) { const d = await cartRes.json(); carteirasData = d.carteiras || []; }
+    if (mRes.ok) { const d = await mRes.json(); pastMonthsData = Array.isArray(d) ? d : []; }
+    return { challenge: challengeData, leaderboard: leaderboardData, badges: badgesData, carteiras: carteirasData, pastMonths: pastMonthsData };
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  const { data: allData, initialLoading: loading, refresh: fetchData } = useLiveData(fetchAll);
+
+  // Sync useLiveData result into local state so existing UI code works unchanged
+  useEffect(() => {
+    if (!allData) return;
+    setChallenge(allData.challenge);
+    setLeaderboard(allData.leaderboard);
+    setBadges(allData.badges);
+    setCarteiras(allData.carteiras);
+    setPastMonths(allData.pastMonths);
+  }, [allData]);
 
   const fetchLeaderboard = useCallback(async (month: string) => {
     try {

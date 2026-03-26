@@ -345,7 +345,16 @@ def handler(event, context):
             role_arn=cfg.sagemaker_role_arn, bucket=bucket,
             instance_type=instance_type, hyperparameters=hyperparameters,
         )
-        return {"ok": True, "dt": dt, "training_job_name": job_name, "method": "sagemaker", "train_samples": len(train_df)}
+        result = {"ok": True, "dt": dt, "training_job_name": job_name, "method": "sagemaker", "train_samples": len(train_df)}
+
+        # Broadcast via WebSocket para dashboard real-time
+        try:
+            from dl.src.lambdas.ws_broadcast import notify
+            notify("training", result)
+        except Exception:
+            pass
+
+        return result
 
 
 def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, event: dict) -> dict:

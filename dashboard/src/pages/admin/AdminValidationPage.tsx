@@ -1,30 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { RefreshCw, CheckCircle, AlertTriangle, Clock, Search, Target, BarChart3 } from 'lucide-react';
 import { API_BASE_URL, API_KEY } from '../../config';
 import InfoTooltip from '../../components/shared/ui/InfoTooltip';
 import { fmt } from '../../lib/formatters';
+import { useLiveData } from '../../hooks/useLiveData';
 
 interface DashboardContext { darkMode: boolean; theme: Record<string, string>; }
 
 const AdminValidationPage: React.FC = () => {
   const { darkMode, theme } = useOutletContext<DashboardContext>();
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [tickerSearch, setTickerSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'validated' | 'pending'>('ALL');
 
-  const fetchValidation = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/recommendations/validation`, { headers: { 'x-api-key': API_KEY } });
-      if (res.ok) { setData(await res.json()); setLastUpdated(new Date()); }
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
+  const fetchValidation = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/api/recommendations/validation`, { headers: { 'x-api-key': API_KEY } });
+    if (res.ok) return res.json();
+    return null;
+  }, []);
 
-  useEffect(() => { fetchValidation(); }, []);
+  const { data, initialLoading: loading, lastUpdated, refresh } = useLiveData(fetchValidation, 'recommendations');
 
   const cardStyle: React.CSSProperties = {
     background: theme.card || (darkMode ? '#1a1d27' : '#fff'),
@@ -119,7 +114,7 @@ const AdminValidationPage: React.FC = () => {
             )}
           </p>
         </div>
-        <button onClick={fetchValidation} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
+        <button onClick={refresh} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.55rem 1.1rem', background: 'linear-gradient(135deg, #2563eb, #3b82f6)', border: 'none', color: 'white', borderRadius: 8, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 2px 8px rgba(37,99,235,0.25)', WebkitAppearance: 'none' as any }}>
           <RefreshCw size={14} /> Atualizar
         </button>
       </div>
