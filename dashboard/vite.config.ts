@@ -15,6 +15,8 @@ export default defineConfig({
       '@constants': path.resolve(__dirname, 'src/constants'),
       '@lib': path.resolve(__dirname, 'src/lib'),
       '@store': path.resolve(__dirname, 'src/store'),
+      // Node.js polyfills for plotly.js → ndarray → typedarray-pool
+      buffer: 'buffer/',
     },
   },
   build: {
