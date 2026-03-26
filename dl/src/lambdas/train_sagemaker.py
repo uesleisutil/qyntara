@@ -367,10 +367,8 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     model_prefix = f"models/deep_learning/{dt}"
     all_models = ['transformer_bilstm', 'residual_mlp', 'temporal_cnn']
 
-    # Separar features e target — usar alpha (retorno relativo ao mercado) se disponível
-    target_col = 'target_alpha'
-    if target_col not in train_df.columns:
-        target_col = 'target'
+    # Separar features e target
+    target_col = 'target'
     if target_col not in train_df.columns:
         target_col = 'target_return_20d'
     if target_col not in train_df.columns:
