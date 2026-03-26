@@ -359,7 +359,8 @@ class DeepLearningTrainer:
             'architecture': model_type,
         }
         # Salvar hiperparâmetros específicos de cada arquitetura
-        if hasattr(model, 'd_model'):
+        if hasattr(model, 'bilstm'):
+            # TransformerBiLSTMModel
             model_config['d_model'] = model.d_model
             model_config['nhead'] = model.transformer.layers[0].self_attn.num_heads
             model_config['num_encoder_layers'] = len(model.transformer.layers)
