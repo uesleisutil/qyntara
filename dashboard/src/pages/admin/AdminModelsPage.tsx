@@ -64,6 +64,17 @@ const FlowArrow: React.FC<{ color?: string }> = ({ color = '#6b7280' }) => (
 
 /* ─── Model Architecture Definitions ─── */
 const MODEL_DEFS = {
+  tabpfn: {
+    emoji: '🏆', name: 'TabPFN (Foundation Model)', color: '#f59e0b',
+    desc: 'Transformer pré-treinado em milhões de datasets (Nature 2025). Classificação binária de direção com probabilidade de confiança.',
+    layers: [
+      { name: 'Pre-trained Transformer', detail: 'Treinado em milhões de datasets sintéticos' },
+      { name: 'In-context Learning', detail: 'Aprende do dataset no forward pass (sem treino)' },
+      { name: 'Classificação Binária', detail: 'Sobe/desce com probabilidade calibrada' },
+    ],
+    params: { d_model: 'pre-trained', heads: 'pre-trained', layers: 'pre-trained' },
+    inference: 'Forward pass único (~2s para 13K amostras)',
+  },
   transformer_bilstm: {
     emoji: '🧠', name: 'Transformer + BiLSTM', color: '#8b5cf6',
     desc: 'Modelo híbrido: Transformer Encoder (multi-head self-attention) + BiLSTM bidirecional com attention pooling.',
@@ -484,7 +495,7 @@ const AdminModelsPage: React.FC = () => {
       {
         name: 'Ensemble DL', icon: <Network size={20} />, color: '#f59e0b',
         status: !!isDL,
-        detail: `Transformer+BiLSTM (${fmt((weights.transformer_bilstm || 0) * 100, 0)}%) + TabTransformer (${fmt((weights.tab_transformer || 0) * 100, 0)}%) + FT-Transformer (${fmt((weights.ft_transformer || 0) * 100, 0)}%)`,
+        detail: `TabPFN (direção) + Transformer+BiLSTM (magnitude)`,
         schedule: isDL ? 'DL Ativo' : 'Fallback Momentum',
       },
       {
@@ -641,7 +652,7 @@ const AdminModelsPage: React.FC = () => {
     const hitRateData = (ts.hit_rate || []).map((d: any) => ({ date: d.date?.slice(5), hit_rate: d.hit_rate != null ? +(d.hit_rate * 100).toFixed(1) : null }));
 
     // Ensemble weight history
-    const weightModels = ['transformer_bilstm', 'tab_transformer', 'ft_transformer'];
+    const weightModels = ['tabpfn', 'transformer_bilstm'];
     const weightData = ewTs.map((d: any) => {
       const w = d.weights || {};
       return {
@@ -825,9 +836,8 @@ const AdminModelsPage: React.FC = () => {
                     <YAxis tick={axisStyle} tickLine={false} unit="%" domain={[0, 100]} />
                     <RechartsTooltip contentStyle={{ background: darkMode ? '#1a1d27' : '#fff', border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.75rem' }} />
                     <Legend wrapperStyle={{ fontSize: '0.72rem' }} />
-                    <Area type="monotone" dataKey="transformer_bilstm" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.6} name="🧠 Transformer+BiLSTM" connectNulls />
-                    <Area type="monotone" dataKey="tab_transformer" stackId="1" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} name="🔮 TabTransformer" connectNulls />
-                    <Area type="monotone" dataKey="ft_transformer" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="⚡ FT-Transformer" connectNulls />
+                    <Area type="monotone" dataKey="tabpfn" stackId="1" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.6} name="🏆 TabPFN (direção)" connectNulls />
+                    <Area type="monotone" dataKey="transformer_bilstm" stackId="1" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.6} name="🧠 Transformer+BiLSTM (magnitude)" connectNulls />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -1278,23 +1288,21 @@ const AdminModelsPage: React.FC = () => {
         ],
       },
       {
-        name: 'WeeklyRetrain (SageMaker)', description: 'Retreina ensemble DL via SageMaker Training Jobs (ml.m5.xlarge, 16GB RAM). 3 modelos em paralelo, ensemble combinado na Lambda.',
+        name: 'WeeklyRetrain (Hybrid)', description: 'Treina TabPFN (classificação de direção, Nature 2025) + Transformer+BiLSTM (regressão de magnitude). Combina em modelo híbrido.',
         schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)', lambda: 'B3TacticalRankingStackV2-TrainSageMaker',
         status: pipeline?.weekly_retrain, icon: <Cpu size={18} />, color: '#8b5cf6',
         outputs: [
-          'models/deep_learning/{date}/individual/transformer_bilstm/ (SageMaker Job)',
-          'models/deep_learning/{date}/individual/tab_transformer/ (SageMaker Job)',
-          'models/deep_learning/{date}/individual/ft_transformer/ (SageMaker Job)',
-          'models/deep_learning/{date}/model.tar.gz (ensemble combinado)',
+          'models/deep_learning/{date}/individual/tabpfn/ (classificação direção)',
+          'models/deep_learning/{date}/individual/transformer_bilstm/ (regressão magnitude)',
+          'models/deep_learning/{date}/model.tar.gz (híbrido combinado)',
           'models/deep_learning/{date}/metrics.json',
         ],
         inputs: ['curated/daily_monthly/ (730 dias)', 'feature_store/fundamentals/', 'feature_store/macro/', 'feature_store/sentiment/'],
         details: [
           'Prepara training data com prepare_training_data()',
-          'Upload train.csv para S3',
-          '3 SageMaker Training Jobs em paralelo (train_single_model.py)',
-          'Lambda combina modelos em ensemble (_combine_ensemble)',
-          'Calcula pesos inversamente proporcionais ao RMSE',
+          'TabPFN: filtra amostras ambíguas (|ret|<1%), classifica direção',
+          'Transformer+BiLSTM: regressão de magnitude do retorno',
+          'Combina: direção(TabPFN) × magnitude(Transformer) × confiança',
           'Salva ensemble_config.json + metrics.json + model.tar.gz',
         ],
       },
@@ -1458,7 +1466,7 @@ const AdminModelsPage: React.FC = () => {
             {[
               { step: '1', label: 'Preparação de Dados', detail: 'load_monthly_data_for_training(730 dias) → prepare_training_data() → upload train.csv para S3', color: '#3b82f6' },
               { step: '2', label: 'Upload Script', detail: 'upload_training_script() → train_single_model.py + train_deep_learning.py para S3', color: '#3b82f6' },
-              { step: '3', label: '3× SageMaker Training Jobs', detail: 'ml.m5.xlarge (16GB RAM) · transformer_bilstm, tab_transformer, ft_transformer em paralelo', color: '#8b5cf6' },
+              { step: '3', label: 'TabPFN + Transformer Training', detail: 'TabPFN: classificação direção (CPU, ~2min) · Transformer+BiLSTM: regressão magnitude (SageMaker ml.m5.xlarge)', color: '#8b5cf6' },
               { step: '4', label: 'Treino Individual', detail: 'StandardScaler → outlier removal (5σ) → split temporal 80/20 → train(epochs=120, lr=5e-4, patience=20)', color: '#8b5cf6' },
               { step: '5', label: 'Combinação Ensemble', detail: '_combine_ensemble(): carrega 3 model.tar.gz → calcula pesos (1/RMSE) → salva ensemble_config.json', color: '#ef4444' },
               { step: '6', label: 'Upload Final', detail: '_upload_ensemble(): model.tar.gz + metrics.json → models/deep_learning/{date}/', color: '#10b981' },
@@ -1648,10 +1656,9 @@ const AdminModelsPage: React.FC = () => {
             {
               name: 'Ensemble DL', icon: <Brain size={18} />, color: '#ef4444',
               items: [
-                { label: 'Transformer + BiLSTM', detail: `2 enc layers, 4 heads, d=128, BiLSTM h=64 · peso: ${fmt((weights.transformer_bilstm || 0) * 100, 1)}%`, ok: true },
-                { label: 'TabTransformer', detail: `3 enc layers, 4 heads, d=64, feature tokenization · peso: ${fmt((weights.tab_transformer || 0) * 100, 1)}%`, ok: true },
-                { label: 'FT-Transformer', detail: `4 enc layers, 8 heads, d=128, feature tokenizer (W+b) · peso: ${fmt((weights.ft_transformer || 0) * 100, 1)}%`, ok: true },
-                { label: 'Ensemble Ponderado', detail: 'Pesos 1/RMSE · Multi-task (reg + cls) · Early stopping p=20', ok: true },
+                { label: 'TabPFN (Foundation Model)', detail: `Transformer pré-treinado (Nature 2025). Classificação binária de direção.`, ok: true },
+                { label: 'Transformer + BiLSTM', detail: `Regressão de magnitude do retorno. Multi-task (Huber + Focal Loss).`, ok: true },
+                { label: 'Modelo Híbrido', detail: 'direção(TabPFN) × magnitude(Transformer) × confiança = predição final', ok: true },
               ],
             },
             {

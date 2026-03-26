@@ -281,6 +281,34 @@ def load_model_from_s3(bucket: str, model_key: str):
             logger.info(f"Modelo DL carregado: {trainer.n_features} features")
             return trainer, trainer.feature_names, trainer.metrics, 'transformer_bilstm'
         
+        # Verificar se é modelo híbrido (TabPFN + Transformer)
+        hybrid_config_path = os.path.join(tmpdir, 'hybrid_config.json')
+        if os.path.exists(hybrid_config_path):
+            from dl.src.sagemaker.tabpfn_classifier import TabPFNDirectionModel
+            from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer
+
+            tabpfn_dir = os.path.join(tmpdir, 'tabpfn')
+            tabpfn = TabPFNDirectionModel.load(tabpfn_dir) if os.path.exists(tabpfn_dir) else None
+
+            trans_dir = os.path.join(tmpdir, 'transformer_bilstm')
+            transformer = None
+            if os.path.exists(trans_dir):
+                try:
+                    transformer = DeepLearningTrainer.load(trans_dir, device='cpu')
+                except Exception as e:
+                    logger.warning(f"Transformer não carregado: {e}")
+
+            metrics = {}
+            metrics_path = os.path.join(tmpdir, 'metrics.json')
+            if os.path.exists(metrics_path):
+                with open(metrics_path, 'r') as f:
+                    metrics = json.load(f)
+
+            hybrid = {'tabpfn': tabpfn, 'transformer': transformer}
+            feature_names = tabpfn.feature_names if tabpfn else (transformer.feature_names if transformer else [])
+            logger.info(f"Modelo híbrido carregado: TabPFN={'ok' if tabpfn else 'N/A'}, Transformer={'ok' if transformer else 'N/A'}")
+            return hybrid, feature_names, metrics, 'hybrid_tabpfn'
+
         # Verificar se é ensemble DL (3 modelos)
         ensemble_config_path = os.path.join(tmpdir, 'ensemble_config.json')
         if os.path.exists(ensemble_config_path):
@@ -346,7 +374,20 @@ def predict_with_model(
     X = features_df[feature_cols].select_dtypes(include=[np.number])
     logger.info(f"Predições para {len(X)} tickers com {len(feature_cols)} features")
 
-    if model_type == 'transformer_bilstm':
+    if model_type == 'hybrid_tabpfn':
+        # Modelo híbrido: TabPFN (direção) × Transformer (magnitude)
+        tabpfn = model.get('tabpfn')
+        transformer = model.get('transformer')
+        if tabpfn:
+            directions, confidence = tabpfn.predict_direction(X.values)
+            if transformer:
+                magnitudes = np.abs(transformer.predict(X.values))
+            else:
+                magnitudes = np.full(len(X), 0.03)  # 3% default
+            predictions = directions * magnitudes * confidence
+        else:
+            predictions = np.zeros(len(X))
+    elif model_type == 'transformer_bilstm':
         # Modelo DL único — model é um DeepLearningTrainer
         predictions = model.predict(X.values)
     elif model_type == 'dl_ensemble':

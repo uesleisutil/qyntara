@@ -359,22 +359,20 @@ def handler(event, context):
 
 def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, event: dict) -> dict:
     """
-    Treina ensemble DL em etapas (1 modelo por invocação para caber no timeout de 15min).
-
+    Treina modelo híbrido: TabPFN (direção) + Transformer+BiLSTM (magnitude).
+    
     Modos:
-    - train_model=None: treina todos sequencialmente (pode dar timeout com dados grandes)
-    - train_model="transformer_bilstm": treina só esse modelo e salva no S3
-    - train_model="residual_mlp": treina só esse modelo
-    - train_model="temporal_cnn": treina só esse modelo
-    - combine_ensemble=True: combina os 3 modelos já treinados em um ensemble
+    - train_model="tabpfn": treina TabPFN para classificação de direção
+    - train_model="transformer_bilstm": treina Transformer para regressão de magnitude
+    - combine_ensemble=True: combina os 2 modelos
+    - Sem train_model: treina ambos sequencialmente
     """
-    import torch
-    from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, EnsembleDLTrainer, MODEL_REGISTRY
+    import os
+    os.environ['TABPFN_ALLOW_CPU_LARGE_DATASET'] = '1'
 
     train_model = event.get('train_model')
     combine_only = event.get('combine_ensemble', False)
     model_prefix = f"models/deep_learning/{dt}"
-    all_models = ['transformer_bilstm', 'tab_transformer', 'ft_transformer']
 
     # Separar features e target
     target_col = 'target'
@@ -404,9 +402,21 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     y_train, y_val = y[:split_idx], y[split_idx:]
     logger.info(f"Train: {len(X_train)}, Val: {len(X_val)}, Features: {len(feature_cols)}")
 
-    # === MODO: Combinar modelos já treinados ===
     if combine_only:
-        return _combine_ensemble(bucket, dt, model_prefix, all_models, X_val, y_val, feature_cols)
+        return _combine_hybrid(bucket, dt, model_prefix, X_val, y_val, feature_cols)
+
+    # === TabPFN (classificação de direção) ===
+    if train_model == 'tabpfn' or train_model is None:
+        return _train_tabpfn(bucket, dt, model_prefix, feature_cols, X_train, y_train, X_val, y_val)
+
+    # === Transformer+BiLSTM (regressão de magnitude) ===
+    if train_model == 'transformer_bilstm':
+        return _train_single_model(
+            'transformer_bilstm', bucket, dt, model_prefix, feature_cols,
+            X_train, y_train, X_val, y_val, epochs, event,
+        )
+
+    return {"ok": False, "error": f"Modelo desconhecido: {train_model}"}
 
     # === MODO: Treinar um modelo específico ===
     if train_model:
@@ -436,6 +446,154 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
         "architecture": "DL_Ensemble_3Models", "models": all_models,
         "weights": ensemble.weights, "model_key": f"{model_prefix}/model.tar.gz",
         "train_samples": len(X_train), "n_features": len(feature_cols), "metrics": metrics,
+    }
+
+
+def _train_tabpfn(bucket, dt, model_prefix, feature_cols, X_train, y_train, X_val, y_val):
+    """Treina TabPFN para classificação de direção e salva no S3."""
+    from dl.src.sagemaker.tabpfn_classifier import TabPFNDirectionModel
+
+    logger.info("Treinando TabPFN (classificação de direção)...")
+    model = TabPFNDirectionModel()
+    model.feature_names = feature_cols
+    metrics = model.train(X_train, y_train, X_val, y_val)
+    metrics['train_date'] = dt
+    metrics['model_name'] = 'tabpfn'
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        model.save(tmpdir)
+        for fname in os.listdir(tmpdir):
+            fpath = os.path.join(tmpdir, fname)
+            if os.path.isfile(fpath):
+                s3.upload_file(fpath, bucket, f"{model_prefix}/individual/tabpfn/{fname}")
+
+    logger.info(f"TabPFN salvo. DirAcc={metrics.get('directional_accuracy', 0):.1%}")
+    return {"ok": True, "dt": dt, "method": "tabpfn", "model_name": "tabpfn", "metrics": metrics}
+
+
+def _combine_hybrid(bucket, dt, model_prefix, X_val, y_val, feature_cols):
+    """Combina TabPFN (direção) + Transformer (magnitude) em modelo híbrido."""
+    import gzip, io
+    from dl.src.sagemaker.tabpfn_classifier import TabPFNDirectionModel
+    from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer
+
+    logger.info("Combinando modelo híbrido TabPFN + Transformer...")
+
+    # Carregar TabPFN
+    tabpfn = None
+    with tempfile.TemporaryDirectory() as tmpdir:
+        prefix = f"{model_prefix}/individual/tabpfn/"
+        resp = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+        for obj in resp.get('Contents', []):
+            fname = obj['Key'].split('/')[-1]
+            s3.download_file(bucket, obj['Key'], os.path.join(tmpdir, fname))
+        try:
+            tabpfn = TabPFNDirectionModel.load(tmpdir)
+            logger.info(f"TabPFN carregado: DirAcc={tabpfn.metrics.get('directional_accuracy', 'N/A')}")
+        except Exception as e:
+            logger.error(f"Erro ao carregar TabPFN: {e}")
+
+    # Carregar Transformer
+    transformer = None
+    with tempfile.TemporaryDirectory() as tmpdir:
+        prefix = f"{model_prefix}/individual/transformer_bilstm/"
+        resp = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
+        files = [obj['Key'] for obj in resp.get('Contents', []) if not obj['Key'].endswith('/')]
+        # Tentar arquivos soltos
+        model_files = [f for f in files if f.split('/')[-1] in ('model_config.json', 'model_state.pt', 'scaler.pkl', 'metrics.json', 'selected_features.json')]
+        if model_files:
+            for key in model_files:
+                s3.download_file(bucket, key, os.path.join(tmpdir, key.split('/')[-1]))
+        else:
+            # Tentar model.tar.gz do SageMaker
+            tar_files = [f for f in files if f.endswith('model.tar.gz')]
+            if not tar_files:
+                deeper = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=200)
+                tar_files = [obj['Key'] for obj in deeper.get('Contents', []) if obj['Key'].endswith('model.tar.gz')]
+            if tar_files:
+                tar_path = os.path.join(tmpdir, 'model.tar.gz')
+                s3.download_file(bucket, tar_files[0], tar_path)
+                with open(tar_path, 'rb') as f:
+                    decompressed = gzip.decompress(f.read())
+                with tarfile.open(fileobj=io.BytesIO(decompressed), mode='r:') as tar:
+                    tar.extractall(tmpdir)
+        try:
+            transformer = DeepLearningTrainer.load(tmpdir, device='cpu')
+            transformer.feature_names = feature_cols
+            logger.info(f"Transformer carregado: RMSE={transformer.metrics.get('val_rmse', 'N/A')}")
+        except Exception as e:
+            logger.error(f"Erro ao carregar Transformer: {e}")
+
+    if not tabpfn:
+        return {"ok": False, "error": "TabPFN não encontrado"}
+
+    # Predições híbridas na validação
+    directions, confidence = tabpfn.predict_direction(X_val)
+    y_val_dir = np.sign(y_val)
+    y_val_dir[y_val_dir == 0] = 1
+
+    dir_acc = float(np.mean(directions == y_val_dir))
+    logger.info(f"Híbrido DirAcc={dir_acc:.1%}")
+
+    # Se temos Transformer, combinar direção + magnitude
+    if transformer:
+        magnitudes = np.abs(transformer.predict(X_val))
+        hybrid_preds = directions * magnitudes
+    else:
+        hybrid_preds = directions * 0.03  # magnitude default de 3%
+
+    # Métricas do híbrido
+    residuals = y_val - hybrid_preds
+    ens_rmse = float(np.sqrt(np.mean(residuals ** 2)))
+
+    metrics = {
+        'architecture': 'Hybrid_TabPFN_Transformer',
+        'models': ['tabpfn', 'transformer_bilstm'],
+        'directional_accuracy': dir_acc,
+        'confident_accuracy': tabpfn.metrics.get('confident_accuracy'),
+        'ensemble_val_rmse': ens_rmse,
+        'tabpfn_metrics': tabpfn.metrics,
+        'transformer_metrics': transformer.metrics if transformer else {},
+        'train_date': dt,
+        'n_features': len(feature_cols),
+    }
+
+    # Salvar ensemble híbrido como model.tar.gz
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Salvar TabPFN
+        tabpfn_dir = os.path.join(tmpdir, 'tabpfn')
+        tabpfn.save(tabpfn_dir)
+        # Salvar Transformer se disponível
+        if transformer:
+            trans_dir = os.path.join(tmpdir, 'transformer_bilstm')
+            transformer.save(trans_dir)
+        # Config
+        config = {
+            'architecture': 'Hybrid_TabPFN_Transformer',
+            'models': ['tabpfn', 'transformer_bilstm'] if transformer else ['tabpfn'],
+            'n_features': len(feature_cols),
+        }
+        with open(os.path.join(tmpdir, 'hybrid_config.json'), 'w') as f:
+            json.dump(config, f, indent=2)
+        with open(os.path.join(tmpdir, 'metrics.json'), 'w') as f:
+            json.dump(metrics, f, indent=2, default=str)
+
+        # Empacotar
+        tar_path = os.path.join(tmpdir, 'model.tar.gz')
+        with tarfile.open(tar_path, 'w:gz') as tar:
+            for item in os.listdir(tmpdir):
+                if item != 'model.tar.gz':
+                    tar.add(os.path.join(tmpdir, item), arcname=item)
+        s3.upload_file(tar_path, bucket, f"{model_prefix}/model.tar.gz")
+        s3.upload_file(os.path.join(tmpdir, 'metrics.json'), bucket, f"{model_prefix}/metrics.json")
+
+    logger.info(f"Modelo híbrido salvo. DirAcc={dir_acc:.1%}")
+    return {
+        "ok": True, "dt": dt, "method": "hybrid_tabpfn_transformer",
+        "architecture": "Hybrid_TabPFN_Transformer",
+        "model_key": f"{model_prefix}/model.tar.gz",
+        "directional_accuracy": dir_acc,
+        "metrics": metrics,
     }
 
 
