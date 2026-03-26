@@ -16,7 +16,7 @@ export default defineConfig({
       '@lib': path.resolve(__dirname, 'src/lib'),
       '@store': path.resolve(__dirname, 'src/store'),
       // Node.js polyfills for plotly.js → ndarray → typedarray-pool
-      buffer: 'buffer/',
+      buffer: path.resolve(__dirname, 'src/shims/buffer.ts'),
     },
   },
   build: {
