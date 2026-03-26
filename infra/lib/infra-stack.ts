@@ -328,6 +328,8 @@ export class InfraStack extends cdk.Stack {
 
       DEEPAR_IMAGE_URI: deepArImageUri,
       ENSEMBLE_IMAGE_URI: ensembleImageUri,
+      HF_TOKEN: envOr("HF_TOKEN", ""),
+      TABPFN_ALLOW_CPU_LARGE_DATASET: "1",
       INGEST_LOOKBACK_MINUTES: ingestLookbackMinutes,
 
       SAGEMAKER_ROLE_ARN: sagemakerRole.roleArn,
