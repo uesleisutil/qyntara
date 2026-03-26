@@ -4,6 +4,69 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import './mobile.css';
 
+/* ─── Error Boundary for chunk loading failures ─── */
+class ChunkErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error) {
+    // Chunk load failures (new deploy invalidated old chunks)
+    const isChunkError =
+      error.message?.includes('Failed to fetch dynamically imported module') ||
+      error.message?.includes('Loading chunk') ||
+      error.message?.includes('Loading CSS chunk') ||
+      error.name === 'ChunkLoadError';
+
+    if (isChunkError) {
+      // Force reload to get fresh index.html with new chunk references
+      const reloaded = sessionStorage.getItem('chunk_reload');
+      if (!reloaded) {
+        sessionStorage.setItem('chunk_reload', '1');
+        window.location.reload();
+        return;
+      }
+      sessionStorage.removeItem('chunk_reload');
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '100vh', background: '#0f1117', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem',
+          color: '#e8eaf0', fontFamily: 'system-ui, sans-serif',
+        }}>
+          <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>Algo deu errado</div>
+          <div style={{ fontSize: '0.85rem', color: '#9ba1b0', maxWidth: 400, textAlign: 'center' }}>
+            {this.state.error?.message || 'Erro inesperado'}
+          </div>
+          <button
+            onClick={() => { sessionStorage.removeItem('chunk_reload'); window.location.reload(); }}
+            style={{
+              marginTop: '0.5rem', padding: '0.5rem 1.5rem', borderRadius: 8,
+              border: 'none', background: '#3b82f6', color: 'white',
+              fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Recarregar
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 /* ─── Lazy-loaded pages (each becomes its own chunk) ─── */
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -173,13 +236,15 @@ const AppRoutes: React.FC = () => (
 );
 
 const App: React.FC = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <HashRouter>
-        <AppRoutes />
-      </HashRouter>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ChunkErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <HashRouter>
+          <AppRoutes />
+        </HashRouter>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ChunkErrorBoundary>
 );
 
 export default App;

@@ -981,6 +981,7 @@ def _handle_me(event: dict) -> dict:
             "role": item.get("role", payload.get("role")),
             "plan": plan,
             "planExpiresAt": plan_expires if plan == "pro" else "",
+            "emailVerified": bool(item.get("emailVerified", True)),
             "freeTicker": item.get("freeTicker", ""),
             "canViewCosts": item.get("canViewCosts", False),
             "onboardingDone": item.get("onboardingDone", False),
