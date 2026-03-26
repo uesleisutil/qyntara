@@ -1,19 +1,23 @@
 FROM public.ecr.aws/lambda/python:3.11
 
-# Dependências DL para a Lambda de ranking (Ensemble: Transformer+BiLSTM · ResidualMLP · TemporalCNN)
-# Build: 2026-03-25-v2
-# boto3/botocore já vem na base image da Lambda
+# Build: 2026-03-26-tabpfn
+# Instalar PyTorch CPU primeiro
 RUN pip install --no-cache-dir \
-    torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu && \
-    pip install --no-cache-dir \
+    torch==2.2.0 --index-url https://download.pytorch.org/whl/cpu
+
+# Dependências base
+RUN pip install --no-cache-dir \
     numpy==1.26.4 \
     scipy==1.12.0 \
     pandas==2.1.4 \
-    scikit-learn>=1.5.0 \
-    tabpfn>=2.0.0 \
+    scikit-learn==1.4.0 \
     requests>=2.31.0 \
     python-dateutil>=2.8.2 \
     pytz>=2023.3
+
+# TabPFN (foundation model) — instalar sem resolver dependências de torch
+RUN pip install --no-cache-dir --no-deps tabpfn && \
+    pip install --no-cache-dir tabpfn-common-utils posthog backoff
 
 # Copiar código da aplicação
 COPY dl/ ${LAMBDA_TASK_ROOT}/dl/
