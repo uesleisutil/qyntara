@@ -434,47 +434,100 @@ def _train_single_model(
     model_name: str, bucket: str, dt: str, model_prefix: str, feature_cols: list,
     X_train, y_train, X_val, y_val, epochs: int, event: dict,
 ) -> dict:
-    """Treina um único modelo DL e salva no S3."""
-    import torch
-    from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, MODEL_REGISTRY
+    """
+    Inicia SageMaker Training Job para treinar um modelo DL.
+    A Lambda só prepara dados e inicia o job — o treino roda no SageMaker.
+    """
+    logger.info(f"Iniciando SageMaker Training Job para {model_name}")
 
-    logger.info(f"Treinando modelo individual: {model_name}")
-    reg = MODEL_REGISTRY[model_name]
-    model_cls = reg['class']
-    kwargs = reg['default_kwargs'].copy()
+    cfg = load_runtime_config()
 
-    n_features = len(feature_cols)
+    # 1. Preparar dados de treino como DataFrame e upload para S3
+    train_df = pd.DataFrame(X_train, columns=feature_cols)
+    train_df['target'] = y_train
+    # Adicionar validação
+    val_df = pd.DataFrame(X_val, columns=feature_cols)
+    val_df['target'] = y_val
+    full_df = pd.concat([train_df, val_df], ignore_index=True)
 
-    # Treino completo com todas as features
-    trainer = DeepLearningTrainer(n_features=n_features, device='cpu')
-    trainer.model = model_cls(n_features=n_features, **kwargs).to(torch.device('cpu'))
-    trainer.feature_names = feature_cols
+    train_prefix = f"training/dl/{dt}/{model_name}"
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+        full_df.to_csv(f, index=False)
+        temp_path = f.name
+    s3.upload_file(temp_path, bucket, f"{train_prefix}/train.csv")
+    os.unlink(temp_path)
+    train_data_s3 = f"s3://{bucket}/{train_prefix}"
+    logger.info(f"Dados enviados para {train_data_s3} ({len(full_df)} amostras)")
 
-    metrics = trainer.train(
-        X_train, y_train, X_val, y_val,
-        epochs=epochs, batch_size=min(128, len(X_train)), lr=5e-4, patience=20,
-    )
-    metrics['train_date'] = dt
-    metrics['train_samples'] = len(X_train)
-    metrics['n_features'] = n_features
-    metrics['model_name'] = model_name
-    trainer.metrics = metrics
+    # 2. Empacotar scripts de treino (train_single_model.py + train_deep_learning.py)
+    script_dir = os.path.join(os.path.dirname(__file__), '..', 'sagemaker')
+    with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as tmp:
+        tar_path = tmp.name
+    with tarfile.open(tar_path, 'w:gz') as tar:
+        for script in ['train_single_model.py', 'train_deep_learning.py']:
+            script_path = os.path.join(script_dir, script)
+            if os.path.exists(script_path):
+                tar.add(script_path, arcname=script)
+    s3.upload_file(tar_path, bucket, f"scripts/dl_train_{model_name}.tar.gz")
+    os.unlink(tar_path)
+    script_s3 = f"s3://{bucket}/scripts/dl_train_{model_name}.tar.gz"
 
-    # Salvar modelo individual no S3
-    with tempfile.TemporaryDirectory() as tmpdir:
-        trainer.save(tmpdir)
-        for fname in os.listdir(tmpdir):
-            fpath = os.path.join(tmpdir, fname)
-            if os.path.isfile(fpath):
-                s3_key = f"{model_prefix}/individual/{model_name}/{fname}"
-                s3.upload_file(fpath, bucket, s3_key)
+    # 3. Iniciar SageMaker Training Job
+    # Usar imagem PyTorch da AWS (tem torch pré-instalado)
+    region = boto3.Session().region_name
+    image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-cpu-py311-ubuntu20.04-sagemaker"
 
-    logger.info(f"Modelo {model_name} salvo em s3://{bucket}/{model_prefix}/individual/{model_name}/")
+    job_name = f"b3tr-{model_name.replace('_', '-')}-{dt.replace('-', '')}"[:63]
+
+    hyperparameters = {
+        'model-name': model_name,
+        'epochs': str(epochs),
+        'batch-size': '128',
+        'lr': '0.0005',
+        'patience': '20',
+        'sagemaker_program': 'train_single_model.py',
+        'sagemaker_submit_directory': script_s3,
+    }
+
+    output_s3 = f"s3://{bucket}/{model_prefix}/individual/{model_name}"
+
+    try:
+        sagemaker.create_training_job(
+            TrainingJobName=job_name,
+            RoleArn=cfg.sagemaker_role_arn,
+            AlgorithmSpecification={
+                'TrainingImage': image_uri,
+                'TrainingInputMode': 'File',
+            },
+            InputDataConfig=[{
+                'ChannelName': 'train',
+                'DataSource': {
+                    'S3DataSource': {
+                        'S3DataType': 'S3Prefix',
+                        'S3Uri': train_data_s3,
+                        'S3DataDistributionType': 'FullyReplicated',
+                    }
+                },
+                'ContentType': 'text/csv',
+            }],
+            OutputDataConfig={'S3OutputPath': output_s3},
+            ResourceConfig={
+                'InstanceType': 'ml.m5.xlarge',  # 16GB RAM, 4 vCPUs
+                'InstanceCount': 1,
+                'VolumeSizeInGB': 30,
+            },
+            HyperParameters=hyperparameters,
+            StoppingCondition={'MaxRuntimeInSeconds': 3600},  # 1 hora max
+        )
+        logger.info(f"SageMaker Training Job iniciado: {job_name}")
+    except Exception as e:
+        logger.error(f"Erro ao iniciar SageMaker job: {e}")
+        return {"ok": False, "error": str(e), "model_name": model_name}
 
     return {
-        "ok": True, "dt": dt, "method": f"local_dl_{model_name}",
-        "model_name": model_name, "metrics": metrics,
-        "val_rmse": metrics.get('val_rmse'), "directional_accuracy": metrics.get('directional_accuracy'),
+        "ok": True, "dt": dt, "method": f"sagemaker_{model_name}",
+        "model_name": model_name, "training_job_name": job_name,
+        "output_s3": output_s3, "instance_type": "ml.m5.xlarge",
     }
 
 
@@ -482,34 +535,76 @@ def _combine_ensemble(
     bucket: str, dt: str, model_prefix: str, model_names: list,
     X_val, y_val, feature_cols: list,
 ) -> dict:
-    """Combina modelos individuais já treinados em um ensemble."""
+    """Combina modelos individuais já treinados em um ensemble.
+    Busca modelos tanto do formato Lambda (arquivos soltos) quanto SageMaker (model.tar.gz)."""
     import torch
+    import gzip
+    import io
     from dl.src.sagemaker.train_deep_learning import DeepLearningTrainer, EnsembleDLTrainer
 
     logger.info("Combinando modelos individuais em ensemble...")
     ensemble = EnsembleDLTrainer(n_features=len(feature_cols), model_names=model_names, device='cpu')
 
     for name in model_names:
-        # Baixar modelo individual do S3
         with tempfile.TemporaryDirectory() as tmpdir:
+            loaded = False
+
+            # Tentar formato Lambda (arquivos soltos no S3)
             prefix = f"{model_prefix}/individual/{name}/"
             resp = s3.list_objects_v2(Bucket=bucket, Prefix=prefix)
-            for obj in resp.get('Contents', []):
-                fname = obj['Key'].split('/')[-1]
-                s3.download_file(bucket, obj['Key'], os.path.join(tmpdir, fname))
-            trainer = DeepLearningTrainer.load(tmpdir, device='cpu')
-            trainer.feature_names = feature_cols
-            ensemble.trainers[name] = trainer
-            logger.info(f"Carregado {name}: RMSE={trainer.metrics.get('val_rmse', 'N/A')}")
+            files = [obj['Key'] for obj in resp.get('Contents', []) if not obj['Key'].endswith('/')]
 
-    # Calcular pesos baseados no RMSE
+            model_files = [f for f in files if f.split('/')[-1] in ('model_config.json', 'model_state.pt', 'scaler.pkl', 'metrics.json', 'selected_features.json')]
+            if model_files:
+                for key in model_files:
+                    fname = key.split('/')[-1]
+                    s3.download_file(bucket, key, os.path.join(tmpdir, fname))
+                loaded = True
+                logger.info(f"Carregado {name} (formato Lambda, {len(model_files)} arquivos)")
+
+            # Tentar formato SageMaker (model.tar.gz dentro de output/)
+            if not loaded:
+                tar_files = [f for f in files if f.endswith('model.tar.gz')]
+                if not tar_files:
+                    # SageMaker salva em {output_s3}/{job_name}/output/model.tar.gz
+                    deeper_resp = s3.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=200)
+                    tar_files = [obj['Key'] for obj in deeper_resp.get('Contents', []) if obj['Key'].endswith('model.tar.gz')]
+
+                if tar_files:
+                    tar_key = tar_files[0]
+                    tar_path = os.path.join(tmpdir, 'model.tar.gz')
+                    s3.download_file(bucket, tar_key, tar_path)
+                    # Extrair
+                    with open(tar_path, 'rb') as f:
+                        decompressed = gzip.decompress(f.read())
+                    with tarfile.open(fileobj=io.BytesIO(decompressed), mode='r:') as tar:
+                        tar.extractall(tmpdir)
+                    loaded = True
+                    logger.info(f"Carregado {name} (formato SageMaker tar.gz)")
+
+            if not loaded:
+                logger.warning(f"Modelo {name} não encontrado em {prefix}")
+                continue
+
+            try:
+                trainer = DeepLearningTrainer.load(tmpdir, device='cpu')
+                trainer.feature_names = feature_cols
+                ensemble.trainers[name] = trainer
+                logger.info(f"  {name}: RMSE={trainer.metrics.get('val_rmse', 'N/A')}")
+            except Exception as e:
+                logger.error(f"Erro ao carregar {name}: {e}")
+
+    if not ensemble.trainers:
+        return {"ok": False, "error": "Nenhum modelo carregado"}
+
+    # Calcular pesos
     val_rmses = {name: t.metrics.get('val_rmse', 999.0) for name, t in ensemble.trainers.items()}
     inv = {k: 1.0 / (v + 1e-8) for k, v in val_rmses.items()}
     total = sum(inv.values())
     ensemble.weights = {k: round(v / total, 4) for k, v in inv.items()}
     logger.info(f"Pesos do ensemble: {ensemble.weights}")
 
-    # Calcular métricas do ensemble
+    # Métricas do ensemble
     ensemble_preds = ensemble.predict(X_val)
     residuals = y_val - ensemble_preds
     ens_rmse = float(np.sqrt(np.mean(residuals ** 2)))
@@ -520,20 +615,20 @@ def _combine_ensemble(
 
     individual_metrics = {name: t.metrics for name, t in ensemble.trainers.items()}
     ensemble.ensemble_metrics = {
-        'architecture': 'DL_Ensemble_3Models', 'models': model_names,
+        'architecture': 'DL_Ensemble_3Models', 'models': list(ensemble.trainers.keys()),
         'weights': ensemble.weights, 'individual_metrics': individual_metrics,
         'ensemble_val_rmse': ens_rmse, 'ensemble_val_mae': ens_mae,
         'ensemble_val_mape': min(ens_mape, 999.0), 'ensemble_directional_accuracy': ens_dir_acc,
         'train_date': dt, 'n_features': len(feature_cols),
-        'train_samples': individual_metrics.get(model_names[0], {}).get('train_samples'),
+        'train_samples': individual_metrics.get(list(ensemble.trainers.keys())[0], {}).get('train_samples'),
     }
     logger.info(f"Ensemble: RMSE={ens_rmse:.4f}, DirAcc={ens_dir_acc:.2%}")
 
     _upload_ensemble(ensemble, bucket, model_prefix)
 
     return {
-        "ok": True, "dt": dt, "method": "local_dl_ensemble",
-        "architecture": "DL_Ensemble_3Models", "models": model_names,
+        "ok": True, "dt": dt, "method": "dl_ensemble",
+        "architecture": "DL_Ensemble_3Models", "models": list(ensemble.trainers.keys()),
         "weights": ensemble.weights, "model_key": f"{model_prefix}/model.tar.gz",
         "n_features": len(feature_cols), "metrics": ensemble.ensemble_metrics,
     }
