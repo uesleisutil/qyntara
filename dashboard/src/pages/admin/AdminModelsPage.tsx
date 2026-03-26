@@ -260,8 +260,11 @@ const AdminModelsPage: React.FC = () => {
 
     const modelLabels: Record<string, { emoji: string; name: string; desc: string; color: string }> = {
       transformer_bilstm: { emoji: '🧠', name: 'Transformer + BiLSTM', desc: 'Multi-head self-attention + BiLSTM com attention pooling. Captura dependências temporais longas e padrões sequenciais complexos.', color: '#8b5cf6' },
-      residual_mlp: { emoji: '🔗', name: 'Residual MLP', desc: 'MLP com blocos residuais + LayerNorm + GELU. Especializado em relações não-lineares entre features cross-section.', color: '#3b82f6' },
-      temporal_cnn: { emoji: '📊', name: 'Temporal 1D-CNN', desc: 'Convoluções 1D + BatchNorm + global avg pooling. Detecta padrões locais e motifs temporais de curto prazo.', color: '#10b981' },
+      tab_transformer: { emoji: '🔮', name: 'TabTransformer', desc: 'Transformer para dados tabulares — cada feature vira um token com embedding próprio. CLS token agrega interações entre features.', color: '#3b82f6' },
+      dilated_cnn: { emoji: '🌊', name: 'WaveNet Dilated CNN', desc: 'Convoluções dilatadas (1,2,4,8,16) com gated activation. Captura padrões em múltiplas escalas temporais simultaneamente.', color: '#10b981' },
+      // Legacy (backward compat)
+      residual_mlp: { emoji: '🔗', name: 'Residual MLP', desc: 'MLP com blocos residuais (modelo legado).', color: '#6b7280' },
+      temporal_cnn: { emoji: '📊', name: 'Temporal 1D-CNN', desc: '1D-CNN (modelo legado).', color: '#6b7280' },
     };
 
     return (
@@ -642,13 +645,13 @@ const AdminModelsPage: React.FC = () => {
         inputs: ['BRAPI Pro API', 'BCB API', 'NewsAPI (opcional)'],
       },
       {
-        name: 'WeeklyRetrain (Staged)', description: 'Retreina ensemble DL em 4 etapas: treina cada modelo individualmente (Transformer+BiLSTM → ResidualMLP → TemporalCNN) e depois combina com pesos adaptativos.',
+        name: 'WeeklyRetrain (Staged)', description: 'Retreina ensemble DL em 4 etapas: treina cada modelo individualmente (Transformer+BiLSTM → TabTransformer → DilatedCNN) e depois combina com pesos adaptativos.',
         schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)', lambda: 'B3TacticalRankingStackV2-TrainSageMaker',
         status: pipeline?.weekly_retrain, icon: <Cpu size={18} />, color: '#8b5cf6',
         outputs: [
           'models/deep_learning/{date}/individual/transformer_bilstm/',
-          'models/deep_learning/{date}/individual/residual_mlp/',
-          'models/deep_learning/{date}/individual/temporal_cnn/',
+          'models/deep_learning/{date}/individual/tab_transformer/',
+          'models/deep_learning/{date}/individual/dilated_cnn/',
           'models/deep_learning/{date}/model.tar.gz (ensemble final)',
         ],
         inputs: ['curated/daily_monthly/ (730 dias)', 'feature_store/fundamentals/', 'feature_store/macro/', 'feature_store/sentiment/'],
@@ -742,11 +745,11 @@ const AdminModelsPage: React.FC = () => {
       {
         name: 'Treinamento (Ensemble)', icon: <Cpu size={20} />, color: '#ef4444',
         items: [
-          { label: 'Transformer + BiLSTM', detail: 'Multi-head self-attention + BiLSTM + attention pooling (peso ~40%)', status: true },
-          { label: 'Residual MLP', detail: 'MLP com blocos residuais + LayerNorm + GELU (peso ~30%)', status: true },
-          { label: 'Temporal 1D-CNN', detail: '1D convolutions + BatchNorm + global avg pooling (peso ~30%)', status: true },
+          { label: 'Transformer + BiLSTM', detail: 'Multi-head self-attention + BiLSTM + attention pooling', status: true },
+          { label: 'TabTransformer', detail: 'Feature tokenization + CLS token + Transformer encoder para interações entre features', status: true },
+          { label: 'WaveNet Dilated CNN', detail: 'Convoluções dilatadas (1,2,4,8,16) com gated activation (sigmoid × tanh)', status: true },
           { label: 'Ensemble Ponderado', detail: 'Pesos inversamente proporcionais ao RMSE de validação', status: true },
-          { label: 'Early Stopping', detail: 'Patience=20, HuberLoss + penalidade direcional, OneCycleLR', status: true },
+          { label: 'Early Stopping', detail: 'Patience=20, Asymmetric Focal Loss (γ=2) + HuberLoss, OneCycleLR', status: true },
           { label: 'Retreino Semanal', detail: 'Domingo 22:00 UTC via EventBridge', status: true },
         ],
       },

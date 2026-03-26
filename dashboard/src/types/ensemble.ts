@@ -5,8 +5,8 @@
 export interface EnsembleWeights {
   date: string;
   transformer_bilstm: number;
-  residual_mlp: number;
-  temporal_cnn: number;
+  tab_transformer: number;
+  dilated_cnn: number;
 }
 
 export interface ModelContribution {

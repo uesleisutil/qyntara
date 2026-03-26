@@ -370,8 +370,17 @@ class DeepLearningTrainer:
             model_config['n_blocks'] = model.n_blocks
         if hasattr(model, 'channels'):
             model_config['channels'] = model.channels
-            model_config['kernel_size'] = model.kernel_size
-            model_config['n_layers'] = model.n_layers
+            if hasattr(model, 'kernel_size'):
+                model_config['kernel_size'] = model.kernel_size
+            if hasattr(model, 'n_layers'):
+                model_config['n_layers'] = model.n_layers
+            if hasattr(model, 'n_blocks'):
+                model_config['n_blocks'] = model.n_blocks
+        # TabTransformer
+        if hasattr(model, 'feature_embeddings') and hasattr(model, 'num_layers'):
+            model_config['d_model'] = model.d_model
+            model_config['nhead'] = model.transformer.layers[0].self_attn.num_heads
+            model_config['num_layers'] = model.num_layers
         with open(os.path.join(path, 'model_config.json'), 'w') as f:
             json.dump(model_config, f)
         with open(os.path.join(path, 'scaler.pkl'), 'wb') as f:
@@ -413,6 +422,17 @@ class DeepLearningTrainer:
                 'kernel_size': config.get('kernel_size', 3),
                 'n_layers': config.get('n_layers', 3),
             }
+        elif model_class_name == 'TabTransformerModel':
+            model_kwargs = {
+                'd_model': config.get('d_model', 64),
+                'nhead': config.get('nhead', 4),
+                'num_layers': config.get('num_layers', 3),
+            }
+        elif model_class_name == 'DilatedCNNModel':
+            model_kwargs = {
+                'channels': config.get('channels', 96),
+                'n_blocks': config.get('n_blocks', 2),
+            }
 
         trainer = cls(n_features=n_features, device=device)
         # Criar modelo do tipo correto
@@ -420,6 +440,8 @@ class DeepLearningTrainer:
             'TransformerBiLSTMModel': TransformerBiLSTMModel,
             'ResidualMLPModel': ResidualMLPModel,
             'TemporalCNNModel': TemporalCNNModel,
+            'TabTransformerModel': TabTransformerModel,
+            'DilatedCNNModel': DilatedCNNModel,
         }
         model_cls = model_classes.get(model_class_name, TransformerBiLSTMModel)
         trainer.model = model_cls(n_features=n_features, **model_kwargs).to(torch.device(device))
@@ -501,7 +523,7 @@ class ResidualBlock(nn.Module):
 
 
 class ResidualMLPModel(nn.Module):
-    """MLP com blocos residuais — multi-task (regressão + classificação)."""
+    """Mantido para backward compat no load."""
     def __init__(self, n_features: int, hidden: int = 128, n_blocks: int = 3, dropout: float = 0.2):
         super().__init__()
         self.n_features = n_features
@@ -513,25 +535,17 @@ class ResidualMLPModel(nn.Module):
         self.reg_head = nn.Sequential(nn.Linear(64, 1), nn.Tanh())
         self.cls_head = nn.Linear(64, 1)
         self.output_scale = 0.15
-
     def forward(self, x):
-        if x.dim() == 3:
-            x = x[:, -1, :]
+        if x.dim() == 3: x = x[:, -1, :]
         shared = self.shared(self.blocks(self.input_proj(x)))
         reg_out = self.reg_head(shared) * self.output_scale
         cls_logit = self.cls_head(shared)
-        if self.training:
-            return reg_out, cls_logit
-        else:
-            return torch.tanh(cls_logit) * torch.abs(reg_out)
+        if self.training: return reg_out, cls_logit
+        return torch.tanh(cls_logit) * torch.abs(reg_out)
 
-
-# ═══════════════════════════════════════════════════════════
-# Modelo 3: Temporal 1D-CNN
-# ═══════════════════════════════════════════════════════════
 
 class TemporalCNNModel(nn.Module):
-    """1D-CNN para capturar padrões locais em features técnicas."""
+    """Mantido para backward compat no load."""
     def __init__(self, n_features: int, channels: int = 64, kernel_size: int = 3, n_layers: int = 3, dropout: float = 0.2):
         super().__init__()
         self.n_features = n_features
@@ -541,32 +555,158 @@ class TemporalCNNModel(nn.Module):
         self.input_proj = nn.Linear(n_features, channels)
         layers = []
         for _ in range(n_layers):
-            layers.extend([
-                nn.Conv1d(channels, channels, kernel_size, padding=kernel_size // 2),
-                nn.BatchNorm1d(channels),
-                nn.GELU(),
-                nn.Dropout(dropout),
-            ])
+            layers.extend([nn.Conv1d(channels, channels, kernel_size, padding=kernel_size // 2), nn.BatchNorm1d(channels), nn.GELU(), nn.Dropout(dropout)])
         self.conv = nn.Sequential(*layers)
         self.shared = nn.Sequential(nn.Linear(channels, 32), nn.GELU())
         self.reg_head = nn.Sequential(nn.Linear(32, 1), nn.Tanh())
         self.cls_head = nn.Linear(32, 1)
         self.output_scale = 0.15
+    def forward(self, x):
+        if x.dim() == 2: x = x.unsqueeze(1)
+        x = self.input_proj(x).transpose(1, 2)
+        x = self.conv(x).mean(dim=2)
+        shared = self.shared(x)
+        reg_out = self.reg_head(shared) * self.output_scale
+        cls_logit = self.cls_head(shared)
+        if self.training: return reg_out, cls_logit
+        return torch.tanh(cls_logit) * torch.abs(reg_out)
+
+
+# ═══════════════════════════════════════════════════════════
+# Modelo 2: TabTransformer — Transformer para dados tabulares
+# Cada feature vira um token com embedding próprio
+# ═══════════════════════════════════════════════════════════
+
+class TabTransformerModel(nn.Module):
+    """
+    TabTransformer: trata cada feature como um token.
+    - Feature tokenization: cada feature → embedding de d_model dims
+    - CLS token para agregação
+    - Transformer encoder para interações entre features
+    - Multi-task heads
+    """
+    def __init__(self, n_features: int, d_model: int = 64, nhead: int = 4,
+                 num_layers: int = 3, dropout: float = 0.15):
+        super().__init__()
+        self.n_features = n_features
+        self.d_model = d_model
+        self.num_layers = num_layers
+
+        # Cada feature → embedding
+        self.feature_embeddings = nn.Linear(1, d_model)
+        # Positional embedding por feature (aprendido)
+        self.feature_pos = nn.Parameter(torch.randn(1, n_features + 1, d_model) * 0.02)
+        # CLS token
+        self.cls_token = nn.Parameter(torch.randn(1, 1, d_model) * 0.02)
+
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=nhead, dim_feedforward=d_model * 4,
+            dropout=dropout, activation='gelu', batch_first=True, norm_first=True,
+        )
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.norm = nn.LayerNorm(d_model)
+
+        self.shared = nn.Sequential(nn.Linear(d_model, 64), nn.GELU(), nn.Dropout(dropout))
+        self.reg_head = nn.Sequential(nn.Linear(64, 1), nn.Tanh())
+        self.cls_head = nn.Linear(64, 1)
+        self.output_scale = 0.15
 
     def forward(self, x):
-        if x.dim() == 2:
-            x = x.unsqueeze(1)
-        x = self.input_proj(x)
-        x = x.transpose(1, 2)
-        x = self.conv(x)
-        x = x.mean(dim=2)
-        shared = self.shared(x)
+        if x.dim() == 3:
+            x = x[:, -1, :]  # (B, features)
+        B = x.size(0)
+
+        # Tokenize: cada feature → (B, n_features, d_model)
+        tokens = self.feature_embeddings(x.unsqueeze(-1))  # (B, n_features, d_model)
+
+        # Prepend CLS token
+        cls = self.cls_token.expand(B, -1, -1)  # (B, 1, d_model)
+        tokens = torch.cat([cls, tokens], dim=1)  # (B, n_features+1, d_model)
+
+        # Add positional embeddings
+        tokens = tokens + self.feature_pos[:, :tokens.size(1), :]
+
+        # Transformer
+        out = self.transformer(tokens)
+        out = self.norm(out)
+
+        # CLS token output
+        cls_out = out[:, 0, :]  # (B, d_model)
+
+        shared = self.shared(cls_out)
         reg_out = self.reg_head(shared) * self.output_scale
         cls_logit = self.cls_head(shared)
         if self.training:
             return reg_out, cls_logit
-        else:
-            return torch.tanh(cls_logit) * torch.abs(reg_out)
+        return torch.tanh(cls_logit) * torch.abs(reg_out)
+
+
+# ═══════════════════════════════════════════════════════════
+# Modelo 3: WaveNet-style Dilated CNN
+# Convoluções dilatadas capturam padrões em múltiplas escalas
+# ═══════════════════════════════════════════════════════════
+
+class DilatedCNNModel(nn.Module):
+    """
+    WaveNet-style: convoluções dilatadas (1, 2, 4, 8, 16) capturam
+    padrões de curto e longo prazo simultaneamente.
+    Gated activation (sigmoid * tanh) como no WaveNet original.
+    """
+    def __init__(self, n_features: int, channels: int = 96, n_blocks: int = 2, dropout: float = 0.15):
+        super().__init__()
+        self.n_features = n_features
+        self.channels = channels
+        self.n_blocks = n_blocks
+        self.input_proj = nn.Linear(n_features, channels)
+
+        # Dilated convolutions: dilation = 1, 2, 4, 8, 16 (repete n_blocks vezes)
+        self.dilated_layers = nn.ModuleList()
+        self.gate_layers = nn.ModuleList()
+        self.residual_layers = nn.ModuleList()
+        self.skip_layers = nn.ModuleList()
+
+        dilations = [1, 2, 4, 8, 16]
+        for _ in range(n_blocks):
+            for d in dilations:
+                self.dilated_layers.append(nn.Conv1d(channels, channels, 3, padding=d, dilation=d))
+                self.gate_layers.append(nn.Conv1d(channels, channels, 3, padding=d, dilation=d))
+                self.residual_layers.append(nn.Conv1d(channels, channels, 1))
+                self.skip_layers.append(nn.Conv1d(channels, channels, 1))
+
+        self.skip_proj = nn.Sequential(nn.GELU(), nn.Conv1d(channels, channels, 1), nn.GELU())
+        self.drop = nn.Dropout(dropout)
+
+        self.shared = nn.Sequential(nn.Linear(channels, 64), nn.LayerNorm(64), nn.GELU())
+        self.reg_head = nn.Sequential(nn.Linear(64, 1), nn.Tanh())
+        self.cls_head = nn.Linear(64, 1)
+        self.output_scale = 0.15
+
+    def forward(self, x):
+        if x.dim() == 2:
+            x = x.unsqueeze(1)
+        x = self.input_proj(x).transpose(1, 2)  # (B, channels, seq)
+
+        skip_sum = 0
+        for dilated, gate, residual, skip in zip(
+            self.dilated_layers, self.gate_layers, self.residual_layers, self.skip_layers
+        ):
+            # Gated activation (WaveNet)
+            h = torch.tanh(dilated(x)) * torch.sigmoid(gate(x))
+            h = self.drop(h)
+            # Skip connection
+            skip_sum = skip_sum + skip(h)
+            # Residual
+            x = x + residual(h)
+
+        out = self.skip_proj(skip_sum)
+        out = out.mean(dim=2)  # global avg pool
+
+        shared = self.shared(out)
+        reg_out = self.reg_head(shared) * self.output_scale
+        cls_logit = self.cls_head(shared)
+        if self.training:
+            return reg_out, cls_logit
+        return torch.tanh(cls_logit) * torch.abs(reg_out)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -578,13 +718,13 @@ MODEL_REGISTRY = {
         'class': TransformerBiLSTMModel,
         'default_kwargs': {'d_model': 192, 'nhead': 6, 'num_encoder_layers': 3, 'lstm_hidden': 96, 'dropout': 0.15},
     },
-    'residual_mlp': {
-        'class': ResidualMLPModel,
-        'default_kwargs': {'hidden': 192, 'n_blocks': 4, 'dropout': 0.15},
+    'tab_transformer': {
+        'class': TabTransformerModel,
+        'default_kwargs': {'d_model': 64, 'nhead': 4, 'num_layers': 3, 'dropout': 0.15},
     },
-    'temporal_cnn': {
-        'class': TemporalCNNModel,
-        'default_kwargs': {'channels': 96, 'kernel_size': 3, 'n_layers': 4, 'dropout': 0.15},
+    'dilated_cnn': {
+        'class': DilatedCNNModel,
+        'default_kwargs': {'channels': 96, 'n_blocks': 2, 'dropout': 0.15},
     },
 }
 
@@ -595,7 +735,7 @@ class EnsembleDLTrainer:
     def __init__(self, n_features: int, model_names: list[str] = None, device: str = 'cpu'):
         self.n_features = n_features
         self.device = torch.device(device)
-        self.model_names = model_names or ['transformer_bilstm', 'residual_mlp', 'temporal_cnn']
+        self.model_names = model_names or ['transformer_bilstm', 'tab_transformer', 'dilated_cnn']
         self.trainers: dict[str, DeepLearningTrainer] = {}
         self.weights: dict[str, float] = {}
         self.ensemble_metrics: dict = {}
