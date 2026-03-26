@@ -261,10 +261,11 @@ const AdminModelsPage: React.FC = () => {
     const modelLabels: Record<string, { emoji: string; name: string; desc: string; color: string }> = {
       transformer_bilstm: { emoji: '🧠', name: 'Transformer + BiLSTM', desc: 'Multi-head self-attention + BiLSTM com attention pooling. Captura dependências temporais longas e padrões sequenciais complexos.', color: '#8b5cf6' },
       tab_transformer: { emoji: '🔮', name: 'TabTransformer', desc: 'Transformer para dados tabulares — cada feature vira um token com embedding próprio. CLS token agrega interações entre features.', color: '#3b82f6' },
-      dilated_cnn: { emoji: '🌊', name: 'WaveNet Dilated CNN', desc: 'Convoluções dilatadas (1,2,4,8,16) com gated activation. Captura padrões em múltiplas escalas temporais simultaneamente.', color: '#10b981' },
+      ft_transformer: { emoji: '⚡', name: 'FT-Transformer', desc: 'Feature Tokenizer + Transformer (estado da arte para tabular). Feature embeddings aprendidos por feature, 4 layers, 8 heads, pre-norm.', color: '#10b981' },
       // Legacy (backward compat)
       residual_mlp: { emoji: '🔗', name: 'Residual MLP', desc: 'MLP com blocos residuais (modelo legado).', color: '#6b7280' },
       temporal_cnn: { emoji: '📊', name: 'Temporal 1D-CNN', desc: '1D-CNN (modelo legado).', color: '#6b7280' },
+      dilated_cnn: { emoji: '🌊', name: 'WaveNet Dilated CNN', desc: 'Convoluções dilatadas (modelo legado).', color: '#6b7280' },
     };
 
     return (
@@ -645,13 +646,13 @@ const AdminModelsPage: React.FC = () => {
         inputs: ['BRAPI Pro API', 'BCB API', 'NewsAPI (opcional)'],
       },
       {
-        name: 'WeeklyRetrain (Staged)', description: 'Retreina ensemble DL em 4 etapas: treina cada modelo individualmente (Transformer+BiLSTM → TabTransformer → DilatedCNN) e depois combina com pesos adaptativos.',
+        name: 'WeeklyRetrain (Staged)', description: 'Retreina ensemble DL em 4 etapas: treina cada modelo individualmente (Transformer+BiLSTM → TabTransformer → FT-Transformer) e depois combina com pesos adaptativos.',
         schedule: 'Semanal, Domingo 22:00 UTC (19:00 BRT)', lambda: 'B3TacticalRankingStackV2-TrainSageMaker',
         status: pipeline?.weekly_retrain, icon: <Cpu size={18} />, color: '#8b5cf6',
         outputs: [
           'models/deep_learning/{date}/individual/transformer_bilstm/',
           'models/deep_learning/{date}/individual/tab_transformer/',
-          'models/deep_learning/{date}/individual/dilated_cnn/',
+          'models/deep_learning/{date}/individual/ft_transformer/',
           'models/deep_learning/{date}/model.tar.gz (ensemble final)',
         ],
         inputs: ['curated/daily_monthly/ (730 dias)', 'feature_store/fundamentals/', 'feature_store/macro/', 'feature_store/sentiment/'],
@@ -747,7 +748,7 @@ const AdminModelsPage: React.FC = () => {
         items: [
           { label: 'Transformer + BiLSTM', detail: 'Multi-head self-attention + BiLSTM + attention pooling', status: true },
           { label: 'TabTransformer', detail: 'Feature tokenization + CLS token + Transformer encoder para interações entre features', status: true },
-          { label: 'WaveNet Dilated CNN', detail: 'Convoluções dilatadas (1,2,4,8,16) com gated activation (sigmoid × tanh)', status: true },
+          { label: 'FT-Transformer', detail: 'Feature Tokenizer completo (embedding por feature) + 4-layer Transformer, 8 heads, pre-norm. Estado da arte tabular.', status: true },
           { label: 'Ensemble Ponderado', detail: 'Pesos inversamente proporcionais ao RMSE de validação', status: true },
           { label: 'Early Stopping', detail: 'Patience=20, Asymmetric Focal Loss (γ=2) + HuberLoss, OneCycleLR', status: true },
           { label: 'Retreino Semanal', detail: 'Domingo 22:00 UTC via EventBridge', status: true },

@@ -114,9 +114,9 @@ const TickerDetailModal = ({ ticker, onClose }) => {
 
   // Modelos do ensemble
   const models = [
-    { name: 'Transformer', weight: ticker.model_weights?.transformer || 0.25, prediction: ticker.predictions?.transformer || 0 },
-    { name: 'LSTM', weight: ticker.model_weights?.lstm || 0.25, prediction: ticker.predictions?.lstm || 0 },
-    { name: 'Prophet', weight: ticker.model_weights?.prophet || 0.25, prediction: ticker.predictions?.prophet || 0 },
+    { name: 'Transformer+BiLSTM', weight: ticker.model_weights?.transformer_bilstm || 0.35, prediction: ticker.predictions?.transformer_bilstm || 0 },
+    { name: 'TabTransformer', weight: ticker.model_weights?.tab_transformer || 0.30, prediction: ticker.predictions?.tab_transformer || 0 },
+    { name: 'FT-Transformer', weight: ticker.model_weights?.ft_transformer || 0.35, prediction: ticker.predictions?.ft_transformer || 0 },
     { name: 'DeepAR', weight: ticker.model_weights?.deepar || 0.25, prediction: ticker.predictions?.deepar || 0 }
   ];
 

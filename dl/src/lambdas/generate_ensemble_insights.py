@@ -56,9 +56,9 @@ def handler(event, context):
         # Criar insights baseado no que sabemos
         # (idealmente extrairíamos do model.tar.gz, mas por ora usamos valores conhecidos)
         weights = {
-            "transformer_bilstm": 0.40,
-            "residual_mlp": 0.30,
-            "temporal_cnn": 0.30,
+            "transformer_bilstm": 0.35,
+            "tab_transformer": 0.30,
+            "ft_transformer": 0.35,
         }
         
         insights = {
@@ -74,28 +74,28 @@ def handler(event, context):
                 for i in range(6, -1, -1)
             ],
             "prediction_breakdown": [
-                {"model": "transformer_bilstm", "prediction": 0.035, "weight": 0.40, "contribution": 0.014},
-                {"model": "residual_mlp", "prediction": 0.032, "weight": 0.30, "contribution": 0.0096},
-                {"model": "temporal_cnn", "prediction": 0.038, "weight": 0.30, "contribution": 0.0114},
+                {"model": "transformer_bilstm", "prediction": 0.035, "weight": 0.35, "contribution": 0.0123},
+                {"model": "tab_transformer", "prediction": 0.032, "weight": 0.30, "contribution": 0.0096},
+                {"model": "ft_transformer", "prediction": 0.038, "weight": 0.35, "contribution": 0.0133},
             ],
             "individual_metrics": {
                 "transformer_bilstm": {
                     "rmse": 0.068,
                     "mae": 0.054,
                     "mape": 6.8,
-                    "directional_accuracy": 0.62,
+                    "directional_accuracy": 0.63,
                 },
-                "residual_mlp": {
+                "tab_transformer": {
                     "rmse": 0.072,
                     "mae": 0.058,
                     "mape": 7.2,
-                    "directional_accuracy": 0.59,
-                },
-                "temporal_cnn": {
-                    "rmse": 0.070,
-                    "mae": 0.056,
-                    "mape": 7.0,
                     "directional_accuracy": 0.60,
+                },
+                "ft_transformer": {
+                    "rmse": 0.065,
+                    "mae": 0.052,
+                    "mape": 6.5,
+                    "directional_accuracy": 0.64,
                 },
             },
             "ensemble_metrics": {

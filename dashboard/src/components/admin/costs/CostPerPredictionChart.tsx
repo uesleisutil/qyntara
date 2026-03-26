@@ -213,9 +213,9 @@ const CostPerPredictionChart: React.FC<CostPerPredictionChartProps> = ({
   };
 
   const modelColors: { [key: string]: string } = {
-    'LSTM': colors.primary,
-    'RandomForest': colors.success,
-    'Transformer': colors.warning,
+    'Transformer+BiLSTM': colors.primary,
+    'TabTransformer': colors.success,
+    'FT-Transformer': colors.warning,
     'LightGBM': colors.info,
     'Ensemble': colors.secondary,
   };

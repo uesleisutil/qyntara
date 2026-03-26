@@ -365,7 +365,7 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     train_model = event.get('train_model')
     combine_only = event.get('combine_ensemble', False)
     model_prefix = f"models/deep_learning/{dt}"
-    all_models = ['transformer_bilstm', 'tab_transformer', 'dilated_cnn']
+    all_models = ['transformer_bilstm', 'tab_transformer', 'ft_transformer']
 
     # Separar features e target
     target_col = 'target'

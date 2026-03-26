@@ -406,7 +406,7 @@ const AdminInfraPage: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: '1rem' }}>
               {[
                 { title: '📡 Ingestão', items: ['EventBridge → Quotes5mIngest (5min)', 'EventBridge → IngestFeatures (diário)', 'EventBridge → BootstrapHistory (diário)', 'EventBridge → SentimentAnalysis (diário)'] },
-                { title: '🧠 DL Pipeline', items: ['PrepareTrainingData → S3', 'WeeklyRetrain → Ensemble (Transformer+BiLSTM · TabTransformer · DilatedCNN)', 'RankSageMaker → S3 recommendations/', 'GenerateEnsembleInsights', 'GenerateFeatureImportance', 'GeneratePredictionIntervals'] },
+                { title: '🧠 DL Pipeline', items: ['PrepareTrainingData → S3', 'WeeklyRetrain → Ensemble (Transformer+BiLSTM · TabTransformer · FT-Transformer)', 'RankSageMaker → S3 recommendations/', 'GenerateEnsembleInsights', 'GenerateFeatureImportance', 'GeneratePredictionIntervals'] },
                 { title: '📊 Monitoramento', items: ['MonitorIngestion (5min pregão)', 'MonitorModelQuality (diário)', 'MonitorModelPerformance (diário)', 'MonitorCosts (diário)', 'MonitorDrift (diário)', 'MonitorSageMaker (domingos)'] },
                 { title: '🌐 API & Frontend', items: ['CloudFront → API Gateway', 'API GW → DashboardAPI Lambda', 'API GW → UserAuth Lambda', 'API GW → AgentHub Lambda', 'API GW → S3Proxy Lambda', 'GitHub Pages (qyntara.tech)'] },
                 { title: '💾 Storage', items: [`S3 bucket (quotes, recs, monitoring)`, `DynamoDB (${(dynamodb || []).length} tabelas)`, 'Secrets Manager (BRAPI token)', 'SSM Parameter Store (config)'] },

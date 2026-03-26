@@ -21,7 +21,7 @@ const useDashboardStore = create((set) => ({
   },
   
   // Models selected for comparison (ensemble + individual models)
-  selectedModels: ['ensemble', 'deepar', 'lstm', 'prophet', 'transformer'],
+  selectedModels: ['ensemble', 'transformer_bilstm', 'tab_transformer', 'ft_transformer'],
   
   // Theme preference (light/dark mode)
   theme: 'light',
@@ -53,7 +53,7 @@ const useDashboardStore = create((set) => ({
   
   /**
    * Toggle a model in the selected models list
-   * @param {string} model - Model name to toggle ('ensemble', 'deepar', 'lstm', 'prophet', 'transformer')
+   * @param {string} model - Model name to toggle ('ensemble', 'transformer_bilstm', 'tab_transformer', 'ft_transformer')
    */
   toggleModel: (model) => set((state) => ({
     selectedModels: state.selectedModels.includes(model)
@@ -93,7 +93,7 @@ const useDashboardStore = create((set) => ({
       start: '2024-01-01',
       end: '2024-12-31'
     },
-    selectedModels: ['ensemble', 'deepar', 'lstm', 'prophet', 'transformer']
+    selectedModels: ['ensemble', 'transformer_bilstm', 'tab_transformer', 'ft_transformer']
   }),
   
   /**
@@ -105,7 +105,7 @@ const useDashboardStore = create((set) => ({
       start: '2024-01-01',
       end: '2024-12-31'
     },
-    selectedModels: ['ensemble', 'deepar', 'lstm', 'prophet', 'transformer'],
+    selectedModels: ['ensemble', 'transformer_bilstm', 'tab_transformer', 'ft_transformer'],
     theme: 'light',
     preferences: {
       showConfidenceBands: true,

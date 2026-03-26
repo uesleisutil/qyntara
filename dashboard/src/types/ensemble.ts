@@ -6,7 +6,7 @@ export interface EnsembleWeights {
   date: string;
   transformer_bilstm: number;
   tab_transformer: number;
-  dilated_cnn: number;
+  ft_transformer: number;
 }
 
 export interface ModelContribution {

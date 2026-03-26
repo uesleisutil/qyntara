@@ -290,7 +290,7 @@ const AdminInvestorPage: React.FC = () => {
               <Zap size={13} /> A Solução
             </div>
             <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.75 }}>
-              SaaS com <span style={{ color: theme.text, fontWeight: 600 }}>DL Ensemble (Transformer+BiLSTM · ResidualMLP · TemporalCNN)</span> que ranqueia as {UNIVERSE_SIZE_FALLBACK} ações
+              SaaS com <span style={{ color: theme.text, fontWeight: 600 }}>DL Ensemble (Transformer+BiLSTM · TabTransformer · FT-Transformer)</span> que ranqueia as {UNIVERSE_SIZE_FALLBACK} ações
               mais líquidas diariamente. Previsão a 20 dias, sinais de compra/venda, explicabilidade SHAP,
               backtesting e DLOps completo. Tudo por <span style={{ color: '#f59e0b', fontWeight: 700 }}>{PRO_PRICE}/mês</span>.
             </div>

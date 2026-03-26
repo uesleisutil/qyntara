@@ -14,9 +14,9 @@ export interface TimeSeriesMetric {
   date: string;
   ensemble?: number;
   deepar?: number;
-  lstm?: number;
-  prophet?: number;
-  transformer?: number;
+  transformer_bilstm?: number;
+  tab_transformer?: number;
+  ft_transformer?: number;
   upper?: number;
   lower?: number;
 }

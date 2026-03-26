@@ -368,7 +368,7 @@ export class InfraStack extends cdk.Stack {
       const fn = new lambda.DockerImageFunction(this, logicalId, {
         code: dlDockerCode,
         timeout: cdk.Duration.minutes(15),
-        memorySize: 2048,
+        memorySize: 3008,  // 3GB para modelos DL pesados (FT-Transformer)
         logRetention: logs.RetentionDays.ONE_WEEK,
         environment: { ...commonEnv, ...(extraEnv ?? {}) },
       });
