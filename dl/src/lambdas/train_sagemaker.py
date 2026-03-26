@@ -445,40 +445,18 @@ def _train_single_model(
 
     n_features = len(feature_cols)
 
-    # Fase 1: Treino rápido para feature selection (20 épocas)
-    logger.info(f"Fase 1: Feature selection ({n_features} -> ~45 features)")
-    scout = DeepLearningTrainer(n_features=n_features, device='cpu')
-    scout.model = model_cls(n_features=n_features, **kwargs).to(torch.device('cpu'))
-    scout.train(X_train, y_train, X_val, y_val, epochs=min(20, epochs), batch_size=min(128, len(X_train)), lr=5e-4, patience=10)
-
-    # Selecionar top features por gradiente
-    try:
-        top_indices = scout.select_features_by_gradient(X_train, y_train, top_k=min(45, n_features))
-        X_train_sel = X_train[:, top_indices]
-        X_val_sel = X_val[:, top_indices]
-        selected_feature_names = [feature_cols[i] for i in top_indices]
-        n_sel = len(top_indices)
-        logger.info(f"Features selecionadas: {n_sel} de {n_features}")
-    except Exception as e:
-        logger.warning(f"Feature selection falhou: {e}, usando todas")
-        X_train_sel, X_val_sel = X_train, X_val
-        selected_feature_names = feature_cols
-        n_sel = n_features
-
-    # Fase 2: Treino completo com features selecionadas
-    logger.info(f"Fase 2: Treino completo ({n_sel} features, {epochs} épocas)")
-    trainer = DeepLearningTrainer(n_features=n_sel, device='cpu')
-    trainer.model = model_cls(n_features=n_sel, **kwargs).to(torch.device('cpu'))
-    trainer.feature_names = selected_feature_names
+    # Treino completo com todas as features
+    trainer = DeepLearningTrainer(n_features=n_features, device='cpu')
+    trainer.model = model_cls(n_features=n_features, **kwargs).to(torch.device('cpu'))
+    trainer.feature_names = feature_cols
 
     metrics = trainer.train(
-        X_train_sel, y_train, X_val_sel, y_val,
+        X_train, y_train, X_val, y_val,
         epochs=epochs, batch_size=min(128, len(X_train)), lr=5e-4, patience=20,
     )
     metrics['train_date'] = dt
     metrics['train_samples'] = len(X_train)
-    metrics['n_features'] = n_sel
-    metrics['n_features_original'] = n_features
+    metrics['n_features'] = n_features
     metrics['model_name'] = model_name
     trainer.metrics = metrics
 
