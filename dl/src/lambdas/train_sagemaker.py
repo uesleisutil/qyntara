@@ -477,7 +477,7 @@ def _train_single_model(
     region = boto3.Session().region_name
     image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-sagemaker"
 
-    job_name = f"b3tr-{model_name.replace('_', '-')}-{dt.replace('-', '')}"[:63]
+    job_name = f"b3tr-{model_name.replace('_', '-')}-{dt.replace('-', '')}-{os.urandom(3).hex()}"[:63]
 
     hyperparameters = {
         'model-name': model_name,
