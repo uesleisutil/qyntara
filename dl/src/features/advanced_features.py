@@ -451,6 +451,18 @@ def create_training_dataset(
             current_price = prices[i - 1]
             target = (future_price / current_price) - 1.0
             
+            # Target relativo ao mercado (alpha): remove componente de mercado
+            # Calcula retorno médio de todas as ações no mesmo período
+            market_returns = []
+            for other_ticker, other_prices in series_dict.items():
+                if len(other_prices) > i + target_horizon - 1:
+                    other_future = other_prices[i + target_horizon - 1]
+                    other_current = other_prices[i - 1]
+                    if other_current > 0:
+                        market_returns.append((other_future / other_current) - 1.0)
+            market_avg = float(np.mean(market_returns)) if market_returns else 0.0
+            target_alpha = target - market_avg  # alpha = retorno - mercado
+            
             # Multi-target: retorno E volatilidade
             if i + target_horizon <= len(prices):
                 future_window = prices[i:i + target_horizon]
@@ -461,7 +473,9 @@ def create_training_dataset(
                 target_volatility = 0.0
             
             features['target'] = target
+            features['target_alpha'] = target_alpha  # retorno relativo ao mercado
             features['target_volatility'] = target_volatility
+            features['market_return'] = market_avg
             features['date_index'] = i
             
             data_list.append(features)

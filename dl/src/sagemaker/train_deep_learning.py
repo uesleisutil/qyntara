@@ -234,21 +234,22 @@ class DeepLearningTrainer:
                 # Task 1: Regressão
                 loss_reg = huber(reg_out, yb)
 
-                # Task 2: Focal Loss para classificação (penaliza exemplos de baixa confiança)
+                # Task 2: Asymmetric Focal Loss
+                # Penaliza mais erros em movimentos fortes (>3%) que fracos (<1%)
                 target_dir = (yb > 0).float()
                 p = torch.sigmoid(cls_logit)
-                # Focal Loss: -alpha * (1-pt)^gamma * log(pt)
-                # gamma=2 foca nos exemplos difíceis, alpha balanceia classes
                 pt = p * target_dir + (1 - p) * (1 - target_dir)
                 focal_weight = (1 - pt) ** 2  # gamma=2
+
+                # Asymmetric: peso proporcional à magnitude do retorno
+                # Movimentos fortes (|y|>0.03) recebem 3x mais peso
+                magnitude_weight = 1.0 + 2.0 * torch.clamp(torch.abs(yb) / 0.03, max=3.0).squeeze()
                 bce_raw = nn.functional.binary_cross_entropy_with_logits(
                     cls_logit, target_dir, reduction='none'
                 )
-                loss_cls = (focal_weight * bce_raw).mean()
+                loss_cls = (focal_weight * magnitude_weight.unsqueeze(1) * bce_raw).mean()
 
-                # Gradient blending: normalizar gradientes para que nenhuma task domine
-                # Peso dinâmico: mais classificação no início, equilibra depois
-                cls_weight = 0.6  # 60% classificação, 40% regressão
+                cls_weight = 0.6
                 loss = (1 - cls_weight) * loss_reg + cls_weight * loss_cls
 
                 loss.backward()
@@ -301,6 +302,24 @@ class DeepLearningTrainer:
             X_t, y_t = self._prepare_tensors(X, y)
             pred = self.model(X_t)
             return criterion(pred, y_t).item()
+
+    def select_features_by_gradient(self, X: np.ndarray, y: np.ndarray, top_k: int = 40) -> list[int]:
+        """Seleciona top_k features por importância de gradiente (saliency)."""
+        self.model.train()  # precisa de train mode para obter tupla (reg, cls)
+        X_t, y_t = self._prepare_tensors(X[:min(500, len(X))], y[:min(500, len(y))])
+        X_t = X_t.detach().requires_grad_(True)
+
+        reg_out, cls_logit = self.model(X_t)
+        cls_logit.sum().backward()
+
+        grad = X_t.grad.abs().mean(dim=0).cpu().numpy()
+        if grad.ndim > 1:
+            grad = grad[-1]
+
+        top_indices = np.argsort(grad)[-top_k:][::-1].tolist()
+        self.model.eval()
+        logger.info(f"Feature selection: {len(grad)} -> {top_k} features (by gradient saliency)")
+        return top_indices
 
     def _compute_metrics(self, X: np.ndarray, y: np.ndarray) -> dict:
         """Calcula métricas na escala original (desnormalizada)."""

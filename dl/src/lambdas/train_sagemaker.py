@@ -367,15 +367,18 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     model_prefix = f"models/deep_learning/{dt}"
     all_models = ['transformer_bilstm', 'residual_mlp', 'temporal_cnn']
 
-    # Separar features e target
-    target_col = 'target'
+    # Separar features e target — usar alpha (retorno relativo ao mercado) se disponível
+    target_col = 'target_alpha'
+    if target_col not in train_df.columns:
+        target_col = 'target'
     if target_col not in train_df.columns:
         target_col = 'target_return_20d'
     if target_col not in train_df.columns:
         target_candidates = [c for c in train_df.columns if c == 'target' or 'target_return' in c.lower()]
         target_col = target_candidates[0] if target_candidates else train_df.columns[-1]
+    logger.info(f"Usando target: {target_col}")
 
-    exclude_cols = ['ticker', 'date', target_col] + [c for c in train_df.columns if 'target' in c.lower()]
+    exclude_cols = ['ticker', 'date', 'date_index'] + [c for c in train_df.columns if 'target' in c.lower() or 'market_return' in c.lower()]
     feature_cols = [c for c in train_df.columns if c not in exclude_cols and train_df[c].dtype in ['float64', 'float32', 'int64']]
 
     X = train_df[feature_cols].fillna(0).values
@@ -442,17 +445,42 @@ def _train_single_model(
     model_cls = reg['class']
     kwargs = reg['default_kwargs'].copy()
 
-    trainer = DeepLearningTrainer(n_features=len(feature_cols), device='cpu')
-    trainer.model = model_cls(n_features=len(feature_cols), **kwargs).to(torch.device('cpu'))
-    trainer.feature_names = feature_cols
+    n_features = len(feature_cols)
+
+    # Fase 1: Treino rápido para feature selection (20 épocas)
+    logger.info(f"Fase 1: Feature selection ({n_features} -> ~45 features)")
+    scout = DeepLearningTrainer(n_features=n_features, device='cpu')
+    scout.model = model_cls(n_features=n_features, **kwargs).to(torch.device('cpu'))
+    scout.train(X_train, y_train, X_val, y_val, epochs=min(20, epochs), batch_size=min(128, len(X_train)), lr=5e-4, patience=10)
+
+    # Selecionar top features por gradiente
+    try:
+        top_indices = scout.select_features_by_gradient(X_train, y_train, top_k=min(45, n_features))
+        X_train_sel = X_train[:, top_indices]
+        X_val_sel = X_val[:, top_indices]
+        selected_feature_names = [feature_cols[i] for i in top_indices]
+        n_sel = len(top_indices)
+        logger.info(f"Features selecionadas: {n_sel} de {n_features}")
+    except Exception as e:
+        logger.warning(f"Feature selection falhou: {e}, usando todas")
+        X_train_sel, X_val_sel = X_train, X_val
+        selected_feature_names = feature_cols
+        n_sel = n_features
+
+    # Fase 2: Treino completo com features selecionadas
+    logger.info(f"Fase 2: Treino completo ({n_sel} features, {epochs} épocas)")
+    trainer = DeepLearningTrainer(n_features=n_sel, device='cpu')
+    trainer.model = model_cls(n_features=n_sel, **kwargs).to(torch.device('cpu'))
+    trainer.feature_names = selected_feature_names
 
     metrics = trainer.train(
-        X_train, y_train, X_val, y_val,
+        X_train_sel, y_train, X_val_sel, y_val,
         epochs=epochs, batch_size=min(128, len(X_train)), lr=5e-4, patience=20,
     )
     metrics['train_date'] = dt
     metrics['train_samples'] = len(X_train)
-    metrics['n_features'] = len(feature_cols)
+    metrics['n_features'] = n_sel
+    metrics['n_features_original'] = n_features
     metrics['model_name'] = model_name
     trainer.metrics = metrics
 
