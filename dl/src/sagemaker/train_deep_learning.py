@@ -720,7 +720,7 @@ MODEL_REGISTRY = {
     },
     'tab_transformer': {
         'class': TabTransformerModel,
-        'default_kwargs': {'d_model': 64, 'nhead': 4, 'num_layers': 3, 'dropout': 0.15},
+        'default_kwargs': {'d_model': 32, 'nhead': 4, 'num_layers': 2, 'dropout': 0.15},
     },
     'dilated_cnn': {
         'class': DilatedCNNModel,
