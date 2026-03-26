@@ -475,7 +475,7 @@ def _train_single_model(
     # 3. Iniciar SageMaker Training Job
     # Usar imagem PyTorch da AWS (tem torch pré-instalado)
     region = boto3.Session().region_name
-    image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-cpu-py311-ubuntu20.04-sagemaker"
+    image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-sagemaker"
 
     job_name = f"b3tr-{model_name.replace('_', '-')}-{dt.replace('-', '')}"[:63]
 
