@@ -607,7 +607,8 @@ def _train_single_model(
     """Treina qualquer modelo via SageMaker Training Job."""
     if model_name == 'tabpfn':
         script = 'train_tabpfn_sagemaker.py'
-        hp = {'threshold': '0.01'}
+        hp = {'threshold': '0.02', 'max-features': '50', 'max-train-samples': '10000',
+              'n-estimators': '32', 'n-ensemble': '3'}
     else:
         script = 'train_single_model.py'
         hp = {'model-name': model_name, 'epochs': str(epochs), 'batch-size': '128', 'lr': '0.0005', 'patience': '20'}

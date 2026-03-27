@@ -96,15 +96,20 @@ class TabPFNDirectionModel:
     def predict_direction(self, X: np.ndarray) -> tuple:
         """
         Retorna (directions, probabilities).
-        directions: +1 (sobe) ou -1 (desce)
-        probabilities: confiança (0.5 a 1.0)
+        Suporta modelo único ou ensemble de modelos.
         """
         X_scaled = np.nan_to_num(self.scaler.transform(X), nan=0.0, posinf=0.0, neginf=0.0)
-        proba = self.model.predict_proba(X_scaled)
-        # proba[:, 1] = probabilidade de subir
+
+        # Ensemble: self.model pode ser lista de modelos
+        if isinstance(self.model, list):
+            all_probas = [m.predict_proba(X_scaled) for m in self.model]
+            proba = np.mean(all_probas, axis=0)
+        else:
+            proba = self.model.predict_proba(X_scaled)
+
         prob_up = proba[:, 1] if proba.shape[1] > 1 else proba[:, 0]
         directions = np.where(prob_up > 0.5, 1.0, -1.0)
-        confidence = np.abs(prob_up - 0.5) * 2  # 0 a 1
+        confidence = np.abs(prob_up - 0.5) * 2
         return directions, confidence
 
     def save(self, path: str):
