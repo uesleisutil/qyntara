@@ -69,8 +69,12 @@ def main():
     from tabpfn import TabPFNClassifier
     from tabpfn.constants import ModelVersion
 
+    import torch
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    logger.info(f"Using device: {device}")
+
     model = TabPFNClassifier.create_default_for_version(
-        ModelVersion.V2_5, device='cpu', ignore_pretraining_limits=True,
+        ModelVersion.V2_5, device=device, ignore_pretraining_limits=True,
     )
     model.fit(X_scaled, y_clear)
     logger.info("TabPFN trained")
