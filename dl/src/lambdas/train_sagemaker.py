@@ -644,7 +644,7 @@ def _train_single_model(
     script_s3 = f"s3://{bucket}/scripts/dl_train_{model_name}.tar.gz"
 
     region = boto3.Session().region_name
-    image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-sagemaker"
+    image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker"
     job_name = f"b3tr-{model_name.replace('_', '-')}-{dt.replace('-', '')}-{os.urandom(3).hex()}"[:63]
 
     hp['sagemaker_program'] = script
@@ -663,7 +663,7 @@ def _train_single_model(
             AlgorithmSpecification={'TrainingImage': image_uri, 'TrainingInputMode': 'File'},
             InputDataConfig=[{'ChannelName': 'train', 'DataSource': {'S3DataSource': {'S3DataType': 'S3Prefix', 'S3Uri': train_data_s3, 'S3DataDistributionType': 'FullyReplicated'}}, 'ContentType': 'text/csv'}],
             OutputDataConfig={'S3OutputPath': output_s3},
-            ResourceConfig={'InstanceType': 'ml.m5.xlarge', 'InstanceCount': 1, 'VolumeSizeInGB': 30},
+            ResourceConfig={'InstanceType': 'ml.g4dn.xlarge', 'InstanceCount': 1, 'VolumeSizeInGB': 30},
             HyperParameters=hp,
             StoppingCondition={'MaxRuntimeInSeconds': 7200},
             Environment=env,
