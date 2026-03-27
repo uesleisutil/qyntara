@@ -14,8 +14,10 @@ RUN pip install --no-cache-dir \
     python-dateutil>=2.8.2 \
     pytz>=2023.3
 
-# TabPFN para inferência (carregar modelo salvo)
-RUN pip install --no-cache-dir tabpfn
+# TabPFN para inferência (carregar modelo salvo via pickle)
+# --no-deps evita reinstalar torch; deps mínimas para unpickle
+RUN pip install --no-cache-dir --no-deps tabpfn && \
+    pip install --no-cache-dir pydantic packaging tabpfn-common-utils posthog backoff eval-type-backport
 
 # Copiar código da aplicação
 COPY dl/ ${LAMBDA_TASK_ROOT}/dl/
