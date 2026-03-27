@@ -405,9 +405,12 @@ def _train_local(train_df: pd.DataFrame, bucket: str, dt: str, epochs: int, even
     if combine_only:
         return _combine_hybrid(bucket, dt, model_prefix, X_val, y_val, feature_cols)
 
-    # === TabPFN (classificação de direção) ===
-    if train_model == 'tabpfn' or train_model is None:
-        return _train_tabpfn(bucket, dt, model_prefix, feature_cols, X_train, y_train, X_val, y_val)
+    # === TabPFN (classificação de direção) — via SageMaker ===
+    if train_model == 'tabpfn':
+        return _train_single_model(
+            'tabpfn', bucket, dt, model_prefix, feature_cols,
+            X_train, y_train, X_val, y_val, epochs, event,
+        )
 
     # === Transformer+BiLSTM (regressão de magnitude) ===
     if train_model == 'transformer_bilstm':
