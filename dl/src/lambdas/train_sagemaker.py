@@ -644,7 +644,7 @@ def _train_single_model(
     script_s3 = f"s3://{bucket}/scripts/dl_train_{model_name}.tar.gz"
 
     region = boto3.Session().region_name
-    image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker"
+    image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker"
     job_name = f"b3tr-{model_name.replace('_', '-')}-{dt.replace('-', '')}-{os.urandom(3).hex()}"[:63]
 
     hp['sagemaker_program'] = script
