@@ -6,7 +6,7 @@ import {
   ChevronRight, Cpu, Zap, TrendingUp, Eye, FileText, Box,
   ArrowDown, Settings, Target, Brain, Gauge, Radio,
   Server, HardDrive, Workflow, Network, Hash,
-  Sigma, Flame, Layers3, Award,
+  Sigma, Flame, Layers3, Award, AlertTriangle,
 } from 'lucide-react';
 import {
   ResponsiveContainer, LineChart, Line, AreaChart, Area,
@@ -33,7 +33,7 @@ interface PipelineStatus {
 }
 interface FeatureAudit { ticker: string; populated: number; total: number; missing: string[]; }
 
-type TabKey = 'overview' | 'performance' | 'architecture' | 'features' | 'pipeline' | 'training' | 'inference';
+type TabKey = 'overview' | 'live_status' | 'performance' | 'architecture' | 'features' | 'pipeline' | 'training' | 'inference';
 
 /* ─── Helpers ─── */
 const fmtDateTime = (iso: string) => {
@@ -278,6 +278,13 @@ const AdminModelsPage: React.FC = () => {
   const ew = useLiveData(fetchEnsembleWeights, 'ensemble_weights');
   const fs = useLiveData(fetchFeatureStore, 'feature_store');
 
+  /* ─── Model status/errors feed (live via WebSocket) ─── */
+  const fetchModelStatus = useCallback(async () => {
+    const res = await fetch(`${API_BASE_URL}/api/monitoring/model-status`, { headers });
+    return res.ok ? res.json() : null;
+  }, [headers]);
+  const modelStatus = useLiveData(fetchModelStatus, 'model_status');
+
   /* ─── Pipeline (calculado localmente, sem fetch) ─── */
   const pipeline = useMemo<PipelineStatus>(() => ({
     ingest_features: { last_run: new Date().toISOString(), next_run: getNextSchedule(21, 0, [1,2,3,4,5]), status: 'active' },
@@ -345,6 +352,7 @@ const AdminModelsPage: React.FC = () => {
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
     { key: 'overview', label: 'Visão Geral (Live)', icon: <Radio size={15} /> },
+    { key: 'live_status', label: 'Status & Erros', icon: <AlertTriangle size={15} /> },
     { key: 'performance', label: 'Performance', icon: <Activity size={15} /> },
     { key: 'architecture', label: 'Arquitetura DL', icon: <Brain size={15} /> },
     { key: 'features', label: 'Feature Engineering', icon: <Layers3 size={15} /> },
@@ -451,6 +459,7 @@ const AdminModelsPage: React.FC = () => {
       </div>
 
       {activeTab === 'overview' && renderOverview()}
+      {activeTab === 'live_status' && renderLiveStatus()}
       {activeTab === 'performance' && renderPerformance()}
       {activeTab === 'architecture' && renderArchitecture()}
       {activeTab === 'features' && renderFeatures()}
@@ -630,6 +639,194 @@ const AdminModelsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+
+  /* ═══════════════════════════════════════════════════
+     TAB: LIVE STATUS — Feed de erros e status em tempo real
+     ═══════════════════════════════════════════════════ */
+  function renderLiveStatus() {
+    const status = modelStatus.data;
+    const events: any[] = status?.events || [];
+    const sagemakerJobs: any[] = status?.sagemaker_jobs || [];
+    const recentErrors: any[] = status?.recent_errors || [];
+    const lastRanking = status?.last_ranking || {};
+    const lastTraining = status?.last_training || {};
+
+    const severityColor = (s: string) => s === 'critical' ? '#ef4444' : s === 'warning' ? '#f59e0b' : s === 'error' ? '#ef4444' : '#10b981';
+    const severityIcon = (s: string) => s === 'critical' || s === 'error' ? '🔴' : s === 'warning' ? '🟡' : '🟢';
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Connection status */}
+        <div style={{
+          ...cardStyle, padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem',
+          background: darkMode ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.03)',
+          borderColor: darkMode ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.1)',
+        }}>
+          <span style={{
+            width: 10, height: 10, borderRadius: '50%', display: 'inline-block',
+            background: modelStatus.error ? '#ef4444' : '#10b981',
+            animation: modelStatus.error ? 'none' : 'pulse-dot 2s infinite',
+          }} />
+          <span style={{ fontSize: '0.78rem', color: theme.text, fontWeight: 500 }}>
+            {modelStatus.error ? 'Desconectado — dados podem estar desatualizados' : 'Conectado — monitoramento ativo'}
+          </span>
+          {modelStatus.lastUpdated && (
+            <span style={{ fontSize: '0.68rem', color: theme.textSecondary, marginLeft: 'auto' }}>
+              Atualizado: {modelStatus.lastUpdated.toLocaleTimeString('pt-BR')}
+            </span>
+          )}
+        </div>
+
+        {/* Quick status cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', gap: '0.75rem' }}>
+          {/* Last ranking */}
+          <div style={{ ...cardStyle, borderLeft: `3px solid ${lastRanking.ok ? '#10b981' : lastRanking.error ? '#ef4444' : '#6b7280'}` }}>
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4 }}>Último Ranking</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: lastRanking.ok ? '#10b981' : lastRanking.error ? '#ef4444' : theme.textSecondary }}>
+              {lastRanking.ok ? `✅ ${lastRanking.count || '?'} ações` : lastRanking.error ? `❌ ${lastRanking.error}` : '—'}
+            </div>
+            <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{lastRanking.dt || '—'} · {lastRanking.method || '—'}</div>
+          </div>
+
+          {/* Last training */}
+          <div style={{ ...cardStyle, borderLeft: `3px solid ${lastTraining.ok ? '#10b981' : lastTraining.error ? '#ef4444' : '#6b7280'}` }}>
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4 }}>Último Treino</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: lastTraining.ok ? '#10b981' : lastTraining.error ? '#ef4444' : theme.textSecondary }}>
+              {lastTraining.ok ? `✅ ${lastTraining.model_name || 'ensemble'}` : lastTraining.error ? `❌ Falhou` : '—'}
+            </div>
+            <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>{lastTraining.dt || '—'}</div>
+          </div>
+
+          {/* Active SageMaker jobs */}
+          <div style={{ ...cardStyle, borderLeft: `3px solid ${sagemakerJobs.some((j: any) => j.status === 'InProgress') ? '#3b82f6' : '#6b7280'}` }}>
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4 }}>SageMaker Jobs</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: theme.text }}>
+              {sagemakerJobs.filter((j: any) => j.status === 'InProgress').length > 0
+                ? `⏳ ${sagemakerJobs.filter((j: any) => j.status === 'InProgress').length} rodando`
+                : '— Nenhum ativo'}
+            </div>
+            <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>
+              {sagemakerJobs.filter((j: any) => j.status === 'Failed').length > 0
+                ? `⚠ ${sagemakerJobs.filter((j: any) => j.status === 'Failed').length} falharam`
+                : 'Sem falhas recentes'}
+            </div>
+          </div>
+
+          {/* Error count */}
+          <div style={{ ...cardStyle, borderLeft: `3px solid ${recentErrors.length > 0 ? '#ef4444' : '#10b981'}` }}>
+            <div style={{ fontSize: '0.7rem', color: theme.textSecondary, marginBottom: 4 }}>Erros (24h)</div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 600, color: recentErrors.length > 0 ? '#ef4444' : '#10b981' }}>
+              {recentErrors.length > 0 ? `🔴 ${recentErrors.length} erros` : '✅ Sem erros'}
+            </div>
+            <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>
+              {recentErrors.length > 0 ? recentErrors[0]?.source || '' : 'Sistema saudável'}
+            </div>
+          </div>
+        </div>
+
+        {/* SageMaker Jobs detail */}
+        {sagemakerJobs.length > 0 && (
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Cpu size={18} color="#3b82f6" />
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>SageMaker Training Jobs</span>
+            </div>
+            {sagemakerJobs.map((job: any, i: number) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0',
+                borderBottom: i < sagemakerJobs.length - 1 ? `1px solid ${theme.border}` : 'none',
+              }}>
+                <span style={{ fontSize: '0.82rem' }}>
+                  {job.status === 'InProgress' ? '⏳' : job.status === 'Completed' ? '✅' : job.status === 'Failed' ? '❌' : '⏹'}
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 500, color: theme.text, fontFamily: 'monospace' }}>{job.name}</div>
+                  <div style={{ fontSize: '0.65rem', color: theme.textSecondary }}>
+                    {job.instance_type} · {job.duration ? `${Math.round(job.duration / 60)}min` : '—'}
+                    {job.failure && <span style={{ color: '#ef4444' }}> · {job.failure.slice(0, 80)}...</span>}
+                  </div>
+                </div>
+                <span style={{
+                  padding: '0.15rem 0.5rem', borderRadius: 10, fontSize: '0.65rem', fontWeight: 600,
+                  background: job.status === 'InProgress' ? 'rgba(59,130,246,0.15)' : job.status === 'Completed' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                  color: job.status === 'InProgress' ? '#3b82f6' : job.status === 'Completed' ? '#10b981' : '#ef4444',
+                }}>
+                  {job.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Error feed */}
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <AlertTriangle size={18} color={recentErrors.length > 0 ? '#ef4444' : '#10b981'} />
+            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Feed de Erros (Live)</span>
+            {recentErrors.length === 0 && (
+              <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: '#10b981', fontWeight: 500 }}>✅ Sem erros</span>
+            )}
+          </div>
+          {recentErrors.length > 0 ? (
+            <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+              {recentErrors.map((err: any, i: number) => (
+                <div key={i} style={{
+                  padding: '0.6rem', marginBottom: '0.5rem', borderRadius: 8,
+                  background: darkMode ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.04)',
+                  borderLeft: `3px solid ${severityColor(err.severity || 'error')}`,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <span>{severityIcon(err.severity || 'error')}</span>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: theme.text }}>{err.source || 'Sistema'}</span>
+                    <span style={{ fontSize: '0.65rem', color: theme.textSecondary, marginLeft: 'auto' }}>
+                      {err.timestamp ? new Date(err.timestamp).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }) : '—'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.5 }}>{err.message}</div>
+                  {err.details && (
+                    <div style={{ fontSize: '0.68rem', color: theme.textSecondary, fontFamily: 'monospace', marginTop: 4, padding: '0.3rem', background: darkMode ? '#0f1117' : '#f8fafc', borderRadius: 4, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+                      {err.details.slice(0, 300)}{err.details.length > 300 ? '...' : ''}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem', color: theme.textSecondary, fontSize: '0.82rem' }}>
+              Nenhum erro nas últimas 24 horas. Sistema operando normalmente.
+            </div>
+          )}
+        </div>
+
+        {/* Event timeline */}
+        {events.length > 0 && (
+          <div style={cardStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Clock size={18} color="#3b82f6" />
+              <span style={{ fontSize: '0.95rem', fontWeight: 600, color: theme.text }}>Timeline de Eventos</span>
+            </div>
+            <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+              {events.slice(0, 20).map((evt: any, i: number) => (
+                <div key={i} style={{
+                  display: 'flex', gap: '0.75rem', padding: '0.4rem 0',
+                  borderBottom: i < Math.min(events.length, 20) - 1 ? `1px solid ${theme.border}` : 'none',
+                }}>
+                  <span style={{ fontSize: '0.75rem', color: theme.textSecondary, minWidth: 45, fontFamily: 'monospace' }}>
+                    {evt.timestamp ? new Date(evt.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—'}
+                  </span>
+                  <span style={{ fontSize: '0.75rem' }}>
+                    {evt.type === 'ranking' ? '📊' : evt.type === 'training' ? '🧠' : evt.type === 'error' ? '🔴' : evt.type === 'ingest' ? '📥' : '📌'}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: theme.text }}>{evt.message}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -2175,6 +2175,130 @@ def get_infrastructure_status() -> Dict:
     except Exception as e:
         logger.error(f"Error getting infrastructure status: {e}", exc_info=True)
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+def get_model_status() -> Dict:
+    """
+    GET /api/monitoring/model-status
+
+    Retorna status live dos modelos: último ranking, último treino,
+    SageMaker jobs ativos, erros recentes.
+    """
+    logger.info("Getting model status")
+
+    try:
+        now = datetime.now(UTC)
+
+        # 1. Último ranking
+        last_ranking = {}
+        rec_data = load_latest_from_prefix("recommendations/dt=", days=3)
+        if rec_data:
+            last_ranking = {
+                'ok': True,
+                'dt': rec_data.get('dt'),
+                'method': rec_data.get('method'),
+                'count': len(rec_data.get('items', [])),
+                'model_key': rec_data.get('model_key'),
+            }
+
+        # 2. Último treino (métricas)
+        last_training = {}
+        metrics_data = load_latest_from_prefix("models/deep_learning/", days=7)
+        if metrics_data:
+            last_training = {
+                'ok': True,
+                'dt': metrics_data.get('train_date'),
+                'model_name': metrics_data.get('model_name') or metrics_data.get('architecture'),
+                'directional_accuracy': metrics_data.get('directional_accuracy') or metrics_data.get('ensemble_directional_accuracy'),
+            }
+
+        # 3. SageMaker jobs recentes
+        sagemaker_jobs = []
+        try:
+            sm = boto3.client('sagemaker')
+            jobs = sm.list_training_jobs(SortBy='CreationTime', SortOrder='Descending', MaxResults=10)
+            for job in jobs.get('TrainingJobSummaries', []):
+                job_detail = {'name': job['TrainingJobName'], 'status': job['TrainingJobStatus']}
+                if job['TrainingJobStatus'] == 'Failed':
+                    try:
+                        detail = sm.describe_training_job(TrainingJobName=job['TrainingJobName'])
+                        job_detail['failure'] = detail.get('FailureReason', '')[:200]
+                        job_detail['duration'] = detail.get('TrainingTimeInSeconds')
+                        job_detail['instance_type'] = detail.get('ResourceConfig', {}).get('InstanceType')
+                    except Exception:
+                        pass
+                elif job['TrainingJobStatus'] == 'InProgress':
+                    try:
+                        detail = sm.describe_training_job(TrainingJobName=job['TrainingJobName'])
+                        job_detail['duration'] = detail.get('TrainingTimeInSeconds')
+                        job_detail['instance_type'] = detail.get('ResourceConfig', {}).get('InstanceType')
+                    except Exception:
+                        pass
+                elif job['TrainingJobStatus'] == 'Completed':
+                    try:
+                        detail = sm.describe_training_job(TrainingJobName=job['TrainingJobName'])
+                        job_detail['duration'] = detail.get('TrainingTimeInSeconds')
+                        job_detail['instance_type'] = detail.get('ResourceConfig', {}).get('InstanceType')
+                    except Exception:
+                        pass
+                sagemaker_jobs.append(job_detail)
+        except Exception as e:
+            logger.warning(f"Could not list SageMaker jobs: {e}")
+
+        # 4. Erros recentes (dos logs de monitoramento)
+        recent_errors = []
+        for prefix in ['monitoring/model_quality/', 'monitoring/performance/', 'monitoring/drift/']:
+            try:
+                data_list = load_time_series(prefix + "dt=", days=3)
+                for d in (data_list or []):
+                    if d.get('error') or d.get('skipped'):
+                        recent_errors.append({
+                            'source': prefix.split('/')[1],
+                            'severity': 'error' if d.get('error') else 'warning',
+                            'message': d.get('error') or d.get('reason', 'Skipped'),
+                            'timestamp': d.get('ts_utc') or d.get('date'),
+                        })
+            except Exception:
+                pass
+
+        # 5. Timeline de eventos
+        events = []
+        # Ranking events
+        if rec_data:
+            events.append({
+                'type': 'ranking',
+                'message': f"Ranking gerado: {len(rec_data.get('items', []))} ações ({rec_data.get('method', '?')})",
+                'timestamp': rec_data.get('timestamp') or rec_data.get('dt'),
+            })
+        # Training events
+        for job in sagemaker_jobs[:5]:
+            events.append({
+                'type': 'training',
+                'message': f"SageMaker {job['name']}: {job['status']}" + (f" ({job.get('failure', '')[:60]})" if job.get('failure') else ''),
+                'timestamp': now.isoformat(),
+            })
+
+        events.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+
+        result = {
+            'last_ranking': last_ranking,
+            'last_training': last_training,
+            'sagemaker_jobs': sagemaker_jobs,
+            'recent_errors': recent_errors,
+            'events': events[:20],
+            'timestamp': now.isoformat(),
+        }
+
+        return {
+            'statusCode': 200,
+            'body': json.dumps(result, default=str),
+        }
+    except Exception as e:
+        logger.error(f"Error getting model status: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)}),
+        }
+
+
 
 
 def get_macro_indicators() -> Dict:
@@ -2304,6 +2428,8 @@ def handler(event, context):
             response = get_macro_indicators()
         elif path == "/api/monitoring/infrastructure" or path.endswith("/infrastructure"):
             response = get_infrastructure_status()
+        elif path == "/api/monitoring/model-status" or path.endswith("/model-status"):
+            response = get_model_status()
         else:
             response = {
                 "statusCode": 404,
