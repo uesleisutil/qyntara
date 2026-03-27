@@ -173,10 +173,10 @@ const FEATURE_CATEGORIES = [
     ],
   },
   {
-    name: 'Sentimento', icon: '📰', color: '#a855f7', count: '2',
-    source: 'NewsAPI (opcional)',
+    name: 'Sentimento', icon: '📰', color: '#a855f7', count: '5',
+    source: 'Google News RSS (gratuito, tempo real)',
     features: [
-      { group: 'Sentimento', items: ['sentiment_score (-1 a +1)', 'sentiment_x_momentum (interação)'] },
+      { group: 'Sentimento', items: ['sentiment_score (-1 a +1)', 'sentiment_magnitude (força)', 'sentiment_article_count', 'sentiment_positive_ratio', 'sentiment_trend (tendência)'] },
     ],
   },
 ];
@@ -478,7 +478,7 @@ const AdminModelsPage: React.FC = () => {
       {
         name: 'Ingestão de Dados', icon: <Database size={20} />, color: '#3b82f6',
         status: pipeline?.ingest_features?.status === 'active',
-        detail: `${featureStore?.fundamentals.count || 0} tickers · BRAPI Pro + BCB + NewsAPI`,
+        detail: `${featureStore?.fundamentals.count || 0} tickers · BRAPI Pro + BCB + Google News`,
         schedule: 'Diário SEG-SEX 18:00 BRT',
         nextRun: pipeline?.ingest_features?.next_run,
       },
@@ -1374,10 +1374,10 @@ const AdminModelsPage: React.FC = () => {
             <div style={{ ...subCardStyle, borderLeft: `3px solid ${(featureStore?.sentiment.count || 0) > 0 ? '#10b981' : '#6b7280'}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 {(featureStore?.sentiment.count || 0) > 0 ? <CheckCircle2 size={14} color="#10b981" /> : <Clock size={14} color="#94a3b8" />}
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>NewsAPI</span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: theme.text }}>Google News (Sentimento)</span>
               </div>
-              <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{(featureStore?.sentiment.count || 0) > 0 ? `${featureStore?.sentiment.count} tickers` : 'Não configurado'}</div>
-              <div style={{ fontSize: '0.65rem', color: '#f59e0b' }}>{(featureStore?.sentiment.count || 0) === 0 ? '⚠ Configure NEWS_API_KEY para ativar' : 'Ativo'}</div>
+              <div style={{ fontSize: '0.72rem', color: theme.textSecondary }}>{(featureStore?.sentiment.count || 0) > 0 ? `${featureStore?.sentiment.count} tickers` : 'Ativo (coleta automática)'}</div>
+              <div style={{ fontSize: '0.65rem', color: '#10b981' }}>RSS gratuito · 5 features por ticker · Atualiza no ranking diário</div>
             </div>
           </div>
         </div>
@@ -1472,11 +1472,11 @@ const AdminModelsPage: React.FC = () => {
   function renderPipeline() {
     const pipelines = [
       {
-        name: 'IngestFeatures', description: 'Coleta fundamentalistas (BRAPI Pro), macro (BCB) e sentimento (NewsAPI). Salva no Feature Store S3.',
+        name: 'IngestFeatures', description: 'Coleta fundamentalistas (BRAPI Pro), macro (BCB) e sentimento (Google News). Salva no Feature Store S3.',
         schedule: 'Diário, SEG-SEX 21:00 UTC (18:00 BRT)', lambda: 'B3TacticalRankingStackV2-IngestFeatures',
         status: pipeline?.ingest_features, icon: <Database size={18} />, color: '#3b82f6',
         outputs: ['feature_store/fundamentals/dt={date}/{ticker}.json', 'feature_store/macro/dt={date}/macro.json', 'feature_store/sentiment/dt={date}/{ticker}.json'],
-        inputs: ['BRAPI Pro API (Secrets Manager)', 'BCB API (pública)', 'NewsAPI (opcional, env NEWS_API_KEY)'],
+        inputs: ['BRAPI Pro API (Secrets Manager)', 'BCB API (pública)', 'Google News (opcional, env NEWS_API_KEY)'],
         details: [
           'Carrega universe de config/universe.txt',
           'Token BRAPI via AWS Secrets Manager',
@@ -1828,7 +1828,7 @@ const AdminModelsPage: React.FC = () => {
                 { label: 'BRAPI Pro', detail: `5 modules · ${featureStore?.fundamentals.count || '~46'} tickers · ~35 campos/ticker`, ok: true },
                 { label: 'BCB API', detail: 'Selic, IPCA, Câmbio, CDI · 10 features', ok: true },
                 { label: 'Cotações Diárias', detail: 'OHLCV via BRAPI · curated/daily_monthly/ · 730 dias', ok: true },
-                { label: 'NewsAPI', detail: 'Sentimento de notícias (opcional)', ok: (featureStore?.sentiment.count || 0) > 0 },
+                { label: 'Google News RSS', detail: 'Sentimento de notícias em tempo real · 5 features por ticker', ok: true },
               ],
             },
             {
@@ -1839,7 +1839,7 @@ const AdminModelsPage: React.FC = () => {
                 { label: 'Fundamentalistas', detail: 'Valuation, rentabilidade, crescimento, endividamento · ~25 features', ok: true },
                 { label: 'Macro', detail: 'Selic, IPCA, câmbio, CDI, variações · 10 features', ok: true },
                 { label: 'Setoriais', detail: 'Correlação, relative strength, dispersão · ~8 features', ok: true },
-                { label: 'Sentimento', detail: 'Score + interação com momentum · 2 features', ok: (featureStore?.sentiment.count || 0) > 0 },
+                { label: 'Sentimento', detail: 'Google News RSS · score, magnitude, trend, positive_ratio, article_count · 5 features', ok: true },
               ],
             },
             {
