@@ -520,20 +520,30 @@ def handler(event, context):
     except Exception as e:
         logger.warning(f"Não foi possível carregar fundamentals: {e}")
 
-    # Carregar sentimento (do Feature Store)
+    # Carregar sentimento em tempo real (Google News RSS)
     sentiment_dict = None
     try:
-        from dl.src.features.feature_store import FeatureStore as FS2
-        store2 = FS2(bucket)
-        sentiment_dict = {}
-        for ticker in series.keys():
-            sent = store2.load_features_with_fallback("sentiment", ticker, dt, fallback_days=3)
-            if sent and "sentiment_score" in sent:
-                sentiment_dict[ticker] = sent["sentiment_score"]
+        from dl.src.sentiment.google_news_sentiment import get_all_tickers_sentiment, save_sentiment_to_s3
+        logger.info("Coletando sentimento em tempo real (Google News)...")
+        sentiment_dict = get_all_tickers_sentiment(list(series.keys()), use_finbert=False)
         if sentiment_dict:
-            logger.info(f"Sentimento carregado: {len(sentiment_dict)} tickers")
+            logger.info(f"Sentimento coletado: {len(sentiment_dict)} tickers")
+            save_sentiment_to_s3(sentiment_dict, bucket, dt)
     except Exception as e:
-        logger.warning(f"Não foi possível carregar sentimento: {e}")
+        logger.warning(f"Google News sentiment falhou: {e}")
+        # Fallback: Feature Store
+        try:
+            from dl.src.features.feature_store import FeatureStore as FS2
+            store2 = FS2(bucket)
+            sentiment_dict = {}
+            for ticker in series.keys():
+                sent = store2.load_features_with_fallback("sentiment", ticker, dt, fallback_days=3)
+                if sent and "sentiment_score" in sent:
+                    sentiment_dict[ticker] = sent["sentiment_score"]
+            if sentiment_dict:
+                logger.info(f"Sentimento do Feature Store: {len(sentiment_dict)} tickers")
+        except Exception as e2:
+            logger.warning(f"Feature Store sentiment falhou: {e2}")
 
     # Preparar features (com volume, macro, fundamentals, setor, sentimento)
     features_df = prepare_features(

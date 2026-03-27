@@ -302,20 +302,31 @@ def handler(event, context):
     except Exception as e:
         logger.warning(f"Não foi possível carregar fundamentals: {e}")
 
-    # 4. Carregar sentimento do Feature Store
+    # 4. Carregar sentimento (Google News RSS + keywords)
     sentiment_dict = None
     try:
-        from dl.src.features.feature_store import FeatureStore as FS2
-        store2 = FS2(bucket)
-        sentiment_dict = {}
-        for ticker in series.keys():
-            sent = store2.load_features_with_fallback("sentiment", ticker, dt, fallback_days=3)
-            if sent and "sentiment_score" in sent:
-                sentiment_dict[ticker] = sent["sentiment_score"]
+        from dl.src.sentiment.google_news_sentiment import get_all_tickers_sentiment, save_sentiment_to_s3
+        logger.info("Coletando sentimento de notícias (Google News RSS)...")
+        sentiment_dict = get_all_tickers_sentiment(list(series.keys()), use_finbert=False)
         if sentiment_dict:
-            logger.info(f"Sentimento carregado: {len(sentiment_dict)} tickers")
+            logger.info(f"Sentimento coletado: {len(sentiment_dict)} tickers")
+            # Salvar no Feature Store para uso futuro
+            save_sentiment_to_s3(sentiment_dict, bucket, dt)
     except Exception as e:
-        logger.warning(f"Não foi possível carregar sentimento: {e}")
+        logger.warning(f"Não foi possível coletar sentimento: {e}")
+        # Fallback: tentar carregar do Feature Store
+        try:
+            from dl.src.features.feature_store import FeatureStore as FS2
+            store2 = FS2(bucket)
+            sentiment_dict = {}
+            for ticker in series.keys():
+                sent = store2.load_features_with_fallback("sentiment", ticker, dt, fallback_days=3)
+                if sent and "sentiment_score" in sent:
+                    sentiment_dict[ticker] = sent["sentiment_score"]
+            if sentiment_dict:
+                logger.info(f"Sentimento do Feature Store: {len(sentiment_dict)} tickers")
+        except Exception as e2:
+            logger.warning(f"Feature Store sentiment também falhou: {e2}")
 
     # 5. Preparar dados de treino com TODAS as features
     logger.info("Preparando dados de treino com features completas...")
