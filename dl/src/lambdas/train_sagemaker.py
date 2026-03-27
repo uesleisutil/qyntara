@@ -601,53 +601,18 @@ def _train_single_model(
     model_name: str, bucket: str, dt: str, model_prefix: str, feature_cols: list,
     X_train, y_train, X_val, y_val, epochs: int, event: dict,
 ) -> dict:
-    """
-    Treina um modelo individual.
-    - TabPFN: treina localmente na Lambda (é rápido, sem treino iterativo)
-    - Transformer+BiLSTM e outros DL: via SageMaker Training Job
-    """
-    # TabPFN treina na Lambda (é um forward pass, não treino iterativo)
+    """Treina qualquer modelo via SageMaker Training Job."""
     if model_name == 'tabpfn':
-        return _train_tabpfn_local(model_name, bucket, dt, model_prefix, feature_cols, X_train, y_train, X_val, y_val)
+        script = 'train_tabpfn_sagemaker.py'
+        hp = {'threshold': '0.01'}
+    else:
+        script = 'train_single_model.py'
+        hp = {'model-name': model_name, 'epochs': str(epochs), 'batch-size': '128', 'lr': '0.0005', 'patience': '20'}
 
-    # Outros modelos DL: via SageMaker
-    return _train_dl_sagemaker(model_name, bucket, dt, model_prefix, feature_cols, X_train, y_train, X_val, y_val, epochs, event)
-
-
-def _train_tabpfn_local(model_name, bucket, dt, model_prefix, feature_cols, X_train, y_train, X_val, y_val):
-    """Treina TabPFN localmente (é rápido — só um forward pass)."""
-    os.environ['TABPFN_ALLOW_CPU_LARGE_DATASET'] = '1'
-    from dl.src.sagemaker.tabpfn_classifier import TabPFNDirectionModel
-
-    logger.info("Treinando TabPFN localmente...")
-    model = TabPFNDirectionModel()
-    model.feature_names = feature_cols
-    metrics = model.train(X_train, y_train, X_val, y_val)
-    metrics['train_date'] = dt
-    metrics['model_name'] = model_name
-    metrics['n_features'] = len(feature_cols)
-
-    # Salvar no S3
-    with tempfile.TemporaryDirectory() as tmpdir:
-        model.save(tmpdir)
-        for fname in os.listdir(tmpdir):
-            fpath = os.path.join(tmpdir, fname)
-            if os.path.isfile(fpath):
-                s3.upload_file(fpath, bucket, f"{model_prefix}/individual/{model_name}/{fname}")
-
-    logger.info(f"TabPFN salvo: DirAcc={metrics.get('directional_accuracy', 0):.1%}")
-    return {
-        "ok": True, "dt": dt, "method": "local_tabpfn",
-        "model_name": model_name, "metrics": metrics,
-        "directional_accuracy": metrics.get('directional_accuracy'),
-    }
-
-
-def _train_dl_sagemaker(model_name, bucket, dt, model_prefix, feature_cols, X_train, y_train, X_val, y_val, epochs, event):
-    """Inicia SageMaker Training Job para modelos DL pesados."""
     logger.info(f"Iniciando SageMaker Training Job para {model_name}")
     cfg = load_runtime_config()
 
+    # Upload dados
     train_df = pd.DataFrame(X_train, columns=feature_cols)
     train_df['target'] = y_train
     val_df = pd.DataFrame(X_val, columns=feature_cols)
@@ -662,14 +627,15 @@ def _train_dl_sagemaker(model_name, bucket, dt, model_prefix, feature_cols, X_tr
     os.unlink(temp_path)
     train_data_s3 = f"s3://{bucket}/{train_prefix}"
 
+    # Empacotar scripts
     script_dir = os.path.join(os.path.dirname(__file__), '..', 'sagemaker')
     with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as tmp:
         tar_path = tmp.name
     with tarfile.open(tar_path, 'w:gz') as tar:
-        for script in ['train_single_model.py', 'train_deep_learning.py']:
-            script_path = os.path.join(script_dir, script)
-            if os.path.exists(script_path):
-                tar.add(script_path, arcname=script)
+        for s in [script, 'train_deep_learning.py', 'tabpfn_classifier.py', 'train_tabpfn_sagemaker.py', 'requirements.txt']:
+            spath = os.path.join(script_dir, s)
+            if os.path.exists(spath):
+                tar.add(spath, arcname=s)
     s3.upload_file(tar_path, bucket, f"scripts/dl_train_{model_name}.tar.gz")
     os.unlink(tar_path)
     script_s3 = f"s3://{bucket}/scripts/dl_train_{model_name}.tar.gz"
@@ -678,12 +644,15 @@ def _train_dl_sagemaker(model_name, bucket, dt, model_prefix, feature_cols, X_tr
     image_uri = f"763104351884.dkr.ecr.{region}.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-sagemaker"
     job_name = f"b3tr-{model_name.replace('_', '-')}-{dt.replace('-', '')}-{os.urandom(3).hex()}"[:63]
 
-    hyperparameters = {
-        'model-name': model_name, 'epochs': str(epochs), 'batch-size': '128',
-        'lr': '0.0005', 'patience': '20',
-        'sagemaker_program': 'train_single_model.py', 'sagemaker_submit_directory': script_s3,
-    }
+    hp['sagemaker_program'] = script
+    hp['sagemaker_submit_directory'] = script_s3
+
     output_s3 = f"s3://{bucket}/{model_prefix}/individual/{model_name}"
+
+    env = {'TABPFN_ALLOW_CPU_LARGE_DATASET': '1'}
+    hf_token = os.environ.get('HF_TOKEN', '')
+    if hf_token:
+        env['HF_TOKEN'] = hf_token
 
     try:
         sagemaker.create_training_job(
@@ -692,8 +661,9 @@ def _train_dl_sagemaker(model_name, bucket, dt, model_prefix, feature_cols, X_tr
             InputDataConfig=[{'ChannelName': 'train', 'DataSource': {'S3DataSource': {'S3DataType': 'S3Prefix', 'S3Uri': train_data_s3, 'S3DataDistributionType': 'FullyReplicated'}}, 'ContentType': 'text/csv'}],
             OutputDataConfig={'S3OutputPath': output_s3},
             ResourceConfig={'InstanceType': 'ml.m5.xlarge', 'InstanceCount': 1, 'VolumeSizeInGB': 30},
-            HyperParameters=hyperparameters,
+            HyperParameters=hp,
             StoppingCondition={'MaxRuntimeInSeconds': 7200},
+            Environment=env,
         )
         logger.info(f"SageMaker job iniciado: {job_name}")
     except Exception as e:
@@ -701,6 +671,10 @@ def _train_dl_sagemaker(model_name, bucket, dt, model_prefix, feature_cols, X_tr
         return {"ok": False, "error": str(e), "model_name": model_name}
 
     return {"ok": True, "dt": dt, "method": f"sagemaker_{model_name}", "model_name": model_name, "training_job_name": job_name}
+
+
+
+
 
 
 def _combine_ensemble(
