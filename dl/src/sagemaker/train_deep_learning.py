@@ -347,9 +347,12 @@ class DeepLearningTrainer:
             return self.model(X_t).cpu().numpy().flatten()
 
     def save(self, path: str):
-        """Salva modelo, scaler e metadados."""
+        """Salva modelo, scaler e metadados. Move para CPU antes de salvar."""
         os.makedirs(path, exist_ok=True)
+        # Mover para CPU antes de salvar (Lambda de inferência não tem GPU)
+        self.model.cpu()
         torch.save(self.model.state_dict(), os.path.join(path, 'model_state.pt'))
+        self.model.to(self.device)  # voltar para device original
         # Detectar tipo de modelo e salvar config adequada
         model = self.model
         model_type = type(model).__name__

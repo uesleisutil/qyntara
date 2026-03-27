@@ -88,8 +88,12 @@ def main():
     model_cls = reg['class']
     kwargs = reg['default_kwargs'].copy()
 
-    trainer = DeepLearningTrainer(n_features=n_features, device='cpu')
-    trainer.model = model_cls(n_features=n_features, **kwargs).to(torch.device('cpu'))
+    import torch
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    logger.info(f"Using device: {device}")
+
+    trainer = DeepLearningTrainer(n_features=n_features, device=device)
+    trainer.model = model_cls(n_features=n_features, **kwargs).to(torch.device(device))
     trainer.feature_names = feature_cols
 
     metrics = trainer.train(
