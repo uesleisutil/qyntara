@@ -24,8 +24,9 @@ def _table():
 
 def init_portfolio_db():
     client = boto3.client("dynamodb", region_name="us-east-1")
-    existing = client.list_tables()["TableNames"]
-    if TABLE_NAME not in existing:
+    try:
+        client.describe_table(TableName=TABLE_NAME)
+    except client.exceptions.ResourceNotFoundException:
         client.create_table(
             TableName=TABLE_NAME,
             KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
@@ -41,6 +42,8 @@ def init_portfolio_db():
             BillingMode="PAY_PER_REQUEST",
         )
         logger.info(f"Created table {TABLE_NAME}")
+    except Exception:
+        pass
 
 
 def add_position(user_id: str, market_id: str, source: str, question: str,

@@ -43,12 +43,22 @@ TOKENS_TABLE = "predikt-tokens"
 TICKETS_TABLE = "predikt-tickets"
 
 
+def _table_exists(client, table_name: str) -> bool:
+    """Verifica se tabela existe sem precisar de ListTables."""
+    try:
+        client.describe_table(TableName=table_name)
+        return True
+    except client.exceptions.ResourceNotFoundException:
+        return False
+    except Exception:
+        return True  # Assume que existe se não conseguir verificar
+
+
 def init_db():
     """Cria tabelas DynamoDB se não existirem."""
     client = boto3.client("dynamodb", region_name="us-east-1")
-    existing = client.list_tables()["TableNames"]
 
-    if USERS_TABLE not in existing:
+    if not _table_exists(client, USERS_TABLE):
         client.create_table(
             TableName=USERS_TABLE,
             KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
@@ -65,7 +75,7 @@ def init_db():
         )
         logger.info(f"Created table {USERS_TABLE}")
 
-    if TOKENS_TABLE not in existing:
+    if not _table_exists(client, TOKENS_TABLE):
         client.create_table(
             TableName=TOKENS_TABLE,
             KeySchema=[{"AttributeName": "token_hash", "KeyType": "HASH"}],
@@ -76,7 +86,7 @@ def init_db():
         )
         logger.info(f"Created table {TOKENS_TABLE}")
 
-    if TICKETS_TABLE not in existing:
+    if not _table_exists(client, TICKETS_TABLE):
         client.create_table(
             TableName=TICKETS_TABLE,
             KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],

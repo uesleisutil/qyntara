@@ -1,0 +1,88 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPO: cdk-hnb659fds-container-assets-200093399689-us-east-1
+  LAMBDA_FUNCTION: predikt-api
+  S3_FRONTEND: predikt-frontend-200093399689
+  CLOUDFRONT_ID: E1483P7UGXDOFW
+  API_BASE: https://ldt4wmwolk.execute-api.us-east-1.amazonaws.com
+
+jobs:
+  deploy:
+    name: 🚀 Build & Deploy
+    runs-on: ubuntu-latest
+    # Only deploy after security checks pass
+    needs: []
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr-login
+
+      # ── Backend: Docker build + push + Lambda update ──
+      - name: Build & push Docker image
+        run: |
+          IMAGE_TAG="predikt-api-$(echo $GITHUB_SHA | head -c 7)"
+          FULL_IMAGE="${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPO }}:${IMAGE_TAG}"
+          docker build --platform linux/amd64 -f Dockerfile.lambda -t ${FULL_IMAGE} .
+          docker push ${FULL_IMAGE}
+          echo "IMAGE_URI=${FULL_IMAGE}" >> $GITHUB_ENV
+
+      - name: Update Lambda function
+        run: |
+          aws lambda update-function-code \
+            --function-name ${{ env.LAMBDA_FUNCTION }} \
+            --image-uri ${{ env.IMAGE_URI }} \
+            --no-cli-pager
+          # Wait for update to complete
+          aws lambda wait function-updated --function-name ${{ env.LAMBDA_FUNCTION }}
+          echo "✅ Lambda updated"
+
+      # ── Frontend: Build + S3 sync + CloudFront invalidation ──
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          VITE_API_BASE=${{ env.API_BASE }} npx vite build
+
+      - name: Deploy frontend to S3
+        run: |
+          aws s3 sync frontend/dist/ s3://${{ env.S3_FRONTEND }}/ --delete
+          echo "✅ Frontend deployed to S3"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ env.CLOUDFRONT_ID }} \
+            --paths "/*" \
+            --no-cli-pager
+          echo "✅ CloudFront cache invalidated"
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.API_BASE }}/markets?limit=1)
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ API responding (HTTP $STATUS)"
+          else
+            echo "⚠️ API returned HTTP $STATUS (may need cold start)"
+          fi

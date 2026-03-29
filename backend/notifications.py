@@ -25,8 +25,9 @@ def _table():
 
 def init_notifications_db():
     client = boto3.client("dynamodb", region_name="us-east-1")
-    existing = client.list_tables()["TableNames"]
-    if TABLE_NAME not in existing:
+    try:
+        client.describe_table(TableName=TABLE_NAME)
+    except client.exceptions.ResourceNotFoundException:
         client.create_table(
             TableName=TABLE_NAME,
             KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
@@ -42,6 +43,8 @@ def init_notifications_db():
             BillingMode="PAY_PER_REQUEST",
         )
         logger.info(f"Created table {TABLE_NAME}")
+    except Exception:
+        pass  # Table exists or can't check — proceed
 
 
 def create_notification(user_id: str, ntype: str, title: str, body: str = "", data: dict | None = None) -> dict:
