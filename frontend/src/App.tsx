@@ -129,7 +129,7 @@ const App: React.FC = () => {
           <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: theme.textSecondary }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: connected ? theme.green : theme.red,
               boxShadow: connected ? `0 0 8px ${theme.green}60` : undefined, animation: connected ? 'glow 2s infinite' : undefined }} />
-            {connected ? 'Live' : '...'}
+            {connected ? 'Ao vivo' : '...'}
           </span>
           {stats && <span style={{ fontSize: '0.7rem', color: theme.textMuted }}>{stats.total_markets || 0} mkts</span>}
           {user ? (

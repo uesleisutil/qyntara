@@ -28,11 +28,11 @@ export const SignalsPage: React.FC<Props> = ({ dark, onAuthRequired }) => {
     return (
       <div style={{ textAlign: 'center', padding: '3rem' }}>
         <Lock size={32} color={textSec} style={{ marginBottom: '1rem' }} />
-        <p style={{ color: textSec, marginBottom: '1rem' }}>Sign in to access AI Signals</p>
+        <p style={{ color: textSec, marginBottom: '1rem' }}>Entre para acessar os Sinais de IA</p>
         <button onClick={onAuthRequired} style={{
           padding: '0.6rem 1.5rem', borderRadius: 8, border: 'none',
           background: '#6366f1', color: '#fff', fontWeight: 600, cursor: 'pointer',
-        }}>Sign in</button>
+        }}>Entrar</button>
       </div>
     );
   }
@@ -55,11 +55,11 @@ export const SignalsPage: React.FC<Props> = ({ dark, onAuthRequired }) => {
       </div>
 
       <p style={{ fontSize: '0.78rem', color: textSec, marginBottom: '1rem', lineHeight: 1.5 }}>
-        Markets where AI detects potential edge — price divergence from estimated probability.
+        Mercados onde a IA detecta edge potencial — divergência de preço em relação à probabilidade estimada.
       </p>
 
       {loading && !signals.length ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: textSec }}>Analyzing markets...</div>
+        <div style={{ textAlign: 'center', padding: '3rem', color: textSec }}>Analisando mercados...</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {signals.map((s, i) => {

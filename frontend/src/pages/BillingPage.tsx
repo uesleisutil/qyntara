@@ -14,12 +14,12 @@ const PLANS = [
   {
     key: 'pro', name: 'Pro', price: '$29', period: '/month',
     icon: <Zap size={20} />, color: '#6366f1', popular: true,
-    features: ['Everything in Free', 'Unlimited AI Signals', 'Cross-platform Arbitrage', 'Full Sentiment Analysis', '50 portfolio positions', 'Scenario Analysis', '90-day history', 'Email alerts'],
+    features: ['Tudo do Grátis', 'Sinais de IA ilimitados', 'Arbitragem cross-plataforma', 'Análise de sentimento completa', '50 posições no portfólio', 'Análise de cenários', 'Histórico de 90 dias', 'Alertas por email'],
   },
   {
     key: 'quant', name: 'Quant', price: '$79', period: '/month',
     icon: <Crown size={20} />, color: '#f59e0b',
-    features: ['Everything in Pro', 'Smart Money Alerts', 'Anomaly Detection', 'API Access', '500 portfolio positions', 'Monte Carlo simulations', 'Unlimited history', 'Priority support'],
+    features: ['Tudo do Pro', 'Alertas de Smart Money', 'Detecção de anomalias', 'Acesso à API', '500 posições no portfólio', 'Simulações Monte Carlo', 'Histórico ilimitado', 'Suporte prioritário'],
   },
 ];
 
@@ -46,9 +46,9 @@ export const BillingPage: React.FC<Props> = ({ dark }) => {
   return (
     <div>
       <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>Choose your plan</h2>
+        <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '0.5rem' }}>Escolha seu plano</h2>
         <p style={{ color: textSec, fontSize: '0.85rem' }}>
-          Unlock AI-powered prediction market intelligence
+          Desbloqueie inteligência para mercados de predição com IA
         </p>
       </div>
 
@@ -95,14 +95,14 @@ export const BillingPage: React.FC<Props> = ({ dark }) => {
                   color: textSec, fontSize: '0.82rem', cursor: plan.key !== 'free' ? 'pointer' : 'default',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}>
-                  Current plan {plan.key !== 'free' && <ExternalLink size={12} />}
+                  Plano atual {plan.key !== 'free' && <ExternalLink size={12} />}
                 </button>
               ) : isUpgrade ? (
                 <button onClick={() => handleUpgrade(plan.key)} style={{
                   width: '100%', padding: '0.65rem', borderRadius: 8, border: 'none',
                   background: plan.color, color: '#fff', fontWeight: 600,
                   fontSize: '0.82rem', cursor: 'pointer',
-                }}>Upgrade to {plan.name}</button>
+                }}>Assinar {plan.name}</button>
               ) : (
                 <div style={{ height: 38 }} />
               )}

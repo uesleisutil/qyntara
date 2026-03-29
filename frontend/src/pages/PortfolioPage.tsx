@@ -33,11 +33,11 @@ export const PortfolioPage: React.FC<Props> = ({ dark, onAuthRequired }) => {
     return (
       <div style={{ textAlign: 'center', padding: '3rem' }}>
         <Lock size={32} color={textSec} style={{ marginBottom: '1rem' }} />
-        <p style={{ color: textSec, marginBottom: '1rem' }}>Sign in to track your portfolio</p>
+        <p style={{ color: textSec, marginBottom: '1rem' }}>Entre para acompanhar seu portfólio</p>
         <button onClick={onAuthRequired} style={{
           padding: '0.6rem 1.5rem', borderRadius: 8, border: 'none',
           background: '#6366f1', color: '#fff', fontWeight: 600, cursor: 'pointer',
-        }}>Sign in</button>
+        }}>Entrar</button>
       </div>
     );
   }
@@ -90,7 +90,7 @@ export const PortfolioPage: React.FC<Props> = ({ dark, onAuthRequired }) => {
       {positions.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: textSec,
           background: card, borderRadius: 12, border: `1px solid ${border}` }}>
-          No positions yet. Add your first position to start tracking.
+          Nenhuma posição ainda. Adicione sua primeira posição para começar a acompanhar.
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
