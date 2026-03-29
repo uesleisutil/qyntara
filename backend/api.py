@@ -102,11 +102,12 @@ async def _refresh_markets():
                     markets.append(m)
         if kalshi_client:
             try:
-                raw_k = await kalshi_client.get_markets(limit=100)
+                raw_k = await kalshi_client.get_markets(limit=200)
                 for r in raw_k:
                     m = parse_kalshi_market(r)
-                    if m["volume"] > 100:
+                    if m["volume"] > 0:
                         markets.append(m)
+                logger.info(f"Kalshi: {len([m for m in markets if m['source'] == 'kalshi'])} markets with volume")
             except Exception as e:
                 logger.warning(f"Kalshi: {e}")
 
