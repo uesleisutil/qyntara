@@ -41,7 +41,6 @@ predikt.db
 *.pt
 *.pkl
 *.tar.gz
-models/
 
 # OS
 .DS_Store
