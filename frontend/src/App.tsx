@@ -15,6 +15,7 @@ import { useWebSocket } from './hooks/useWebSocket';
 import { useApi } from './hooks/useApi';
 import { useAuthStore } from './store/authStore';
 import { API_BASE } from './config';
+import { theme, globalStyles, badgeStyle } from './styles';
 import {
   BarChart3, Zap, GitCompare, TrendingUp, Lock, User, LogOut,
   Shield, Users, Brain, Server, Briefcase, CreditCard, Bell,
@@ -31,12 +32,6 @@ const App: React.FC = () => {
   const { data: stats } = useApi<any>('/stats', 60000);
   const { data: notifs } = useApi<any>(useAuthStore.getState().user ? '/notifications?unread=true&limit=5' : '', 30000);
   const { user, logout } = useAuthStore();
-
-  const bg = '#0a0b0f';
-  const border = '#1e2130';
-  const text = '#e2e8f0';
-  const textSec = '#8892a4';
-  const accent = '#6366f1';
 
   const unreadCount = notifs?.unread_count || 0;
 
@@ -62,28 +57,29 @@ const App: React.FC = () => {
   // Se não logado e na landing, mostrar landing page
   if (tab === 'landing' && !user) {
     return (
-      <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: "'Inter', -apple-system, sans-serif" }}>
-        <style>{`* { margin: 0; padding: 0; box-sizing: border-box; } body { background: ${bg}; }`}</style>
+      <div style={{ minHeight: '100vh', background: theme.bg, color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+        <style>{globalStyles}</style>
         <header style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          padding: '0.75rem 1.5rem', borderBottom: `1px solid ${border}`, background: '#0d0e14',
+          padding: '0.75rem 1.5rem', borderBottom: `1px solid ${theme.border}`, background: theme.bgAlt,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <TrendingUp size={22} color={accent} />
-            <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>Predikt</span>
+            <TrendingUp size={22} color={theme.accent} />
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Predikt</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => { setTab('markets'); }} style={{
-              padding: '0.4rem 0.8rem', borderRadius: 6, border: `1px solid ${border}`,
-              background: 'transparent', color: textSec, cursor: 'pointer', fontSize: '0.78rem',
+              padding: '0.45rem 0.9rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+              background: 'transparent', color: theme.textSecondary, cursor: 'pointer', fontSize: '0.78rem',
             }}>Explore</button>
             <button onClick={() => setShowAuth(true)} style={{
-              padding: '0.4rem 0.8rem', borderRadius: 6, border: 'none',
-              background: accent, color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
+              padding: '0.45rem 0.9rem', borderRadius: 8, border: 'none',
+              background: `linear-gradient(135deg, ${theme.accent}, ${theme.purple})`,
+              color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
             }}>Sign in</button>
           </div>
         </header>
-        <LandingPage dark={dark} onGetStarted={() => setShowAuth(true)} />
+        <LandingPage onGetStarted={() => setShowAuth(true)} />
         {showAuth && <AuthModal onClose={() => { setShowAuth(false); if (useAuthStore.getState().user) setTab('markets'); }} dark={dark} />}
       </div>
     );
@@ -106,67 +102,69 @@ const App: React.FC = () => {
   ];
 
   const tierBadge = user?.tier && user.tier !== 'free' ? (
-    <span style={{
-      fontSize: '0.58rem', padding: '2px 6px', borderRadius: 4, fontWeight: 700,
-      background: user.tier === 'quant' ? '#f59e0b20' : '#6366f120',
-      color: user.tier === 'quant' ? '#f59e0b' : accent, textTransform: 'uppercase',
-    }}>{user.tier}</span>
+    <span style={badgeStyle(
+      user.tier === 'quant' ? theme.yellow : theme.accent,
+      user.tier === 'quant' ? theme.yellowBg : theme.accentBg,
+    )}>{user.tier}</span>
   ) : null;
 
   const openMarket = (id: string) => { setSelectedMarket(id); setTab('market_detail'); };
 
   return (
-    <div style={{ minHeight: '100vh', background: bg, color: text, fontFamily: "'Inter', -apple-system, sans-serif" }}>
-      <style>{`
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: ${bg}; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: ${border}; border-radius: 3px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+    <div style={{ minHeight: '100vh', background: theme.bg, color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+      <style>{globalStyles}</style>
 
       {/* Header */}
       <header style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '0.75rem 1.5rem', borderBottom: `1px solid ${border}`, background: '#0d0e14',
+        padding: '0.75rem 1.5rem', borderBottom: `1px solid ${theme.border}`,
+        background: theme.bgAlt, backdropFilter: 'blur(8px)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setTab('markets')}>
-          <TrendingUp size={22} color={accent} />
-          <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>Predikt</span>
-          <span style={{ fontSize: '0.58rem', padding: '2px 6px', borderRadius: 4, background: `${accent}18`, color: accent, fontWeight: 600 }}>BETA</span>
+          <TrendingUp size={22} color={theme.accent} />
+          <span style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Predikt</span>
+          <span style={badgeStyle(theme.accent, theme.accentBg)}>BETA</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: textSec }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: connected ? '#10b981' : '#ef4444',
-              boxShadow: connected ? '0 0 6px rgba(16,185,129,0.4)' : undefined }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: theme.textSecondary }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: connected ? theme.green : theme.red,
+              boxShadow: connected ? `0 0 8px ${theme.green}60` : undefined, animation: connected ? 'glow 2s infinite' : undefined }} />
             {connected ? 'Live' : '...'}
           </span>
-          {stats && <span style={{ fontSize: '0.7rem', color: textSec }}>{stats.total_markets || 0} mkts</span>}
+          {stats && <span style={{ fontSize: '0.7rem', color: theme.textMuted }}>{stats.total_markets || 0} mkts</span>}
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {/* Notification bell */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {unreadCount > 0 && (
                 <span style={{ position: 'relative', cursor: 'pointer' }}>
-                  <Bell size={16} color={textSec} />
+                  <Bell size={16} color={theme.textSecondary} />
                   <span style={{
-                    position: 'absolute', top: -4, right: -4, width: 14, height: 14,
-                    borderRadius: '50%', background: '#ef4444', color: '#fff',
+                    position: 'absolute', top: -5, right: -5, width: 16, height: 16,
+                    borderRadius: '50%', background: theme.red, color: '#fff',
                     fontSize: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
                   }}>{unreadCount}</span>
                 </span>
               )}
               {tierBadge}
-              <span style={{ fontSize: '0.75rem', color: textSec }}>{user.email.split('@')[0]}</span>
+              <span style={{ fontSize: '0.75rem', color: theme.textSecondary }}>{user.email.split('@')[0]}</span>
               <button onClick={() => { logout(); setTab('landing'); }} style={{
-                background: 'none', border: 'none', cursor: 'pointer', color: textSec,
-              }} aria-label="Logout"><LogOut size={16} /></button>
+                background: 'none', border: 'none', cursor: 'pointer', color: theme.textMuted,
+                transition: 'color 0.15s',
+              }} aria-label="Logout"
+              onMouseEnter={e => e.currentTarget.style.color = theme.red}
+              onMouseLeave={e => e.currentTarget.style.color = theme.textMuted}>
+                <LogOut size={16} />
+              </button>
             </div>
           ) : (
             <button onClick={() => setShowAuth(true)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '0.4rem 0.8rem',
-              borderRadius: 6, border: `1px solid ${border}`, background: 'transparent',
-              color: text, cursor: 'pointer', fontSize: '0.78rem',
-            }}><User size={14} /> Sign in</button>
+              display: 'flex', alignItems: 'center', gap: 6, padding: '0.45rem 0.9rem',
+              borderRadius: 8, border: `1px solid ${theme.border}`, background: 'transparent',
+              color: theme.text, cursor: 'pointer', fontSize: '0.78rem', transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = theme.accentBorder; e.currentTarget.style.color = theme.accent; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.text; }}>
+              <User size={14} /> Sign in
+            </button>
           )}
         </div>
       </header>
@@ -190,19 +188,23 @@ const App: React.FC = () => {
       {/* Tabs */}
       <nav style={{
         display: 'flex', gap: 2, padding: '0.5rem 1.5rem', overflowX: 'auto',
-        borderBottom: `1px solid ${border}`, background: '#0d0e14',
+        borderBottom: `1px solid ${theme.border}`, background: theme.bgAlt,
       }}>
         {tabs.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} style={{
-            display: 'flex', alignItems: 'center', gap: 6, padding: '0.5rem 0.75rem',
-            borderRadius: 6, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
-            background: tab === t.key ? `${accent}18` : 'transparent',
-            color: tab === t.key ? accent : textSec,
-            fontSize: '0.78rem', fontWeight: tab === t.key ? 600 : 400,
-          }}>
+            display: 'flex', alignItems: 'center', gap: 6, padding: '0.55rem 0.85rem',
+            borderRadius: 8, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+            background: tab === t.key ? theme.accentBg : 'transparent',
+            color: tab === t.key ? theme.accent : theme.textSecondary,
+            fontSize: '0.8rem', fontWeight: tab === t.key ? 600 : 400,
+            transition: 'all 0.15s',
+            borderBottom: tab === t.key ? `2px solid ${theme.accent}` : '2px solid transparent',
+          }}
+          onMouseEnter={e => { if (tab !== t.key) e.currentTarget.style.color = theme.text; }}
+          onMouseLeave={e => { if (tab !== t.key) e.currentTarget.style.color = theme.textSecondary; }}>
             {t.icon} {t.label}
-            {t.pro && !t.admin && <Lock size={10} style={{ opacity: 0.4 }} />}
-            {t.admin && <Shield size={10} color="#ef4444" style={{ opacity: 0.6 }} />}
+            {t.pro && !t.admin && <Lock size={10} style={{ opacity: 0.3 }} />}
+            {t.admin && <Shield size={10} color={theme.red} style={{ opacity: 0.5 }} />}
           </button>
         ))}
       </nav>

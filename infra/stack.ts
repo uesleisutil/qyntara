@@ -20,6 +20,15 @@ export class PrediktStack extends cdk.Stack {
 
     const domainName = 'qyntara.tech';
     const apiSubdomain = `api.${domainName}`;
+    const hostedZoneId = 'Z0895962DIMZ2UX4JP0M';
+    const certificateArn = 'arn:aws:acm:us-east-1:200093399689:certificate/a01724c8-e707-4141-8d18-cb7141fc7fd7';
+
+    // Import hosted zone and certificate
+    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'Zone', {
+      hostedZoneId,
+      zoneName: domainName,
+    });
+    const certificate = acm.Certificate.fromCertificateArn(this, 'Cert', certificateArn);
 
     // ══════════════════════════════════════
     // LAMBDA (Backend API)
@@ -82,11 +91,20 @@ export class PrediktStack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
+      domainNames: [domainName],
+      certificate,
       defaultRootObject: 'index.html',
       errorResponses: [
         { httpStatus: 404, responseHttpStatus: 200, responsePagePath: '/index.html', ttl: cdk.Duration.seconds(0) },
         { httpStatus: 403, responseHttpStatus: 200, responsePagePath: '/index.html', ttl: cdk.Duration.seconds(0) },
       ],
+    });
+
+    // DNS record: qyntara.tech → CloudFront
+    new route53.ARecord(this, 'FrontendAlias', {
+      zone: hostedZone,
+      recordName: domainName,
+      target: route53.RecordTarget.fromAlias(new route53targets.CloudFrontTarget(distribution)),
     });
 
     // Deploy frontend
