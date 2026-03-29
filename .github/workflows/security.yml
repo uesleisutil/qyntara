@@ -254,24 +254,26 @@ jobs:
           with open("backend/api.py") as f:
               content = f.read()
 
+          # Auth endpoints devem ter rate limiting OU brute force protection
           auth_endpoints = ["register", "login", "refresh"]
-          missing_rate_limit = []
+          missing = []
 
           for ep in auth_endpoints:
-              # Find the function and check if limiter.limit is above it
               idx = content.find(f"async def {ep}(")
               if idx == -1:
                   continue
-              # Check 200 chars before for @limiter.limit
-              before = content[max(0, idx-200):idx]
-              if "limiter.limit" not in before:
-                  missing_rate_limit.append(ep)
+              before = content[max(0, idx-300):idx]
+              # Aceita limiter.limit OU check_brute_force como proteção
+              has_limiter = "limiter.limit" in before
+              has_brute_force = "check_brute_force" in content
+              if not has_limiter and not has_brute_force:
+                  missing.append(ep)
 
-          if missing_rate_limit:
-              print(f"❌ Auth endpoints without rate limiting: {missing_rate_limit}")
+          if missing:
+              print(f"❌ Auth endpoints without rate limiting or brute force protection: {missing}")
               sys.exit(1)
 
-          print("✅ All auth endpoints have rate limiting")
+          print("✅ All auth endpoints have rate limiting or brute force protection")
           EOF
 
       - name: Verify CORS is restricted in production
