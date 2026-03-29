@@ -112,9 +112,39 @@ def send_welcome_email(to_email: str, user_name: str):
 
 
 def _send_email(to: str, subject: str, html_body: str):
-    """Envia email via SMTP."""
-    if not settings.SMTP_HOST:
-        logger.warning(f"SMTP not configured, skipping email to {to}")
+    """Envia email — tenta API REST da Locaweb primeiro, SMTP como fallback."""
+    if not settings.SMTP_HOST and not getattr(settings, 'LOCAWEB_API_TOKEN', ''):
+        logger.warning(f"Email not configured, skipping email to {to}")
+        return
+
+    # Tentar API REST da Locaweb primeiro (mais confiável)
+    api_token = getattr(settings, 'LOCAWEB_API_TOKEN', '') or _get_locaweb_token()
+    if api_token:
+        try:
+            import httpx
+            resp = httpx.post(
+                "https://api.smtplw.com.br/v1/messages",
+                headers={"x-auth-token": api_token, "Content-Type": "application/json"},
+                json={
+                    "subject": subject,
+                    "body": html_body,
+                    "from": settings.SMTP_FROM,
+                    "to": to,
+                    "headers": {"Content-Type": "text/html"},
+                },
+                timeout=15,
+            )
+            if resp.status_code in (200, 201):
+                logger.info(f"Email sent via API to {to}: {subject}")
+                return
+            else:
+                logger.warning(f"Locaweb API error ({resp.status_code}): {resp.text}")
+        except Exception as e:
+            logger.warning(f"Locaweb API failed: {e}")
+
+    # Fallback: SMTP
+    if not settings.SMTP_USER:
+        logger.warning(f"SMTP not configured, cannot send email to {to}")
         return
 
     msg = MIMEMultipart("alternative")
@@ -133,6 +163,16 @@ def _send_email(to: str, subject: str, html_body: str):
         server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
         server.sendmail(settings.SMTP_FROM, to, msg.as_string())
         server.quit()
-        logger.info(f"Email sent to {to}: {subject}")
+        logger.info(f"Email sent via SMTP to {to}: {subject}")
     except Exception as e:
         logger.error(f"Failed to send email to {to}: {e}")
+
+
+def _get_locaweb_token() -> str:
+    """Carrega token da Locaweb do Secrets Manager."""
+    try:
+        from .config import _load_aws_secrets
+        secrets = _load_aws_secrets()
+        return secrets.get("LOCAWEB_API_TOKEN", "")
+    except Exception:
+        return ""

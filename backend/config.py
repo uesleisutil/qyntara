@@ -63,6 +63,7 @@ class Settings:
     SMTP_USER: str = _get("SMTP_USER", "")
     SMTP_PASSWORD: str = _get("SMTP_PASSWORD", "")
     SMTP_FROM: str = _get("SMTP_FROM", "noreply@qyntara.tech")
+    LOCAWEB_API_TOKEN: str = _get("LOCAWEB_API_TOKEN", "")
 
     @property
     def is_production(self) -> bool:
