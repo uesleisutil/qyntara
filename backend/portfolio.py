@@ -7,12 +7,10 @@ Calcula: exposição total, correlação, risco de ruína, cenários.
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
 from datetime import datetime, timezone
 
-import numpy as np
 
 from .database import get_db
 

@@ -5,7 +5,6 @@ Predikt API — FastAPI server com auth, billing e security.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -45,6 +44,9 @@ from .security import (
     check_brute_force, record_login_attempt, clear_login_attempts,
     sanitize_string,
 )
+from .storage import (
+    ensure_bucket, save_market_cache, load_market_cache,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -64,15 +66,21 @@ _initialized = False
 
 def _ensure_init():
     """Lazy init — funciona tanto em uvicorn quanto em Lambda."""
-    global poly_client, kalshi_client, news_client, _initialized
+    global poly_client, kalshi_client, news_client, _initialized, _cache
     if _initialized:
         return
     init_db()
     init_portfolio_db()
     init_notifications_db()
+    ensure_bucket()
     poly_client = PolymarketClient()
     kalshi_client = KalshiClient()
     news_client = NewsClient()
+    # Carregar cache do S3 (sobrevive cold starts)
+    cached = load_market_cache()
+    if cached.get("markets"):
+        _cache.update(cached)
+        logger.info(f"Loaded {len(cached['markets'])} markets from S3 cache")
     _initialized = True
 
 
@@ -111,6 +119,13 @@ async def _refresh_markets():
         _cache["arbitrage"] = _find_arbitrage(markets)
         _cache["signals"] = _generate_signals(markets)
         await _broadcast({"type": "markets_updated", "count": len(markets)})
+
+        # Persistir cache no S3 (sobrevive cold starts)
+        try:
+            save_market_cache(markets, _cache["signals"], _cache["arbitrage"], _cache["stats"])
+        except Exception as e:
+            logger.warning(f"Failed to save cache to S3: {e}")
+
         logger.info(f"Refreshed: {len(markets)} markets")
     except Exception as e:
         logger.error(f"Refresh error: {e}")
@@ -168,20 +183,20 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.post("/auth/register", response_model=TokenResponse)
 @limiter.limit("5/minute")
-async def register(request: Request, body: RegisterRequest):
-    return register_user(body)
+async def register(request: Request, data: RegisterRequest):
+    return register_user(data)
 
 
 @app.post("/auth/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
-async def login(request: Request, body: LoginRequest):
+async def login(request: Request, data: LoginRequest):
     ip = request.client.host if request.client else "unknown"
     if not check_brute_force(ip):
         from .security import audit_log
         audit_log("login_blocked_brute_force", ip=ip)
         raise HTTPException(429, "Too many login attempts. Try again in 5 minutes.")
     try:
-        result = login_user(body)
+        result = login_user(data)
         clear_login_attempts(ip)
         from .security import audit_log
         audit_log("login_success", user_id=result.user.get("id"), ip=ip)
@@ -189,7 +204,7 @@ async def login(request: Request, body: LoginRequest):
     except HTTPException:
         record_login_attempt(ip)
         from .security import audit_log
-        audit_log("login_failed", ip=ip, detail=body.email)
+        audit_log("login_failed", ip=ip, detail=data.email)
         raise
 
 
@@ -516,6 +531,7 @@ async def ws_endpoint(ws: WebSocket):
 
 
 async def _broadcast(msg: dict):
+    global _ws_clients
     dead = set()
     for ws in _ws_clients:
         try:

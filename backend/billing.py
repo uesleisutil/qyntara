@@ -20,7 +20,7 @@ import stripe
 from fastapi import HTTPException, Request
 
 from .config import settings
-from .database import get_user_by_id, update_user_tier, update_user_stripe_customer
+from .database import update_user_tier, update_user_stripe_customer
 
 logger = logging.getLogger(__name__)
 

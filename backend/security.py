@@ -10,7 +10,6 @@ Security middleware e utilities.
 
 from __future__ import annotations
 
-import hashlib
 import logging
 import re
 import time
@@ -116,12 +115,8 @@ def sanitize_string(value: str, max_length: int = 500) -> str:
 
 # ── Audit Logger ──
 
-_audit_log: list[dict] = []
-MAX_AUDIT_LOG = 500
-
-
 def audit_log(event: str, user_id: str | None = None, ip: str = "", detail: str = ""):
-    """Registra evento de segurança para auditoria."""
+    """Registra evento de segurança para auditoria (S3 persistente)."""
     entry = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "event": event,
@@ -129,11 +124,17 @@ def audit_log(event: str, user_id: str | None = None, ip: str = "", detail: str 
         "ip": ip,
         "detail": detail,
     }
-    _audit_log.append(entry)
-    if len(_audit_log) > MAX_AUDIT_LOG:
-        _audit_log.pop(0)
     logger.info(f"AUDIT: {event} user={user_id} ip={ip} {detail}")
+    try:
+        from .storage import append_audit_log
+        append_audit_log(entry)
+    except Exception:
+        pass
 
 
 def get_audit_log(limit: int = 100) -> list[dict]:
-    return list(reversed(_audit_log[-limit:]))
+    try:
+        from .storage import load_audit_log
+        return load_audit_log(limit)
+    except Exception:
+        return []

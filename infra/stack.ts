@@ -45,11 +45,28 @@ export class PrediktStack extends cdk.Stack {
       environment: {
         APP_ENV: 'production',
         FRONTEND_URL: `https://${domainName}`,
-        DATABASE_URL: 'sqlite:////tmp/predikt.db',
-        // Secrets via env vars (set manually or via Secrets Manager)
       },
       logRetention: logs.RetentionDays.TWO_WEEKS,
     });
+
+    // DynamoDB permissions
+    apiFunction.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: [
+        'dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem',
+        'dynamodb:DeleteItem', 'dynamodb:Query', 'dynamodb:Scan',
+        'dynamodb:CreateTable', 'dynamodb:DescribeTable', 'dynamodb:ListTables',
+      ],
+      resources: ['arn:aws:dynamodb:us-east-1:200093399689:table/predikt-*'],
+    }));
+
+    // S3 permissions (data storage)
+    apiFunction.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: ['s3:GetObject', 's3:PutObject', 's3:ListBucket', 's3:HeadBucket', 's3:CreateBucket'],
+      resources: [
+        'arn:aws:s3:::predikt-data-200093399689',
+        'arn:aws:s3:::predikt-data-200093399689/*',
+      ],
+    }));
 
     // API Gateway HTTP (mais barato que REST)
     const httpApi = new apigatewayv2.HttpApi(this, 'PrediktHttpApi', {

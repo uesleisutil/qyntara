@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: JSON.stringify({ email, password, name }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Registration failed');
+      if (!res.ok) throw new Error(_parseError(data));
       localStorage.setItem(REFRESH_KEY, data.refresh_token);
       set({ user: data.user, accessToken: data.access_token, loading: false });
       _scheduleRefresh(data.expires_in);
@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Login failed');
+      if (!res.ok) throw new Error(_parseError(data));
       localStorage.setItem(REFRESH_KEY, data.refresh_token);
       set({ user: data.user, accessToken: data.access_token, loading: false });
       _scheduleRefresh(data.expires_in);
@@ -110,3 +110,15 @@ function _scheduleRefresh(expiresInSeconds: number) {
 
 // Try to restore session on load
 useAuthStore.getState().refreshAuth();
+
+function _parseError(data: any): string {
+  if (!data) return 'Erro desconhecido';
+  if (typeof data.detail === 'string') return data.detail;
+  if (Array.isArray(data.detail)) {
+    // Pydantic validation errors
+    return data.detail.map((e: any) => e.msg || e.message || JSON.stringify(e)).join('. ');
+  }
+  if (typeof data.detail === 'object') return JSON.stringify(data.detail);
+  if (data.message) return data.message;
+  return 'Erro desconhecido';
+}
