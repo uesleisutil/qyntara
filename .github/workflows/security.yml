@@ -386,7 +386,7 @@ jobs:
 
       - name: Check no database files committed
         run: |
-          DBFILES=$(find . -name "*.db" -o -name "*.sqlite" -o -name "*.sqlite3" | grep -v node_modules | grep -v .git)
+          DBFILES=$(find . -name "*.db" -o -name "*.sqlite" -o -name "*.sqlite3" | grep -v node_modules | grep -v .git | grep -v __pycache__ | grep -v .venv | grep -v cdk.out 2>/dev/null || true)
           if [ -n "$DBFILES" ]; then
             echo "::error::Database files found in repo"
             echo "$DBFILES"

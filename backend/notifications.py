@@ -1,115 +1,80 @@
 """
-Notification system — alertas via WebSocket push + in-app.
-
-Tipos de notificação:
-- signal: novo sinal do Edge Estimator
-- arbitrage: nova oportunidade de arbitragem
-- anomaly: movimento anômalo detectado (smart money)
-- portfolio: posição atingiu threshold
-- system: manutenção, updates
+Notification system — DynamoDB storage.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import uuid
 from datetime import datetime, timezone
 
-from .database import get_db
+import boto3
+from boto3.dynamodb.conditions import Key
+
+from .database import _get_dynamodb
 
 logger = logging.getLogger(__name__)
 
-NOTIFICATIONS_SCHEMA = """
-CREATE TABLE IF NOT EXISTS notifications (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    type TEXT NOT NULL,
-    title TEXT NOT NULL,
-    body TEXT NOT NULL DEFAULT '',
-    data TEXT DEFAULT '{}',
-    read INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read);
-"""
+TABLE_NAME = "predikt-notifications"
+
+
+def _table():
+    return _get_dynamodb().Table(TABLE_NAME)
 
 
 def init_notifications_db():
-    with get_db() as db:
-        db.executescript(NOTIFICATIONS_SCHEMA)
+    client = boto3.client("dynamodb", region_name="us-east-1")
+    existing = client.list_tables()["TableNames"]
+    if TABLE_NAME not in existing:
+        client.create_table(
+            TableName=TABLE_NAME,
+            KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
+            AttributeDefinitions=[
+                {"AttributeName": "id", "AttributeType": "S"},
+                {"AttributeName": "user_id", "AttributeType": "S"},
+            ],
+            GlobalSecondaryIndexes=[{
+                "IndexName": "user-index",
+                "KeySchema": [{"AttributeName": "user_id", "KeyType": "HASH"}],
+                "Projection": {"ProjectionType": "ALL"},
+            }],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        logger.info(f"Created table {TABLE_NAME}")
 
 
 def create_notification(user_id: str, ntype: str, title: str, body: str = "", data: dict | None = None) -> dict:
     nid = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
-    import json
-    with get_db() as db:
-        db.execute(
-            "INSERT INTO notifications (id, user_id, type, title, body, data, created_at) VALUES (?,?,?,?,?,?,?)",
-            (nid, user_id, ntype, title, body, json.dumps(data or {}), now),
-        )
+    item = {
+        "id": nid, "user_id": user_id, "type": ntype,
+        "title": title, "body": body, "data": json.dumps(data or {}),
+        "read": False, "created_at": now,
+    }
+    _table().put_item(Item=item)
     return {"id": nid, "type": ntype, "title": title, "body": body, "created_at": now}
 
 
 def get_user_notifications(user_id: str, limit: int = 50, unread_only: bool = False) -> list[dict]:
-    with get_db() as db:
-        if unread_only:
-            rows = db.execute(
-                "SELECT * FROM notifications WHERE user_id = ? AND read = 0 ORDER BY created_at DESC LIMIT ?",
-                (user_id, limit),
-            ).fetchall()
-        else:
-            rows = db.execute(
-                "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
-                (user_id, limit),
-            ).fetchall()
-    return [dict(r) for r in rows]
+    resp = _table().query(IndexName="user-index", KeyConditionExpression=Key("user_id").eq(user_id))
+    items = resp.get("Items", [])
+    if unread_only:
+        items = [n for n in items if not n.get("read")]
+    items.sort(key=lambda n: n.get("created_at", ""), reverse=True)
+    return items[:limit]
 
 
 def mark_read(notification_id: str, user_id: str):
-    with get_db() as db:
-        db.execute("UPDATE notifications SET read = 1 WHERE id = ? AND user_id = ?", (notification_id, user_id))
+    _table().update_item(Key={"id": notification_id}, UpdateExpression="SET #r = :r", ExpressionAttributeNames={"#r": "read"}, ExpressionAttributeValues={":r": True})
 
 
 def mark_all_read(user_id: str):
-    with get_db() as db:
-        db.execute("UPDATE notifications SET read = 1 WHERE user_id = ? AND read = 0", (user_id,))
+    items = get_user_notifications(user_id, limit=200, unread_only=True)
+    for item in items:
+        mark_read(item["id"], user_id)
 
 
 def get_unread_count(user_id: str) -> int:
-    with get_db() as db:
-        return db.execute(
-            "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND read = 0", (user_id,)
-        ).fetchone()[0]
-
-
-# ── Broadcast helpers ──
-
-def notify_signal(signal: dict):
-    """Cria notificação de sinal pra todos os users Pro+."""
-    with get_db() as db:
-        pro_users = db.execute(
-            "SELECT id FROM users WHERE tier IN ('pro', 'quant', 'enterprise') AND is_active = 1"
-        ).fetchall()
-    for row in pro_users:
-        create_notification(
-            row["id"], "signal",
-            f"New signal: {signal.get('direction', '?')} on {signal.get('question', '')[:50]}",
-            f"Score: {signal.get('signal_score', 0):.0%}",
-            signal,
-        )
-
-
-def notify_anomaly(anomaly: dict):
-    """Cria notificação de anomalia pra users Quant+."""
-    with get_db() as db:
-        quant_users = db.execute(
-            "SELECT id FROM users WHERE tier IN ('quant', 'enterprise') AND is_active = 1"
-        ).fetchall()
-    for row in quant_users:
-        create_notification(
-            row["id"], "anomaly",
-            f"Smart money alert: {anomaly.get('market_id', '')}",
-            f"Anomaly score: {anomaly.get('score', 0):.4f}",
-            anomaly,
-        )
+    items = get_user_notifications(user_id, limit=200, unread_only=True)
+    return len(items)
