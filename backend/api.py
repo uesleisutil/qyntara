@@ -38,6 +38,10 @@ from .data.kalshi_client import KalshiClient, parse_kalshi_market
 from .data.news_client import NewsClient
 from .database import init_db
 from .database import get_user_by_id
+from .database import (
+    create_ticket, get_tickets_by_user, get_all_tickets,
+    get_ticket_by_id, add_ticket_message, update_ticket_status, delete_ticket,
+)
 from .models.sentiment_scorer import SentimentScorer
 from .security import (
     add_security_middleware, limiter,
@@ -516,11 +520,6 @@ async def read_all_notifs(user: dict = Depends(get_current_user)):
 # ══════════════════════════════════════
 # SUPPORT TICKETS
 # ══════════════════════════════════════
-
-from .database import (
-    create_ticket, get_tickets_by_user, get_all_tickets,
-    get_ticket_by_id, add_ticket_message, update_ticket_status, delete_ticket,
-)
 
 
 @app.post("/support/tickets")
