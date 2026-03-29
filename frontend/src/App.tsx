@@ -10,6 +10,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminModelsPage } from './pages/admin/AdminModelsPage';
 import { AdminInfraPage } from './pages/admin/AdminInfraPage';
 import { SupportPage } from './pages/SupportPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { AuthModal } from './components/AuthModal';
 import { EmailVerifyBanner } from './components/EmailVerifyBanner';
 import { ToastContainer } from './components/ToastContainer';
@@ -25,7 +26,7 @@ import {
   Settings, ChevronDown, Trash2, MessageCircle,
 } from 'lucide-react';
 
-type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'support' | 'admin_users' | 'admin_models' | 'admin_infra';
+type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'support' | 'settings' | 'admin_users' | 'admin_models' | 'admin_infra';
 
 const App: React.FC = () => {
   const [tab, setTab] = useState<Tab>('landing');
@@ -102,22 +103,6 @@ const App: React.FC = () => {
   useEffect(() => {
     if (tab === 'landing' && user) switchTab('markets');
   }, [tab, user]);
-
-  // Delete account
-  const handleDeleteAccount = async () => {
-    if (!confirm('Tem certeza que deseja excluir sua conta? Todos os seus dados serão removidos permanentemente. Esta ação não pode ser desfeita.')) return;
-    try {
-      const res = await apiFetch('/auth/delete-account', { method: 'DELETE' });
-      if (res.ok) {
-        useToastStore.getState().addToast('Conta excluída com sucesso.', 'success');
-        logout();
-        switchTab('landing');
-      } else {
-        const data = await res.json();
-        useToastStore.getState().addToast(data.detail || 'Erro ao excluir conta.', 'error');
-      }
-    } catch { useToastStore.getState().addToast('Erro ao excluir conta.', 'error'); }
-  };
 
   // Landing page
   if (tab === 'landing' && !user) {
@@ -274,7 +259,7 @@ const App: React.FC = () => {
                       <CreditCard size={14} /> Meu plano
                     </button>
 
-                    <button onClick={() => { switchTab('portfolio'); setShowUserMenu(false); }}
+                    <button onClick={() => { switchTab('settings'); setShowUserMenu(false); }}
                       style={menuItemStyle}
                       onMouseEnter={e => { e.currentTarget.style.background = theme.cardHover; e.currentTarget.style.color = theme.text; }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = theme.textSecondary; }}>
@@ -282,13 +267,6 @@ const App: React.FC = () => {
                     </button>
 
                     <div style={{ height: 1, background: theme.border, margin: '4px 0' }} />
-
-                    <button onClick={() => { handleDeleteAccount(); setShowUserMenu(false); }}
-                      style={{ ...menuItemStyle, color: theme.red }}
-                      onMouseEnter={e => { e.currentTarget.style.background = theme.redBg; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-                      <Trash2 size={14} /> Excluir conta
-                    </button>
 
                     <button onClick={() => { logout(); switchTab('landing'); setShowUserMenu(false); }}
                       style={menuItemStyle}
@@ -404,6 +382,7 @@ const App: React.FC = () => {
         {tab === 'portfolio' && <PortfolioPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'billing' && <BillingPage dark={dark} />}
         {tab === 'support' && <SupportPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
+        {tab === 'settings' && <SettingsPage dark={dark} onSwitchTab={(t) => switchTab(t as Tab)} />}
         {tab === 'admin_users' && user?.is_admin && <AdminUsersPage dark={dark} />}
         {tab === 'admin_models' && user?.is_admin && <AdminModelsPage dark={dark} />}
         {tab === 'admin_infra' && user?.is_admin && <AdminInfraPage dark={dark} />}

@@ -269,6 +269,38 @@ async def resend_verification(request: Request, user: dict = Depends(get_current
     return {"ok": True, "message": "Verification email sent"}
 
 
+@app.put("/auth/change-password")
+async def change_password(body: dict = Body(...), user: dict = Depends(get_current_user)):
+    """Altera a senha do usuário."""
+    from .auth import verify_password, hash_password
+    from .database import get_user_by_id as get_full_user
+
+    current = body.get("current_password", "")
+    new_pw = body.get("new_password", "")
+
+    if not current or not new_pw:
+        raise HTTPException(400, "Senha atual e nova senha são obrigatórias")
+    if len(new_pw) < 8:
+        raise HTTPException(400, "Nova senha deve ter pelo menos 8 caracteres")
+
+    full_user = get_full_user(user["id"])
+    if not full_user:
+        raise HTTPException(404, "Usuário não encontrado")
+
+    if not verify_password(current, full_user["password_hash"]):
+        raise HTTPException(401, "Senha atual incorreta")
+
+    from .database import _table, USERS_TABLE
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+    _table(USERS_TABLE).update_item(
+        Key={"id": user["id"]},
+        UpdateExpression="SET password_hash = :p, updated_at = :u",
+        ExpressionAttributeValues={":p": hash_password(new_pw), ":u": now},
+    )
+    return {"ok": True, "message": "Senha alterada com sucesso"}
+
+
 @app.delete("/auth/delete-account")
 async def delete_account(user: dict = Depends(get_current_user)):
     """Exclui conta do usuário e todos os dados (LGPD)."""
