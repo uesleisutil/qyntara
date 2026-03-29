@@ -58,7 +58,7 @@ def send_verification_email(to_email: str, user_name: str, token: str):
     html = f"""
     <div style="font-family: -apple-system, sans-serif; max-width: 500px; margin: 0 auto; padding: 2rem;">
         <div style="text-align: center; margin-bottom: 2rem;">
-            <span style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">📊 Predikt</span>
+            <span style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">📊 Qyntara</span>
         </div>
         <h2 style="color: #1a202c; font-size: 1.2rem;">Verifique seu email</h2>
         <p style="color: #64748b; line-height: 1.6;">
@@ -81,7 +81,7 @@ def send_verification_email(to_email: str, user_name: str, token: str):
     </div>
     """
 
-    _send_email(to_email, "Verifique sua conta Predikt", html)
+    _send_email(to_email, "Verifique sua conta Qyntara", html)
 
 
 def send_welcome_email(to_email: str, user_name: str):
@@ -89,9 +89,9 @@ def send_welcome_email(to_email: str, user_name: str):
     html = f"""
     <div style="font-family: -apple-system, sans-serif; max-width: 500px; margin: 0 auto; padding: 2rem;">
         <div style="text-align: center; margin-bottom: 2rem;">
-            <span style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">📊 Predikt</span>
+            <span style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">📊 Qyntara</span>
         </div>
-        <h2 style="color: #1a202c;">Bem-vindo ao Predikt, {user_name or 'trader'}! 🎉</h2>
+        <h2 style="color: #1a202c;">Bem-vindo ao Qyntara, {user_name or 'trader'}! 🎉</h2>
         <p style="color: #64748b; line-height: 1.6;">
             Seu email foi verificado. Veja o que você pode fazer agora:
         </p>
@@ -104,11 +104,11 @@ def send_welcome_email(to_email: str, user_name: str):
             <a href="{settings.FRONTEND_URL}" style="
                 display: inline-block; padding: 0.75rem 2rem; border-radius: 8px;
                 background: #6366f1; color: #fff; text-decoration: none; font-weight: 600;
-            ">Abrir Predikt</a>
+            ">Abrir Qyntara</a>
         </div>
     </div>
     """
-    _send_email(to_email, "Bem-vindo ao Predikt!", html)
+    _send_email(to_email, "Bem-vindo ao Qyntara!", html)
 
 
 def _send_email(to: str, subject: str, html_body: str):
@@ -118,7 +118,7 @@ def _send_email(to: str, subject: str, html_body: str):
         return
 
     msg = MIMEMultipart("alternative")
-    msg["From"] = f"Predikt <{settings.SMTP_FROM}>"
+    msg["From"] = f"Qyntara <{settings.SMTP_FROM}>"
     msg["To"] = to
     msg["Subject"] = subject
     msg.attach(MIMEText(html_body, "html"))

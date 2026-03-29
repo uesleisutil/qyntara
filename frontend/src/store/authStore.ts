@@ -17,7 +17,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
 
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, phone?: string, country?: string, referral?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshAuth: () => Promise<void>;
@@ -32,13 +32,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loading: false,
   error: null,
 
-  register: async (email, password, name) => {
+  register: async (email, password, name, phone, country, referral) => {
     set({ loading: true, error: null });
     try {
       const res = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, phone, country, referral_source: referral }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(_parseError(data));

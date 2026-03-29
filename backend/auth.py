@@ -39,34 +39,49 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
     name: str = ""
+    phone: str = ""
+    country: str = ""
+    referral_source: str = ""  # como conheceu: google, twitter, amigo, etc.
 
     @field_validator("email")
     @classmethod
     def validate_email(cls, v: str) -> str:
         v = v.lower().strip()
         if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", v):
-            raise ValueError("Invalid email format")
+            raise ValueError("Formato de email inválido")
         if len(v) > 255:
-            raise ValueError("Email too long")
+            raise ValueError("Email muito longo")
         return v
 
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
         if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
+            raise ValueError("Senha deve ter pelo menos 8 caracteres")
         if len(v) > 128:
-            raise ValueError("Password too long")
+            raise ValueError("Senha muito longa")
         if not re.search(r"[A-Z]", v):
-            raise ValueError("Password must contain an uppercase letter")
+            raise ValueError("Senha deve conter uma letra maiúscula")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Senha deve conter uma letra minúscula")
         if not re.search(r"[0-9]", v):
-            raise ValueError("Password must contain a number")
+            raise ValueError("Senha deve conter um número")
+        if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", v):
+            raise ValueError("Senha deve conter um caractere especial (!@#$%...)")
         return v
 
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
-        return v.strip()[:100]
+        v = v.strip()[:100]
+        if len(v) < 2:
+            raise ValueError("Nome deve ter pelo menos 2 caracteres")
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        return re.sub(r"[^\d+\-() ]", "", v)[:20]
 
 
 class LoginRequest(BaseModel):
@@ -129,7 +144,7 @@ def register_user(req: RegisterRequest) -> TokenResponse:
         raise HTTPException(status.HTTP_409_CONFLICT, "Email already registered")
 
     password_hash = hash_password(req.password)
-    user = create_user(req.email, password_hash, req.name)
+    user = create_user(req.email, password_hash, req.name, req.phone, req.country, req.referral_source)
 
     access = create_access_token(user["id"], user["tier"])
     refresh = create_refresh_token(user["id"])

@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, Depends
+from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, Depends, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -182,14 +182,12 @@ async def global_exception_handler(request: Request, exc: Exception):
 # ══════════════════════════════════════
 
 @app.post("/auth/register", response_model=TokenResponse)
-@limiter.limit("5/minute")
-async def register(request: Request, data: RegisterRequest):
+async def register(request: Request, data: RegisterRequest = Body(...)):
     return register_user(data)
 
 
 @app.post("/auth/login", response_model=TokenResponse)
-@limiter.limit("10/minute")
-async def login(request: Request, data: LoginRequest):
+async def login(request: Request, data: LoginRequest = Body(...)):
     ip = request.client.host if request.client else "unknown"
     if not check_brute_force(ip):
         from .security import audit_log
@@ -209,8 +207,7 @@ async def login(request: Request, data: LoginRequest):
 
 
 @app.post("/auth/refresh", response_model=TokenResponse)
-@limiter.limit("10/minute")
-async def refresh(request: Request, body: dict):
+async def refresh(request: Request, body: dict = Body(...)):
     token = body.get("refresh_token", "")
     if not token:
         raise HTTPException(400, "refresh_token required")
@@ -223,8 +220,7 @@ async def me(user: dict = Depends(get_current_user)):
 
 
 @app.post("/auth/verify-email")
-@limiter.limit("10/minute")
-async def verify_email(request: Request, body: dict):
+async def verify_email(request: Request, body: dict = Body(...)):
     token = body.get("token", "")
     if not token:
         raise HTTPException(400, "Token required")
@@ -255,7 +251,6 @@ async def verify_email(request: Request, body: dict):
 
 
 @app.post("/auth/resend-verification")
-@limiter.limit("3/minute")
 async def resend_verification(request: Request, user: dict = Depends(get_current_user)):
     if user.get("email_verified"):
         raise HTTPException(400, "Email already verified")
@@ -275,7 +270,7 @@ async def resend_verification(request: Request, user: dict = Depends(get_current
 # ══════════════════════════════════════
 
 @app.post("/billing/checkout")
-async def checkout(body: dict, user: dict = Depends(get_current_user)):
+async def checkout(body: dict = Body(...), user: dict = Depends(get_current_user)):
     tier = body.get("tier", "pro")
     url = create_checkout_session(user, tier)
     return {"url": url}
@@ -407,7 +402,7 @@ async def admin_get_user(user_id: str, admin: dict = Depends(require_admin)):
 
 
 @app.put("/admin/users/{user_id}")
-async def admin_update_user(user_id: str, body: dict, admin: dict = Depends(require_admin)):
+async def admin_update_user(user_id: str, body: dict = Body(...), admin: dict = Depends(require_admin)):
     ok = update_user_admin(user_id, body)
     if not ok:
         raise HTTPException(400, "No valid fields to update")
@@ -445,7 +440,7 @@ async def get_portfolio(user: dict = Depends(get_current_user)):
 
 
 @app.post("/portfolio")
-async def create_position(body: dict, user: dict = Depends(get_current_user)):
+async def create_position(body: dict = Body(...), user: dict = Depends(get_current_user)):
     required = ["market_id", "side", "shares", "avg_price"]
     for field in required:
         if field not in body:
@@ -464,7 +459,7 @@ async def create_position(body: dict, user: dict = Depends(get_current_user)):
 
 
 @app.put("/portfolio/{pos_id}")
-async def update_pos(pos_id: str, body: dict, user: dict = Depends(get_current_user)):
+async def update_pos(pos_id: str, body: dict = Body(...), user: dict = Depends(get_current_user)):
     ok = update_position(pos_id, user["id"], body)
     if not ok:
         raise HTTPException(400, "No valid fields to update")

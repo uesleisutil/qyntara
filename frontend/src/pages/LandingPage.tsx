@@ -176,7 +176,7 @@ export const LandingPage: React.FC<Props> = ({ onGetStarted }) => {
 
       <footer style={{ textAlign: 'center', padding: '2rem 0', borderTop: `1px solid ${theme.border}` }}>
         <p style={{ fontSize: '0.72rem', color: theme.textMuted }}>
-          © 2026 Predikt por Qyntara · Inteligência para mercados de predição com deep learning
+          © 2026 Qyntara por Qyntara · Inteligência para mercados de predição com deep learning
         </p>
       </footer>
     </div>

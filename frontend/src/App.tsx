@@ -65,7 +65,7 @@ const App: React.FC = () => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <TrendingUp size={22} color={theme.accent} />
-            <span style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Predikt</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Qyntara</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => { setTab('markets'); }} style={{
@@ -122,7 +122,7 @@ const App: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => setTab('markets')}>
           <TrendingUp size={22} color={theme.accent} />
-          <span style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Predikt</span>
+          <span style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Qyntara</span>
           <span style={badgeStyle(theme.accent, theme.accentBg)}>BETA</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>

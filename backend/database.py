@@ -78,7 +78,8 @@ def init_db():
 
 # ── User CRUD ──
 
-def create_user(email: str, password_hash: str, name: str = "") -> dict:
+def create_user(email: str, password_hash: str, name: str = "",
+                phone: str = "", country: str = "", referral_source: str = "") -> dict:
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     item = {
@@ -86,6 +87,9 @@ def create_user(email: str, password_hash: str, name: str = "") -> dict:
         "email": email.lower().strip(),
         "password_hash": password_hash,
         "name": name,
+        "phone": phone,
+        "country": country,
+        "referral_source": referral_source,
         "tier": "free",
         "stripe_customer_id": None,
         "stripe_subscription_id": None,
