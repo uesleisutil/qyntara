@@ -265,6 +265,14 @@ async def resend_verification(request: Request, user: dict = Depends(get_current
     return {"ok": True, "message": "Verification email sent"}
 
 
+@app.delete("/auth/delete-account")
+async def delete_account(user: dict = Depends(get_current_user)):
+    """Exclui conta do usuário e todos os dados (LGPD)."""
+    from .database import delete_user_data
+    delete_user_data(user["id"])
+    return {"ok": True, "message": "Account and all data deleted"}
+
+
 # ══════════════════════════════════════
 # BILLING ENDPOINTS
 # ══════════════════════════════════════
@@ -503,6 +511,96 @@ async def read_notif(nid: str, user: dict = Depends(get_current_user)):
 async def read_all_notifs(user: dict = Depends(get_current_user)):
     mark_all_read(user["id"])
     return {"ok": True}
+
+
+# ══════════════════════════════════════
+# SUPPORT TICKETS
+# ══════════════════════════════════════
+
+from .database import (
+    create_ticket, get_tickets_by_user, get_all_tickets,
+    get_ticket_by_id, add_ticket_message, update_ticket_status, delete_ticket,
+)
+
+
+@app.post("/support/tickets")
+async def create_support_ticket(body: dict = Body(...), user: dict = Depends(get_current_user)):
+    subject = body.get("subject", "").strip()
+    message = body.get("message", "").strip()
+    if not subject or not message:
+        raise HTTPException(400, "Assunto e mensagem são obrigatórios")
+    tier = user.get("tier", "free")
+    channel = "chat" if tier in ("pro", "quant", "enterprise") else "email"
+    ticket = create_ticket(
+        user_id=user["id"], user_email=user["email"],
+        user_name=user.get("name", ""), user_tier=tier,
+        subject=subject, message=message, channel=channel,
+    )
+    return {"ticket": ticket}
+
+
+@app.get("/support/tickets")
+async def list_support_tickets(user: dict = Depends(get_current_user)):
+    tickets = get_tickets_by_user(user["id"])
+    return {"tickets": tickets}
+
+
+@app.get("/support/tickets/{ticket_id}")
+async def get_support_ticket(ticket_id: str, user: dict = Depends(get_current_user)):
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket or (ticket["user_id"] != user["id"] and not user.get("is_admin")):
+        raise HTTPException(404, "Ticket não encontrado")
+    return {"ticket": ticket}
+
+
+@app.post("/support/tickets/{ticket_id}/messages")
+async def reply_ticket(ticket_id: str, body: dict = Body(...), user: dict = Depends(get_current_user)):
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket:
+        raise HTTPException(404, "Ticket não encontrado")
+    if ticket["user_id"] != user["id"] and not user.get("is_admin"):
+        raise HTTPException(403, "Sem permissão")
+    text = body.get("message", "").strip()
+    if not text:
+        raise HTTPException(400, "Mensagem é obrigatória")
+    role = "admin" if user.get("is_admin") else "user"
+    add_ticket_message(ticket_id, role, text)
+    return {"ok": True}
+
+
+@app.put("/support/tickets/{ticket_id}/status")
+async def change_ticket_status(ticket_id: str, body: dict = Body(...), user: dict = Depends(get_current_user)):
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket:
+        raise HTTPException(404, "Ticket não encontrado")
+    if ticket["user_id"] != user["id"] and not user.get("is_admin"):
+        raise HTTPException(403, "Sem permissão")
+    new_status = body.get("status", "closed")
+    if new_status not in ("open", "in_progress", "closed"):
+        raise HTTPException(400, "Status inválido")
+    update_ticket_status(ticket_id, new_status)
+    return {"ok": True}
+
+
+@app.delete("/support/tickets/{ticket_id}")
+async def delete_support_ticket(ticket_id: str, user: dict = Depends(get_current_user)):
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket:
+        raise HTTPException(404, "Ticket não encontrado")
+    if ticket["user_id"] != user["id"] and not user.get("is_admin"):
+        raise HTTPException(403, "Sem permissão")
+    delete_ticket(ticket_id)
+    return {"ok": True}
+
+
+# Admin: list all tickets
+@app.get("/admin/support/tickets")
+async def admin_list_tickets(
+    status: str = Query("", description="Filter by status"),
+    admin: dict = Depends(require_admin),
+):
+    tickets = get_all_tickets(status)
+    return {"tickets": tickets, "total": len(tickets)}
 
 
 # ══════════════════════════════════════

@@ -1,95 +1,175 @@
 import React from 'react';
 import { useApi } from '../hooks/useApi';
-import { ArrowLeft, TrendingUp, TrendingDown, Newspaper, BarChart3 } from 'lucide-react';
+import { theme, badgeStyle } from '../styles';
+import { ArrowLeft, Newspaper, BarChart3, ExternalLink, Clock } from 'lucide-react';
 
-interface Props { marketId: string; dark: boolean; onBack: () => void; }
+interface Props { marketId: string; dark?: boolean; onBack: () => void; }
 
-export const MarketDetailPage: React.FC<Props> = ({ marketId, dark, onBack }) => {
+export const MarketDetailPage: React.FC<Props> = ({ marketId, onBack }) => {
   const { data, loading } = useApi<any>(`/markets/${marketId}`, 15000);
 
-  const card = dark ? '#12141c' : '#fff';
-  const border = dark ? '#1e2130' : '#e2e8f0';
-  const textSec = dark ? '#8892a4' : '#64748b';
+  if (loading && !data) {
+    return (
+      <div style={{ animation: 'fadeIn 0.3s ease' }}>
+        <div style={{ height: 32, width: 160, borderRadius: 8, background: theme.card, marginBottom: 16 }} />
+        <div style={{
+          height: 200, borderRadius: 16, border: `1px solid ${theme.border}`,
+          background: `linear-gradient(90deg, ${theme.card} 25%, ${theme.cardHover} 50%, ${theme.card} 75%)`,
+          backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite',
+        }} />
+      </div>
+    );
+  }
 
-  if (loading && !data) return <div style={{ textAlign: 'center', padding: '3rem', color: textSec }}>Carregando...</div>;
-  if (!data) return <div style={{ textAlign: 'center', padding: '3rem', color: textSec }}>Mercado não encontrado</div>;
+  if (!data) {
+    return (
+      <div style={{ textAlign: 'center', padding: '4rem', color: theme.textMuted, animation: 'fadeIn 0.3s ease' }}>
+        <BarChart3 size={36} style={{ marginBottom: 12, opacity: 0.4 }} />
+        <p>Mercado não encontrado</p>
+      </div>
+    );
+  }
 
   const m = data;
   const pct = (m.yes_price * 100).toFixed(1);
-  const priceColor = m.yes_price > 0.6 ? '#10b981' : m.yes_price < 0.4 ? '#ef4444' : '#f59e0b';
+  const priceColor = m.yes_price > 0.6 ? theme.green : m.yes_price < 0.4 ? theme.red : theme.yellow;
   const sent = m.sentiment || {};
+  const daysLeft = m.end_date ? Math.max(0, Math.ceil((new Date(m.end_date).getTime() - Date.now()) / 86400000)) : null;
 
   return (
-    <div>
+    <div style={{ animation: 'fadeIn 0.4s ease' }}>
       <button onClick={onBack} style={{
         display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
-        color: textSec, cursor: 'pointer', fontSize: '0.82rem', marginBottom: '1rem',
-      }}><ArrowLeft size={16} /> Voltar aos mercados</button>
+        color: theme.textSecondary, cursor: 'pointer', fontSize: '0.82rem', marginBottom: '1rem',
+        transition: 'color 0.2s',
+      }}
+      onMouseEnter={e => e.currentTarget.style.color = theme.accent}
+      onMouseLeave={e => e.currentTarget.style.color = theme.textSecondary}>
+        <ArrowLeft size={16} /> Voltar aos mercados
+      </button>
 
-      {/* Header */}
-      <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: '1.25rem', marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          <span style={{
-            fontSize: '0.6rem', padding: '2px 6px', borderRadius: 4, fontWeight: 600,
-            background: m.source === 'polymarket' ? '#8b5cf615' : '#3b82f615',
-            color: m.source === 'polymarket' ? '#8b5cf6' : '#3b82f6',
-          }}>{m.source?.toUpperCase()}</span>
-          <span style={{ fontSize: '0.72rem', color: textSec }}>{m.category}</span>
+      {/* Header card */}
+      <div style={{
+        background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 16,
+        padding: '1.5rem', marginBottom: '1rem',
+        animation: 'slideUp 0.4s ease 0.1s both',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+          <span style={badgeStyle(
+            m.source === 'polymarket' ? theme.purple : theme.blue,
+            m.source === 'polymarket' ? theme.purpleBg : theme.blueBg,
+          )}>{m.source?.toUpperCase()}</span>
+          {m.category && <span style={badgeStyle(theme.textMuted, `${theme.textMuted}15`)}>{m.category}</span>}
+          {daysLeft !== null && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.68rem', color: daysLeft < 3 ? theme.red : theme.textMuted }}>
+              <Clock size={11} /> {daysLeft}d restantes
+            </span>
+          )}
         </div>
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, lineHeight: 1.3, marginBottom: '1rem' }}>{m.question}</h2>
+        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, lineHeight: 1.35, marginBottom: '1.25rem' }}>{m.question}</h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
-          <div style={{ padding: '0.75rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 8, textAlign: 'center' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: priceColor }}>{pct}%</div>
-            <div style={{ fontSize: '0.68rem', color: textSec }}>Preço YES</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
+          {[
+            { label: 'Preço YES', value: `${pct}%`, color: priceColor, big: true },
+            { label: 'Volume Total', value: `$${fmtVol(m.volume || 0)}`, color: theme.text },
+            { label: 'Volume 24h', value: `$${fmtVol(m.volume_24h || 0)}`, color: theme.text },
+            { label: 'Liquidez', value: `$${fmtVol(m.liquidity || 0)}`, color: theme.text },
+          ].map((s, i) => (
+            <div key={s.label} style={{
+              padding: '0.85rem', background: theme.bg, borderRadius: 12,
+              textAlign: 'center', border: `1px solid ${theme.border}`,
+              animation: `fadeIn 0.3s ease ${0.15 + i * 0.05}s both`,
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = theme.borderHover}
+            onMouseLeave={e => e.currentTarget.style.borderColor = theme.border}>
+              <div style={{
+                fontSize: s.big ? '1.6rem' : '1.15rem', fontWeight: 800, color: s.color,
+                letterSpacing: '-0.02em',
+              }}>{s.value}</div>
+              <div style={{ fontSize: '0.68rem', color: theme.textMuted, marginTop: 4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Price bar */}
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: theme.textMuted, marginBottom: 4 }}>
+            <span>NO {(100 - parseFloat(pct)).toFixed(1)}%</span>
+            <span>YES {pct}%</span>
           </div>
-          <div style={{ padding: '0.75rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 8, textAlign: 'center' }}>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>${fmtVol(m.volume || 0)}</div>
-            <div style={{ fontSize: '0.68rem', color: textSec }}>Volume Total</div>
-          </div>
-          <div style={{ padding: '0.75rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 8, textAlign: 'center' }}>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>${fmtVol(m.volume_24h || 0)}</div>
-            <div style={{ fontSize: '0.68rem', color: textSec }}>Volume 24h</div>
-          </div>
-          <div style={{ padding: '0.75rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 8, textAlign: 'center' }}>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>${fmtVol(m.liquidity || 0)}</div>
-            <div style={{ fontSize: '0.68rem', color: textSec }}>Liquidez</div>
+          <div style={{ height: 8, borderRadius: 4, background: theme.border, overflow: 'hidden' }}>
+            <div style={{
+              width: `${m.yes_price * 100}%`, height: '100%', borderRadius: 4,
+              background: `linear-gradient(90deg, ${priceColor}80, ${priceColor})`,
+              transition: 'width 0.8s ease',
+              boxShadow: `0 0 8px ${priceColor}30`,
+            }} />
           </div>
         </div>
       </div>
 
       {/* Sentiment */}
       {sent.article_count > 0 && (
-        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 12, padding: '1.25rem', marginBottom: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
-            <Newspaper size={16} color="#a855f7" />
-            <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>Sentimento de Notícias</span>
+        <div style={{
+          background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 16,
+          padding: '1.5rem', marginBottom: '1rem',
+          animation: 'slideUp 0.4s ease 0.2s both',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+            <Newspaper size={18} color={theme.purple} />
+            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Sentimento de Notícias</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginBottom: '1rem' }}>
-            <div style={{ padding: '0.5rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 6, textAlign: 'center' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: sent.sentiment_score > 0.1 ? '#10b981' : sent.sentiment_score < -0.1 ? '#ef4444' : '#f59e0b' }}>
-                {sent.sentiment_score > 0 ? '+' : ''}{(sent.sentiment_score * 100).toFixed(0)}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10, marginBottom: '1.25rem' }}>
+            {[
+              {
+                label: 'Pontuação',
+                value: `${sent.sentiment_score > 0 ? '+' : ''}${(sent.sentiment_score * 100).toFixed(0)}`,
+                color: sent.sentiment_score > 0.1 ? theme.green : sent.sentiment_score < -0.1 ? theme.red : theme.yellow,
+              },
+              { label: 'Artigos', value: sent.article_count, color: theme.text },
+              { label: 'Positivo', value: `${(sent.positive_ratio * 100).toFixed(0)}%`, color: theme.green },
+            ].map((s, i) => (
+              <div key={s.label} style={{
+                padding: '0.65rem', background: theme.bg, borderRadius: 10, textAlign: 'center',
+                border: `1px solid ${theme.border}`,
+                animation: `fadeIn 0.3s ease ${0.25 + i * 0.05}s both`,
+              }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: s.color }}>{s.value}</div>
+                <div style={{ fontSize: '0.62rem', color: theme.textMuted, marginTop: 3 }}>{s.label}</div>
               </div>
-              <div style={{ fontSize: '0.62rem', color: textSec }}>Pontuação</div>
+            ))}
+          </div>
+
+          {/* Sentiment bar */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ height: 6, borderRadius: 3, background: theme.border, overflow: 'hidden' }}>
+              <div style={{
+                width: `${(sent.positive_ratio || 0) * 100}%`, height: '100%', borderRadius: 3,
+                background: `linear-gradient(90deg, ${theme.green}80, ${theme.green})`,
+                transition: 'width 0.8s ease',
+              }} />
             </div>
-            <div style={{ padding: '0.5rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 6, textAlign: 'center' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 700 }}>{sent.article_count}</div>
-              <div style={{ fontSize: '0.62rem', color: textSec }}>Artigos</div>
-            </div>
-            <div style={{ padding: '0.5rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 6, textAlign: 'center' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 700 }}>{(sent.positive_ratio * 100).toFixed(0)}%</div>
-              <div style={{ fontSize: '0.62rem', color: textSec }}>Positivo</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: theme.textMuted, marginTop: 3 }}>
+              <span>Negativo</span>
+              <span>Positivo</span>
             </div>
           </div>
+
           {/* Articles */}
           {sent.articles && sent.articles.map((a: any, i: number) => (
-            <div key={i} style={{ padding: '0.5rem 0', borderTop: i > 0 ? `1px solid ${border}` : 'none' }}>
-              <a href={a.link} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: '0.78rem', color: '#6366f1', textDecoration: 'none' }}>
-                {a.title}
-              </a>
-              <div style={{ fontSize: '0.68rem', color: textSec, marginTop: 2 }}>{a.pub_date}</div>
-            </div>
+            <a key={i} href={a.link} target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0.6rem 0', borderTop: i > 0 ? `1px solid ${theme.border}` : 'none',
+                textDecoration: 'none', transition: 'all 0.2s',
+              }}>
+              <div>
+                <div style={{ fontSize: '0.8rem', color: theme.accent, lineHeight: 1.4 }}>{a.title}</div>
+                <div style={{ fontSize: '0.65rem', color: theme.textMuted, marginTop: 3 }}>{a.pub_date}</div>
+              </div>
+              <ExternalLink size={13} color={theme.textMuted} style={{ flexShrink: 0, marginLeft: 8 }} />
+            </a>
           ))}
         </div>
       )}

@@ -40,6 +40,7 @@ def _table(name: str):
 
 USERS_TABLE = "predikt-users"
 TOKENS_TABLE = "predikt-tokens"
+TICKETS_TABLE = "predikt-tickets"
 
 
 def init_db():
@@ -74,6 +75,17 @@ def init_db():
             BillingMode="PAY_PER_REQUEST",
         )
         logger.info(f"Created table {TOKENS_TABLE}")
+
+    if TICKETS_TABLE not in existing:
+        client.create_table(
+            TableName=TICKETS_TABLE,
+            KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
+            AttributeDefinitions=[
+                {"AttributeName": "id", "AttributeType": "S"},
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        logger.info(f"Created table {TICKETS_TABLE}")
 
 
 # ── User CRUD ──
@@ -117,6 +129,35 @@ def get_user_by_id(user_id: str) -> dict | None:
     return resp.get("Item")
 
 
+def delete_user_data(user_id: str):
+    """Exclui todos os dados do usuário (LGPD compliance)."""
+    # Delete user record
+    _table(USERS_TABLE).delete_item(Key={"id": user_id})
+
+    # Revoke all refresh tokens
+    revoke_all_user_tokens(user_id)
+
+    # Delete positions
+    try:
+        positions_table = _table("predikt-positions")
+        resp = positions_table.scan(FilterExpression=Attr("user_id").eq(user_id))
+        for item in resp.get("Items", []):
+            positions_table.delete_item(Key={"id": item["id"]})
+    except Exception as e:
+        logger.warning(f"Error deleting positions for {user_id}: {e}")
+
+    # Delete notifications
+    try:
+        notifs_table = _table("predikt-notifications")
+        resp = notifs_table.scan(FilterExpression=Attr("user_id").eq(user_id))
+        for item in resp.get("Items", []):
+            notifs_table.delete_item(Key={"id": item["id"]})
+    except Exception as e:
+        logger.warning(f"Error deleting notifications for {user_id}: {e}")
+
+    logger.info(f"All data deleted for user {user_id}")
+
+
 def update_user_tier(user_id: str, tier: str, stripe_sub_id: str | None = None):
     now = datetime.now(timezone.utc).isoformat()
     _table(USERS_TABLE).update_item(
@@ -133,6 +174,16 @@ def update_user_stripe_customer(user_id: str, customer_id: str):
         UpdateExpression="SET stripe_customer_id = :c, updated_at = :u",
         ExpressionAttributeValues={":c": customer_id, ":u": now},
     )
+
+
+def get_user_by_stripe_customer(customer_id: str) -> dict | None:
+    """Busca user pelo stripe_customer_id (scan com filtro)."""
+    resp = _table(USERS_TABLE).scan(
+        FilterExpression=Attr("stripe_customer_id").eq(customer_id),
+        Limit=1,
+    )
+    items = resp.get("Items", [])
+    return items[0] if items else None
 
 
 # ── Refresh Tokens ──
@@ -172,6 +223,87 @@ def revoke_all_user_tokens(user_id: str):
     )
     for item in resp.get("Items", []):
         revoke_refresh_token(item["token_hash"])
+
+
+# ── Support Tickets ──
+
+def create_ticket(user_id: str, user_email: str, user_name: str, user_tier: str,
+                  subject: str, message: str, channel: str = "email") -> dict:
+    ticket_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    item = {
+        "id": ticket_id,
+        "user_id": user_id,
+        "user_email": user_email,
+        "user_name": user_name,
+        "user_tier": user_tier,
+        "subject": subject,
+        "channel": channel,  # "email" or "chat"
+        "status": "open",  # open, in_progress, closed
+        "messages": [{"role": "user", "text": message, "at": now}],
+        "created_at": now,
+        "updated_at": now,
+    }
+    _table(TICKETS_TABLE).put_item(Item=item)
+    return item
+
+
+def get_tickets_by_user(user_id: str) -> list[dict]:
+    resp = _table(TICKETS_TABLE).scan(
+        FilterExpression=Attr("user_id").eq(user_id),
+    )
+    items = resp.get("Items", [])
+    return sorted(items, key=lambda x: x.get("updated_at", ""), reverse=True)
+
+
+def get_all_tickets(status_filter: str = "") -> list[dict]:
+    if status_filter:
+        resp = _table(TICKETS_TABLE).scan(
+            FilterExpression=Attr("status").eq(status_filter),
+        )
+    else:
+        resp = _table(TICKETS_TABLE).scan()
+    items = resp.get("Items", [])
+    return sorted(items, key=lambda x: x.get("updated_at", ""), reverse=True)
+
+
+def get_ticket_by_id(ticket_id: str) -> dict | None:
+    resp = _table(TICKETS_TABLE).get_item(Key={"id": ticket_id})
+    return resp.get("Item")
+
+
+def add_ticket_message(ticket_id: str, role: str, text: str) -> bool:
+    now = datetime.now(timezone.utc).isoformat()
+    ticket = get_ticket_by_id(ticket_id)
+    if not ticket:
+        return False
+    messages = ticket.get("messages", [])
+    messages.append({"role": role, "text": text, "at": now})
+    _table(TICKETS_TABLE).update_item(
+        Key={"id": ticket_id},
+        UpdateExpression="SET messages = :m, updated_at = :u, #s = :st",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={
+            ":m": messages, ":u": now,
+            ":st": "in_progress" if role == "admin" else ticket.get("status", "open"),
+        },
+    )
+    return True
+
+
+def update_ticket_status(ticket_id: str, status: str) -> bool:
+    now = datetime.now(timezone.utc).isoformat()
+    _table(TICKETS_TABLE).update_item(
+        Key={"id": ticket_id},
+        UpdateExpression="SET #s = :s, updated_at = :u",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={":s": status, ":u": now},
+    )
+    return True
+
+
+def delete_ticket(ticket_id: str):
+    _table(TICKETS_TABLE).delete_item(Key={"id": ticket_id})
 
 
 # ── Helper pra admin ──

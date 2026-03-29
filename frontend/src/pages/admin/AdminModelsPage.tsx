@@ -1,33 +1,43 @@
 import React from 'react';
 import { useApi } from '../../hooks/useApi';
+import { theme } from '../../styles';
 import { Brain, Target, Activity, AlertTriangle, CheckCircle2, Clock, Gauge } from 'lucide-react';
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
 } from 'recharts';
 
-export const AdminModelsPage: React.FC<{ dark: boolean }> = ({ dark }) => {
+export const AdminModelsPage: React.FC<{ dark?: boolean }> = () => {
   const { data } = useApi<any>('/admin/models', 30000);
 
-  const card = dark ? '#12141c' : '#fff';
-  const border = dark ? '#1e2130' : '#e2e8f0';
-  const textSec = dark ? '#8892a4' : '#64748b';
-
-  if (!data) return <div style={{ textAlign: 'center', padding: '3rem', color: textSec }}>Loading model data...</div>;
+  if (!data) {
+    return (
+      <div style={{ animation: 'fadeIn 0.3s ease' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1.25rem' }}>
+          <Brain size={20} color={theme.accent} />
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Modelos</h2>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[1,2,3].map(i => (
+            <div key={i} style={{
+              height: 140, borderRadius: 14, border: `1px solid ${theme.border}`,
+              background: `linear-gradient(90deg, ${theme.card} 25%, ${theme.cardHover} 50%, ${theme.card} 75%)`,
+              backgroundSize: '200% 100%', animation: `shimmer 1.5s infinite ${i * 0.15}s`,
+            }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const edge = data.edge_estimator || {};
   const anomaly = data.anomaly_detector || {};
   const sentiment = data.sentiment_scorer || {};
   const summary = data.summary || {};
 
-  // Calibration chart data
   const calibration = (edge.calibration_data || []).reduce((acc: any[], d: any) => {
     const bucket = acc.find((b: any) => b.bucket === d.bucket);
-    if (bucket) {
-      bucket.total++;
-      bucket.actual_sum += d.actual;
-    } else {
-      acc.push({ bucket: d.bucket, predicted: (d.bucket + 0.5) / 10, total: 1, actual_sum: d.actual });
-    }
+    if (bucket) { bucket.total++; bucket.actual_sum += d.actual; }
+    else { acc.push({ bucket: d.bucket, predicted: (d.bucket + 0.5) / 10, total: 1, actual_sum: d.actual }); }
     return acc;
   }, []).map((b: any) => ({
     range: `${b.bucket * 10}-${(b.bucket + 1) * 10}%`,
@@ -38,93 +48,125 @@ export const AdminModelsPage: React.FC<{ dark: boolean }> = ({ dark }) => {
 
   const models = [
     {
-      name: 'Edge Estimator', icon: <Target size={18} />, color: '#6366f1',
-      desc: 'Transformer — estimates true probability vs market price',
+      name: 'Edge Estimator', icon: <Target size={20} />, color: theme.accent,
+      desc: 'Transformer — estima a probabilidade real vs preço de mercado',
       metrics: [
         { label: 'Brier Score', value: edge.brier_score != null ? edge.brier_score.toFixed(4) : '—', good: edge.brier_score != null && edge.brier_score < 0.25 },
-        { label: 'Accuracy', value: edge.live_accuracy != null ? `${(edge.live_accuracy * 100).toFixed(1)}%` : '—', good: edge.live_accuracy != null && edge.live_accuracy > 0.55 },
-        { label: 'Predictions', value: edge.total_predictions || 0 },
-        { label: 'Correct', value: edge.correct_predictions || 0 },
+        { label: 'Acurácia', value: edge.live_accuracy != null ? `${(edge.live_accuracy * 100).toFixed(1)}%` : '—', good: edge.live_accuracy != null && edge.live_accuracy > 0.55 },
+        { label: 'Predições', value: edge.total_predictions || 0 },
+        { label: 'Corretas', value: edge.correct_predictions || 0 },
       ],
-      trained: edge.last_trained,
-      version: edge.version,
+      trained: edge.last_trained, version: edge.version,
     },
     {
-      name: 'Anomaly Detector', icon: <AlertTriangle size={18} />, color: '#f59e0b',
-      desc: 'Autoencoder — detects unusual volume/price movements (smart money)',
+      name: 'Anomaly Detector', icon: <AlertTriangle size={20} />, color: theme.yellow,
+      desc: 'Autoencoder — detecta movimentos incomuns de volume/preço (smart money)',
       metrics: [
-        { label: 'Threshold', value: anomaly.threshold != null ? anomaly.threshold.toFixed(6) : '—' },
-        { label: 'Detections', value: anomaly.total_detections || 0 },
-        { label: 'True Positives', value: anomaly.true_positives || 0 },
-        { label: 'Precision', value: anomaly.precision != null ? `${(anomaly.precision * 100).toFixed(1)}%` : '—' },
+        { label: 'Limiar', value: anomaly.threshold != null ? anomaly.threshold.toFixed(6) : '—' },
+        { label: 'Detecções', value: anomaly.total_detections || 0 },
+        { label: 'Verdadeiros Pos.', value: anomaly.true_positives || 0 },
+        { label: 'Precisão', value: anomaly.precision != null ? `${(anomaly.precision * 100).toFixed(1)}%` : '—' },
       ],
-      trained: anomaly.last_trained,
-      version: anomaly.version,
+      trained: anomaly.last_trained, version: anomaly.version,
     },
     {
-      name: 'Sentiment Scorer', icon: <Activity size={18} />, color: '#10b981',
-      desc: 'NLP keyword analysis on Google News articles per market',
+      name: 'Sentiment Scorer', icon: <Activity size={20} />, color: theme.green,
+      desc: 'Análise NLP de palavras-chave em artigos do Google News por mercado',
       metrics: [
-        { label: 'Method', value: sentiment.method || 'keyword' },
-        { label: 'Total Scored', value: sentiment.total_scored || 0 },
-        { label: 'Avg Magnitude', value: sentiment.avg_magnitude != null ? sentiment.avg_magnitude.toFixed(3) : '—' },
+        { label: 'Método', value: sentiment.method || 'keyword' },
+        { label: 'Total Analisado', value: sentiment.total_scored || 0 },
+        { label: 'Magnitude Média', value: sentiment.avg_magnitude != null ? sentiment.avg_magnitude.toFixed(3) : '—' },
       ],
-      trained: null,
-      version: sentiment.version,
+      trained: null, version: sentiment.version,
     },
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fadeIn 0.4s ease' }}>
+
+      {/* Header */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <Brain size={20} color={theme.accent} />
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Modelos</h2>
+        </div>
+        <p style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
+          Performance e métricas dos modelos de deep learning
+        </p>
+      </div>
+
       {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
         {[
-          { label: 'Total Models', value: summary.total_models, color: '#6366f1', icon: <Brain size={16} /> },
-          { label: 'Trained', value: summary.models_trained, color: '#10b981', icon: <CheckCircle2 size={16} /> },
-          { label: 'Total Predictions', value: summary.total_predictions, color: '#3b82f6', icon: <Gauge size={16} /> },
-        ].map(s => (
+          { label: 'Total de Modelos', value: summary.total_models, color: theme.accent, icon: <Brain size={15} /> },
+          { label: 'Treinados', value: summary.models_trained, color: theme.green, icon: <CheckCircle2 size={15} /> },
+          { label: 'Total de Predições', value: summary.total_predictions, color: theme.blue, icon: <Gauge size={15} /> },
+        ].map((s, i) => (
           <div key={s.label} style={{
-            background: card, border: `1px solid ${border}`, borderRadius: 10,
-            padding: '0.75rem', borderLeft: `3px solid ${s.color}`,
-          }}>
-            <div style={{ fontSize: '0.65rem', color: textSec, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-              {s.icon} {s.label}
+            background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 12,
+            padding: '0.85rem', borderLeft: `3px solid ${s.color}`,
+            animation: `fadeIn 0.3s ease ${i * 0.05}s both`,
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = theme.cardHover}
+          onMouseLeave={e => e.currentTarget.style.background = theme.card}>
+            <div style={{ fontSize: '0.65rem', color: theme.textSecondary, display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
+              <span style={{ color: s.color }}>{s.icon}</span> {s.label}
             </div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{s.value ?? '—'}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>{s.value ?? '—'}</div>
           </div>
         ))}
       </div>
 
       {/* Model cards */}
-      {models.map(m => (
+      {models.map((m, idx) => (
         <div key={m.name} style={{
-          background: card, border: `1px solid ${border}`, borderRadius: 10,
-          padding: '1rem', borderLeft: `3px solid ${m.color}`,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
-            <span style={{ color: m.color }}>{m.icon}</span>
-            <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{m.name}</span>
-            <span style={{ fontSize: '0.6rem', padding: '2px 6px', borderRadius: 4, background: `${m.color}15`, color: m.color }}>
-              v{m.version}
-            </span>
+          background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 14,
+          padding: '1.25rem', borderLeft: `3px solid ${m.color}`,
+          animation: `fadeIn 0.4s ease ${0.1 + idx * 0.08}s both`,
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.borderColor = theme.borderHover}
+        onMouseLeave={e => e.currentTarget.style.borderColor = theme.border}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '0.85rem', flexWrap: 'wrap' }}>
+            <div style={{
+              width: 38, height: 38, borderRadius: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: `${m.color}12`, color: m.color,
+            }}>{m.icon}</div>
+            <span style={{ fontWeight: 700, fontSize: '1rem' }}>{m.name}</span>
+            <span style={{
+              fontSize: '0.6rem', padding: '2px 8px', borderRadius: 6, fontWeight: 700,
+              background: `${m.color}12`, color: m.color, letterSpacing: '0.03em',
+            }}>v{m.version}</span>
             {m.trained ? (
-              <span style={{ fontSize: '0.65rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
-                <CheckCircle2 size={12} /> Trained {new Date(m.trained).toLocaleDateString()}
+              <span style={{
+                fontSize: '0.68rem', color: theme.green, display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto',
+              }}>
+                <CheckCircle2 size={13} /> Treinado em {new Date(m.trained).toLocaleDateString('pt-BR')}
               </span>
             ) : (
-              <span style={{ fontSize: '0.65rem', color: textSec, display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto' }}>
-                <Clock size={12} /> Not trained yet
+              <span style={{
+                fontSize: '0.68rem', color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 4, marginLeft: 'auto',
+              }}>
+                <Clock size={13} /> Não treinado ainda
               </span>
             )}
           </div>
-          <p style={{ fontSize: '0.75rem', color: textSec, marginBottom: '0.75rem' }}>{m.desc}</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8 }}>
+          <p style={{ fontSize: '0.78rem', color: theme.textSecondary, marginBottom: '1rem', lineHeight: 1.5 }}>{m.desc}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
             {m.metrics.map(mt => (
-              <div key={mt.label} style={{ padding: '0.5rem', background: dark ? '#0a0b0f' : '#f8fafc', borderRadius: 6 }}>
-                <div style={{ fontSize: '0.62rem', color: textSec }}>{mt.label}</div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 600, color: (mt as any).good === false ? '#ef4444' : (mt as any).good ? '#10b981' : undefined }}>
-                  {mt.value}
-                </div>
+              <div key={mt.label} style={{
+                padding: '0.65rem', background: theme.bg, borderRadius: 10,
+                border: `1px solid ${theme.border}`, transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = theme.borderHover}
+              onMouseLeave={e => e.currentTarget.style.borderColor = theme.border}>
+                <div style={{ fontSize: '0.62rem', color: theme.textSecondary, marginBottom: 4 }}>{mt.label}</div>
+                <div style={{
+                  fontSize: '0.92rem', fontWeight: 700,
+                  color: (mt as any).good === false ? theme.red : (mt as any).good ? theme.green : theme.text,
+                }}>{mt.value}</div>
               </div>
             ))}
           </div>
@@ -133,22 +175,31 @@ export const AdminModelsPage: React.FC<{ dark: boolean }> = ({ dark }) => {
 
       {/* Calibration chart */}
       {calibration.length > 0 && (
-        <div style={{ background: card, border: `1px solid ${border}`, borderRadius: 10, padding: '1rem' }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-            Edge Estimator — Calibration (predicted vs actual)
+        <div style={{
+          background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 14,
+          padding: '1.25rem', animation: 'fadeIn 0.4s ease 0.3s both',
+        }}>
+          <div style={{ fontSize: '0.92rem', fontWeight: 700, marginBottom: '1rem' }}>
+            Edge Estimator — Calibração (previsto vs real)
           </div>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={calibration}>
-              <CartesianGrid strokeDasharray="3 3" stroke={border} />
-              <XAxis dataKey="range" tick={{ fontSize: 10, fill: textSec }} />
-              <YAxis tick={{ fontSize: 10, fill: textSec }} domain={[0, 100]} unit="%" />
-              <Tooltip contentStyle={{ background: card, border: `1px solid ${border}`, borderRadius: 8, fontSize: '0.75rem' }} />
-              <Bar dataKey="predicted" name="Predicted" fill="#6366f1" opacity={0.4} />
-              <Bar dataKey="actual" name="Actual" fill="#10b981" />
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+              <XAxis dataKey="range" tick={{ fontSize: 10, fill: theme.textMuted }} />
+              <YAxis tick={{ fontSize: 10, fill: theme.textMuted }} domain={[0, 100]} unit="%" />
+              <Tooltip
+                contentStyle={{
+                  background: theme.card, border: `1px solid ${theme.border}`,
+                  borderRadius: 10, fontSize: '0.75rem', boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                }}
+                labelStyle={{ color: theme.textSecondary }}
+              />
+              <Bar dataKey="predicted" name="Previsto" fill={theme.accent} opacity={0.35} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="actual" name="Real" fill={theme.green} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-          <p style={{ fontSize: '0.68rem', color: textSec, marginTop: 4 }}>
-            Perfect calibration = bars match. Green above purple = model underestimates.
+          <p style={{ fontSize: '0.7rem', color: theme.textMuted, marginTop: 8 }}>
+            Calibração perfeita = barras iguais. Verde acima do roxo = modelo subestima a probabilidade.
           </p>
         </div>
       )}

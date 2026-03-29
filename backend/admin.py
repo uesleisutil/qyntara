@@ -51,7 +51,7 @@ def get_user_detail(user_id: str) -> dict | None:
 
 
 def update_user_admin(user_id: str, updates: dict) -> bool:
-    allowed = {"tier", "is_active", "name"}
+    allowed = {"tier", "is_active", "is_admin", "name"}
     filtered = {k: v for k, v in updates.items() if k in allowed}
     if not filtered:
         return False

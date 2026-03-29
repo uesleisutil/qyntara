@@ -31,6 +31,7 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
   const [country, setCountry] = useState('');
   const [referral, setReferral] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const { login, register, loading, error, clearError } = useAuthStore();
 
   const inp: React.CSSProperties = {
@@ -50,6 +51,10 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
       await login(email, password);
       if (!useAuthStore.getState().error) onClose();
     } else {
+      if (!acceptTerms) {
+        useAuthStore.setState({ error: 'Você precisa aceitar os termos para continuar.' });
+        return;
+      }
       await register(email, password, name, phone, country, referral);
       if (!useAuthStore.getState().error) setStep('verify_sent');
     }
@@ -70,8 +75,8 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
         animation: 'slideUp 0.3s ease',
       }} onClick={e => e.stopPropagation()}>
 
-        {/* Left — branding */}
-        <div style={{
+        {/* Left — branding (hidden on mobile) */}
+        <div className="auth-branding" style={{
           width: 320, flexShrink: 0, padding: '2.5rem',
           background: `linear-gradient(160deg, ${theme.accent}12, ${theme.purple}12, ${theme.cyan}08)`,
           borderRight: `1px solid ${theme.border}`,
@@ -207,6 +212,20 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
                     background: theme.redBg, color: theme.red, border: `1px solid ${theme.red}20`,
                     display: 'flex', alignItems: 'center', gap: 8,
                   }} role="alert"><X size={14} style={{ flexShrink: 0 }} /> {error}</div>
+                )}
+
+                {step === 'register' && (
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', fontSize: '0.72rem', color: theme.textSecondary, lineHeight: 1.5 }}>
+                    <input type="checkbox" checked={acceptTerms} onChange={e => setAcceptTerms(e.target.checked)}
+                      style={{ marginTop: 2, accentColor: theme.accent }} />
+                    <span>
+                      Ao criar minha conta, concordo com os{' '}
+                      <a href="/termos" target="_blank" style={{ color: theme.accent, textDecoration: 'none' }}>Termos de Uso</a>,{' '}
+                      <a href="/privacidade" target="_blank" style={{ color: theme.accent, textDecoration: 'none' }}>Política de Privacidade</a>{' '}
+                      e autorizo o tratamento dos meus dados conforme a LGPD. Seus dados não são usados para treinar modelos de IA.
+                      Você pode solicitar a exclusão dos seus dados a qualquer momento.
+                    </span>
+                  </label>
                 )}
 
                 <button type="submit" disabled={loading} style={{
