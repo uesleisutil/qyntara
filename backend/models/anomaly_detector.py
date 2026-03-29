@@ -65,7 +65,7 @@ class AnomalyDetector:
         optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         criterion = nn.MSELoss()
 
-        for epoch in range(epochs):
+        for _epoch in range(epochs):
             self.model.train()
             recon, _ = self.model(X_t)
             loss = criterion(recon, X_t)

@@ -21,10 +21,8 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 import os
 import pickle
-from typing import Optional
 
 import numpy as np
 import torch
