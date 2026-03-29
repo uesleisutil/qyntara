@@ -48,7 +48,7 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{ env.LAMBDA_FUNCTION }} \
             --image-uri ${{ env.IMAGE_URI }} \
-            --no-cli-pager
+            --no-cli-pager > /dev/null
           # Wait for update to complete
           aws lambda wait function-updated --function-name ${{ env.LAMBDA_FUNCTION }}
           echo "✅ Lambda updated"

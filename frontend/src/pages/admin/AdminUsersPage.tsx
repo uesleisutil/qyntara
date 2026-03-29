@@ -248,6 +248,16 @@ export const AdminUsersPage: React.FC<{ dark?: boolean }> = () => {
                         fontSize: '0.62rem', fontWeight: 600, transition: 'all 0.15s',
                       }}>Ativar</button>
                     )}
+                    {/* Delete user data (LGPD) */}
+                    <button onClick={async () => {
+                      if (!confirm(`Excluir TODOS os dados de ${u.email}? Esta ação é irreversível.`)) return;
+                      await apiFetch(`/admin/users/${u.id}/delete-data`, { method: 'DELETE' });
+                      refresh();
+                    }} style={{
+                      padding: '2px 8px', borderRadius: 5, border: `1px solid ${theme.red}30`,
+                      background: 'transparent', color: theme.red, cursor: 'pointer',
+                      fontSize: '0.62rem', fontWeight: 600, transition: 'all 0.15s',
+                    }}>🗑️ Excluir dados</button>
                   </div>
                 </td>
               </tr>

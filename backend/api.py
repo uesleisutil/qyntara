@@ -454,6 +454,14 @@ async def admin_update_user(user_id: str, body: dict = Body(...), admin: dict = 
     return {"ok": True}
 
 
+@app.delete("/admin/users/{user_id}/delete-data")
+async def admin_delete_user_data(user_id: str, admin: dict = Depends(require_admin)):
+    """Admin: exclui todos os dados de um usuário (LGPD)."""
+    from .database import delete_user_data
+    delete_user_data(user_id)
+    return {"ok": True, "message": "All user data deleted"}
+
+
 @app.get("/admin/models")
 async def admin_model_performance(admin: dict = Depends(require_admin)):
     return get_model_performance()

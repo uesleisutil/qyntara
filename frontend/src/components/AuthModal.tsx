@@ -7,19 +7,24 @@ import { X, Eye, EyeOff, Loader2, Mail, TrendingUp, Shield, Zap, BarChart3 } fro
 interface Props { onClose: () => void; dark: boolean; }
 type Step = 'login' | 'register' | 'verify_sent';
 
-const COUNTRIES = [
-  'Brasil', 'Estados Unidos', 'Portugal', 'Argentina', 'Colômbia', 'México',
-  'Chile', 'Espanha', 'Alemanha', 'Reino Unido', 'Canadá', 'Outro',
-];
-const REFERRALS = [
-  { value: '', label: 'Selecione...' },
-  { value: 'google', label: 'Google / Busca' },
-  { value: 'twitter', label: 'Twitter / X' },
-  { value: 'youtube', label: 'YouTube' },
-  { value: 'friend', label: 'Indicação de amigo' },
-  { value: 'reddit', label: 'Reddit' },
-  { value: 'linkedin', label: 'LinkedIn' },
-  { value: 'other', label: 'Outro' },
+const COUNTRIES: { name: string; code: string }[] = [
+  { name: 'Brasil', code: '+55' },
+  { name: 'Estados Unidos', code: '+1' },
+  { name: 'Portugal', code: '+351' },
+  { name: 'Argentina', code: '+54' },
+  { name: 'Colômbia', code: '+57' },
+  { name: 'México', code: '+52' },
+  { name: 'Chile', code: '+56' },
+  { name: 'Espanha', code: '+34' },
+  { name: 'Alemanha', code: '+49' },
+  { name: 'Reino Unido', code: '+44' },
+  { name: 'Canadá', code: '+1' },
+  { name: 'França', code: '+33' },
+  { name: 'Itália', code: '+39' },
+  { name: 'Japão', code: '+81' },
+  { name: 'Austrália', code: '+61' },
+  { name: 'Índia', code: '+91' },
+  { name: 'Outro', code: '' },
 ];
 
 export const AuthModal: React.FC<Props> = ({ onClose }) => {
@@ -29,7 +34,6 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
-  const [referral, setReferral] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const { login, register, loading, error, clearError } = useAuthStore();
@@ -45,6 +49,18 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
     display: 'block', marginBottom: 5,
   };
 
+  const handleCountryChange = (val: string) => {
+    setCountry(val);
+    const c = COUNTRIES.find(c => c.name === val);
+    if (c?.code && !phone) {
+      setPhone(c.code + ' ');
+    } else if (c?.code && phone) {
+      // Replace existing country code
+      const cleaned = phone.replace(/^\+\d+\s*/, '');
+      setPhone(c.code + ' ' + cleaned);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 'login') {
@@ -55,7 +71,7 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
         useAuthStore.setState({ error: 'Você precisa aceitar os termos para continuar.' });
         return;
       }
-      await register(email, password, name, phone, country, referral);
+      await register(email, password, name, phone, country, '');
       if (!useAuthStore.getState().error) setStep('verify_sent');
     }
   };
@@ -153,33 +169,24 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {step === 'register' && (
                   <>
+                    <div>
+                      <label style={lbl}>Nome completo *</label>
+                      <input type="text" placeholder="Seu nome" value={name} required minLength={2}
+                        onChange={e => setName(e.target.value)} style={inp} />
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       <div>
-                        <label style={lbl}>Nome completo *</label>
-                        <input type="text" placeholder="Seu nome" value={name} required minLength={2}
-                          onChange={e => setName(e.target.value)} style={inp} />
+                        <label style={lbl}>País</label>
+                        <select value={country} onChange={e => handleCountryChange(e.target.value)}
+                          style={{ ...inp, cursor: 'pointer', appearance: 'auto' as any }}>
+                          <option value="">Selecione...</option>
+                          {COUNTRIES.map(c => <option key={c.name} value={c.name}>{c.name} {c.code}</option>)}
+                        </select>
                       </div>
                       <div>
                         <label style={lbl}>Telefone</label>
                         <input type="tel" placeholder="+55 11 99999-9999" value={phone}
                           onChange={e => setPhone(e.target.value)} style={inp} />
-                      </div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      <div>
-                        <label style={lbl}>País</label>
-                        <select value={country} onChange={e => setCountry(e.target.value)}
-                          style={{ ...inp, cursor: 'pointer', appearance: 'auto' as any }}>
-                          <option value="">Selecione...</option>
-                          {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label style={lbl}>Como nos conheceu?</label>
-                        <select value={referral} onChange={e => setReferral(e.target.value)}
-                          style={{ ...inp, cursor: 'pointer', appearance: 'auto' as any }}>
-                          {REFERRALS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                        </select>
                       </div>
                     </div>
                   </>
