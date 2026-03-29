@@ -1,47 +1,17 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
-*.py[codz]
-*$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
+*.py[cod]
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Environments
-.env
-.env.local
-.env.*
-!.env.example
-!.env.local.example
-.envrc
-.venv
-env/
+.venv/
 venv/
-ENV/
-env.bak/
-venv.bak/
+dist/
+build/
+*.egg
 
-# AWS CDK
-cdk.out/
+# Node
 node_modules/
+frontend/dist/
+frontend/build/
 
 # IDE
 .vscode/
@@ -49,59 +19,42 @@ node_modules/
 *.swp
 *.swo
 
+# Environment — NEVER commit these
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Secrets & keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+predikt.db
+
+# ML artifacts
+*.pt
+*.pkl
+*.tar.gz
+models/
+
 # OS
 .DS_Store
 Thumbs.db
 
+# Security scan reports
+bandit-report.json
+*.sarif
+
+# CDK
+infra/cdk.out/
+infra/dist/
+infra/node_modules/
+
 # Logs
 *.log
-
-# Lambda layers
-lambda-layer*.zip
-lambda-layer*/
-
-# Temporary files
-/tmp/
-*.tmp
-
-# Ruff cache
-.ruff_cache/
-
-# Test outputs
-/test-outputs/
-test-output*
-
-# Local data
-/data/
-*.csv
-*.json.local
-
-# Build artifacts
-artifact.tar
-asset-manifest.json
-/static/
-/favicon.ico
-/index.html
-
-# Test coverage reports
-coverage/
-
-# CDK/infra outputs (contain real ARNs)
-infra/outputs.json
-
-# Compiled TypeScript (infra)
-infra/**/*.js
-infra/**/*.d.ts
-
-# Task/checkpoint/implementation summaries (AI-generated docs)
-TASK_*.md
-CHECKPOINT_*.md
-*IMPLEMENTATION_SUMMARY.md
-*IMPLEMENTATION*.md
-*COMPLETION*.md
-*VERIFICATION*.md
-*STATUS*.md
-*VALIDATION_CHECKPOINT*.md
-
-# Pytest cache
-.pytest_cache/

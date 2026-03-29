@@ -1,23 +1,20 @@
 {
-  "name": "qyntara-infra",
-  "version": "3.0.0",
-  "bin": {
-    "infra": "bin/infra.js"
-  },
+  "name": "predikt-infra",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
-    "cdk": "cdk"
-  },
-  "devDependencies": {
-    "@types/node": "^24.10.1",
-    "aws-cdk": "2.1104.0",
-    "ts-node": "^10.9.2",
-    "typescript": "~5.9.3"
+    "cdk": "cdk",
+    "deploy": "cdk deploy --require-approval never",
+    "destroy": "cdk destroy --force"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.236.0",
-    "constructs": "^10.0.0",
-    "dotenv": "^17.2.3"
+    "aws-cdk-lib": "^2.170.0",
+    "constructs": "^10.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "aws-cdk": "^2.170.0",
+    "typescript": "^5.3.3"
   }
 }

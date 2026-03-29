@@ -1,113 +1,422 @@
-name: Security
+name: Security & Deploy Gate
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
     branches: [main]
-  schedule:
-    - cron: '0 8 * * 1' # Segunda-feira 8h UTC
 
 permissions:
   contents: read
   security-events: write
 
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
+
 jobs:
-  codeql:
-    name: CodeQL Analysis
+  # ══════════════════════════════════════
+  # 1. SECRET LEAK DETECTION
+  # ══════════════════════════════════════
+  secret-scan:
+    name: 🔐 Secret Leak Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        language: [python, javascript]
     steps:
       - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
         with:
-          languages: ${{ matrix.language }}
-          queries: security-extended
-      - uses: github/codeql-action/autobuild@v3
-      - uses: github/codeql-action/analyze@v3
-        continue-on-error: true
-        with:
-          category: "/language:${{ matrix.language }}"
+          fetch-depth: 0
 
-  dependency-scan:
-    name: Dependency Scan
+      - name: Gitleaks — scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Custom secret patterns check
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          PATTERNS=(
+            'sk_live_'
+            'sk_test_[a-zA-Z0-9]{20,}'
+            'whsec_[a-zA-Z0-9]+'
+            'AKIA[0-9A-Z]{16}'
+            'password\s*=\s*["\x27][^"\x27]{8,}'
+            'secret\s*=\s*["\x27][a-zA-Z0-9]{16,}'
+            'api_key\s*=\s*["\x27][a-zA-Z0-9]{16,}'
+            'token\s*=\s*["\x27][a-zA-Z0-9]{20,}'
+            'BEGIN RSA PRIVATE KEY'
+            'BEGIN OPENSSH PRIVATE KEY'
+            'BEGIN EC PRIVATE KEY'
+          )
+          FOUND=0
+          for pattern in "${PATTERNS[@]}"; do
+            MATCHES=$(grep -rn --include="*.py" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json" --include="*.yml" --include="*.yaml" --include="*.env" -E "$pattern" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.venv --exclude="*.example" 2>/dev/null || true)
+            if [ -n "$MATCHES" ]; then
+              echo "❌ POTENTIAL SECRET FOUND with pattern: $pattern"
+              echo "$MATCHES"
+              FOUND=1
+            fi
+          done
+          if [ $FOUND -eq 1 ]; then
+            echo "::error::Potential secrets detected in codebase. Fix before deploying."
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
+
+  # ══════════════════════════════════════
+  # 2. DEPENDENCY VULNERABILITY SCAN
+  # ══════════════════════════════════════
+  dependency-audit:
+    name: 📦 Dependency Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Python audit
+      - name: Python — pip-audit
         run: |
           pip install pip-audit
-          pip-audit -r dl/requirements.txt || true
-        continue-on-error: true
+          pip install -r <(grep -v '^\[' pyproject.toml | grep -oP '"\K[^"]+' | head -20) 2>/dev/null || true
+          pip-audit --strict --desc 2>&1 || {
+            echo "::error::Python dependencies have known vulnerabilities"
+            exit 1
+          }
 
-      - name: Dashboard audit
-        working-directory: ./dashboard
-        run: npm audit --audit-level=high || true
-        continue-on-error: true
+      - name: Node — npm audit
+        working-directory: frontend
+        run: |
+          npm ci
+          npm audit --audit-level=high 2>&1 || {
+            echo "::warning::npm audit found vulnerabilities (non-blocking for moderate)"
+          }
+          # Block on critical only
+          npm audit --audit-level=critical 2>&1 || {
+            echo "::error::Critical npm vulnerabilities found"
+            exit 1
+          }
 
-      - name: Infra audit
-        working-directory: ./infra
-        run: npm audit --audit-level=high || true
-        continue-on-error: true
-
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-          deny-licenses: GPL-3.0, AGPL-3.0
-
-  trivy:
-    name: Trivy Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@v0.35.0 # Pinned to safe version - do NOT use @master (supply chain attack March 2026)
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
+  # ══════════════════════════════════════
+  # 3. STATIC SECURITY ANALYSIS (SAST)
+  # ══════════════════════════════════════
   sast:
-    name: SAST (Bandit + Semgrep)
+    name: 🛡️ Static Security Analysis
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Bandit
-        run: |
-          pip install bandit[toml]
-          bandit -r dl/ --exclude .venv,node_modules -ll || true
-        continue-on-error: true
+      - name: Install Bandit (Python SAST)
+        run: pip install bandit[toml]
 
-      - name: Semgrep
+      - name: Bandit — Python security scan
         run: |
-          pip install semgrep
-          semgrep scan --config p/security-audit --config p/python --config p/typescript --config p/aws-lambda . || true
-        continue-on-error: true
+          bandit -r backend/ -f json -o bandit-report.json \
+            --severity-level medium \
+            --confidence-level medium \
+            -x backend/models/,backend/data/ \
+            2>&1 || true
+          # Parse results
+          ISSUES=$(python3 -c "
+          import json
+          with open('bandit-report.json') as f:
+              data = json.load(f)
+          high = [r for r in data.get('results', []) if r['issue_severity'] == 'HIGH']
+          if high:
+              for h in high:
+                  print(f\"❌ {h['filename']}:{h['line_number']} — {h['issue_text']}\")
+              exit(1)
+          print(f\"✅ No high-severity issues ({len(data.get('results', []))} total findings)\")
+          ")
+          echo "$ISSUES"
+
+      - name: Check for dangerous patterns in Python
+        run: |
+          echo "Checking for dangerous code patterns..."
+          ERRORS=0
+
+          # eval/exec usage
+          if grep -rn "eval(" backend/ --include="*.py" | grep -v "# nosec" | grep -v "test_"; then
+            echo "::error::eval() usage detected — potential code injection"
+            ERRORS=1
+          fi
+
+          # pickle.loads from untrusted source
+          if grep -rn "pickle.loads" backend/ --include="*.py" | grep -v "# nosec"; then
+            echo "::warning::pickle.loads detected — ensure input is trusted"
+          fi
+
+          # SQL string formatting (injection risk)
+          if grep -rn 'f".*SELECT.*{' backend/ --include="*.py"; then
+            echo "::error::SQL string formatting detected — use parameterized queries"
+            ERRORS=1
+          fi
+          if grep -rn "f'.*SELECT.*{" backend/ --include="*.py"; then
+            echo "::error::SQL string formatting detected — use parameterized queries"
+            ERRORS=1
+          fi
+
+          # subprocess with shell=True
+          if grep -rn "shell=True" backend/ --include="*.py" | grep -v "# nosec"; then
+            echo "::error::subprocess shell=True detected — command injection risk"
+            ERRORS=1
+          fi
+
+          if [ $ERRORS -eq 1 ]; then
+            exit 1
+          fi
+          echo "✅ No dangerous patterns found"
+
+  # ══════════════════════════════════════
+  # 4. API SECURITY CHECKS
+  # ══════════════════════════════════════
+  api-security:
+    name: 🔒 API Security Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Verify auth on protected endpoints
+        run: |
+          python3 << 'EOF'
+          import ast, sys
+
+          with open("backend/api.py") as f:
+              tree = ast.parse(f.read())
+
+          errors = []
+          admin_endpoints = []
+          protected_endpoints = []
+
+          for node in ast.walk(tree):
+              if isinstance(node, ast.AsyncFunctionDef):
+                  name = node.name
+                  decorators = [ast.dump(d) for d in node.decorator_list]
+                  args_str = ast.dump(node.args)
+
+                  # Check admin endpoints have require_admin
+                  if name.startswith("admin_"):
+                      admin_endpoints.append(name)
+                      if "require_admin" not in args_str:
+                          errors.append(f"❌ {name}: admin endpoint missing require_admin dependency")
+
+                  # Check billing endpoints have get_current_user
+                  if "billing" in name or "checkout" in name or "portal" in name:
+                      if name != "webhook":
+                          if "get_current_user" not in args_str:
+                              errors.append(f"❌ {name}: billing endpoint missing auth")
+
+          print(f"Admin endpoints found: {len(admin_endpoints)}")
+          print(f"Checked: {admin_endpoints}")
+
+          if errors:
+              for e in errors:
+                  print(e)
+              sys.exit(1)
+
+          print("✅ All protected endpoints have proper auth guards")
+          EOF
+
+      - name: Verify security headers middleware
+        run: |
+          python3 << 'EOF'
+          import sys
+
+          with open("backend/security.py") as f:
+              content = f.read()
+
+          required_headers = [
+              "X-Content-Type-Options",
+              "X-Frame-Options",
+              "X-XSS-Protection",
+              "Referrer-Policy",
+              "Strict-Transport-Security",
+          ]
+
+          missing = [h for h in required_headers if h not in content]
+          if missing:
+              print(f"❌ Missing security headers: {missing}")
+              sys.exit(1)
+
+          print("✅ All required security headers present")
+          EOF
+
+      - name: Verify rate limiting on auth endpoints
+        run: |
+          python3 << 'EOF'
+          import sys
+
+          with open("backend/api.py") as f:
+              content = f.read()
+
+          auth_endpoints = ["register", "login", "refresh"]
+          missing_rate_limit = []
+
+          for ep in auth_endpoints:
+              # Find the function and check if limiter.limit is above it
+              idx = content.find(f"async def {ep}(")
+              if idx == -1:
+                  continue
+              # Check 200 chars before for @limiter.limit
+              before = content[max(0, idx-200):idx]
+              if "limiter.limit" not in before:
+                  missing_rate_limit.append(ep)
+
+          if missing_rate_limit:
+              print(f"❌ Auth endpoints without rate limiting: {missing_rate_limit}")
+              sys.exit(1)
+
+          print("✅ All auth endpoints have rate limiting")
+          EOF
+
+      - name: Verify CORS is restricted in production
+        run: |
+          python3 << 'EOF'
+          import sys
+
+          with open("backend/config.py") as f:
+              content = f.read()
+
+          if 'is_production' not in content:
+              print("❌ No production check for CORS")
+              sys.exit(1)
+
+          if 'allow_origins=["*"]' in content and 'is_production' not in content:
+              print("❌ CORS allows all origins without production check")
+              sys.exit(1)
+
+          print("✅ CORS properly restricted for production")
+          EOF
+
+  # ══════════════════════════════════════
+  # 5. CODE QUALITY & TYPE SAFETY
+  # ══════════════════════════════════════
+  code-quality:
+    name: ✅ Code Quality & Types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Python — syntax check all files
+        run: |
+          python3 -c "
+          import ast, sys, pathlib
+          errors = []
+          for f in pathlib.Path('backend').rglob('*.py'):
+              try:
+                  with open(f) as fh:
+                      ast.parse(fh.read())
+              except SyntaxError as e:
+                  errors.append(f'❌ {f}: {e}')
+          if errors:
+              for e in errors:
+                  print(e)
+              sys.exit(1)
+          print(f'✅ All Python files pass syntax check')
+          "
+
+      - name: Python — ruff lint
+        run: |
+          pip install ruff
+          ruff check backend/ --select E,F,B --ignore E501
+
+      - name: Frontend — TypeScript type check
+        working-directory: frontend
+        run: |
+          npm ci
+          npx tsc --noEmit 2>&1 || {
+            echo "::error::TypeScript type errors found"
+            exit 1
+          }
+
+      - name: Frontend — build check
+        working-directory: frontend
+        run: |
+          npx vite build 2>&1 || {
+            echo "::error::Frontend build failed"
+            exit 1
+          }
+
+  # ══════════════════════════════════════
+  # 6. ENV FILE SAFETY
+  # ══════════════════════════════════════
+  env-safety:
+    name: 🔑 Environment Safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check no .env files committed
+        run: |
+          ENVFILES=$(find . -name ".env" -not -name ".env.example" -not -path "./.git/*" -not -path "*/node_modules/*" 2>/dev/null)
+          if [ -n "$ENVFILES" ]; then
+            echo "::error::Real .env files found in repo — these should be in .gitignore"
+            echo "$ENVFILES"
+            exit 1
+          fi
+          echo "✅ No .env files in repo"
+
+      - name: Check .gitignore covers sensitive files
+        run: |
+          REQUIRED_IGNORES=(".env" ".env.local" ".env.production" "*.pem" "*.key" "predikt.db")
+          MISSING=()
+          for pattern in "${REQUIRED_IGNORES[@]}"; do
+            if ! grep -q "$pattern" .gitignore 2>/dev/null; then
+              MISSING+=("$pattern")
+            fi
+          done
+          if [ ${#MISSING[@]} -gt 0 ]; then
+            echo "::error::.gitignore missing patterns: ${MISSING[*]}"
+            exit 1
+          fi
+          echo "✅ .gitignore covers all sensitive patterns"
+
+      - name: Check no database files committed
+        run: |
+          DBFILES=$(find . -name "*.db" -o -name "*.sqlite" -o -name "*.sqlite3" | grep -v node_modules | grep -v .git)
+          if [ -n "$DBFILES" ]; then
+            echo "::error::Database files found in repo"
+            echo "$DBFILES"
+            exit 1
+          fi
+          echo "✅ No database files in repo"
+
+  # ══════════════════════════════════════
+  # 7. DEPLOY GATE — blocks if ANY check fails
+  # ══════════════════════════════════════
+  deploy-gate:
+    name: 🚀 Deploy Gate
+    needs: [secret-scan, dependency-audit, sast, api-security, code-quality, env-safety]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: All security checks passed
+        run: |
+          echo "═══════════════════════════════════════"
+          echo "  ✅ ALL SECURITY CHECKS PASSED"
+          echo "  Deploy is authorized."
+          echo "═══════════════════════════════════════"
+
+      # Aqui vai o deploy real (ex: AWS, Vercel, etc.)
+      # - name: Deploy to production
+      #   run: ...

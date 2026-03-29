@@ -1,35 +1,48 @@
 [extend]
-# Use default gitleaks rules
+useDefault = true
 
 [allowlist]
-description = "Allow example env files and placeholder values"
+description = "Allowlist for Predikt"
 paths = [
-  '''\.env\.example''',
-  '''\.env\.local\.example''',
-]
-regexes = [
-  '''CHANGE_ME_USE_SECRETS_MANAGER''',
-  '''STAGING_API_KEY_PLACEHOLDER''',
+    '''\.env\.example''',
+    '''node_modules''',
+    '''\.git''',
 ]
 
-# Additional custom rules for project-specific patterns
 [[rules]]
-id = "stripe-live-key"
-description = "Stripe Live Secret Key"
-regex = '''sk_live_[0-9a-zA-Z]{24,}'''
+id = "stripe-secret-key"
+description = "Stripe Secret Key"
+regex = '''sk_(live|test)_[a-zA-Z0-9]{20,}'''
 tags = ["stripe", "secret"]
 
 [[rules]]
 id = "stripe-webhook-secret"
 description = "Stripe Webhook Secret"
-regex = '''whsec_[0-9a-zA-Z]{24,}'''
+regex = '''whsec_[a-zA-Z0-9]{20,}'''
 tags = ["stripe", "secret"]
 
 [[rules]]
-id = "jwt-secret-hardcoded"
-description = "Hardcoded JWT Secret"
-regex = '''JWT_SECRET=[a-zA-Z0-9\-_]{16,}'''
+id = "jwt-hardcoded"
+description = "Hardcoded JWT secret"
+regex = '''JWT_SECRET\s*=\s*["'][a-zA-Z0-9]{16,}["']'''
 tags = ["jwt", "secret"]
-
 [rules.allowlist]
-regexes = ['''CHANGE_ME_USE_SECRETS_MANAGER''']
+paths = ['''\.env\.example''']
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws", "secret"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'''
+tags = ["key", "secret"]
+
+[[rules]]
+id = "database-url-with-password"
+description = "Database URL with password"
+regex = '''(postgres|mysql|mongodb)://[^:]+:[^@]+@'''
+tags = ["database", "secret"]
