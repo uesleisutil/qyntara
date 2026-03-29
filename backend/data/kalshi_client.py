@@ -1,7 +1,8 @@
 """
 Cliente para Kalshi API (dados públicos via elections endpoint).
 
-Docs: https://docs.kalshi.com
+Estratégia: buscar eventos primeiro, depois mercados de cada evento.
+A busca genérica /markets retorna lixo esportivo sem volume.
 """
 
 from __future__ import annotations
@@ -17,12 +18,10 @@ KALSHI_BASE = "https://api.elections.kalshi.com/trade-api/v2"
 
 
 class KalshiClient:
-    """Cliente REST para Kalshi (dados públicos)."""
-
     def __init__(self):
         self.client = httpx.AsyncClient(
             base_url=KALSHI_BASE,
-            timeout=15.0,
+            timeout=20.0,
             headers={"Accept": "application/json"},
         )
 
@@ -30,69 +29,81 @@ class KalshiClient:
         await self.client.aclose()
 
     async def get_markets(self, limit: int = 200, **kwargs) -> list[dict]:
-        """Lista mercados ativos com volume."""
+        """Busca mercados via eventos pra pegar dados com volume real."""
+        all_markets: list[dict] = []
         try:
-            resp = await self.client.get("/markets", params={"limit": limit})
+            # 1. Buscar eventos ativos
+            resp = await self.client.get("/events", params={"limit": 100, "status": "open"})
             resp.raise_for_status()
-            data = resp.json()
-            markets = data.get("markets", [])
-            # Filtrar só mercados com volume real
-            return [m for m in markets if float(m.get("volume_fp", "0") or "0") > 0]
+            events = resp.json().get("events", [])
+
+            # 2. Pra cada evento, buscar mercados
+            for event in events[:50]:  # limitar pra não demorar
+                ticker = event.get("event_ticker", "")
+                if not ticker:
+                    continue
+                try:
+                    mresp = await self.client.get(
+                        "/markets", params={"event_ticker": ticker, "limit": 50}
+                    )
+                    mresp.raise_for_status()
+                    markets = mresp.json().get("markets", [])
+                    for m in markets:
+                        # Enriquecer com dados do evento
+                        m["_event_title"] = event.get("title", "")
+                        m["_event_category"] = event.get("category", "")
+                    all_markets.extend(markets)
+                except Exception as e:
+                    logger.debug(f"Kalshi event {ticker}: {e}")
+                    continue
+
+            # Filtrar só mercados com volume
+            with_volume = [m for m in all_markets if float(m.get("volume_fp", "0") or "0") > 0]
+            logger.info(f"Kalshi: {len(with_volume)} markets with volume (from {len(all_markets)} total)")
+            return with_volume[:limit]
+
         except Exception as e:
             logger.warning(f"Kalshi get_markets error: {e}")
-            return []
-
-    async def get_events(self, limit: int = 50) -> list[dict]:
-        """Lista eventos."""
-        try:
-            resp = await self.client.get("/events", params={"limit": limit})
-            resp.raise_for_status()
-            return resp.json().get("events", [])
-        except Exception as e:
-            logger.warning(f"Kalshi get_events error: {e}")
             return []
 
 
 def parse_kalshi_market(raw: dict) -> dict:
     """Normaliza dados de um mercado Kalshi pro formato interno."""
-    # Kalshi API v2 usa campos com _fp (floating point) e _dollars
     last_price_str = raw.get("last_price_dollars", "0") or "0"
     try:
         yes_price = float(last_price_str)
     except (ValueError, TypeError):
         yes_price = 0.0
-
-    # Se preço é em centavos (> 1), converter
     if yes_price > 1:
         yes_price = yes_price / 100.0
-
     no_price = max(0, 1.0 - yes_price)
 
-    volume_str = raw.get("volume_fp", "0") or raw.get("volume", "0") or "0"
-    volume_24h_str = raw.get("volume_24h_fp", "0") or raw.get("volume_24h", "0") or "0"
-    oi_str = raw.get("open_interest_fp", "0") or raw.get("open_interest", "0") or "0"
+    def _float(val):
+        try:
+            return float(val or "0")
+        except (ValueError, TypeError):
+            return 0.0
 
-    try:
-        volume = float(volume_str)
-    except (ValueError, TypeError):
-        volume = 0.0
-    try:
-        volume_24h = float(volume_24h_str)
-    except (ValueError, TypeError):
-        volume_24h = 0.0
-    try:
-        liquidity = float(oi_str)
-    except (ValueError, TypeError):
-        liquidity = 0.0
+    volume = _float(raw.get("volume_fp", raw.get("volume", 0)))
+    volume_24h = _float(raw.get("volume_24h_fp", raw.get("volume_24h", 0)))
+    liquidity = _float(raw.get("open_interest_fp", raw.get("open_interest", 0)))
 
-    title = raw.get("title", "") or raw.get("subtitle", "") or raw.get("ticker", "")
+    # Usar yes_sub_title ou title do evento
+    title = raw.get("yes_sub_title", "") or raw.get("title", "")
+    event_title = raw.get("_event_title", "")
+    if event_title and title and title != event_title:
+        question = f"{event_title}: {title}"[:200]
+    else:
+        question = (event_title or title)[:200]
+
+    category = raw.get("_event_category", "") or raw.get("category", "")
 
     return {
         "source": "kalshi",
         "market_id": raw.get("ticker", ""),
-        "question": title[:200],
+        "question": question,
         "description": raw.get("rules_primary", ""),
-        "category": raw.get("category", raw.get("event_ticker", "").split("-")[0] if raw.get("event_ticker") else ""),
+        "category": category,
         "yes_price": yes_price,
         "no_price": no_price,
         "volume": volume,
