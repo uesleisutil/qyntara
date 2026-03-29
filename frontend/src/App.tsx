@@ -9,7 +9,6 @@ import { LandingPage } from './pages/LandingPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminModelsPage } from './pages/admin/AdminModelsPage';
 import { AdminInfraPage } from './pages/admin/AdminInfraPage';
-import { SupportPage } from './pages/SupportPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthModal } from './components/AuthModal';
 import { EmailVerifyBanner } from './components/EmailVerifyBanner';
@@ -23,10 +22,10 @@ import { theme, globalStyles, badgeStyle } from './styles';
 import {
   BarChart3, Zap, GitCompare, TrendingUp, Lock, User, LogOut,
   Users, Brain, Server, Briefcase, CreditCard, Bell,
-  Settings, ChevronDown, Trash2, MessageCircle,
+  Settings, ChevronDown, Trash2,
 } from 'lucide-react';
 
-type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'support' | 'settings' | 'admin_users' | 'admin_models' | 'admin_infra';
+type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'admin_users' | 'admin_models' | 'admin_infra';
 
 const App: React.FC = () => {
   const [tab, setTab] = useState<Tab>('landing');
@@ -144,7 +143,6 @@ const App: React.FC = () => {
     { key: 'arbitrage', label: 'Arbitragem', icon: <GitCompare size={15} />, pro: true },
     { key: 'portfolio', label: 'Portfólio', icon: <Briefcase size={15} /> },
     { key: 'billing', label: 'Planos', icon: <CreditCard size={15} /> },
-    { key: 'support', label: 'Suporte', icon: <MessageCircle size={15} /> },
   ];
 
   // Admin tabs
@@ -381,7 +379,6 @@ const App: React.FC = () => {
         {tab === 'arbitrage' && <ArbitragePage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'portfolio' && <PortfolioPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'billing' && <BillingPage dark={dark} />}
-        {tab === 'support' && <SupportPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'settings' && <SettingsPage dark={dark} onSwitchTab={(t) => switchTab(t as Tab)} />}
         {tab === 'admin_users' && user?.is_admin && <AdminUsersPage dark={dark} />}
         {tab === 'admin_models' && user?.is_admin && <AdminModelsPage dark={dark} />}

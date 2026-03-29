@@ -6,6 +6,7 @@ import { theme, badgeStyle } from '../styles';
 import {
   Settings, Key, CreditCard, Trash2, AlertTriangle,
   Shield, Heart, Zap, Crown, Star, ExternalLink, Eye, EyeOff, Loader2,
+  MessageCircle, Mail, Send, ChevronDown, ChevronUp, Plus, Clock, CheckCircle2, AlertCircle,
 } from 'lucide-react';
 
 interface Props {
@@ -79,6 +80,11 @@ export const SettingsPage: React.FC<Props> = ({ onSwitchTab }) => {
             <ManageSubscriptionButton />
           )}
         </div>
+      </Section>
+
+      {/* Support */}
+      <Section title="Suporte" icon={<MessageCircle size={16} />}>
+        <SupportSection tier={tier} />
       </Section>
 
       {/* Cancel subscription (only for paid users) */}
@@ -476,6 +482,205 @@ const DeleteAccountFlow: React.FC<{ logout: () => void; onSwitchTab: (t: string)
           {loading && <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />}
           Excluir minha conta permanentemente
         </button>
+      </div>
+    </div>
+  );
+};
+
+/* ── Support section (inline in settings) ── */
+const statusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  open: { label: 'Aberto', color: theme.yellow, icon: <AlertCircle size={12} /> },
+  in_progress: { label: 'Em andamento', color: theme.blue, icon: <Clock size={12} /> },
+  closed: { label: 'Fechado', color: theme.green, icon: <CheckCircle2 size={12} /> },
+};
+
+interface Ticket {
+  id: string; subject: string; status: string; channel: string;
+  messages: { role: string; text: string; at: string }[];
+  created_at: string; updated_at: string;
+}
+
+const SupportSection: React.FC<{ tier: string }> = ({ tier }) => {
+  const hasChat = tier === 'pro' || tier === 'quant' || tier === 'enterprise';
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [showNew, setShowNew] = useState(false);
+
+  const loadTickets = async () => {
+    try {
+      const res = await apiFetch('/support/tickets');
+      const data = await res.json();
+      setTickets(data.tickets || []);
+    } catch {}
+    setLoaded(true);
+  };
+
+  React.useEffect(() => { loadTickets(); }, []);
+
+  const handleClose = async (id: string) => {
+    await apiFetch(`/support/tickets/${id}/status`, { method: 'PUT', body: JSON.stringify({ status: 'closed' }) });
+    loadTickets();
+    useToastStore.getState().addToast('Ticket fechado.', 'success');
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Excluir este ticket?')) return;
+    await apiFetch(`/support/tickets/${id}`, { method: 'DELETE' });
+    if (openId === id) setOpenId(null);
+    loadTickets();
+  };
+
+  const handleReply = async (id: string, text: string) => {
+    await apiFetch(`/support/tickets/${id}/messages`, { method: 'POST', body: JSON.stringify({ message: text }) });
+    loadTickets();
+  };
+
+  const handleCreate = async (subject: string, message: string) => {
+    const res = await apiFetch('/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message }) });
+    if (res.ok) { useToastStore.getState().addToast('Ticket criado!', 'success'); setShowNew(false); loadTickets(); }
+  };
+
+  return (
+    <div>
+      {/* Channel info */}
+      <div style={{ display: 'flex', gap: 10, marginBottom: '1rem' }}>
+        <div style={{
+          flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10,
+          background: hasChat ? `${theme.green}08` : theme.bg,
+          border: `1px solid ${hasChat ? `${theme.green}20` : theme.border}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.75rem', fontWeight: 600, marginBottom: 3 }}>
+            <MessageCircle size={13} color={hasChat ? theme.green : theme.textMuted} />
+            Chat {!hasChat && <span style={badgeStyle(theme.accent, theme.accentBg)}>PRO</span>}
+          </div>
+          <div style={{ fontSize: '0.68rem', color: theme.textSecondary }}>
+            {hasChat ? 'Resposta em até 4h' : 'Disponível nos planos Pro e Quant'}
+          </div>
+        </div>
+        <div style={{
+          flex: 1, padding: '0.65rem 0.85rem', borderRadius: 10,
+          background: theme.bg, border: `1px solid ${theme.border}`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.75rem', fontWeight: 600, marginBottom: 3 }}>
+            <Mail size={13} color={theme.accent} /> Email
+          </div>
+          <div style={{ fontSize: '0.68rem', color: theme.textSecondary }}>suporte@qyntara.tech · até 48h</div>
+        </div>
+      </div>
+
+      {/* New ticket button */}
+      <button onClick={() => setShowNew(!showNew)} style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '0.45rem 0.85rem',
+        borderRadius: 8, border: 'none', marginBottom: '1rem',
+        background: `linear-gradient(135deg, ${theme.accent}, ${theme.purple})`,
+        color: '#fff', fontWeight: 600, fontSize: '0.78rem', cursor: 'pointer',
+      }}><Plus size={13} /> Novo ticket</button>
+
+      {/* New ticket form */}
+      {showNew && <NewTicketInline onCreate={handleCreate} onCancel={() => setShowNew(false)} />}
+
+      {/* Tickets list */}
+      {!loaded ? (
+        <div style={{ fontSize: '0.78rem', color: theme.textMuted, padding: '1rem 0' }}>Carregando...</div>
+      ) : tickets.length === 0 ? (
+        <div style={{ fontSize: '0.78rem', color: theme.textMuted, padding: '1rem 0', textAlign: 'center' }}>
+          Nenhum ticket. Abra um ticket para falar com o suporte.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {tickets.map(t => {
+            const st = statusMap[t.status] || statusMap.open;
+            const isOpen = openId === t.id;
+            const lastMsg = t.messages?.[t.messages.length - 1];
+            return (
+              <div key={t.id} style={{ borderRadius: 10, border: `1px solid ${theme.border}`, overflow: 'hidden' }}>
+                <div onClick={() => setOpenId(isOpen ? null : t.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '0.65rem 0.85rem',
+                  cursor: 'pointer', transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = theme.cardHover}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.subject}</div>
+                    {lastMsg && <div style={{ fontSize: '0.65rem', color: theme.textMuted, marginTop: 2 }}>
+                      {lastMsg.role === 'admin' ? 'Suporte' : 'Você'}: {lastMsg.text.slice(0, 50)}
+                    </div>}
+                  </div>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 3, ...badgeStyle(st.color, `${st.color}15`) }}>{st.icon} {st.label}</span>
+                  {isOpen ? <ChevronUp size={13} color={theme.textMuted} /> : <ChevronDown size={13} color={theme.textMuted} />}
+                </div>
+
+                {isOpen && (
+                  <div style={{ borderTop: `1px solid ${theme.border}`, animation: 'fadeIn 0.2s ease' }}>
+                    <div style={{ padding: '0.75rem', maxHeight: 250, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {(t.messages || []).map((m, i) => (
+                        <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                          <div style={{
+                            maxWidth: '85%', padding: '0.5rem 0.75rem', borderRadius: 10,
+                            background: m.role === 'user' ? theme.accentBg : theme.bg,
+                            border: `1px solid ${m.role === 'user' ? theme.accentBorder : theme.border}`,
+                          }}>
+                            <div style={{ fontSize: '0.58rem', color: theme.textMuted, marginBottom: 3, fontWeight: 600 }}>
+                              {m.role === 'admin' ? '🛡️ Suporte' : 'Você'} · {new Date(m.at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{m.text}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {t.status !== 'closed' && <InlineReply onSend={(text) => handleReply(t.id, text)} />}
+                    <div style={{ display: 'flex', gap: 6, padding: '0.5rem 0.75rem', borderTop: `1px solid ${theme.border}`, background: theme.bg }}>
+                      {t.status !== 'closed' && <button onClick={() => handleClose(t.id)} style={{ padding: '3px 8px', borderRadius: 5, border: `1px solid ${theme.green}30`, background: 'transparent', color: theme.green, cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600 }}>Fechar</button>}
+                      {t.status === 'closed' && <button onClick={() => { apiFetch(`/support/tickets/${t.id}/status`, { method: 'PUT', body: JSON.stringify({ status: 'open' }) }).then(loadTickets); }} style={{ padding: '3px 8px', borderRadius: 5, border: `1px solid ${theme.accent}30`, background: 'transparent', color: theme.accent, cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600 }}>Reabrir</button>}
+                      <button onClick={() => handleDelete(t.id)} style={{ padding: '3px 8px', borderRadius: 5, border: `1px solid ${theme.red}30`, background: 'transparent', color: theme.red, cursor: 'pointer', fontSize: '0.65rem', fontWeight: 600 }}>Excluir</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const InlineReply: React.FC<{ onSend: (text: string) => void }> = ({ onSend }) => {
+  const [text, setText] = useState('');
+  return (
+    <div style={{ display: 'flex', gap: 6, padding: '0.5rem 0.75rem', borderTop: `1px solid ${theme.border}` }}>
+      <input value={text} onChange={e => setText(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter' && text.trim()) { onSend(text); setText(''); } }}
+        placeholder="Responder..." style={{
+          flex: 1, padding: '0.45rem 0.7rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+          background: theme.bg, color: theme.text, fontSize: '0.78rem', outline: 'none', fontFamily: 'inherit',
+        }} />
+      <button onClick={() => { if (text.trim()) { onSend(text); setText(''); } }} style={{
+        padding: '0.45rem 0.7rem', borderRadius: 8, border: 'none',
+        background: text.trim() ? theme.accent : theme.border,
+        color: text.trim() ? '#fff' : theme.textMuted, cursor: text.trim() ? 'pointer' : 'default',
+      }}><Send size={13} /></button>
+    </div>
+  );
+};
+
+const NewTicketInline: React.FC<{ onCreate: (s: string, m: string) => void; onCancel: () => void }> = ({ onCreate, onCancel }) => {
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+    background: theme.bg, color: theme.text, fontSize: '0.8rem', outline: 'none', fontFamily: 'inherit',
+  };
+  return (
+    <div style={{ padding: '0.85rem', borderRadius: 10, border: `1px solid ${theme.accentBorder}`, background: theme.accentBg, marginBottom: '1rem' }}>
+      <input placeholder="Assunto" value={subject} onChange={e => setSubject(e.target.value)} style={{ ...inp, marginBottom: 8 }} />
+      <textarea placeholder="Descreva seu problema..." value={message} onChange={e => setMessage(e.target.value)} rows={3} style={{ ...inp, resize: 'vertical', marginBottom: 8 }} />
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button onClick={() => { if (subject.trim() && message.trim()) onCreate(subject, message); }} style={{
+          padding: '0.4rem 0.85rem', borderRadius: 6, border: 'none', background: theme.accent, color: '#fff', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer',
+        }}>Enviar</button>
+        <button onClick={onCancel} style={{ padding: '0.4rem 0.85rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textSecondary, fontSize: '0.75rem', cursor: 'pointer' }}>Cancelar</button>
       </div>
     </div>
   );

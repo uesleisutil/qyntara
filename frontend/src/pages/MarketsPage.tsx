@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useApi } from '../hooks/useApi';
-import { theme, cardStyle, badgeStyle } from '../styles';
-import { Search, TrendingUp, TrendingDown, BarChart3, Clock, DollarSign, Droplets, Flame } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import { theme, badgeStyle } from '../styles';
+import { Search, BarChart3, Clock, DollarSign, Droplets, Flame, Lock } from 'lucide-react';
 
 interface Market {
   market_id: string; source: string; question: string; yes_price: number;
@@ -9,16 +10,35 @@ interface Market {
   liquidity?: number;
 }
 
-export const MarketsPage: React.FC<{ dark: boolean; onSelectMarket?: (id: string) => void }> = ({ dark, onSelectMarket }) => {
+export const MarketsPage: React.FC<{ dark?: boolean; onSelectMarket?: (id: string) => void }> = ({ onSelectMarket }) => {
   const [search, setSearch] = useState('');
   const [source, setSource] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const user = useAuthStore(s => s.user);
+  const isGuest = !user;
   const params = new URLSearchParams({ limit: '50', ...(source && { source }), ...(search && { search }) });
   const { data, loading } = useApi<{ markets: Market[]; total: number }>(`/markets?${params}`, 30000);
   const markets = data?.markets || [];
 
   return (
     <div style={{ animation: 'fadeIn 0.4s ease' }}>
+      {/* Guest banner */}
+      {isGuest && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+          padding: '0.75rem 1rem', borderRadius: 12, marginBottom: '1rem',
+          background: `linear-gradient(135deg, ${theme.accentBg}, ${theme.purpleBg})`,
+          border: `1px solid ${theme.accentBorder}`,
+          animation: 'fadeIn 0.5s ease',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Lock size={15} color={theme.accent} />
+            <span style={{ fontSize: '0.78rem', color: theme.textSecondary }}>
+              Crie uma conta grátis para ver preços, volumes e dados completos dos mercados.
+            </span>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: 8 }}>
         <div>
@@ -97,7 +117,7 @@ export const MarketsPage: React.FC<{ dark: boolean; onSelectMarket?: (id: string
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {markets.map((m, i) => (
-            <MarketCard key={`${m.source}-${m.market_id}`} market={m} index={i} onSelect={onSelectMarket} />
+            <MarketCard key={`${m.source}-${m.market_id}`} market={m} index={i} onSelect={onSelectMarket} isGuest={isGuest} />
           ))}
           {markets.length === 0 && (
             <div style={{
@@ -115,7 +135,7 @@ export const MarketsPage: React.FC<{ dark: boolean; onSelectMarket?: (id: string
   );
 };
 
-const MarketCard: React.FC<{ market: Market; index: number; onSelect?: (id: string) => void }> = ({ market: m, index, onSelect }) => {
+const MarketCard: React.FC<{ market: Market; index: number; onSelect?: (id: string) => void; isGuest: boolean }> = ({ market: m, index, onSelect, isGuest }) => {
   const [hovered, setHovered] = useState(false);
   const pct = (m.yes_price * 100).toFixed(1);
   const isHigh = m.yes_price > 0.6;
@@ -163,10 +183,10 @@ const MarketCard: React.FC<{ market: Market; index: number; onSelect?: (id: stri
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 5, fontSize: '0.7rem', color: theme.textMuted, flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <DollarSign size={11} /> {fmtVol(m.volume_24h)} 24h
+            <DollarSign size={11} /> {isGuest ? <span aria-hidden style={{ filter: 'blur(5px)', userSelect: 'none' }} onCopy={e => e.preventDefault()}>███</span> : <>{fmtVol(m.volume_24h)} 24h</>}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Droplets size={11} /> {fmtVol(m.liquidity || 0)}
+            <Droplets size={11} /> {isGuest ? <span aria-hidden style={{ filter: 'blur(5px)', userSelect: 'none' }} onCopy={e => e.preventDefault()}>███</span> : fmtVol(m.liquidity || 0)}
           </span>
           {daysLeft !== null && (
             <span style={{ display: 'flex', alignItems: 'center', gap: 3, color: daysLeft < 3 ? theme.red : theme.textMuted }}>
@@ -195,13 +215,17 @@ const MarketCard: React.FC<{ market: Market; index: number; onSelect?: (id: stri
           transition: 'transform 0.2s',
           transform: hovered ? 'scale(1.05)' : 'scale(1)',
         }}>
-          {pct}<span style={{ fontSize: '0.7rem', fontWeight: 500 }}>¢</span>
+          {isGuest ? (
+            <span aria-hidden="true" style={{ filter: 'blur(7px)', userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'none' }} onCopy={e => e.preventDefault()}>██</span>
+          ) : (
+            <>{pct}<span style={{ fontSize: '0.7rem', fontWeight: 500 }}>¢</span></>
+          )}
         </div>
         <div style={{ fontSize: '0.6rem', color: theme.textMuted, fontWeight: 500 }}>YES</div>
       </div>
 
       {/* Price bar */}
-      <div style={{ width: 56, flexShrink: 0 }}>
+      <div style={{ width: 56, flexShrink: 0, filter: isGuest ? 'blur(5px)' : 'none' }}>
         <div style={{ height: 5, borderRadius: 3, background: `${theme.border}`, overflow: 'hidden' }}>
           <div style={{
             width: `${m.yes_price * 100}%`, height: '100%', borderRadius: 3,
