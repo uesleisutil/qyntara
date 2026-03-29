@@ -60,28 +60,28 @@ def send_verification_email(to_email: str, user_name: str, token: str):
         <div style="text-align: center; margin-bottom: 2rem;">
             <span style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">📊 Predikt</span>
         </div>
-        <h2 style="color: #1a202c; font-size: 1.2rem;">Verify your email</h2>
+        <h2 style="color: #1a202c; font-size: 1.2rem;">Verifique seu email</h2>
         <p style="color: #64748b; line-height: 1.6;">
-            Hi {user_name or 'there'},<br><br>
-            Click the button below to verify your email and unlock all features.
+            Olá {user_name or ''},<br><br>
+            Clique no botão abaixo para verificar seu email e desbloquear todos os recursos.
         </p>
         <div style="text-align: center; margin: 2rem 0;">
             <a href="{verify_url}" style="
                 display: inline-block; padding: 0.75rem 2rem; border-radius: 8px;
                 background: #6366f1; color: #fff; text-decoration: none;
                 font-weight: 600; font-size: 0.95rem;
-            ">Verify Email</a>
+            ">Verificar Email</a>
         </div>
         <p style="color: #94a3b8; font-size: 0.78rem;">
-            Or copy this link: <a href="{verify_url}" style="color: #6366f1;">{verify_url}</a>
+            Ou copie este link: <a href="{verify_url}" style="color: #6366f1;">{verify_url}</a>
         </p>
         <p style="color: #94a3b8; font-size: 0.72rem; margin-top: 2rem;">
-            This link expires in 24 hours. If you didn't create an account, ignore this email.
+            Este link expira em 24 horas. Se você não criou uma conta, ignore este email.
         </p>
     </div>
     """
 
-    _send_email(to_email, "Verify your Predikt account", html)
+    _send_email(to_email, "Verifique sua conta Predikt", html)
 
 
 def send_welcome_email(to_email: str, user_name: str):
@@ -91,24 +91,24 @@ def send_welcome_email(to_email: str, user_name: str):
         <div style="text-align: center; margin-bottom: 2rem;">
             <span style="font-size: 1.5rem; font-weight: 700; color: #6366f1;">📊 Predikt</span>
         </div>
-        <h2 style="color: #1a202c;">Welcome to Predikt, {user_name or 'trader'}! 🎉</h2>
+        <h2 style="color: #1a202c;">Bem-vindo ao Predikt, {user_name or 'trader'}! 🎉</h2>
         <p style="color: #64748b; line-height: 1.6;">
-            Your email is verified. Here's what you can do now:
+            Seu email foi verificado. Veja o que você pode fazer agora:
         </p>
         <ul style="color: #64748b; line-height: 2;">
-            <li><strong>Market Scanner</strong> — browse all Polymarket + Kalshi markets</li>
-            <li><strong>AI Signals</strong> — upgrade to Pro for edge detection</li>
-            <li><strong>Portfolio</strong> — track your positions and risk</li>
+            <li><strong>Scanner de Mercados</strong> — navegue por todos os mercados do Polymarket + Kalshi</li>
+            <li><strong>Sinais de IA</strong> — faça upgrade para Pro para detecção de edge</li>
+            <li><strong>Portfólio</strong> — acompanhe suas posições e risco</li>
         </ul>
         <div style="text-align: center; margin: 2rem 0;">
             <a href="{settings.FRONTEND_URL}" style="
                 display: inline-block; padding: 0.75rem 2rem; border-radius: 8px;
                 background: #6366f1; color: #fff; text-decoration: none; font-weight: 600;
-            ">Open Predikt</a>
+            ">Abrir Predikt</a>
         </div>
     </div>
     """
-    _send_email(to_email, "Welcome to Predikt!", html)
+    _send_email(to_email, "Bem-vindo ao Predikt!", html)
 
 
 def _send_email(to: str, subject: str, html_body: str):

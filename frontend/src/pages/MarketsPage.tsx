@@ -21,10 +21,10 @@ export const MarketsPage: React.FC<{ dark: boolean; onSelectMarket?: (id: string
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <BarChart3 size={20} color={theme.accent} /> Markets
+            <BarChart3 size={20} color={theme.accent} /> Mercados
           </h2>
           <p style={{ fontSize: '0.75rem', color: theme.textSecondary, marginTop: 2 }}>
-            {data?.total || 0} active markets across Polymarket & Kalshi
+            {data?.total || 0} mercados ativos no Polymarket & Kalshi
           </p>
         </div>
       </div>
@@ -38,14 +38,14 @@ export const MarketsPage: React.FC<{ dark: boolean; onSelectMarket?: (id: string
         }}>
           <Search size={15} color={theme.textMuted} />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search markets..." style={{
+            placeholder="Buscar mercados..." style={{
               border: 'none', outline: 'none', background: 'transparent',
               color: theme.text, fontSize: '0.85rem', width: '100%',
               fontFamily: 'inherit',
             }} />
         </div>
         {[
-          { key: '', label: 'All', emoji: '' },
+          { key: '', label: 'Todos', emoji: '' },
           { key: 'polymarket', label: 'Polymarket', emoji: '🟣' },
           { key: 'kalshi', label: 'Kalshi', emoji: '🔵' },
         ].map(s => (
@@ -80,7 +80,7 @@ export const MarketsPage: React.FC<{ dark: boolean; onSelectMarket?: (id: string
           ))}
           {markets.length === 0 && (
             <div style={{ textAlign: 'center', padding: '3rem', color: theme.textMuted }}>
-              No markets found. Try a different search.
+              Nenhum mercado encontrado. Tente outra busca.
             </div>
           )}
         </div>
@@ -138,7 +138,7 @@ const MarketCard: React.FC<{ market: Market; index: number; onSelect?: (id: stri
           </span>
           {daysLeft !== null && (
             <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Clock size={11} /> {daysLeft}d left
+              <Clock size={11} /> {daysLeft}d restantes
             </span>
           )}
           {m.category && (

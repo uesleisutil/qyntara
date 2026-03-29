@@ -46,11 +46,11 @@ const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
       }).then(r => r.json()).then(data => {
-        setVerifyMsg(data.ok ? 'Email verified! You can now use all features.' : (data.detail || 'Verification failed'));
+        setVerifyMsg(data.ok ? 'Email verificado! Agora você pode usar todos os recursos.' : (data.detail || 'Falha na verificação'));
         // Refresh user data
         useAuthStore.getState().refreshAuth();
         window.history.replaceState({}, '', '/');
-      }).catch(() => setVerifyMsg('Verification failed. Try again.'));
+      }).catch(() => setVerifyMsg('Falha na verificação. Tente novamente.'));
     }
   }, []);
 
@@ -71,12 +71,12 @@ const App: React.FC = () => {
             <button onClick={() => { setTab('markets'); }} style={{
               padding: '0.45rem 0.9rem', borderRadius: 8, border: `1px solid ${theme.border}`,
               background: 'transparent', color: theme.textSecondary, cursor: 'pointer', fontSize: '0.78rem',
-            }}>Explore</button>
+            }}>Explorar</button>
             <button onClick={() => setShowAuth(true)} style={{
               padding: '0.45rem 0.9rem', borderRadius: 8, border: 'none',
               background: `linear-gradient(135deg, ${theme.accent}, ${theme.purple})`,
               color: '#fff', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
-            }}>Sign in</button>
+            }}>Entrar</button>
           </div>
         </header>
         <LandingPage onGetStarted={() => setShowAuth(true)} />
@@ -89,14 +89,14 @@ const App: React.FC = () => {
   if (tab === 'landing' && user) setTab('markets');
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode; pro?: boolean; admin?: boolean }[] = [
-    { key: 'markets', label: 'Markets', icon: <BarChart3 size={16} /> },
-    { key: 'signals', label: 'AI Signals', icon: <Zap size={16} />, pro: true },
-    { key: 'arbitrage', label: 'Arbitrage', icon: <GitCompare size={16} />, pro: true },
-    { key: 'portfolio', label: 'Portfolio', icon: <Briefcase size={16} /> },
-    { key: 'billing', label: 'Plans', icon: <CreditCard size={16} /> },
+    { key: 'markets', label: 'Mercados', icon: <BarChart3 size={16} /> },
+    { key: 'signals', label: 'Sinais IA', icon: <Zap size={16} />, pro: true },
+    { key: 'arbitrage', label: 'Arbitragem', icon: <GitCompare size={16} />, pro: true },
+    { key: 'portfolio', label: 'Portfólio', icon: <Briefcase size={16} /> },
+    { key: 'billing', label: 'Planos', icon: <CreditCard size={16} /> },
     ...(user?.is_admin ? [
-      { key: 'admin_users' as Tab, label: 'Users', icon: <Users size={16} />, admin: true },
-      { key: 'admin_models' as Tab, label: 'Models', icon: <Brain size={16} />, admin: true },
+      { key: 'admin_users' as Tab, label: 'Usuários', icon: <Users size={16} />, admin: true },
+      { key: 'admin_models' as Tab, label: 'Modelos', icon: <Brain size={16} />, admin: true },
       { key: 'admin_infra' as Tab, label: 'Infra', icon: <Server size={16} />, admin: true },
     ] : []),
   ];
@@ -163,7 +163,7 @@ const App: React.FC = () => {
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = theme.accentBorder; e.currentTarget.style.color = theme.accent; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.text; }}>
-              <User size={14} /> Sign in
+              <User size={14} /> Entrar
             </button>
           )}
         </div>
@@ -176,12 +176,12 @@ const App: React.FC = () => {
       {verifyMsg && (
         <div style={{
           padding: '0.6rem 1.5rem', fontSize: '0.82rem', textAlign: 'center',
-          background: verifyMsg.includes('verified') ? '#10b98115' : '#ef444415',
-          color: verifyMsg.includes('verified') ? '#10b981' : '#ef4444',
-          borderBottom: `1px solid ${verifyMsg.includes('verified') ? '#10b98130' : '#ef444430'}`,
+          background: verifyMsg.includes('verificado') ? '#10b98115' : '#ef444415',
+          color: verifyMsg.includes('verificado') ? '#10b981' : '#ef4444',
+          borderBottom: `1px solid ${verifyMsg.includes('verificado') ? '#10b98130' : '#ef444430'}`,
           cursor: 'pointer',
         }} onClick={() => setVerifyMsg(null)}>
-          {verifyMsg} (click to dismiss)
+          {verifyMsg} (clique para fechar)
         </div>
       )}
 
