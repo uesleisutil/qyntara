@@ -136,8 +136,8 @@ jobs:
           echo "Checking for dangerous code patterns..."
           ERRORS=0
 
-          # eval/exec usage
-          if grep -rn "eval(" backend/ --include="*.py" | grep -v "# nosec" | grep -v "test_"; then
+          # eval/exec usage (exclude PyTorch model.eval() which is safe)
+          if grep -rn "eval(" backend/ --include="*.py" | grep -v "# nosec" | grep -v "test_" | grep -v "\.model\.eval()" | grep -v "\.eval()"; then
             echo "::error::eval() usage detected — potential code injection"
             ERRORS=1
           fi
