@@ -1,14 +1,24 @@
 import React from 'react';
 import { useApi } from '../hooks/useApi';
+import { useAuthStore } from '../store/authStore';
 import { theme, badgeStyle } from '../styles';
-import { ArrowLeft, Newspaper, BarChart3, ExternalLink, Clock, TrendingUp } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ArrowLeft, Newspaper, BarChart3, ExternalLink, Clock, TrendingUp, Brain, Zap } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from 'recharts';
 
+interface Signal {
+  market_id: string; ai_estimated_price?: number; edge?: number;
+  signal_score?: number; direction?: string; signal_type?: string;
+  is_anomaly?: boolean; anomaly_score?: number;
+}
 interface Props { marketId: string; dark?: boolean; onBack: () => void; }
 
 export const MarketDetailPage: React.FC<Props> = ({ marketId, onBack }) => {
+  const user = useAuthStore(s => s.user);
+  const tier = user?.tier || 'free';
+  const isPro = tier === 'pro' || tier === 'quant' || tier === 'enterprise';
   const { data, loading } = useApi<any>(`/markets/${marketId}`, 15000);
   const { data: historyData } = useApi<{ history: { t: string; p: number }[] }>(`/markets/${marketId}/history?days=7`, 60000);
+  const { data: signalsData } = useApi<{ signals: Signal[] }>(isPro ? '/signals?limit=30' : '', 30000);
 
   if (loading && !data) {
     return (
@@ -37,6 +47,12 @@ export const MarketDetailPage: React.FC<Props> = ({ marketId, onBack }) => {
   const priceColor = m.yes_price > 0.6 ? theme.green : m.yes_price < 0.4 ? theme.red : theme.yellow;
   const sent = m.sentiment || {};
   const daysLeft = m.end_date ? Math.max(0, Math.ceil((new Date(m.end_date).getTime() - Date.now()) / 86400000)) : null;
+
+  // Find AI signal for this market
+  const aiSignal = signalsData?.signals?.find(s => s.market_id === marketId);
+  const hasAI = aiSignal && aiSignal.ai_estimated_price != null;
+  const aiPricePct = hasAI ? (aiSignal.ai_estimated_price! * 100).toFixed(1) : null;
+  const edgePct = hasAI && aiSignal.edge != null ? (aiSignal.edge * 100).toFixed(1) : null;
 
   return (
     <div style={{ animation: 'fadeIn 0.4s ease' }}>
@@ -146,8 +162,100 @@ export const MarketDetailPage: React.FC<Props> = ({ marketId, onBack }) => {
                 stroke={priceColor} fill={`${priceColor}15`} strokeWidth={2}
                 dot={false} activeDot={{ r: 4, fill: priceColor }}
               />
+              {hasAI && (
+                <ReferenceLine
+                  y={parseFloat(aiPricePct!)} stroke={theme.cyan} strokeDasharray="6 3" strokeWidth={1.5}
+                  label={{ value: `IA ${aiPricePct}%`, position: 'right', fill: theme.cyan, fontSize: 10 }}
+                />
+              )}
             </AreaChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* AI Edge Overlay */}
+      {isPro && hasAI && (
+        <div style={{
+          background: theme.card, border: `1px solid ${theme.accentBorder}`, borderRadius: 16,
+          padding: '1.5rem', marginBottom: '1rem',
+          animation: 'slideUp 0.4s ease 0.18s both',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+            <Brain size={18} color={theme.accent} />
+            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Estimativa da IA</span>
+            <span style={{
+              fontSize: '0.55rem', padding: '2px 6px', borderRadius: 4,
+              background: theme.accentBg, color: theme.accent, fontWeight: 700, marginLeft: 'auto',
+            }}>MODELO TREINADO</span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 10, marginBottom: 14 }}>
+            <div style={{ padding: '0.85rem', background: theme.bg, borderRadius: 12, textAlign: 'center', border: `1px solid ${theme.border}` }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: priceColor }}>{pct}%</div>
+              <div style={{ fontSize: '0.62rem', color: theme.textMuted, marginTop: 3 }}>Preço Mercado</div>
+            </div>
+            <div style={{ padding: '0.85rem', background: theme.bg, borderRadius: 12, textAlign: 'center', border: `1px solid ${theme.border}` }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: theme.cyan }}>{aiPricePct}%</div>
+              <div style={{ fontSize: '0.62rem', color: theme.textMuted, marginTop: 3 }}>Preço IA</div>
+            </div>
+            <div style={{ padding: '0.85rem', background: theme.bg, borderRadius: 12, textAlign: 'center', border: `1px solid ${theme.border}` }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: aiSignal.edge! > 0 ? theme.green : theme.red }}>
+                {aiSignal.edge! > 0 ? '+' : ''}{edgePct}%
+              </div>
+              <div style={{ fontSize: '0.62rem', color: theme.textMuted, marginTop: 3 }}>Edge</div>
+            </div>
+            {aiSignal.signal_score != null && (
+              <div style={{ padding: '0.85rem', background: theme.bg, borderRadius: 12, textAlign: 'center', border: `1px solid ${theme.border}` }}>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: theme.accent }}>{Math.round(aiSignal.signal_score * 100)}</div>
+                <div style={{ fontSize: '0.62rem', color: theme.textMuted, marginTop: 3 }}>Score</div>
+              </div>
+            )}
+          </div>
+
+          {/* Edge visual bar */}
+          <div style={{ position: 'relative', height: 8, borderRadius: 4, background: theme.border, overflow: 'hidden' }}>
+            <div style={{
+              position: 'absolute', left: 0, top: 0, height: '100%', borderRadius: 4,
+              width: `${m.yes_price * 100}%`,
+              background: `${priceColor}60`,
+            }} />
+            <div style={{
+              position: 'absolute', top: -2, height: 12, width: 2, borderRadius: 1,
+              left: `${(aiSignal.ai_estimated_price! * 100)}%`,
+              background: theme.cyan,
+              boxShadow: `0 0 6px ${theme.cyan}80`,
+            }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: theme.textMuted, marginTop: 4 }}>
+            <span>0%</span>
+            <span style={{ color: theme.cyan }}>▲ IA</span>
+            <span>100%</span>
+          </div>
+
+          {/* Direction recommendation */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, marginTop: 14,
+            padding: '0.65rem 1rem', borderRadius: 10,
+            background: aiSignal.edge! > 0 ? theme.greenBg : theme.redBg,
+            border: `1px solid ${aiSignal.edge! > 0 ? `${theme.green}25` : `${theme.red}25`}`,
+          }}>
+            <Zap size={14} color={aiSignal.edge! > 0 ? theme.green : theme.red} />
+            <span style={{ fontSize: '0.78rem', fontWeight: 600, color: aiSignal.edge! > 0 ? theme.green : theme.red }}>
+              {aiSignal.direction}
+            </span>
+            <span style={{ fontSize: '0.72rem', color: theme.textSecondary }}>
+              — IA estima que o mercado está {aiSignal.edge! > 0 ? 'subvalorizado' : 'sobrevalorizado'} em {Math.abs(parseFloat(edgePct!))}%
+            </span>
+          </div>
+
+          {aiSignal.is_anomaly && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
+              fontSize: '0.7rem', color: theme.yellow,
+            }}>
+              <Zap size={12} /> Anomalia detectada (score: {aiSignal.anomaly_score?.toFixed(4)}) — possível smart money
+            </div>
+          )}
         </div>
       )}
 

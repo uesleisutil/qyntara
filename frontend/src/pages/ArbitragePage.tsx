@@ -3,12 +3,17 @@ import { useApi } from '../hooks/useApi';
 import { useAuthStore } from '../store/authStore';
 import { Blurred } from '../components/Blurred';
 import { theme } from '../styles';
-import { GitCompare, ArrowRight, Lock, TrendingUp } from 'lucide-react';
+import { GitCompare, ArrowRight, Lock, TrendingUp, Brain, Zap } from 'lucide-react';
 
 interface ArbOpp {
   polymarket: { id: string; question: string; yes_price: number };
   kalshi: { id: string; question: string; yes_price: number };
   spread: number; similarity: number; direction: string; type?: string;
+}
+interface Signal {
+  market_id: string; source: string; question: string; yes_price: number;
+  ai_estimated_price?: number; edge?: number; signal_score?: number;
+  direction?: string; signal_type?: string; category?: string;
 }
 interface Props { dark?: boolean; onAuthRequired: () => void; }
 
@@ -17,6 +22,7 @@ export const ArbitragePage: React.FC<Props> = ({ onAuthRequired }) => {
   const tier = user?.tier || 'free';
   const isPro = tier === 'pro' || tier === 'quant' || tier === 'enterprise';
   const { data, loading } = useApi<{ opportunities: ArbOpp[] }>(isPro ? '/arbitrage' : '', isPro ? 30000 : undefined);
+  const { data: signalsData } = useApi<{ signals: Signal[] }>(isPro ? '/signals?limit=30' : '', 30000);
 
   if (!user) {
     return (
@@ -37,7 +43,7 @@ export const ArbitragePage: React.FC<Props> = ({ onAuthRequired }) => {
       <div>
         <div style={{ marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: 4 }}>Arbitragem</h2>
-          <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>Cross-plataforma · Spread &gt; 3%</p>
+          <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>Cross-plataforma · Edge IA</p>
         </div>
         <Blurred locked label="Arbitragem requer plano Pro" height={280}><div /></Blurred>
       </div>
@@ -45,32 +51,121 @@ export const ArbitragePage: React.FC<Props> = ({ onAuthRequired }) => {
   }
 
   const opps = data?.opportunities || [];
+  // AI edge opportunities: signals with edge > 8% are "arbitrage vs market"
+  const edgeOpps = (signalsData?.signals || [])
+    .filter(s => s.ai_estimated_price != null && s.edge != null && Math.abs(s.edge) >= 0.08)
+    .sort((a, b) => Math.abs(b.edge!) - Math.abs(a.edge!));
+
+  const totalOpps = opps.length + edgeOpps.length;
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
         <div>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: 4 }}>Arbitragem</h2>
-          <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>{opps.length} oportunidade{opps.length !== 1 ? 's' : ''} · Cross-plataforma</p>
+          <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>
+            {totalOpps} oportunidade{totalOpps !== 1 ? 's' : ''}
+            {opps.length > 0 && ` · ${opps.length} cross-plataforma`}
+            {edgeOpps.length > 0 && ` · ${edgeOpps.length} edge IA`}
+          </p>
         </div>
       </div>
 
-      {loading && !opps.length ? (
+      {loading && !totalOpps ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[1,2,3].map(i => (
             <div key={i} style={{ height: 120, borderRadius: 12, border: `1px solid ${theme.border}`, background: `linear-gradient(90deg, ${theme.card} 25%, ${theme.cardHover} 50%, ${theme.card} 75%)`, backgroundSize: '200% 100%', animation: `shimmer 1.5s infinite ${i * 0.1}s` }} />
           ))}
         </div>
-      ) : opps.length === 0 ? (
+      ) : totalOpps === 0 ? (
         <div style={{ textAlign: 'center', padding: '4rem', color: theme.textMuted }}>
           <GitCompare size={28} style={{ marginBottom: 8, opacity: 0.3 }} />
           <p style={{ fontSize: '0.85rem' }}>Mercados eficientes no momento. Sem arbitragem.</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {opps.map((o, i) => <ArbRow key={i} o={o} i={i} />)}
+          {/* Cross-platform arbitrage */}
+          {opps.length > 0 && (
+            <>
+              <div style={{ fontSize: '0.68rem', fontWeight: 700, color: theme.textMuted, letterSpacing: '0.05em', marginTop: 4 }}>
+                CROSS-PLATAFORMA
+              </div>
+              {opps.map((o, i) => <ArbRow key={`cross-${i}`} o={o} i={i} />)}
+            </>
+          )}
+
+          {/* AI Edge arbitrage */}
+          {edgeOpps.length > 0 && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.68rem', fontWeight: 700, color: theme.textMuted, letterSpacing: '0.05em', marginTop: opps.length > 0 ? 16 : 4 }}>
+                <Brain size={12} color={theme.accent} /> EDGE IA vs MERCADO
+              </div>
+              {edgeOpps.map((s, i) => <EdgeRow key={`edge-${s.market_id}`} s={s} i={i} />)}
+            </>
+          )}
         </div>
       )}
+    </div>
+  );
+};
+
+const EdgeRow: React.FC<{ s: Signal; i: number }> = ({ s, i }) => {
+  const [hov, setHov] = useState(false);
+  const edgeAbs = Math.abs(s.edge!);
+  const edgePct = (s.edge! * 100).toFixed(1);
+  const hot = edgeAbs > 0.12;
+  const color = s.edge! > 0 ? theme.green : theme.red;
+
+  return (
+    <div onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)} style={{
+      padding: '1.25rem', borderRadius: 12, border: `1px solid ${theme.border}`,
+      background: hov ? theme.card : 'transparent', transition: 'all 0.2s',
+      animation: `fadeIn 0.35s ease ${i * 0.08}s both`,
+    }}>
+      {/* Edge header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <span style={{ fontSize: '1.1rem', fontWeight: 800, color: hot ? theme.yellow : color, letterSpacing: '-0.02em' }}>
+          {s.edge! > 0 ? '+' : ''}{edgePct}%
+        </span>
+        <span style={{ fontSize: '0.65rem', color: theme.textMuted }}>edge</span>
+        <span style={{
+          fontSize: '0.55rem', padding: '1px 5px', borderRadius: 3,
+          background: `${theme.accent}12`, color: theme.accent, fontWeight: 700,
+        }}>IA</span>
+        {s.category && (
+          <span style={{ fontSize: '0.55rem', color: theme.textMuted }}>{s.category}</span>
+        )}
+        <div style={{ flex: 1, maxWidth: 100, height: 4, borderRadius: 2, background: theme.border, overflow: 'hidden', marginLeft: 'auto' }}>
+          <div style={{ width: `${Math.min(edgeAbs * 500, 100)}%`, height: '100%', borderRadius: 2, background: hot ? theme.yellow : color, transition: 'width 0.5s' }} />
+        </div>
+      </div>
+
+      {/* Market vs AI side by side */}
+      <div style={{ fontSize: '0.8rem', color: theme.textSecondary, lineHeight: 1.4, marginBottom: 12 }}>{s.question}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ flex: 1, padding: '0.75rem', borderRadius: 10, background: theme.bg, border: `1px solid ${theme.border}` }}>
+          <div style={{ fontSize: '0.58rem', color: theme.textMuted, fontWeight: 700, marginBottom: 4, letterSpacing: '0.05em' }}>
+            📊 MERCADO ({s.source?.toUpperCase()})
+          </div>
+          <div style={{ fontSize: '1rem', fontWeight: 800 }}>{(s.yes_price * 100).toFixed(1)}¢</div>
+        </div>
+        <ArrowRight size={14} color={theme.textMuted} style={{ flexShrink: 0 }} />
+        <div style={{ flex: 1, padding: '0.75rem', borderRadius: 10, background: theme.bg, border: `1px solid ${theme.accentBorder}` }}>
+          <div style={{ fontSize: '0.58rem', color: theme.cyan, fontWeight: 700, marginBottom: 4, letterSpacing: '0.05em' }}>
+            🧠 ESTIMATIVA IA
+          </div>
+          <div style={{ fontSize: '1rem', fontWeight: 800, color: theme.cyan }}>{(s.ai_estimated_price! * 100).toFixed(1)}¢</div>
+        </div>
+      </div>
+
+      {/* Strategy */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: '0.68rem', color: theme.textSecondary }}>
+        <Zap size={11} color={color} />
+        {s.edge! > 0
+          ? `Comprar YES — IA estima ${(s.ai_estimated_price! * 100).toFixed(0)}¢, mercado a ${(s.yes_price * 100).toFixed(0)}¢`
+          : `Comprar NO — IA estima ${(s.ai_estimated_price! * 100).toFixed(0)}¢, mercado a ${(s.yes_price * 100).toFixed(0)}¢`
+        }
+      </div>
     </div>
   );
 };
@@ -86,7 +181,6 @@ const ArbRow: React.FC<{ o: ArbOpp; i: number }> = ({ o, i }) => {
       background: hov ? theme.card : 'transparent', transition: 'all 0.2s',
       animation: `fadeIn 0.35s ease ${i * 0.08}s both`,
     }}>
-      {/* Spread header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
         <span style={{ fontSize: '1.1rem', fontWeight: 800, color: hot ? theme.yellow : theme.green, letterSpacing: '-0.02em' }}>
           +{spread.toFixed(1)}%
@@ -96,13 +190,11 @@ const ArbRow: React.FC<{ o: ArbOpp; i: number }> = ({ o, i }) => {
         {o.type === 'intra_platform' && (
           <span style={{ fontSize: '0.55rem', padding: '1px 5px', borderRadius: 3, background: `${theme.purple}12`, color: theme.purple, fontWeight: 700 }}>INTRA</span>
         )}
-        {/* Spread bar */}
         <div style={{ flex: 1, maxWidth: 100, height: 4, borderRadius: 2, background: theme.border, overflow: 'hidden', marginLeft: 'auto' }}>
           <div style={{ width: `${Math.min(spread * 10, 100)}%`, height: '100%', borderRadius: 2, background: hot ? theme.yellow : theme.green, transition: 'width 0.5s' }} />
         </div>
       </div>
 
-      {/* Platforms side by side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ flex: 1, padding: '0.75rem', borderRadius: 10, background: theme.bg, border: `1px solid ${theme.border}` }}>
           <div style={{ fontSize: '0.58rem', color: theme.purple, fontWeight: 700, marginBottom: 4, letterSpacing: '0.05em' }}>
@@ -121,7 +213,6 @@ const ArbRow: React.FC<{ o: ArbOpp; i: number }> = ({ o, i }) => {
         </div>
       </div>
 
-      {/* Strategy */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: '0.68rem', color: theme.textSecondary }}>
         <TrendingUp size={11} color={theme.green} />
         Comprar YES no {o.type === 'intra_platform' ? 'mercado mais barato' : o.direction === 'buy_poly' ? 'Polymarket' : 'Kalshi'} (mais barato)
