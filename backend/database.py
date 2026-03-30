@@ -196,6 +196,17 @@ def get_user_by_stripe_customer(customer_id: str) -> dict | None:
     return items[0] if items else None
 
 
+def get_users_by_tier(tiers: list[str]) -> list[dict]:
+    """Busca users por tier (pro, quant) pra alertas."""
+    all_users: list[dict] = []
+    for tier in tiers:
+        resp = _table(USERS_TABLE).scan(
+            FilterExpression=Attr("tier").eq(tier) & Attr("is_active").eq(True) & Attr("email_verified").eq(True),
+        )
+        all_users.extend(resp.get("Items", []))
+    return all_users
+
+
 # ── Refresh Tokens ──
 
 def store_refresh_token(user_id: str, token_hash: str, expires_at: str):

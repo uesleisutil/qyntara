@@ -20,6 +20,7 @@ interface Props { dark?: boolean; onAuthRequired: () => void; }
 
 export const PortfolioPage: React.FC<Props> = ({ onAuthRequired }) => {
   const user = useAuthStore(s => s.user);
+  const tier = user?.tier || 'free';
   const { data, refresh } = useApi<{ positions: Position[]; risk: Risk }>('/portfolio', 15000);
   const { data: scenarios } = useApi<{ scenarios: any[] }>(
     user?.tier !== 'free' ? '/portfolio/scenarios' : '', 30000
@@ -77,7 +78,7 @@ export const PortfolioPage: React.FC<Props> = ({ onAuthRequired }) => {
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em' }}>Portfólio</h2>
           </div>
           <p style={{ fontSize: '0.75rem', color: theme.textSecondary }}>
-            {positions.length} posição{positions.length !== 1 ? 'ões' : ''} ativa{positions.length !== 1 ? 's' : ''}
+            {positions.length}/{tier === 'quant' ? 500 : tier === 'pro' ? 50 : 5} posições
           </p>
         </div>
         <button onClick={() => setShowAdd(true)} style={{

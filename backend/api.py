@@ -145,6 +145,12 @@ async def _refresh_markets():
         _cache["signals"] = _generate_signals(markets)
         await _broadcast({"type": "markets_updated", "count": len(markets)})
 
+        # Email alerts pra Pro/Quant — sinais fortes
+        try:
+            _send_signal_alerts(_cache["signals"], _cache.get("_last_alerted_signals", set()))
+        except Exception as e:
+            logger.warning(f"Signal alerts error: {e}")
+
         try:
             save_market_cache(markets, _cache["signals"], _cache["arbitrage"], _cache["stats"])
             save_price_snapshot(markets)
@@ -422,10 +428,25 @@ async def get_signals(
 
 @app.get("/signals/preview")
 async def get_signals_preview(user: dict | None = Depends(get_optional_user)):
-    """Preview gratuito — 3 sinais sem detalhes completos."""
+    """Preview gratuito — 3 sinais/dia, sem score nem preço."""
     signals = _cache.get("signals", [])[:3]
-    preview = [{"question": s["question"], "direction": s["direction"], "source": s["source"]} for s in signals]
-    return {"signals": preview, "total_available": len(_cache.get("signals", [])), "tier_required": "pro"}
+    # Retorna só question, direction, source — sem dados sensíveis
+    preview = []
+    for s in signals:
+        preview.append({
+            "question": s["question"],
+            "direction": s["direction"],
+            "source": s["source"],
+            "signal_type": s.get("signal_type", ""),
+        })
+    total = len(_cache.get("signals", []))
+    return {
+        "signals": preview,
+        "total_available": total,
+        "tier_required": "pro",
+        "limit": 3,
+        "message": f"Você vê 3 de {total} sinais. Faça upgrade pro Pro pra ver todos.",
+    }
 
 
 @app.get("/arbitrage")
@@ -566,6 +587,128 @@ async def delete_pos(pos_id: str, user: dict = Depends(get_current_user)):
 async def portfolio_scenarios(user: dict = Depends(require_tier("pro"))):
     positions = get_user_positions(user["id"])
     return {"scenarios": simulate_scenarios(positions)}
+
+
+@app.get("/portfolio/montecarlo")
+async def portfolio_montecarlo(
+    simulations: int = Query(1000, ge=100, le=10000),
+    user: dict = Depends(require_tier("quant")),
+):
+    """Simulação Monte Carlo do portfólio (Quant only)."""
+    import random
+    positions = get_user_positions(user["id"])
+    if not positions:
+        return {"simulations": 0, "results": {}}
+
+    total_inv = sum(p["shares"] * p["avg_price"] for p in positions)
+    pnl_results = []
+
+    for _ in range(simulations):
+        pnl = 0.0
+        for p in positions:
+            # Simula resolução aleatória baseada no preço atual (proxy de probabilidade)
+            prob = p.get("current_price") or p["avg_price"]
+            resolved_yes = random.random() < prob
+            payout = p["shares"] if (p["side"] == "YES") == resolved_yes else 0.0
+            cost = p["shares"] * p["avg_price"]
+            pnl += payout - cost
+        pnl_results.append(round(pnl, 2))
+
+    pnl_results.sort()
+    n = len(pnl_results)
+
+    return {
+        "simulations": n,
+        "total_invested": round(total_inv, 2),
+        "results": {
+            "mean": round(sum(pnl_results) / n, 2),
+            "median": pnl_results[n // 2],
+            "p5": pnl_results[int(n * 0.05)],
+            "p25": pnl_results[int(n * 0.25)],
+            "p75": pnl_results[int(n * 0.75)],
+            "p95": pnl_results[int(n * 0.95)],
+            "min": pnl_results[0],
+            "max": pnl_results[-1],
+            "positive_pct": round(len([p for p in pnl_results if p > 0]) / n * 100, 1),
+        },
+        "distribution": [
+            {"range": f"<-{int(total_inv*0.5)}", "count": len([p for p in pnl_results if p < -total_inv * 0.5])},
+            {"range": f"-{int(total_inv*0.5)} a 0", "count": len([p for p in pnl_results if -total_inv * 0.5 <= p < 0])},
+            {"range": "0 a +50%", "count": len([p for p in pnl_results if 0 <= p < total_inv * 0.5])},
+            {"range": ">+50%", "count": len([p for p in pnl_results if p >= total_inv * 0.5])},
+        ],
+    }
+
+
+# ══════════════════════════════════════
+# API KEY (Quant only)
+# ══════════════════════════════════════
+
+@app.post("/api-key/generate")
+async def generate_api_key(user: dict = Depends(require_tier("quant"))):
+    """Gera API key pra acesso programático (Quant only)."""
+    import secrets as sec
+    from .database import _table, USERS_TABLE
+    key = f"qyn_{sec.token_urlsafe(32)}"
+    key_hash = __import__('hashlib').sha256(key.encode()).hexdigest()
+    now = __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()
+    _table(USERS_TABLE).update_item(
+        Key={"id": user["id"]},
+        UpdateExpression="SET api_key_hash = :k, api_key_created = :c, updated_at = :u",
+        ExpressionAttributeValues={":k": key_hash, ":c": now, ":u": now},
+    )
+    return {"api_key": key, "message": "Guarde esta chave — ela não será mostrada novamente."}
+
+
+@app.get("/api/v1/markets")
+async def api_markets(
+    limit: int = Query(50, ge=1, le=200),
+    source: str | None = Query(None),
+    category: str | None = Query(None),
+    api_key: str = Query(..., alias="key"),
+):
+    """API pública pra Quant — acesso via API key."""
+    from .database import _table, USERS_TABLE
+    import hashlib
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    # Buscar user pela API key
+    resp = _table(USERS_TABLE).scan(
+        FilterExpression=__import__('boto3').dynamodb.conditions.Attr("api_key_hash").eq(key_hash),
+        Limit=1,
+    )
+    items = resp.get("Items", [])
+    if not items or items[0].get("tier") not in ("quant", "enterprise"):
+        raise HTTPException(401, "Invalid API key or insufficient tier")
+
+    _ensure_init()
+    markets = list(_cache.get("markets", []))
+    if source:
+        markets = [m for m in markets if m["source"] == source]
+    if category:
+        markets = [m for m in markets if category.lower() in m.get("category", "").lower()]
+    page = [{k: v for k, v in m.items() if k != "raw"} for m in markets[:limit]]
+    return {"markets": page, "total": len(markets)}
+
+
+@app.get("/api/v1/signals")
+async def api_signals(
+    limit: int = Query(20, ge=1, le=100),
+    api_key: str = Query(..., alias="key"),
+):
+    """API pública pra sinais — Quant only."""
+    from .database import _table, USERS_TABLE
+    import hashlib
+    key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    resp = _table(USERS_TABLE).scan(
+        FilterExpression=__import__('boto3').dynamodb.conditions.Attr("api_key_hash").eq(key_hash),
+        Limit=1,
+    )
+    items = resp.get("Items", [])
+    if not items or items[0].get("tier") not in ("quant", "enterprise"):
+        raise HTTPException(401, "Invalid API key or insufficient tier")
+
+    _ensure_init()
+    return {"signals": _cache.get("signals", [])[:limit]}
 
 
 # ══════════════════════════════════════
@@ -714,6 +857,63 @@ async def _broadcast(msg: dict):
 # ══════════════════════════════════════
 # HELPERS
 # ══════════════════════════════════════
+
+def _send_signal_alerts(signals: list[dict], already_alerted: set):
+    """Envia email pra users Pro/Quant quando sinais fortes aparecem."""
+    strong = [s for s in signals if s.get("signal_score", 0) > 0.3 and s.get("market_id") not in already_alerted]
+    if not strong:
+        return
+
+    from .database import get_users_by_tier
+    from .email_service import _send_email
+
+    pro_users = get_users_by_tier(["pro", "quant", "enterprise"])
+    if not pro_users:
+        return
+
+    # Build email
+    signal_rows = ""
+    new_alerted = set()
+    for s in strong[:5]:
+        direction = s.get("direction", "?")
+        color = "#10b981" if direction == "YES" else "#ef4444" if direction == "NO" else "#f59e0b"
+        score = int(s.get("signal_score", 0) * 100)
+        signal_rows += f"""
+        <tr>
+            <td style="padding:8px;font-size:13px;border-bottom:1px solid #1e2130">{s.get('question','')[:80]}</td>
+            <td style="padding:8px;font-size:13px;color:{color};font-weight:700;border-bottom:1px solid #1e2130">{direction}</td>
+            <td style="padding:8px;font-size:13px;border-bottom:1px solid #1e2130">{score}</td>
+        </tr>"""
+        new_alerted.add(s.get("market_id"))
+
+    html = f"""
+    <div style="font-family:-apple-system,sans-serif;max-width:500px;margin:0 auto;padding:2rem;background:#0a0b0f;color:#e2e8f0">
+        <div style="margin-bottom:1.5rem"><span style="font-size:1.1rem;font-weight:700">Qyntara</span> <span style="font-size:0.7rem;color:#8892a4">· Alerta de Sinais</span></div>
+        <p style="color:#8892a4;font-size:0.85rem;margin-bottom:1rem">{len(strong)} sinal(is) forte(s) detectado(s):</p>
+        <table style="width:100%;border-collapse:collapse">
+            <tr style="border-bottom:1px solid #2a2d40">
+                <th style="padding:6px 8px;text-align:left;font-size:0.7rem;color:#5a6478">Mercado</th>
+                <th style="padding:6px 8px;text-align:left;font-size:0.7rem;color:#5a6478">Direção</th>
+                <th style="padding:6px 8px;text-align:left;font-size:0.7rem;color:#5a6478">Score</th>
+            </tr>
+            {signal_rows}
+        </table>
+        <div style="margin-top:1.5rem;text-align:center">
+            <a href="https://qyntara.tech" style="display:inline-block;padding:0.6rem 1.5rem;border-radius:8px;background:#6366f1;color:#fff;text-decoration:none;font-weight:600;font-size:0.85rem">Ver sinais</a>
+        </div>
+        <p style="color:#5a6478;font-size:0.65rem;margin-top:1.5rem;text-align:center">Você recebe este email porque é assinante Pro/Quant. Gerencie em Configurações.</p>
+    </div>"""
+
+    for u in pro_users:
+        try:
+            _send_email(u["email"], f"Qyntara · {len(strong)} sinal(is) forte(s)", html)
+        except Exception as e:
+            logger.debug(f"Alert email failed for {u.get('email')}: {e}")
+
+    # Track alerted signals
+    _cache["_last_alerted_signals"] = already_alerted | new_alerted
+    logger.info(f"Signal alerts: {len(strong)} signals to {len(pro_users)} users")
+
 
 def _categorize_market(question: str) -> str:
     """Categoriza mercado por keywords na pergunta."""

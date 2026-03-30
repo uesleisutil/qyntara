@@ -32,13 +32,44 @@ export const SignalsPage: React.FC<Props> = ({ onAuthRequired }) => {
   }
 
   if (error === 'upgrade_required' || (!isPro && data)) {
+    const preview = data?.signals || [];
+    const totalAvailable = (data as any)?.total_available || 0;
     return (
       <div>
         <div style={{ marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: 4 }}>Sinais de IA</h2>
-          <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>Edge detection com deep learning</p>
+          <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>
+            Mostrando 3 de {totalAvailable} sinais · <span style={{ color: theme.accent }}>Upgrade pro Pro pra ver todos</span>
+          </p>
         </div>
-        <Blurred locked label="Sinais requerem plano Pro" height={280}><div /></Blurred>
+
+        {/* Show 3 preview signals */}
+        {preview.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: '1.5rem' }}>
+            {preview.map((s: any, i: number) => {
+              const color = s.direction === 'YES' ? theme.green : s.direction === 'NO' ? theme.red : theme.yellow;
+              const Icon = s.direction === 'YES' ? TrendingUp : s.direction === 'NO' ? TrendingDown : Minus;
+              return (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 12, padding: '0.7rem 1rem',
+                  borderRadius: 10, borderLeft: `3px solid ${color}`, background: theme.card,
+                }}>
+                  <Icon size={15} color={color} style={{ flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.question}</div>
+                    <div style={{ fontSize: '0.62rem', color: theme.textMuted, marginTop: 2 }}>{s.source} {s.signal_type ? `· ${s.signal_type}` : ''}</div>
+                  </div>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color }}>{s.direction}</span>
+                  {/* Score blurred for free */}
+                  <span aria-hidden style={{ filter: 'blur(5px)', userSelect: 'none', pointerEvents: 'none', fontSize: '0.75rem', color: theme.textMuted, width: 40, textAlign: 'right' }} onCopy={e => e.preventDefault()}>██</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {/* Blurred remaining */}
+        <Blurred locked label={`+${Math.max(0, totalAvailable - 3)} sinais disponíveis no Pro`} height={180}><div /></Blurred>
       </div>
     );
   }
