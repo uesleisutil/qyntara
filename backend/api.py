@@ -1006,15 +1006,11 @@ def _categorize_market(question: str) -> str:
 
 
 def _find_arbitrage(markets: list[dict]) -> list[dict]:
-    """Encontra oportunidades de arbitragem entre Polymarket e Kalshi."""
-    poly = [m for m in markets if m["source"] == "polymarket" and m.get("yes_price", 0) > 0]
-    kalshi = [m for m in markets if m["source"] == "kalshi" and m.get("yes_price", 0) > 0]
-
-    if not poly or not kalshi:
-        return []
+    """Encontra oportunidades de arbitragem cross-plataforma e intra-plataforma."""
+    poly = [m for m in markets if m["source"] == "polymarket" and 0.02 < m.get("yes_price", 0) < 0.98]
+    kalshi = [m for m in markets if m["source"] == "kalshi" and 0.02 < m.get("yes_price", 0) < 0.98]
 
     def _normalize(q: str) -> str:
-        """Normaliza pergunta pra melhor matching."""
         q = q.lower().strip()
         for w in ['will ', 'who will ', 'what will ', 'when will ', 'the ', 'a ', 'an ']:
             if q.startswith(w):
@@ -1022,21 +1018,52 @@ def _find_arbitrage(markets: list[dict]) -> list[dict]:
         return q.rstrip('?').strip()
 
     opps = []
-    for p in poly:
-        pq = _normalize(p["question"])
-        for k in kalshi:
-            kq = _normalize(k["question"])
-            ratio = SequenceMatcher(None, pq, kq).ratio()
-            if ratio > 0.5:
-                spread = abs(p["yes_price"] - k["yes_price"])
-                if spread > 0.03:
-                    opps.append({
-                        "polymarket": {"id": p["market_id"], "question": p["question"], "yes_price": p["yes_price"]},
-                        "kalshi": {"id": k["market_id"], "question": k["question"], "yes_price": k["yes_price"]},
-                        "spread": round(spread, 4),
-                        "similarity": round(ratio, 2),
-                        "direction": "buy_poly" if p["yes_price"] < k["yes_price"] else "buy_kalshi",
-                    })
+
+    # Cross-plataforma: Polymarket vs Kalshi
+    if poly and kalshi:
+        for p in poly:
+            pq = _normalize(p["question"])
+            for k in kalshi:
+                kq = _normalize(k["question"])
+                ratio = SequenceMatcher(None, pq, kq).ratio()
+                if ratio > 0.45:
+                    spread = abs(p["yes_price"] - k["yes_price"])
+                    if spread > 0.03:
+                        opps.append({
+                            "polymarket": {"id": p["market_id"], "question": p["question"], "yes_price": p["yes_price"]},
+                            "kalshi": {"id": k["market_id"], "question": k["question"], "yes_price": k["yes_price"]},
+                            "spread": round(spread, 4),
+                            "similarity": round(ratio, 2),
+                            "direction": "buy_poly" if p["yes_price"] < k["yes_price"] else "buy_kalshi",
+                            "type": "cross_platform",
+                        })
+
+    # Intra-plataforma: mercados complementares no Polymarket
+    # Ex: "Trump wins 2028?" a 30¢ e "Trump does NOT win 2028?" a 60¢ = 10¢ de arb
+    # Ou mercados do mesmo evento com preços que somam != 100%
+    for i, m1 in enumerate(poly):
+        q1 = _normalize(m1["question"])
+        for m2 in poly[i + 1:]:
+            q2 = _normalize(m2["question"])
+            ratio = SequenceMatcher(None, q1, q2).ratio()
+            if ratio > 0.7:
+                # Mercados muito similares — checar se preços são inconsistentes
+                # Se ambos YES, a soma deveria ser ~1.0 se são complementares
+                price_sum = m1["yes_price"] + m2["yes_price"]
+                if price_sum < 0.90 or price_sum > 1.10:
+                    spread = abs(1.0 - price_sum)
+                    if spread > 0.05:
+                        cheaper = m1 if m1["yes_price"] < m2["yes_price"] else m2
+                        pricier = m2 if m1["yes_price"] < m2["yes_price"] else m1
+                        opps.append({
+                            "polymarket": {"id": cheaper["market_id"], "question": cheaper["question"], "yes_price": cheaper["yes_price"]},
+                            "kalshi": {"id": pricier["market_id"], "question": pricier["question"], "yes_price": pricier["yes_price"]},
+                            "spread": round(spread, 4),
+                            "similarity": round(ratio, 2),
+                            "direction": "buy_poly",
+                            "type": "intra_platform",
+                        })
+
     opps.sort(key=lambda x: x["spread"], reverse=True)
     return opps[:20]
 

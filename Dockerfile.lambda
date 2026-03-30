@@ -4,6 +4,7 @@ RUN pip install --upgrade pip setuptools wheel
 
 RUN pip install --no-cache-dir --only-binary=:all: numpy==1.26.4
 RUN pip install --no-cache-dir --only-binary=:all: scipy==1.12.0 scikit-learn==1.4.0 pandas==2.1.4
+RUN pip install --no-cache-dir torch==2.2.0+cpu --index-url https://download.pytorch.org/whl/cpu
 
 RUN pip install --no-cache-dir \
     fastapi==0.115.6 \

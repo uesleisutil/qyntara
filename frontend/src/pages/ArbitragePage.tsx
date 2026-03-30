@@ -8,7 +8,7 @@ import { GitCompare, ArrowRight, Lock, TrendingUp } from 'lucide-react';
 interface ArbOpp {
   polymarket: { id: string; question: string; yes_price: number };
   kalshi: { id: string; question: string; yes_price: number };
-  spread: number; similarity: number; direction: string;
+  spread: number; similarity: number; direction: string; type?: string;
 }
 interface Props { dark?: boolean; onAuthRequired: () => void; }
 
@@ -93,6 +93,9 @@ const ArbRow: React.FC<{ o: ArbOpp; i: number }> = ({ o, i }) => {
         </span>
         <span style={{ fontSize: '0.65rem', color: theme.textMuted }}>spread</span>
         <span style={{ fontSize: '0.65rem', color: theme.textMuted }}>· {(o.similarity * 100).toFixed(0)}% similar</span>
+        {o.type === 'intra_platform' && (
+          <span style={{ fontSize: '0.55rem', padding: '1px 5px', borderRadius: 3, background: `${theme.purple}12`, color: theme.purple, fontWeight: 700 }}>INTRA</span>
+        )}
         {/* Spread bar */}
         <div style={{ flex: 1, maxWidth: 100, height: 4, borderRadius: 2, background: theme.border, overflow: 'hidden', marginLeft: 'auto' }}>
           <div style={{ width: `${Math.min(spread * 10, 100)}%`, height: '100%', borderRadius: 2, background: hot ? theme.yellow : theme.green, transition: 'width 0.5s' }} />
@@ -102,13 +105,17 @@ const ArbRow: React.FC<{ o: ArbOpp; i: number }> = ({ o, i }) => {
       {/* Platforms side by side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <div style={{ flex: 1, padding: '0.75rem', borderRadius: 10, background: theme.bg, border: `1px solid ${theme.border}` }}>
-          <div style={{ fontSize: '0.58rem', color: theme.purple, fontWeight: 700, marginBottom: 4, letterSpacing: '0.05em' }}>🟣 POLYMARKET</div>
+          <div style={{ fontSize: '0.58rem', color: theme.purple, fontWeight: 700, marginBottom: 4, letterSpacing: '0.05em' }}>
+            {o.type === 'intra_platform' ? '📊 MAIS BARATO' : '🟣 POLYMARKET'}
+          </div>
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.35, marginBottom: 4 }}>{o.polymarket.question}</div>
           <div style={{ fontSize: '1rem', fontWeight: 800 }}>{(o.polymarket.yes_price * 100).toFixed(1)}¢</div>
         </div>
         <ArrowRight size={14} color={theme.textMuted} style={{ flexShrink: 0 }} />
         <div style={{ flex: 1, padding: '0.75rem', borderRadius: 10, background: theme.bg, border: `1px solid ${theme.border}` }}>
-          <div style={{ fontSize: '0.58rem', color: theme.blue, fontWeight: 700, marginBottom: 4, letterSpacing: '0.05em' }}>🔵 KALSHI</div>
+          <div style={{ fontSize: '0.58rem', color: theme.blue, fontWeight: 700, marginBottom: 4, letterSpacing: '0.05em' }}>
+            {o.type === 'intra_platform' ? '📊 MAIS CARO' : '🔵 KALSHI'}
+          </div>
           <div style={{ fontSize: '0.75rem', color: theme.textSecondary, lineHeight: 1.35, marginBottom: 4 }}>{o.kalshi.question}</div>
           <div style={{ fontSize: '1rem', fontWeight: 800 }}>{(o.kalshi.yes_price * 100).toFixed(1)}¢</div>
         </div>
@@ -117,7 +124,7 @@ const ArbRow: React.FC<{ o: ArbOpp; i: number }> = ({ o, i }) => {
       {/* Strategy */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, fontSize: '0.68rem', color: theme.textSecondary }}>
         <TrendingUp size={11} color={theme.green} />
-        Comprar YES no {o.direction === 'buy_poly' ? 'Polymarket' : 'Kalshi'} (mais barato)
+        Comprar YES no {o.type === 'intra_platform' ? 'mercado mais barato' : o.direction === 'buy_poly' ? 'Polymarket' : 'Kalshi'} (mais barato)
       </div>
     </div>
   );
