@@ -563,13 +563,36 @@ async def admin_model_performance(admin: dict = Depends(require_admin)):
 
 @app.post("/admin/models/train")
 async def admin_trigger_training(admin: dict = Depends(require_admin)):
-    """Dispara treino dos modelos manualmente."""
+    """Dispara treino invocando o Lambda de forma assíncrona."""
+    import boto3
+    import json as j
+    try:
+        client = boto3.client("lambda", region_name="us-east-1")
+        client.invoke(
+            FunctionName="predikt-api",
+            InvocationType="Event",  # async — não espera resposta
+            Payload=j.dumps({
+                "httpMethod": "GET", "path": "/internal/train",
+                "requestContext": {"http": {"method": "GET", "path": "/internal/train"}},
+                "rawPath": "/internal/train", "headers": {}, "isBase64Encoded": False,
+            }),
+        )
+        return {"ok": True, "message": "Treino iniciado em background. Verifique em alguns minutos."}
+    except Exception as e:
+        raise HTTPException(500, f"Failed to trigger training: {e}")
+
+
+@app.get("/internal/train")
+async def internal_train():
+    """Endpoint interno chamado pelo Lambda async invoke."""
     try:
         from .sagemaker.train_job import train_local
-        result = train_local(epochs=30)
+        result = train_local(epochs=20)
+        logger.info(f"Training completed: {result}")
         return {"ok": True, "result": result}
     except Exception as e:
-        raise HTTPException(500, f"Training failed: {e}")
+        logger.error(f"Training failed: {e}")
+        return {"ok": False, "error": str(e)}
 
 
 @app.get("/admin/infra")

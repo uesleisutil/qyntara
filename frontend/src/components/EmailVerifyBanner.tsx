@@ -4,7 +4,7 @@ import { apiFetch } from '../hooks/useApi';
 import { theme } from '../styles';
 import { Mail, X, Loader2 } from 'lucide-react';
 
-export const EmailVerifyBanner: React.FC<{ dark: boolean }> = ({ dark }) => {
+export const EmailVerifyBanner: React.FC<{ dark: boolean }> = ({ dark: _dark }) => {
   const user = useAuthStore(s => s.user);
   const [dismissed, setDismissed] = useState(false);
   const [sending, setSending] = useState(false);

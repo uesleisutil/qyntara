@@ -134,7 +134,7 @@ const App: React.FC = () => {
             onMouseLeave={e => { e.currentTarget.style.background = theme.text; e.currentTarget.style.color = theme.bg; }}>Entrar</button>
           </div>
         </header>
-        <LandingPage onGetStarted={() => setShowAuth(true)} />
+        <LandingPage onGetStarted={() => setShowAuth(true)} onNavigate={(page) => go(page)} />
         {showAuth && <AuthModal onClose={() => { setShowAuth(false); if (useAuthStore.getState().user) go('markets'); }} dark={dark} />}
         <ToastContainer />
       </div>

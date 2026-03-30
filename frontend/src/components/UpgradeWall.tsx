@@ -12,7 +12,7 @@ const TIERS = [
     features: ['Tudo do Pro', 'Alertas de Smart Money', 'Simulação de risco do portfólio', 'Acesso à API', 'Histórico ilimitado'] },
 ];
 
-export const UpgradeWall: React.FC<Props> = ({ requiredTier, currentTier, dark }) => {
+export const UpgradeWall: React.FC<Props> = ({ requiredTier, currentTier, dark: _dark }) => {
   const handleUpgrade = async (tier: string) => {
     try {
       const res = await apiFetch('/billing/checkout', { method: 'POST', body: JSON.stringify({ tier }) });

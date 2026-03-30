@@ -26,7 +26,7 @@ interface AuthState {
 
 const REFRESH_KEY = 'predikt_refresh_token';
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, _get) => ({
   user: null,
   accessToken: null,
   loading: false,

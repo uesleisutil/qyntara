@@ -5,7 +5,7 @@ import {
   BarChart3, Brain, GitCompare, Activity, Briefcase, Globe,
 } from 'lucide-react';
 
-interface Props { onGetStarted: () => void; }
+interface Props { onGetStarted: () => void; onNavigate?: (page: 'terms' | 'privacy') => void; }
 
 /* ── Reveal on scroll ── */
 function useReveal(threshold = 0.12) {
@@ -41,7 +41,7 @@ const Ticker: React.FC = () => {
   );
 };
 
-export const LandingPage: React.FC<Props> = ({ onGetStarted }) => {
+export const LandingPage: React.FC<Props> = ({ onGetStarted, onNavigate }) => {
   const [count, setCount] = useState(0);
   useEffect(() => {
     let n = 0;
@@ -357,8 +357,12 @@ export const LandingPage: React.FC<Props> = ({ onGetStarted }) => {
         }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Qyntara</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <a href="/termos" onClick={e => { e.preventDefault(); window.location.hash = 'terms'; }} style={{ fontSize: '0.62rem', color: theme.textMuted, textDecoration: 'none' }}>Termos de Uso</a>
-            <a href="/privacidade" onClick={e => { e.preventDefault(); window.location.hash = 'privacy'; }} style={{ fontSize: '0.62rem', color: theme.textMuted, textDecoration: 'none' }}>Privacidade</a>
+            <span onClick={() => onNavigate?.('terms')} style={{ fontSize: '0.62rem', color: theme.textMuted, cursor: 'pointer', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = theme.textSecondary}
+              onMouseLeave={e => e.currentTarget.style.color = theme.textMuted}>Termos de Uso</span>
+            <span onClick={() => onNavigate?.('privacy')} style={{ fontSize: '0.62rem', color: theme.textMuted, cursor: 'pointer', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = theme.textSecondary}
+              onMouseLeave={e => e.currentTarget.style.color = theme.textMuted}>Privacidade</span>
             <span style={{ fontSize: '0.62rem', color: theme.textMuted }}>© 2026</span>
           </div>
         </footer>
