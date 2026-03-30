@@ -368,7 +368,9 @@ async def list_markets(
     user: dict | None = Depends(get_optional_user),
 ):
     _ensure_init()
-    if not _cache.get("markets"):
+    # Refresh se cache vazio ou stale (sem Kalshi)
+    has_kalshi = any(m.get("source") == "kalshi" for m in _cache.get("markets", []))
+    if not _cache.get("markets") or not has_kalshi:
         await _refresh_markets()
     markets = list(_cache.get("markets", []))
     if source:
@@ -440,10 +442,18 @@ async def get_anomalies(user: dict = Depends(require_tier("quant"))):
 @app.get("/stats")
 async def get_stats():
     _ensure_init()
-    # Se cache vazio, fazer refresh
     if not _cache.get("markets"):
         await _refresh_markets()
     return _cache.get("stats", {})
+
+
+@app.get("/refresh")
+async def force_refresh():
+    """Força refresh dos mercados. Chamado pelo EventBridge a cada hora."""
+    _ensure_init()
+    await _refresh_markets()
+    stats = _cache.get("stats", {})
+    return {"ok": True, "total": stats.get("total_markets", 0), "kalshi": stats.get("kalshi", 0)}
 
 
 # ══════════════════════════════════════

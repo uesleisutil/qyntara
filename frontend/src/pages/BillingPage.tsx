@@ -1,27 +1,18 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { apiFetch } from '../hooks/useApi';
-import { theme, badgeStyle } from '../styles';
-import { Zap, Crown, Star, Check, ExternalLink, Sparkles, Loader2 } from 'lucide-react';
+import { theme } from '../styles';
+import { Zap, Crown, Star, Check, ExternalLink, Loader2 } from 'lucide-react';
 
 interface Props { dark?: boolean; }
 
 const PLANS = [
-  {
-    key: 'free', name: 'Grátis', price: 'R$0', period: 'para sempre',
-    icon: <Star size={22} />, color: theme.textSecondary,
-    features: ['Scanner de mercados', '3 prévias de sinais/dia', '5 posições no portfólio', 'Histórico de 7 dias'],
-  },
-  {
-    key: 'pro', name: 'Pro', price: '$29', period: '/mês',
-    icon: <Zap size={22} />, color: theme.accent, popular: true,
-    features: ['Tudo do Grátis', 'Sinais de IA ilimitados', 'Arbitragem cross-plataforma', 'Sentimento + artigos completos', '50 posições no portfólio', 'Análise de cenários', 'Histórico de 90 dias', 'Alertas por email'],
-  },
-  {
-    key: 'quant', name: 'Quant', price: '$79', period: '/mês',
-    icon: <Crown size={22} />, color: theme.yellow,
-    features: ['Tudo do Pro', 'Alertas de Smart Money', 'Detecção de anomalias', 'Acesso à API', '500 posições no portfólio', 'Simulações Monte Carlo', 'Histórico ilimitado', 'Suporte prioritário'],
-  },
+  { key: 'free', name: 'Grátis', price: 'R$0', period: '/sempre', color: theme.textMuted, icon: <Star size={18} />,
+    features: ['Scanner de mercados', '3 sinais/dia', '5 posições', 'Sentimento básico'] },
+  { key: 'pro', name: 'Pro', price: '$29', period: '/mês', color: theme.accent, icon: <Zap size={18} />, pop: true,
+    features: ['Sinais ilimitados', 'Arbitragem', 'Sentimento completo', '50 posições', 'Cenários', 'Alertas email'] },
+  { key: 'quant', name: 'Quant', price: '$79', period: '/mês', color: theme.yellow, icon: <Crown size={18} />,
+    features: ['Tudo do Pro', 'Smart Money', 'API', '500 posições', 'Monte Carlo', 'Suporte prioritário'] },
 ];
 
 export const BillingPage: React.FC<Props> = () => {
@@ -31,172 +22,87 @@ export const BillingPage: React.FC<Props> = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleUpgrade = async (tier: string) => {
-    setLoadingTier(tier);
-    setError(null);
-    if (!user?.email_verified) {
-      setError('Verifique seu email antes de assinar um plano.');
-      setLoadingTier(null);
-      return;
-    }
+    setLoadingTier(tier); setError(null);
+    if (!user?.email_verified) { setError('Verifique seu email antes de assinar.'); setLoadingTier(null); return; }
     try {
       const res = await apiFetch('/billing/checkout', { method: 'POST', body: JSON.stringify({ tier }) });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else if (data.detail) {
-        setError(data.detail);
-      } else {
-        setError('Não foi possível iniciar o checkout. Tente novamente.');
-      }
-    } catch (e: any) {
-      setError(e.message || 'Erro ao conectar com o servidor.');
-    } finally {
-      setLoadingTier(null);
-    }
+      if (data.url) window.location.href = data.url;
+      else setError(data.detail || 'Erro ao iniciar checkout.');
+    } catch { setError('Erro ao conectar.'); }
+    finally { setLoadingTier(null); }
   };
 
   const handleManage = async () => {
     setLoadingTier('manage');
-    setError(null);
     try {
       const res = await apiFetch('/billing/portal', { method: 'POST' });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.detail || 'Não foi possível abrir o portal.');
-      }
-    } catch (e: any) {
-      setError(e.message || 'Erro ao conectar com o servidor.');
-    } finally {
-      setLoadingTier(null);
-    }
+      if (data.url) window.location.href = data.url;
+    } catch {}
+    finally { setLoadingTier(null); }
   };
 
   return (
-    <div style={{ animation: 'fadeIn 0.4s ease' }}>
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <div style={{
-          width: 52, height: 52, borderRadius: 16, margin: '0 auto 1rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: theme.accentBg, color: theme.accent,
-          animation: 'float 3s ease-in-out infinite',
-        }}><Sparkles size={24} /></div>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
-          Escolha seu plano
-        </h2>
-        <p style={{ color: theme.textSecondary, fontSize: '0.9rem' }}>
-          Desbloqueie inteligência para mercados de predição com IA
-        </p>
+    <div>
+      <div style={{ marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: 4 }}>Planos</h2>
+        <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>Simples e transparente. Upgrade quando quiser.</p>
       </div>
 
       {error && (
-        <div style={{
-          maxWidth: 960, margin: '0 auto 1.5rem', padding: '0.75rem 1rem',
-          borderRadius: 12, background: theme.redBg, border: `1px solid ${theme.red}20`,
-          color: theme.red, fontSize: '0.82rem', textAlign: 'center',
-          animation: 'fadeIn 0.3s ease',
-        }}>{error}</div>
+        <div style={{ padding: '0.6rem 1rem', borderRadius: 10, background: `${theme.red}10`, border: `1px solid ${theme.red}20`, color: theme.red, fontSize: '0.78rem', marginBottom: '1.5rem' }}>{error}</div>
       )}
 
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
-        gap: 20, maxWidth: 960, margin: '0 auto',
-      }}>
-        {PLANS.map((plan, i) => {
-          const isCurrent = currentTier === plan.key;
-          const isUpgrade = !isCurrent && plan.key !== 'free';
-          const isLoading = loadingTier === plan.key;
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14, maxWidth: 860 }}>
+        {PLANS.map(p => {
+          const isCurrent = currentTier === p.key;
+          const isUpgrade = !isCurrent && p.key !== 'free';
+          const isLoading = loadingTier === p.key;
           return (
-            <div key={plan.key} className="plan-card" style={{
-              background: plan.popular
-                ? `linear-gradient(180deg, ${theme.card} 0%, ${plan.color}06 100%)`
-                : theme.card,
-              border: `${plan.popular ? '2' : '1'}px solid ${plan.popular ? plan.color : theme.border}`,
-              borderRadius: 20, padding: '2rem', position: 'relative',
-              boxShadow: plan.popular ? `0 0 40px ${plan.color}12` : undefined,
-              transition: 'all 0.35s ease',
-              animation: `fadeIn 0.4s ease ${i * 0.1}s both`,
-            }}>
-              {plan.popular && (
-                <div style={{
-                  position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                  background: `linear-gradient(135deg, ${theme.accent}, ${theme.purple})`,
-                  color: '#fff', fontSize: '0.62rem', fontWeight: 700,
-                  padding: '4px 16px', borderRadius: 12,
-                  boxShadow: `0 4px 12px ${theme.accent}40`,
-                }}>MAIS POPULAR</div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: '1.25rem' }}>
-                <div style={{
-                  width: 42, height: 42, borderRadius: 12,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: `${plan.color}12`, color: plan.color,
-                }}>{plan.icon}</div>
-                <div>
-                  <span style={{ fontWeight: 700, fontSize: '1.05rem', display: 'block' }}>{plan.name}</span>
-                  {isCurrent && <span style={badgeStyle(theme.green, theme.greenBg)}>ATUAL</span>}
-                </div>
+            <div key={p.key} style={{
+              padding: '1.75rem', borderRadius: 14,
+              border: `1px solid ${p.pop ? p.color : theme.border}`,
+              background: theme.card, position: 'relative',
+              transition: 'all 0.25s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>
+              {p.pop && <div style={{ position: 'absolute', top: -9, left: 16, background: p.color, color: '#fff', fontSize: '0.55rem', fontWeight: 700, padding: '2px 8px', borderRadius: 4, letterSpacing: '0.05em' }}>POPULAR</div>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+                <span style={{ color: p.color }}>{p.icon}</span>
+                <span style={{ fontWeight: 700 }}>{p.name}</span>
+                {isCurrent && <span style={{ fontSize: '0.55rem', fontWeight: 700, color: theme.green, background: `${theme.green}12`, padding: '2px 6px', borderRadius: 4, marginLeft: 'auto' }}>ATUAL</span>}
               </div>
-
-              <div style={{ marginBottom: '1.5rem' }}>
-                <span style={{ fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-0.03em' }}>{plan.price}</span>
-                <span style={{ fontSize: '0.9rem', color: theme.textSecondary, marginLeft: 4 }}>{plan.period}</span>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <span style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em' }}>{p.price}</span>
+                <span style={{ fontSize: '0.78rem', color: theme.textMuted }}>{p.period}</span>
               </div>
-
-              <div style={{
-                height: 1, background: `linear-gradient(90deg, transparent, ${theme.border}, transparent)`,
-                marginBottom: '1.5rem',
-              }} />
-
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.75rem' }}>
-                {plan.features.map(f => (
-                  <li key={f} style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '5px 0', fontSize: '0.82rem', color: theme.textSecondary,
-                  }}>
-                    <Check size={15} color={plan.color} style={{ flexShrink: 0 }} /> {f}
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem' }}>
+                {p.features.map(f => (
+                  <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontSize: '0.78rem', color: theme.textSecondary }}>
+                    <Check size={13} color={p.color} style={{ flexShrink: 0 }} /> {f}
                   </li>
                 ))}
               </ul>
-
               {isCurrent ? (
-                <button onClick={plan.key !== 'free' ? handleManage : undefined}
-                  disabled={loadingTier === 'manage'}
-                  style={{
-                    width: '100%', padding: '0.75rem', borderRadius: 10,
-                    border: `1px solid ${theme.border}`, background: 'transparent',
-                    color: theme.textSecondary, fontSize: '0.85rem', fontWeight: 500,
-                    cursor: plan.key !== 'free' ? 'pointer' : 'default',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    transition: 'all 0.2s',
-                    opacity: loadingTier === 'manage' ? 0.7 : 1,
-                  }}>
-                  {loadingTier === 'manage' && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                  Plano atual {plan.key !== 'free' && <ExternalLink size={13} />}
-                </button>
+                <button onClick={p.key !== 'free' ? handleManage : undefined} disabled={loadingTier === 'manage'} style={{
+                  width: '100%', padding: '0.6rem', borderRadius: 8, border: `1px solid ${theme.border}`,
+                  background: 'transparent', color: theme.textMuted, fontSize: '0.8rem', cursor: p.key !== 'free' ? 'pointer' : 'default',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                }}>Plano atual {p.key !== 'free' && <ExternalLink size={12} />}</button>
               ) : isUpgrade ? (
-                <button onClick={() => handleUpgrade(plan.key)}
-                  disabled={!!loadingTier}
-                  className="landing-btn-primary" style={{
-                    width: '100%', padding: '0.75rem', borderRadius: 10, border: 'none',
-                    background: plan.popular
-                      ? `linear-gradient(135deg, ${theme.accent}, ${theme.purple})`
-                      : plan.color,
-                    color: '#fff', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer',
-                    boxShadow: plan.popular ? `0 4px 16px ${theme.accent}30` : undefined,
-                    transition: 'all 0.25s ease',
-                    opacity: isLoading ? 0.7 : 1,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  }}>
-                  {isLoading && <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />}
-                  {isLoading ? 'Redirecionando...' : `Assinar ${plan.name}`}
+                <button onClick={() => handleUpgrade(p.key)} disabled={!!loadingTier} style={{
+                  width: '100%', padding: '0.6rem', borderRadius: 8, border: 'none',
+                  background: p.pop ? p.color : theme.text, color: p.pop ? '#fff' : theme.bg,
+                  fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  opacity: isLoading ? 0.7 : 1,
+                }}>
+                  {isLoading && <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} />}
+                  {isLoading ? 'Redirecionando...' : `Assinar ${p.name}`}
                 </button>
-              ) : (
-                <div style={{ height: 42 }} />
-              )}
+              ) : <div style={{ height: 36 }} />}
             </div>
           );
         })}
