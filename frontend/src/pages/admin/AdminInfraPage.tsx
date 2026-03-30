@@ -1,20 +1,20 @@
 import React from 'react';
 import { useApi } from '../../hooks/useApi';
 import { theme } from '../../styles';
-import { Server, Cpu, HardDrive, Database, Wifi, Shield, CheckCircle2, XCircle, Activity } from 'lucide-react';
+import { Server, Cpu, HardDrive, Database, Wifi, Shield, CheckCircle2, XCircle, Activity, Zap, AlertTriangle } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export const AdminInfraPage: React.FC<{ dark?: boolean }> = () => {
   const { data, loading } = useApi<any>('/admin/infra', 15000);
+  const { data: metrics } = useApi<any>('/admin/metrics', 60000);
+  const { data: health } = useApi<any>('/admin/health', 30000);
 
   if (loading && !data) {
     return (
       <div>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: 4 }}>Infraestrutura</h2>
-          <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>Carregando...</p>
-        </div>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: '1.5rem' }}>Infraestrutura</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[1,2,3].map(i => (
+          {[1,2,3,4].map(i => (
             <div key={i} style={{ height: 90, borderRadius: 12, border: `1px solid ${theme.border}`, background: `linear-gradient(90deg, ${theme.card} 25%, ${theme.cardHover} 50%, ${theme.card} 75%)`, backgroundSize: '200% 100%', animation: `shimmer 1.5s infinite ${i * 0.1}s` }} />
           ))}
         </div>
@@ -23,17 +23,115 @@ export const AdminInfraPage: React.FC<{ dark?: boolean }> = () => {
   }
   if (!data) return null;
 
-  const { server, cpu, memory, disk, network, database: db, api, python_processes } = data;
+  const { server, cpu, memory, disk, network, api: apiConfig } = data;
+  const lm = metrics?.lambda || {};
   const barColor = (pct: number) => pct > 90 ? theme.red : pct > 70 ? theme.yellow : theme.green;
+
+  // Format CloudWatch chart data
+  const fmtTime = (t: string) => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const invocations = (lm.invocations || []).map((p: any) => ({ t: fmtTime(p.t), v: p.v }));
+  const errors = (lm.errors || []).map((p: any) => ({ t: fmtTime(p.t), v: p.v }));
+  const duration = (lm.duration || []).map((p: any) => ({ t: fmtTime(p.t), v: Math.round(p.v) }));
+  const totals = lm.totals || {};
 
   return (
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.04em', marginBottom: 4 }}>Infraestrutura</h2>
-        <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>Status do servidor e recursos</p>
+        <p style={{ fontSize: '0.75rem', color: theme.textMuted }}>Monitoria em tempo real</p>
       </div>
 
-      {/* Server info */}
+      {/* Service health */}
+      {health && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 8, marginBottom: '1.5rem' }}>
+          {Object.entries(health).map(([name, info]: [string, any]) => (
+            <div key={name} style={{
+              padding: '0.75rem', borderRadius: 10, background: theme.card,
+              borderLeft: `3px solid ${info.status === 'up' ? theme.green : info.status === 'degraded' ? theme.yellow : theme.red}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+                {info.status === 'up' ? <CheckCircle2 size={12} color={theme.green} /> : info.status === 'degraded' ? <AlertTriangle size={12} color={theme.yellow} /> : <XCircle size={12} color={theme.red} />}
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'capitalize' }}>{name}</span>
+              </div>
+              <div style={{ fontSize: '0.62rem', color: theme.textMuted }}>
+                {info.status === 'up' ? `${info.latency_ms}ms` : info.status}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Lambda totals */}
+      {totals.invocations_24h != null && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: '1.5rem' }}>
+          {[
+            { l: 'Requests 24h', v: totals.invocations_24h, c: theme.accent, ic: <Zap size={13} /> },
+            { l: 'Erros 24h', v: totals.errors_24h, c: totals.errors_24h > 0 ? theme.red : theme.green, ic: <AlertTriangle size={13} /> },
+            { l: 'Taxa de erro', v: `${totals.error_rate}%`, c: totals.error_rate > 1 ? theme.red : theme.green, ic: <Shield size={13} /> },
+            { l: 'Duração média', v: `${totals.avg_duration_ms}ms`, c: totals.avg_duration_ms > 5000 ? theme.yellow : theme.green, ic: <Clock size={13} /> },
+          ].map(s => (
+            <div key={s.l} style={{ padding: '0.75rem', borderRadius: 10, borderLeft: `3px solid ${s.c}`, background: theme.card }}>
+              <div style={{ fontSize: '0.6rem', color: theme.textMuted, display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                <span style={{ color: s.c }}>{s.ic}</span> {s.l}
+              </div>
+              <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Charts row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10, marginBottom: '1.5rem' }}>
+        {/* Invocations chart */}
+        {invocations.length > 1 && (
+          <div style={{ padding: '1rem', borderRadius: 12, background: theme.card }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 8 }}>Requests/hora (24h)</div>
+            <ResponsiveContainer width="100%" height={120}>
+              <AreaChart data={invocations}>
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+                <XAxis dataKey="t" tick={{ fontSize: 8, fill: theme.textMuted }} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 8, fill: theme.textMuted }} width={30} />
+                <Tooltip contentStyle={{ background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.7rem' }} />
+                <Area type="monotone" dataKey="v" name="Requests" stroke={theme.accent} fill={`${theme.accent}15`} strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Duration chart */}
+        {duration.length > 1 && (
+          <div style={{ padding: '1rem', borderRadius: 12, background: theme.card }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 8 }}>Latência média (ms)</div>
+            <ResponsiveContainer width="100%" height={120}>
+              <AreaChart data={duration}>
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+                <XAxis dataKey="t" tick={{ fontSize: 8, fill: theme.textMuted }} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 8, fill: theme.textMuted }} width={35} unit="ms" />
+                <Tooltip contentStyle={{ background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.7rem' }} />
+                <Area type="monotone" dataKey="v" name="Duração" stroke={theme.yellow} fill={`${theme.yellow}15`} strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Errors chart */}
+        {errors.length > 1 && (
+          <div style={{ padding: '1rem', borderRadius: 12, background: theme.card }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: 8 }}>Erros/hora (24h)</div>
+            <ResponsiveContainer width="100%" height={120}>
+              <AreaChart data={errors}>
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+                <XAxis dataKey="t" tick={{ fontSize: 8, fill: theme.textMuted }} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 8, fill: theme.textMuted }} width={25} />
+                <Tooltip contentStyle={{ background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 8, fontSize: '0.7rem' }} />
+                <Area type="monotone" dataKey="v" name="Erros" stroke={theme.red} fill={`${theme.red}15`} strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Server + Resources */}
       <div style={{ padding: '1rem', borderRadius: 12, borderLeft: `3px solid ${theme.accent}`, background: theme.card, marginBottom: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '0.75rem' }}>
           <Server size={16} color={theme.accent} />
@@ -55,19 +153,19 @@ export const AdminInfraPage: React.FC<{ dark?: boolean }> = () => {
       </div>
 
       {/* Resource gauges */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: '1rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10, marginBottom: '1rem' }}>
         {[
-          { label: 'CPU', icon: <Cpu size={14} />, color: theme.blue, pct: cpu?.percent || 0, detail: `${cpu?.cores || 0} cores · ${cpu?.percent || 0}%` },
-          { label: 'Memória', icon: <Activity size={14} />, color: theme.purple, pct: memory?.percent || 0, detail: `${memory?.used_gb || 0} / ${memory?.total_gb || 0} GB` },
-          { label: 'Disco', icon: <HardDrive size={14} />, color: theme.yellow, pct: disk?.percent || 0, detail: `${disk?.used_gb || 0} / ${disk?.total_gb || 0} GB` },
+          { label: 'CPU', icon: <Cpu size={14} />, color: theme.blue, pct: cpu?.percent || 0, detail: `${cpu?.cores || 0} cores` },
+          { label: 'Memória', icon: <Activity size={14} />, color: theme.purple, pct: memory?.percent || 0, detail: `${memory?.used_gb || 0}/${memory?.total_gb || 0} GB` },
+          { label: 'Disco', icon: <HardDrive size={14} />, color: theme.yellow, pct: disk?.percent || 0, detail: `${disk?.used_gb || 0}/${disk?.total_gb || 0} GB` },
         ].map(r => (
           <div key={r.label} style={{ padding: '1rem', borderRadius: 12, borderLeft: `3px solid ${r.color}`, background: theme.card }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
               <span style={{ color: r.color }}>{r.icon}</span>
               <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>{r.label}</span>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, color: barColor(r.pct), marginLeft: 'auto' }}>{r.pct}%</span>
             </div>
-            <div style={{ height: 6, borderRadius: 3, background: theme.border, overflow: 'hidden', marginBottom: 6 }}>
+            <div style={{ height: 6, borderRadius: 3, background: theme.border, overflow: 'hidden', marginBottom: 4 }}>
               <div style={{ width: `${Math.min(r.pct, 100)}%`, height: '100%', borderRadius: 3, background: barColor(r.pct), transition: 'width 0.5s' }} />
             </div>
             <div style={{ fontSize: '0.62rem', color: theme.textMuted }}>{r.detail}</div>
@@ -75,81 +173,58 @@ export const AdminInfraPage: React.FC<{ dark?: boolean }> = () => {
         ))}
       </div>
 
-      {/* Network + DB + Config */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10, marginBottom: '1rem' }}>
-        {/* Network */}
+      {/* Network + Config */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
         <div style={{ padding: '1rem', borderRadius: 12, borderLeft: `3px solid ${theme.cyan}`, background: theme.card }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Wifi size={14} color={theme.cyan} />
             <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Rede</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
             <div style={{ padding: '0.5rem', borderRadius: 8, background: theme.bg, border: `1px solid ${theme.border}` }}>
-              <div style={{ fontSize: '0.58rem', color: theme.textMuted, marginBottom: 3 }}>Enviado</div>
+              <div style={{ fontSize: '0.58rem', color: theme.textMuted }}>Enviado</div>
               <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>{network?.bytes_sent_mb || 0} MB</div>
             </div>
             <div style={{ padding: '0.5rem', borderRadius: 8, background: theme.bg, border: `1px solid ${theme.border}` }}>
-              <div style={{ fontSize: '0.58rem', color: theme.textMuted, marginBottom: 3 }}>Recebido</div>
+              <div style={{ fontSize: '0.58rem', color: theme.textMuted }}>Recebido</div>
               <div style={{ fontSize: '0.82rem', fontWeight: 700 }}>{network?.bytes_recv_mb || 0} MB</div>
             </div>
           </div>
         </div>
 
-        {/* Database */}
         <div style={{ padding: '1rem', borderRadius: 12, borderLeft: `3px solid ${theme.green}`, background: theme.card }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Database size={14} color={theme.green} />
-            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Banco de Dados</span>
+            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>DynamoDB</span>
           </div>
-          <div style={{ fontSize: '0.72rem', color: theme.textMuted, marginBottom: 4 }}>{db?.path || '—'}</div>
-          <div style={{ fontSize: '1rem', fontWeight: 800 }}>{db?.size_mb || 0} MB</div>
+          <div style={{ fontSize: '0.72rem', color: theme.textMuted }}>5 tabelas · Pay-per-request</div>
         </div>
 
-        {/* Config health */}
         <div style={{ padding: '1rem', borderRadius: 12, borderLeft: `3px solid ${theme.red}`, background: theme.card }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
             <Shield size={14} color={theme.red} />
-            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Saúde da Config</span>
+            <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Config</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {[
-              { ok: api?.jwt_configured, l: `JWT ${api?.jwt_configured ? '(seguro)' : '(fraco!)'}` },
-              { ok: api?.stripe_configured, l: `Stripe ${api?.stripe_configured ? 'ok' : 'não configurado'}` },
-              { ok: api?.env === 'production', l: `Env: ${api?.env || '?'}` },
+              { ok: apiConfig?.jwt_configured, l: 'JWT' },
+              { ok: apiConfig?.stripe_configured, l: 'Stripe' },
+              { ok: apiConfig?.smtp_configured, l: 'SMTP' },
+              { ok: apiConfig?.env === 'production', l: `Env: ${apiConfig?.env || '?'}` },
             ].map(s => (
-              <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: s.ok ? theme.green : theme.red }}>
-                {s.ok ? <CheckCircle2 size={12} /> : <XCircle size={12} />} {s.l}
+              <div key={s.l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.68rem', color: s.ok ? theme.green : theme.red }}>
+                {s.ok ? <CheckCircle2 size={10} /> : <XCircle size={10} />} {s.l}
               </div>
             ))}
           </div>
         </div>
       </div>
-
-      {/* Python processes */}
-      {python_processes && python_processes.length > 0 && (
-        <div style={{ background: theme.card, borderRadius: 12, padding: '1rem', overflow: 'hidden' }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.75rem' }}>Processos Python</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${theme.border}` }}>
-                {['PID', 'Nome', 'CPU %', 'Memória %'].map(h => (
-                  <th key={h} style={{ padding: '0.4rem 0.5rem', textAlign: 'left', color: theme.textMuted, fontSize: '0.62rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {python_processes.map((p: any) => (
-                <tr key={p.pid} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                  <td style={{ padding: '0.4rem 0.5rem', fontFamily: 'monospace', fontSize: '0.7rem', color: theme.textMuted }}>{p.pid}</td>
-                  <td style={{ padding: '0.4rem 0.5rem' }}>{p.name}</td>
-                  <td style={{ padding: '0.4rem 0.5rem', color: barColor(p.cpu_percent || 0), fontWeight: 600 }}>{p.cpu_percent?.toFixed(1) || 0}%</td>
-                  <td style={{ padding: '0.4rem 0.5rem', color: barColor(p.memory_percent || 0), fontWeight: 600 }}>{p.memory_percent?.toFixed(1) || 0}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 };
+
+const Clock: React.FC<{ size: number }> = ({ size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+  </svg>
+);

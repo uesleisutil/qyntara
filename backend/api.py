@@ -142,8 +142,26 @@ async def _refresh_markets():
             "categories": cat_counts,
         }
         _cache["arbitrage"] = _find_arbitrage(markets)
-        _cache["signals"] = _generate_signals(markets)
+
+        # Gerar sinais com IA (fallback pra heurística se modelos não treinados)
+        try:
+            from .sagemaker.inference import generate_ai_signals
+            _cache["signals"] = generate_ai_signals(markets)
+        except Exception as e:
+            logger.warning(f"AI signals failed, using heuristic: {e}")
+            _cache["signals"] = _generate_signals(markets)
         await _broadcast({"type": "markets_updated", "count": len(markets)})
+
+        # Push sinais via WebSocket
+        if _cache.get("signals"):
+            top_signals = _cache["signals"][:5]
+            await _broadcast({
+                "type": "signals_updated",
+                "count": len(_cache["signals"]),
+                "top": [{"question": s["question"][:80], "direction": s["direction"],
+                         "score": s.get("signal_score", 0), "type": s.get("signal_type", "")}
+                        for s in top_signals],
+            })
 
         # Email alerts pra Pro/Quant — sinais fortes
         try:
@@ -525,9 +543,48 @@ async def admin_model_performance(admin: dict = Depends(require_admin)):
     return get_model_performance()
 
 
+@app.post("/admin/models/train")
+async def admin_trigger_training(admin: dict = Depends(require_admin)):
+    """Dispara treino dos modelos manualmente."""
+    try:
+        from .sagemaker.train_job import train_local
+        result = train_local(epochs=30)
+        return {"ok": True, "result": result}
+    except Exception as e:
+        raise HTTPException(500, f"Training failed: {e}")
+
+
 @app.get("/admin/infra")
 async def admin_infra_status(admin: dict = Depends(require_admin)):
     return get_infra_status()
+
+
+@app.get("/admin/metrics")
+async def admin_cloudwatch_metrics(admin: dict = Depends(require_admin)):
+    """Métricas do CloudWatch — Lambda, API Gateway, DynamoDB, S3."""
+    from .admin import get_cloudwatch_metrics
+    return get_cloudwatch_metrics()
+
+
+@app.get("/admin/health")
+async def admin_service_health(admin: dict = Depends(require_admin)):
+    """Status dos serviços externos (Polymarket, Kalshi, SMTP)."""
+    from .admin import get_service_health
+    return get_service_health()
+
+
+@app.get("/admin/models/history")
+async def admin_training_history(admin: dict = Depends(require_admin)):
+    """Histórico de treinos dos modelos."""
+    from .admin import get_training_history
+    return {"history": get_training_history()}
+
+
+@app.get("/admin/signals/distribution")
+async def admin_signal_distribution(admin: dict = Depends(require_admin)):
+    """Distribuição dos sinais gerados."""
+    from .admin import get_signal_distribution
+    return get_signal_distribution()
 
 
 @app.get("/admin/audit")
