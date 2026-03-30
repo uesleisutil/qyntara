@@ -28,31 +28,37 @@ class KalshiClient:
     async def close(self):
         await self.client.aclose()
 
-    async def _fetch_event_markets(self, event: dict) -> list[dict]:
-        """Busca mercados de um evento e enriquece com dados do evento."""
+    async def _fetch_event_markets(self, event: dict, sem: asyncio.Semaphore) -> list[dict]:
+        """Busca mercados de um evento com rate limiting."""
         ticker = event.get("event_ticker", "")
         if not ticker:
             return []
-        try:
-            resp = await self.client.get("/markets", params={"event_ticker": ticker, "limit": 50})
-            resp.raise_for_status()
-            markets = resp.json().get("markets", [])
-            for m in markets:
-                m["_event_title"] = event.get("title", "")
-                m["_event_category"] = event.get("category", "")
-            return [m for m in markets if float(m.get("volume_fp", "0") or "0") > 0]
-        except Exception:
-            return []
+        async with sem:
+            try:
+                await asyncio.sleep(0.15)  # 150ms entre requests
+                resp = await self.client.get("/markets", params={"event_ticker": ticker, "limit": 50})
+                if resp.status_code == 429:
+                    await asyncio.sleep(2)
+                    resp = await self.client.get("/markets", params={"event_ticker": ticker, "limit": 50})
+                resp.raise_for_status()
+                markets = resp.json().get("markets", [])
+                for m in markets:
+                    m["_event_title"] = event.get("title", "")
+                    m["_event_category"] = event.get("category", "")
+                return [m for m in markets if float(m.get("volume_fp", "0") or "0") > 0]
+            except Exception:
+                return []
 
     async def get_markets(self, limit: int = 200, **kwargs) -> list[dict]:
-        """Busca mercados via eventos em paralelo."""
+        """Busca mercados via eventos com rate limiting."""
         try:
             resp = await self.client.get("/events", params={"limit": 50, "status": "open"})
             resp.raise_for_status()
             events = resp.json().get("events", [])
 
-            # Buscar mercados de todos os eventos em paralelo (max 25)
-            tasks = [self._fetch_event_markets(ev) for ev in events[:25]]
+            # Semáforo: max 3 requests simultâneos pra evitar 429
+            sem = asyncio.Semaphore(3)
+            tasks = [self._fetch_event_markets(ev, sem) for ev in events[:30]]
             results = await asyncio.gather(*tasks, return_exceptions=True)
 
             all_markets: list[dict] = []

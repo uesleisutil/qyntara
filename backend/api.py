@@ -117,8 +117,7 @@ async def _refresh_markets():
                 for r in raw_k:
                     m = parse_kalshi_market(r)
                     if m["volume"] > 0:
-                        if not m.get("category"):
-                            m["category"] = _categorize_market(m["question"])
+                        m["category"] = _categorize_market(m["question"])
                         markets.append(m)
                 logger.info(f"Kalshi: {len([m for m in markets if m['source'] == 'kalshi'])} markets")
             except Exception as e:
@@ -719,35 +718,52 @@ async def _broadcast(msg: dict):
 def _categorize_market(question: str) -> str:
     """Categoriza mercado por keywords na pergunta."""
     q = question.lower()
-    if any(w in q for w in ['trump', 'biden', 'president', 'election', 'congress', 'senate', 'governor', 'vote', 'democrat', 'republican', 'political', 'party', 'poll']):
+    if any(w in q for w in ['trump', 'biden', 'president', 'election', 'congress', 'senate', 'governor', 'vote', 'democrat', 'republican', 'political', 'party', 'poll', 'prime minister', 'minister', 'parliament']):
         return 'Política'
-    if any(w in q for w in ['bitcoin', 'btc', 'eth', 'crypto', 'solana', 'dogecoin', 'price above', 'price below', 'market cap']):
+    if any(w in q for w in ['bitcoin', 'btc', 'eth', 'crypto', 'solana', 'dogecoin', 'price above', 'price below', 'market cap', 'token']):
         return 'Cripto'
-    if any(w in q for w in ['nfl', 'nba', 'mlb', 'nhl', 'fifa', 'world cup', 'champions league', 'premier league', 'super bowl', 'stanley cup', 'win the 2', 'championship', 'playoffs', 'mvp', 'serie a']):
+    if any(w in q for w in ['nfl', 'nba', 'mlb', 'nhl', 'fifa', 'world cup', 'champions league', 'premier league', 'super bowl', 'stanley cup', 'win the 2', 'championship', 'playoffs', 'mvp', 'serie a', 'formula 1', 'f1 ', 'ufc', 'boxing']):
         return 'Esportes'
-    if any(w in q for w in ['fed ', 'rate cut', 'rate hike', 'inflation', 'gdp', 'recession', 'stock', 'sp500', 's&p', 'nasdaq', 'dow jones', 'unemployment', 'tariff']):
+    if any(w in q for w in ['fed ', 'rate cut', 'rate hike', 'inflation', 'gdp', 'recession', 'stock', 'sp500', 's&p', 'nasdaq', 'dow jones', 'unemployment', 'tariff', 'trade war', 'debt', 'deficit']):
         return 'Economia'
-    if any(w in q for w in ['ai ', 'openai', 'gpt', 'google', 'apple', 'meta', 'tesla', 'spacex', 'tech', 'robot', 'agi', 'artificial']):
+    if any(w in q for w in ['ai ', 'openai', 'gpt', 'google', 'apple', 'meta', 'tesla', 'spacex', 'tech', 'robot', 'agi', 'artificial', 'mars', 'moon', 'fusion', 'quantum', 'self-driving', 'colonize']):
         return 'Tecnologia'
-    if any(w in q for w in ['war', 'ukraine', 'russia', 'china', 'taiwan', 'nato', 'ceasefire', 'invasion', 'military', 'nuclear', 'iran', 'israel']):
+    if any(w in q for w in ['war', 'ukraine', 'russia', 'china', 'taiwan', 'nato', 'ceasefire', 'invasion', 'military', 'nuclear', 'iran', 'israel', 'north korea', 'sanctions', 'g7 ', 'successor']):
         return 'Geopolítica'
-    if any(w in q for w in ['pope', 'celebrity', 'album', 'movie', 'oscar', 'grammy', 'music', 'netflix', 'tiktok', 'youtube']):
+    if any(w in q for w in ['pope', 'celebrity', 'album', 'movie', 'oscar', 'grammy', 'music', 'netflix', 'tiktok', 'youtube', 'gta', 'game', 'rihanna', 'drake']):
         return 'Entretenimento'
-    if any(w in q for w in ['weather', 'hurricane', 'earthquake', 'climate', 'temperature', 'wildfire', 'flood']):
+    if any(w in q for w in ['weather', 'hurricane', 'earthquake', 'climate', 'temperature', 'wildfire', 'flood', 'volcano', 'eruption', 'warming', 'celsius']):
         return 'Clima'
-    if any(w in q for w in ['covid', 'vaccine', 'pandemic', 'health', 'fda', 'drug', 'disease']):
+    if any(w in q for w in ['covid', 'vaccine', 'pandemic', 'health', 'fda', 'drug', 'disease', 'virus', 'outbreak']):
         return 'Saúde'
+    if any(w in q for w in ['prison', 'convicted', 'trial', 'court', 'lawsuit', 'indicted', 'guilty', 'sentence']):
+        return 'Justiça'
     return 'Outros'
 
 
 def _find_arbitrage(markets: list[dict]) -> list[dict]:
-    poly = [m for m in markets if m["source"] == "polymarket"]
-    kalshi = [m for m in markets if m["source"] == "kalshi"]
+    """Encontra oportunidades de arbitragem entre Polymarket e Kalshi."""
+    poly = [m for m in markets if m["source"] == "polymarket" and m.get("yes_price", 0) > 0]
+    kalshi = [m for m in markets if m["source"] == "kalshi" and m.get("yes_price", 0) > 0]
+
+    if not poly or not kalshi:
+        return []
+
+    def _normalize(q: str) -> str:
+        """Normaliza pergunta pra melhor matching."""
+        q = q.lower().strip()
+        for w in ['will ', 'who will ', 'what will ', 'when will ', 'the ', 'a ', 'an ']:
+            if q.startswith(w):
+                q = q[len(w):]
+        return q.rstrip('?').strip()
+
     opps = []
     for p in poly:
+        pq = _normalize(p["question"])
         for k in kalshi:
-            ratio = SequenceMatcher(None, p["question"].lower(), k["question"].lower()).ratio()
-            if ratio > 0.6:
+            kq = _normalize(k["question"])
+            ratio = SequenceMatcher(None, pq, kq).ratio()
+            if ratio > 0.5:
                 spread = abs(p["yes_price"] - k["yes_price"])
                 if spread > 0.03:
                     opps.append({
