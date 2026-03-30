@@ -570,29 +570,38 @@ async def admin_trigger_training(admin: dict = Depends(require_admin)):
         client = boto3.client("lambda", region_name="us-east-1")
         client.invoke(
             FunctionName="predikt-api",
-            InvocationType="Event",  # async — não espera resposta
-            Payload=j.dumps({
-                "httpMethod": "GET", "path": "/internal/train",
-                "requestContext": {"http": {"method": "GET", "path": "/internal/train"}},
-                "rawPath": "/internal/train", "headers": {}, "isBase64Encoded": False,
-            }),
+            InvocationType="Event",
+            Payload=j.dumps({"action": "train"}),
         )
-        return {"ok": True, "message": "Treino iniciado em background. Verifique em alguns minutos."}
+        return {"ok": True, "message": "Treino disparado em background. Verifique em 1-2 minutos."}
     except Exception as e:
-        raise HTTPException(500, f"Failed to trigger training: {e}")
+        raise HTTPException(500, f"Falha ao disparar treino: {e}")
 
 
-@app.get("/internal/train")
-async def internal_train():
-    """Endpoint interno chamado pelo Lambda async invoke."""
+@app.get("/admin/models/status")
+async def admin_training_status(admin: dict = Depends(require_admin)):
+    """Verifica se o treino completou (checa S3 por modelo salvo)."""
+    from .storage import load_json
+    import boto3
+    s3 = boto3.client("s3", region_name="us-east-1")
     try:
-        from .sagemaker.train_job import train_local
-        result = train_local(epochs=20)
-        logger.info(f"Training completed: {result}")
-        return {"ok": True, "result": result}
-    except Exception as e:
-        logger.error(f"Training failed: {e}")
-        return {"ok": False, "error": str(e)}
+        resp = s3.list_objects_v2(Bucket="predikt-data-200093399689", Prefix="models/edge_estimator/")
+        model_files = [o["Key"] for o in resp.get("Contents", [])]
+        has_model = len(model_files) > 0
+        last_modified = max(o["LastModified"].isoformat() for o in resp.get("Contents", [])) if model_files else None
+    except Exception:
+        has_model = False
+        last_modified = None
+        model_files = []
+
+    metrics = load_json("models/training_metrics.json") or {}
+
+    return {
+        "has_model": has_model,
+        "model_files": model_files,
+        "last_trained": last_modified,
+        "metrics": metrics,
+    }
 
 
 @app.get("/admin/infra")

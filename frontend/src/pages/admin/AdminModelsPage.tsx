@@ -6,20 +6,23 @@ import { Brain, Target, Activity, AlertTriangle, CheckCircle2, Clock, Gauge, Pla
 import { ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export const AdminModelsPage: React.FC<{ dark?: boolean }> = () => {
-  const { data, refresh } = useApi<any>('/admin/models', 30000);
+  const { data } = useApi<any>('/admin/models', 30000);
   const { data: distData } = useApi<any>('/admin/signals/distribution', 30000);
+  const { data: trainStatus } = useApi<any>('/admin/models/status', 10000);
   const [training, setTraining] = useState(false);
 
   const handleTrain = async () => {
     setTraining(true);
-    useToastStore.getState().addToast('Treino iniciado...', 'info', 10000);
     try {
       const res = await apiFetch('/admin/models/train', { method: 'POST' });
       const result = await res.json();
-      if (result.ok) { useToastStore.getState().addToast('Treino concluído!', 'success'); refresh(); }
-      else useToastStore.getState().addToast(result.detail || 'Erro.', 'error');
-    } catch { useToastStore.getState().addToast('Erro ao treinar.', 'error'); }
-    finally { setTraining(false); }
+      if (result.ok) {
+        useToastStore.getState().addToast('Treino disparado. Acompanhe o status abaixo.', 'info', 5000);
+      } else {
+        useToastStore.getState().addToast(result.detail || 'Erro ao disparar treino.', 'error');
+      }
+    } catch { useToastStore.getState().addToast('Erro ao conectar.', 'error'); }
+    finally { setTimeout(() => setTraining(false), 3000); }
   };
 
   if (!data) {
@@ -124,6 +127,37 @@ export const AdminModelsPage: React.FC<{ dark?: boolean }> = () => {
           </div>
         ))}
       </div>
+
+      {/* Training status */}
+      {trainStatus && (
+        <div style={{
+          padding: '0.85rem 1rem', borderRadius: 10, marginBottom: '1.5rem',
+          background: trainStatus.has_model ? `${theme.green}08` : `${theme.yellow}08`,
+          border: `1px solid ${trainStatus.has_model ? `${theme.green}20` : `${theme.yellow}20`}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {trainStatus.has_model ? <CheckCircle2 size={14} color={theme.green} /> : <Clock size={14} color={theme.yellow} />}
+            <div>
+              <div style={{ fontSize: '0.78rem', fontWeight: 600, color: trainStatus.has_model ? theme.green : theme.yellow }}>
+                {trainStatus.has_model ? 'Modelo treinado' : 'Modelo não treinado'}
+              </div>
+              {trainStatus.last_trained && (
+                <div style={{ fontSize: '0.62rem', color: theme.textMuted }}>
+                  Último treino: {new Date(trainStatus.last_trained).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {trainStatus.model_files?.length > 0 && ` · ${trainStatus.model_files.length} arquivos`}
+                </div>
+              )}
+              {trainStatus.metrics?.n_samples && (
+                <div style={{ fontSize: '0.62rem', color: theme.textMuted }}>
+                  {trainStatus.metrics.n_samples} amostras · Brier: {trainStatus.metrics.edge_estimator?.brier_score?.toFixed(4) || '—'}
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ fontSize: '0.6rem', color: theme.textMuted }}>Atualiza a cada 10s</div>
+        </div>
+      )}
 
       {/* Signal distribution charts */}
       {dist.total > 0 && (
