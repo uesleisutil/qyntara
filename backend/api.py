@@ -747,14 +747,21 @@ async def read_all_notifs(user: dict = Depends(get_current_user)):
 async def create_support_ticket(body: dict = Body(...), user: dict = Depends(get_current_user)):
     subject = body.get("subject", "").strip()
     message = body.get("message", "").strip()
+    category = body.get("category", "geral").strip()
+    channel = body.get("channel", "").strip()
     if not subject or not message:
         raise HTTPException(400, "Assunto e mensagem são obrigatórios")
     tier = user.get("tier", "free")
-    channel = "chat" if tier in ("pro", "quant", "enterprise") else "email"
+    # Free users can only use email
+    if tier == "free" and channel == "chat":
+        channel = "email"
+    if not channel:
+        channel = "chat" if tier in ("pro", "quant", "enterprise") else "email"
     ticket = create_ticket(
         user_id=user["id"], user_email=user["email"],
         user_name=user.get("name", ""), user_tier=tier,
         subject=subject, message=message, channel=channel,
+        category=category,
     )
     return {"ticket": ticket}
 

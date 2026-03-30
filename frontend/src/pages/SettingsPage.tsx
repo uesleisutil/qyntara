@@ -536,8 +536,8 @@ const SupportSection: React.FC<{ tier: string }> = ({ tier }) => {
     loadTickets();
   };
 
-  const handleCreate = async (subject: string, message: string) => {
-    const res = await apiFetch('/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message }) });
+  const handleCreate = async (subject: string, message: string, channel: string, category: string) => {
+    const res = await apiFetch('/support/tickets', { method: 'POST', body: JSON.stringify({ subject, message, channel, category }) });
     if (res.ok) { useToastStore.getState().addToast('Ticket criado!', 'success'); setShowNew(false); loadTickets(); }
   };
 
@@ -578,7 +578,7 @@ const SupportSection: React.FC<{ tier: string }> = ({ tier }) => {
       }}><Plus size={13} /> Novo ticket</button>
 
       {/* New ticket form */}
-      {showNew && <NewTicketInline onCreate={handleCreate} onCancel={() => setShowNew(false)} />}
+      {showNew && <NewTicketInline hasChat={hasChat} onCreate={handleCreate} onCancel={() => setShowNew(false)} />}
 
       {/* Tickets list */}
       {!loaded ? (
@@ -665,19 +665,50 @@ const InlineReply: React.FC<{ onSend: (text: string) => void }> = ({ onSend }) =
   );
 };
 
-const NewTicketInline: React.FC<{ onCreate: (s: string, m: string) => void; onCancel: () => void }> = ({ onCreate, onCancel }) => {
+const TICKET_CATEGORIES = [
+  'Geral', 'Sinais de IA', 'Arbitragem', 'Portfólio', 'Cobrança / Plano',
+  'Conta / Login', 'Bug / Erro', 'Sugestão', 'API',
+];
+
+const NewTicketInline: React.FC<{ hasChat: boolean; onCreate: (s: string, m: string, ch: string, cat: string) => void; onCancel: () => void }> = ({ hasChat, onCreate, onCancel }) => {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
+  const [channel, setChannel] = useState(hasChat ? 'chat' : 'email');
+  const [category, setCategory] = useState('Geral');
   const inp: React.CSSProperties = {
     width: '100%', padding: '0.5rem 0.75rem', borderRadius: 8, border: `1px solid ${theme.border}`,
     background: theme.bg, color: theme.text, fontSize: '0.8rem', outline: 'none', fontFamily: 'inherit',
   };
   return (
-    <div style={{ padding: '0.85rem', borderRadius: 10, border: `1px solid ${theme.accentBorder}`, background: theme.accentBg, marginBottom: '1rem' }}>
+    <div style={{ padding: '1rem', borderRadius: 10, border: `1px solid ${theme.border}`, background: theme.card, marginBottom: '1rem' }}>
+      {/* Channel selection */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+        {['chat', 'email'].map(ch => {
+          const disabled = ch === 'chat' && !hasChat;
+          return (
+            <button key={ch} onClick={() => !disabled && setChannel(ch)} style={{
+              flex: 1, padding: '0.45rem', borderRadius: 8, fontSize: '0.72rem', fontWeight: 600,
+              border: `1px solid ${channel === ch ? theme.accentBorder : theme.border}`,
+              background: channel === ch ? theme.accentBg : 'transparent',
+              color: disabled ? theme.textMuted : channel === ch ? theme.accent : theme.textSecondary,
+              cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.4 : 1,
+              transition: 'all 0.15s',
+            }}>
+              {ch === 'chat' ? '💬 Chat' : '📧 Email'}
+              {disabled && <span style={{ fontSize: '0.55rem', marginLeft: 4 }}>(Pro)</span>}
+            </button>
+          );
+        })}
+      </div>
+      {/* Category */}
+      <select value={category} onChange={e => setCategory(e.target.value)}
+        style={{ ...inp, marginBottom: 8, cursor: 'pointer', appearance: 'auto' as any }}>
+        {TICKET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+      </select>
       <input placeholder="Assunto" value={subject} onChange={e => setSubject(e.target.value)} style={{ ...inp, marginBottom: 8 }} />
       <textarea placeholder="Descreva seu problema..." value={message} onChange={e => setMessage(e.target.value)} rows={3} style={{ ...inp, resize: 'vertical', marginBottom: 8 }} />
       <div style={{ display: 'flex', gap: 6 }}>
-        <button onClick={() => { if (subject.trim() && message.trim()) onCreate(subject, message); }} style={{
+        <button onClick={() => { if (subject.trim() && message.trim()) onCreate(subject, message, channel, category); }} style={{
           padding: '0.4rem 0.85rem', borderRadius: 6, border: 'none', background: theme.accent, color: '#fff', fontWeight: 600, fontSize: '0.75rem', cursor: 'pointer',
         }}>Enviar</button>
         <button onClick={onCancel} style={{ padding: '0.4rem 0.85rem', borderRadius: 6, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textSecondary, fontSize: '0.75rem', cursor: 'pointer' }}>Cancelar</button>

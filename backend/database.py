@@ -249,7 +249,8 @@ def revoke_all_user_tokens(user_id: str):
 # ── Support Tickets ──
 
 def create_ticket(user_id: str, user_email: str, user_name: str, user_tier: str,
-                  subject: str, message: str, channel: str = "email") -> dict:
+                  subject: str, message: str, channel: str = "email",
+                  category: str = "geral") -> dict:
     ticket_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     item = {
@@ -259,6 +260,7 @@ def create_ticket(user_id: str, user_email: str, user_name: str, user_tier: str,
         "user_name": user_name,
         "user_tier": user_tier,
         "subject": subject,
+        "category": category,
         "channel": channel,  # "email" or "chat"
         "status": "open",  # open, in_progress, closed
         "messages": [{"role": "user", "text": message, "at": now}],

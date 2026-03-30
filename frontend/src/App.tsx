@@ -9,6 +9,7 @@ import { LandingPage } from './pages/LandingPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminModelsPage } from './pages/admin/AdminModelsPage';
 import { AdminInfraPage } from './pages/admin/AdminInfraPage';
+import { AdminSupportPage } from './pages/admin/AdminSupportPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthModal } from './components/AuthModal';
 import { EmailVerifyBanner } from './components/EmailVerifyBanner';
@@ -22,10 +23,10 @@ import { theme, globalStyles } from './styles';
 import {
   BarChart3, Zap, GitCompare, Lock, User, LogOut,
   Users, Brain, Server, Briefcase, CreditCard, Bell,
-  Settings, ChevronDown,
+  Settings, ChevronDown, MessageCircle,
 } from 'lucide-react';
 
-type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'admin_users' | 'admin_models' | 'admin_infra';
+type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'admin_users' | 'admin_models' | 'admin_infra' | 'admin_support';
 
 const App: React.FC = () => {
   const [tab, setTab] = useState<Tab>('landing');
@@ -137,6 +138,7 @@ const App: React.FC = () => {
     { key: 'admin_users', label: 'Usuários', icon: <Users size={14} /> },
     { key: 'admin_models', label: 'Modelos', icon: <Brain size={14} /> },
     { key: 'admin_infra', label: 'Infra', icon: <Server size={14} /> },
+    { key: 'admin_support', label: 'Suporte', icon: <MessageCircle size={14} /> },
   ] : [];
 
   const tierColor = user?.tier === 'quant' ? theme.yellow : user?.tier === 'pro' ? theme.accent : '';
@@ -324,6 +326,7 @@ const App: React.FC = () => {
         {tab === 'admin_users' && user?.is_admin && <AdminUsersPage dark={dark} />}
         {tab === 'admin_models' && user?.is_admin && <AdminModelsPage dark={dark} />}
         {tab === 'admin_infra' && user?.is_admin && <AdminInfraPage dark={dark} />}
+        {tab === 'admin_support' && user?.is_admin && <AdminSupportPage dark={dark} />}
       </main>
 
       {showAuth && <AuthModal onClose={() => { setShowAuth(false); if (useAuthStore.getState().user && tab === 'landing') go('markets'); }} dark={dark} />}
