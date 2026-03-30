@@ -11,6 +11,11 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as route53targets from 'aws-cdk-lib/aws-route53-targets';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as cw_actions from 'aws-cdk-lib/aws-cloudwatch-actions';
+import * as sns from 'aws-cdk-lib/aws-sns';
+import * as sns_subs from 'aws-cdk-lib/aws-sns-subscriptions';
+import * as sqs from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
@@ -33,6 +38,13 @@ export class PrediktStack extends cdk.Stack {
     // ══════════════════════════════════════
     // LAMBDA (Backend API)
     // ══════════════════════════════════════
+
+    // Dead Letter Queue for failed invocations
+    const dlq = new sqs.Queue(this, 'PrediktDLQ', {
+      queueName: 'predikt-api-dlq',
+      retentionPeriod: cdk.Duration.days(14),
+    });
+
     const apiFunction = new lambda.DockerImageFunction(this, 'PrediktApi', {
       functionName: 'predikt-api',
       code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '..'), {
@@ -47,6 +59,8 @@ export class PrediktStack extends cdk.Stack {
         FRONTEND_URL: `https://${domainName}`,
       },
       logRetention: logs.RetentionDays.TWO_WEEKS,
+      deadLetterQueue: dlq,
+      retryAttempts: 2,
     });
 
     // DynamoDB permissions
@@ -131,6 +145,63 @@ export class PrediktStack extends cdk.Stack {
       distribution,
       distributionPaths: ['/*'],
     });
+
+    // ══════════════════════════════════════
+    // MONITORING — CloudWatch Alarms + SNS
+    // ══════════════════════════════════════
+
+    const alertTopic = new sns.Topic(this, 'PrediktAlerts', {
+      topicName: 'predikt-alerts',
+      displayName: 'Qyntara Alerts',
+    });
+
+    alertTopic.addSubscription(
+      new sns_subs.EmailSubscription('uesleisutil@gmail.com')
+    );
+
+    // Lambda error rate alarm
+    new cloudwatch.Alarm(this, 'LambdaErrorAlarm', {
+      alarmName: 'predikt-lambda-errors',
+      alarmDescription: 'Lambda error rate > 5 in 5 minutes',
+      metric: apiFunction.metricErrors({ period: cdk.Duration.minutes(5) }),
+      threshold: 5,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    }).addAlarmAction(new cw_actions.SnsAction(alertTopic));
+
+    // Lambda throttles alarm
+    new cloudwatch.Alarm(this, 'LambdaThrottleAlarm', {
+      alarmName: 'predikt-lambda-throttles',
+      alarmDescription: 'Lambda throttled > 3 in 5 minutes',
+      metric: apiFunction.metricThrottles({ period: cdk.Duration.minutes(5) }),
+      threshold: 3,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    }).addAlarmAction(new cw_actions.SnsAction(alertTopic));
+
+    // Lambda duration alarm (p95 > 20s = close to timeout)
+    new cloudwatch.Alarm(this, 'LambdaDurationAlarm', {
+      alarmName: 'predikt-lambda-slow',
+      alarmDescription: 'Lambda p95 duration > 20s',
+      metric: apiFunction.metricDuration({ period: cdk.Duration.minutes(5), statistic: 'p95' }),
+      threshold: 20000,
+      evaluationPeriods: 2,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    }).addAlarmAction(new cw_actions.SnsAction(alertTopic));
+
+    // DLQ messages alarm (any message = something failed)
+    new cloudwatch.Alarm(this, 'DLQAlarm', {
+      alarmName: 'predikt-dlq-messages',
+      alarmDescription: 'Messages in DLQ (failed Lambda invocations)',
+      metric: dlq.metricApproximateNumberOfMessagesVisible({ period: cdk.Duration.minutes(5) }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    }).addAlarmAction(new cw_actions.SnsAction(alertTopic));
 
     // ══════════════════════════════════════
     // OUTPUTS

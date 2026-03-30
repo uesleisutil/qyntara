@@ -6,6 +6,7 @@ import { ArbitragePage } from './pages/ArbitragePage';
 import { PortfolioPage } from './pages/PortfolioPage';
 import { BillingPage } from './pages/BillingPage';
 import { LandingPage } from './pages/LandingPage';
+import { TrackRecordPage } from './pages/TrackRecordPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminModelsPage } from './pages/admin/AdminModelsPage';
 import { AdminInfraPage } from './pages/admin/AdminInfraPage';
@@ -15,6 +16,7 @@ import { TermsPage } from './pages/TermsPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { AuthModal } from './components/AuthModal';
 import { EmailVerifyBanner } from './components/EmailVerifyBanner';
+import { NotificationCenter } from './components/NotificationCenter';
 import { ToastContainer } from './components/ToastContainer';
 import { useToastStore } from './store/toastStore';
 import { useWebSocket } from './hooks/useWebSocket';
@@ -24,11 +26,11 @@ import { API_BASE } from './config';
 import { theme, globalStyles } from './styles';
 import {
   BarChart3, Zap, GitCompare, Lock, User, LogOut,
-  Users, Brain, Server, Briefcase, CreditCard, Bell,
-  Settings, ChevronDown, MessageCircle,
+  Users, Brain, Server, Briefcase, CreditCard,
+  Settings, ChevronDown, MessageCircle, Target,
 } from 'lucide-react';
 
-type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'terms' | 'privacy' | 'admin_users' | 'admin_models' | 'admin_infra' | 'admin_support';
+type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'track_record' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'terms' | 'privacy' | 'admin_users' | 'admin_models' | 'admin_infra' | 'admin_support';
 
 const App: React.FC = () => {
   const [tab, setTab] = useState<Tab>('landing');
@@ -39,11 +41,9 @@ const App: React.FC = () => {
   const dark = true;
   const { connected } = useWebSocket();
   const { data: stats } = useApi<any>('/stats', 60000);
-  const { data: notifs } = useApi<any>(useAuthStore.getState().user ? '/notifications?unread=true&limit=5' : '', 30000);
   const { user, logout } = useAuthStore();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const unreadCount = notifs?.unread_count || 0;
   const firstName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || '';
 
   const go = (t: Tab) => {
@@ -147,6 +147,7 @@ const App: React.FC = () => {
   const userTabs: { key: Tab; label: string; icon: React.ReactNode; pro?: boolean }[] = [
     { key: 'markets', label: 'Mercados', icon: <BarChart3 size={14} /> },
     { key: 'signals', label: 'Sinais', icon: <Zap size={14} />, pro: true },
+    { key: 'track_record', label: 'Track Record', icon: <Target size={14} />, pro: true },
     { key: 'arbitrage', label: 'Arbitragem', icon: <GitCompare size={14} />, pro: true },
     { key: 'portfolio', label: 'Portfólio', icon: <Briefcase size={14} /> },
     { key: 'billing', label: 'Planos', icon: <CreditCard size={14} /> },
@@ -184,16 +185,7 @@ const App: React.FC = () => {
 
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {unreadCount > 0 && (
-                <span style={{ position: 'relative', cursor: 'pointer' }}>
-                  <Bell size={15} color={theme.textMuted} />
-                  <span style={{
-                    position: 'absolute', top: -4, right: -4, width: 14, height: 14, borderRadius: '50%',
-                    background: theme.red, color: '#fff', fontSize: '0.45rem', fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>{unreadCount}</span>
-                </span>
-              )}
+              <NotificationCenter onNavigate={(t) => go(t as Tab)} />
 
               {/* User menu */}
               <div ref={menuRef} style={{ position: 'relative' }}>
@@ -336,6 +328,7 @@ const App: React.FC = () => {
         {tab === 'markets' && <MarketsPage dark={dark} onSelectMarket={openMarket} />}
         {tab === 'market_detail' && selectedMarket && <MarketDetailPage marketId={selectedMarket} dark={dark} onBack={() => go('markets')} />}
         {tab === 'signals' && <SignalsPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
+        {tab === 'track_record' && <TrackRecordPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'arbitrage' && <ArbitragePage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'portfolio' && <PortfolioPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'billing' && <BillingPage dark={dark} />}

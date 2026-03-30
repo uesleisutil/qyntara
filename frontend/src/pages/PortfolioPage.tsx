@@ -3,7 +3,7 @@ import { useApi, apiFetch } from '../hooks/useApi';
 import { useAuthStore } from '../store/authStore';
 import { theme } from '../styles';
 import {
-  Briefcase, Plus, Trash2, TrendingUp, TrendingDown, Shield, Lock, X,
+  Briefcase, Plus, Trash2, TrendingUp, TrendingDown, Shield, Lock, X, Dice5, Loader2,
 } from 'lucide-react';
 
 interface Position {
@@ -167,6 +167,11 @@ export const PortfolioPage: React.FC<Props> = ({ onAuthRequired }) => {
         </div>
       )}
 
+      {/* Monte Carlo (Quant only) */}
+      {(tier === 'quant' || tier === 'enterprise') && positions.length > 0 && (
+        <MonteCarloSection />
+      )}
+
       {/* Add position modal */}
       {showAdd && <AddPositionModal onClose={() => { setShowAdd(false); refresh(); }} />}
     </div>
@@ -223,6 +228,103 @@ const PositionCard: React.FC<{ position: Position; pnl: number; index: number; o
         opacity: hovered ? 0.8 : 0.3, transition: 'opacity 0.2s',
         padding: 4,
       }} aria-label="Remover posição"><Trash2 size={14} /></button>
+    </div>
+  );
+};
+
+const MonteCarloSection: React.FC = () => {
+  const [mc, setMc] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [sims, setSims] = useState(1000);
+
+  const run = async () => {
+    setLoading(true);
+    try {
+      const res = await apiFetch(`/portfolio/montecarlo?simulations=${sims}`);
+      if (res.ok) setMc(await res.json());
+    } catch {}
+    setLoading(false);
+  };
+
+  return (
+    <div style={{
+      background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 14,
+      padding: '1.25rem', marginTop: '1.5rem',
+      animation: 'fadeIn 0.4s ease 0.35s both',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Dice5 size={18} color={theme.yellow} />
+          <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Monte Carlo</span>
+          <span style={{ fontSize: '0.55rem', padding: '1px 5px', borderRadius: 3, background: theme.yellowBg, color: theme.yellow, fontWeight: 700 }}>QUANT</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <select value={sims} onChange={e => setSims(Number(e.target.value))} style={{
+            padding: '0.3rem 0.5rem', borderRadius: 6, border: `1px solid ${theme.border}`,
+            background: theme.bg, color: theme.text, fontSize: '0.72rem',
+          }}>
+            <option value={500}>500 sims</option>
+            <option value={1000}>1K sims</option>
+            <option value={5000}>5K sims</option>
+          </select>
+          <button onClick={run} disabled={loading} style={{
+            padding: '0.4rem 0.85rem', borderRadius: 8, border: 'none',
+            background: theme.yellow, color: '#000', fontWeight: 600, fontSize: '0.75rem',
+            cursor: 'pointer', opacity: loading ? 0.7 : 1,
+            display: 'flex', alignItems: 'center', gap: 5,
+          }}>
+            {loading ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Dice5 size={12} />}
+            Simular
+          </button>
+        </div>
+      </div>
+
+      {mc?.results ? (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 8, marginBottom: 14 }}>
+            {[
+              { label: 'Média', value: `$${mc.results.mean}`, color: mc.results.mean >= 0 ? theme.green : theme.red },
+              { label: 'Mediana', value: `$${mc.results.median}`, color: mc.results.median >= 0 ? theme.green : theme.red },
+              { label: 'P5 (pior)', value: `$${mc.results.p5}`, color: theme.red },
+              { label: 'P95 (melhor)', value: `$${mc.results.p95}`, color: theme.green },
+              { label: '% Positivo', value: `${mc.results.positive_pct}%`, color: mc.results.positive_pct > 50 ? theme.green : theme.red },
+            ].map(s => (
+              <div key={s.label} style={{
+                padding: '0.6rem', background: theme.bg, borderRadius: 10,
+                border: `1px solid ${theme.border}`, textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: s.color }}>{s.value}</div>
+                <div style={{ fontSize: '0.58rem', color: theme.textMuted, marginTop: 2 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Distribution bars */}
+          {mc.distribution && (
+            <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 60 }}>
+              {mc.distribution.map((d: any, i: number) => {
+                const maxCount = Math.max(...mc.distribution.map((x: any) => x.count));
+                const pct = maxCount > 0 ? (d.count / maxCount) * 100 : 0;
+                const color = i < 2 ? theme.red : theme.green;
+                return (
+                  <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                    <div style={{ fontSize: '0.55rem', color: theme.textMuted }}>{d.count}</div>
+                    <div style={{
+                      width: '100%', borderRadius: 4, background: `${color}30`,
+                      height: `${Math.max(pct, 4)}%`, transition: 'height 0.5s',
+                    }} />
+                    <div style={{ fontSize: '0.5rem', color: theme.textMuted, textAlign: 'center' }}>{d.range}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '1.5rem', color: theme.textMuted, fontSize: '0.78rem' }}>
+          Clique em "Simular" para rodar a simulação Monte Carlo do seu portfólio.
+        </div>
+      )}
     </div>
   );
 };
