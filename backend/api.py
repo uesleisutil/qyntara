@@ -50,6 +50,7 @@ from .security import (
 )
 from .storage import (
     ensure_bucket, save_market_cache, load_market_cache,
+    save_price_snapshot, load_price_history,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -95,43 +96,63 @@ async def _refresh_markets():
     try:
         markets = []
         if poly_client:
-            raw = await poly_client.get_active_markets(limit=100)
-            for r in raw:
-                m = parse_market(r)
-                if m["volume"] > 1000:
-                    markets.append(m)
+            # Buscar 300 mercados (3 páginas)
+            for offset in [0, 100, 200]:
+                try:
+                    raw = await poly_client.get_active_markets(limit=100, offset=offset)
+                    for r in raw:
+                        m = parse_market(r)
+                        if m["volume"] > 500:
+                            m["category"] = _categorize_market(m["question"])
+                            markets.append(m)
+                    if len(raw) < 100:
+                        break
+                except Exception as e:
+                    logger.warning(f"Polymarket page {offset}: {e}")
+                    break
+
         if kalshi_client:
             try:
                 raw_k = await kalshi_client.get_markets(limit=200)
                 for r in raw_k:
                     m = parse_kalshi_market(r)
                     if m["volume"] > 0:
+                        if not m.get("category"):
+                            m["category"] = _categorize_market(m["question"])
                         markets.append(m)
-                logger.info(f"Kalshi: {len([m for m in markets if m['source'] == 'kalshi'])} markets with volume")
+                logger.info(f"Kalshi: {len([m for m in markets if m['source'] == 'kalshi'])} markets")
             except Exception as e:
                 logger.warning(f"Kalshi: {e}")
 
         markets.sort(key=lambda m: m.get("volume_24h", 0), reverse=True)
         _cache["markets"] = markets
         _cache["last_refresh"] = datetime.now(timezone.utc).isoformat()
+
+        # Contar categorias
+        cat_counts: dict[str, int] = {}
+        for m in markets:
+            c = m.get("category", "Outros")
+            cat_counts[c] = cat_counts.get(c, 0) + 1
+
         _cache["stats"] = {
             "total_markets": len(markets),
             "polymarket": len([m for m in markets if m["source"] == "polymarket"]),
             "kalshi": len([m for m in markets if m["source"] == "kalshi"]),
             "volume_24h": sum(m.get("volume_24h", 0) for m in markets),
             "last_refresh": _cache["last_refresh"],
+            "categories": cat_counts,
         }
         _cache["arbitrage"] = _find_arbitrage(markets)
         _cache["signals"] = _generate_signals(markets)
         await _broadcast({"type": "markets_updated", "count": len(markets)})
 
-        # Persistir cache no S3 (sobrevive cold starts)
         try:
             save_market_cache(markets, _cache["signals"], _cache["arbitrage"], _cache["stats"])
+            save_price_snapshot(markets)
         except Exception as e:
             logger.warning(f"Failed to save cache to S3: {e}")
 
-        logger.info(f"Refreshed: {len(markets)} markets")
+        logger.info(f"Refreshed: {len(markets)} markets ({len(cat_counts)} categories)")
     except Exception as e:
         logger.error(f"Refresh error: {e}")
 
@@ -381,6 +402,13 @@ async def get_market_detail(market_id: str, user: dict | None = Depends(get_opti
         except Exception:
             pass
     return result
+
+
+@app.get("/markets/{market_id}/history")
+async def get_market_history(market_id: str, days: int = Query(7, ge=1, le=30)):
+    """Histórico de preços (odds) de um mercado."""
+    history = load_price_history(market_id, days)
+    return {"market_id": market_id, "history": history, "points": len(history)}
 
 
 @app.get("/signals")
@@ -677,6 +705,30 @@ async def _broadcast(msg: dict):
 # ══════════════════════════════════════
 # HELPERS
 # ══════════════════════════════════════
+
+def _categorize_market(question: str) -> str:
+    """Categoriza mercado por keywords na pergunta."""
+    q = question.lower()
+    if any(w in q for w in ['trump', 'biden', 'president', 'election', 'congress', 'senate', 'governor', 'vote', 'democrat', 'republican', 'political', 'party', 'poll']):
+        return 'Política'
+    if any(w in q for w in ['bitcoin', 'btc', 'eth', 'crypto', 'solana', 'dogecoin', 'price above', 'price below', 'market cap']):
+        return 'Cripto'
+    if any(w in q for w in ['nfl', 'nba', 'mlb', 'nhl', 'fifa', 'world cup', 'champions league', 'premier league', 'super bowl', 'stanley cup', 'win the 2', 'championship', 'playoffs', 'mvp', 'serie a']):
+        return 'Esportes'
+    if any(w in q for w in ['fed ', 'rate cut', 'rate hike', 'inflation', 'gdp', 'recession', 'stock', 'sp500', 's&p', 'nasdaq', 'dow jones', 'unemployment', 'tariff']):
+        return 'Economia'
+    if any(w in q for w in ['ai ', 'openai', 'gpt', 'google', 'apple', 'meta', 'tesla', 'spacex', 'tech', 'robot', 'agi', 'artificial']):
+        return 'Tecnologia'
+    if any(w in q for w in ['war', 'ukraine', 'russia', 'china', 'taiwan', 'nato', 'ceasefire', 'invasion', 'military', 'nuclear', 'iran', 'israel']):
+        return 'Geopolítica'
+    if any(w in q for w in ['pope', 'celebrity', 'album', 'movie', 'oscar', 'grammy', 'music', 'netflix', 'tiktok', 'youtube']):
+        return 'Entretenimento'
+    if any(w in q for w in ['weather', 'hurricane', 'earthquake', 'climate', 'temperature', 'wildfire', 'flood']):
+        return 'Clima'
+    if any(w in q for w in ['covid', 'vaccine', 'pandemic', 'health', 'fda', 'drug', 'disease']):
+        return 'Saúde'
+    return 'Outros'
+
 
 def _find_arbitrage(markets: list[dict]) -> list[dict]:
     poly = [m for m in markets if m["source"] == "polymarket"]

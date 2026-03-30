@@ -180,3 +180,48 @@ def append_audit_log(entry: dict):
 def load_audit_log(limit: int = 100) -> list[dict]:
     log = load_json("audit/audit_log.json") or []
     return list(reversed(log[-limit:]))
+
+
+# ── Price history (odds over time) ──
+
+def save_price_snapshot(markets: list[dict]):
+    """Salva snapshot de preços dos mercados. Um arquivo por dia, append."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    key = f"history/prices_{today}.json"
+
+    # Carregar snapshots existentes do dia
+    existing = load_json(key) or []
+
+    now = datetime.now().isoformat()
+    snapshot = {
+        "t": now,
+        "p": {m["market_id"]: round(m.get("yes_price", 0), 4) for m in markets if m.get("market_id")},
+    }
+    existing.append(snapshot)
+
+    # Limitar a 144 snapshots por dia (1 a cada 10 min)
+    if len(existing) > 144:
+        existing = existing[-144:]
+
+    save_json(key, existing)
+
+
+def load_price_history(market_id: str, days: int = 7) -> list[dict]:
+    """Carrega histórico de preços de um mercado nos últimos N dias."""
+    from datetime import timedelta
+    history: list[dict] = []
+    now = datetime.now()
+
+    for i in range(days):
+        day = (now - timedelta(days=i)).strftime("%Y-%m-%d")
+        key = f"history/prices_{day}.json"
+        snapshots = load_json(key)
+        if not snapshots:
+            continue
+        for snap in snapshots:
+            price = snap.get("p", {}).get(market_id)
+            if price is not None:
+                history.append({"t": snap["t"], "p": price})
+
+    history.sort(key=lambda x: x["t"])
+    return history

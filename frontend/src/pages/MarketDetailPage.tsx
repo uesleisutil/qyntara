@@ -1,12 +1,14 @@
 import React from 'react';
 import { useApi } from '../hooks/useApi';
 import { theme, badgeStyle } from '../styles';
-import { ArrowLeft, Newspaper, BarChart3, ExternalLink, Clock } from 'lucide-react';
+import { ArrowLeft, Newspaper, BarChart3, ExternalLink, Clock, TrendingUp } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 interface Props { marketId: string; dark?: boolean; onBack: () => void; }
 
 export const MarketDetailPage: React.FC<Props> = ({ marketId, onBack }) => {
   const { data, loading } = useApi<any>(`/markets/${marketId}`, 15000);
+  const { data: historyData } = useApi<{ history: { t: string; p: number }[] }>(`/markets/${marketId}/history?days=7`, 60000);
 
   if (loading && !data) {
     return (
@@ -108,6 +110,46 @@ export const MarketDetailPage: React.FC<Props> = ({ marketId, onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Price history chart */}
+      {historyData?.history && historyData.history.length > 1 && (
+        <div style={{
+          background: theme.card, border: `1px solid ${theme.border}`, borderRadius: 16,
+          padding: '1.5rem', marginBottom: '1rem',
+          animation: 'slideUp 0.4s ease 0.15s both',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '1rem' }}>
+            <TrendingUp size={18} color={theme.accent} />
+            <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Evolução das Odds (7 dias)</span>
+            <span style={{ fontSize: '0.68rem', color: theme.textMuted, marginLeft: 'auto' }}>
+              {historyData.history.length} pontos
+            </span>
+          </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={historyData.history.map(h => ({
+              time: new Date(h.t).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }),
+              odds: Math.round(h.p * 1000) / 10,
+            }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke={theme.border} />
+              <XAxis dataKey="time" tick={{ fontSize: 10, fill: theme.textMuted }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 10, fill: theme.textMuted }} domain={[0, 100]} unit="%" width={40} />
+              <Tooltip
+                contentStyle={{
+                  background: theme.card, border: `1px solid ${theme.border}`,
+                  borderRadius: 10, fontSize: '0.75rem', boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                }}
+                labelStyle={{ color: theme.textSecondary }}
+                formatter={(value: any) => [`${value}%`, 'YES']}
+              />
+              <Area
+                type="monotone" dataKey="odds" name="YES"
+                stroke={priceColor} fill={`${priceColor}15`} strokeWidth={2}
+                dot={false} activeDot={{ r: 4, fill: priceColor }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Sentiment */}
       {sent.article_count > 0 && (

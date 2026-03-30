@@ -13,12 +13,20 @@ interface Market {
 export const MarketsPage: React.FC<{ dark?: boolean; onSelectMarket?: (id: string) => void }> = ({ onSelectMarket }) => {
   const [search, setSearch] = useState('');
   const [source, setSource] = useState('');
+  const [category, setCategory] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const user = useAuthStore(s => s.user);
   const isGuest = !user;
-  const params = new URLSearchParams({ limit: '50', ...(source && { source }), ...(search && { search }) });
+  const params = new URLSearchParams({
+    limit: '50',
+    ...(source && { source }),
+    ...(category && { category }),
+    ...(search && { search }),
+  });
   const { data, loading } = useApi<{ markets: Market[]; total: number }>(`/markets?${params}`, 30000);
+  const { data: statsData } = useApi<any>('/stats', 60000);
   const markets = data?.markets || [];
+  const categories = statsData?.categories as Record<string, number> | undefined;
 
   return (
     <div style={{ animation: 'fadeIn 0.4s ease' }}>
@@ -102,6 +110,32 @@ export const MarketsPage: React.FC<{ dark?: boolean; onSelectMarket?: (id: strin
           </button>
         ))}
       </div>
+
+      {/* Category filters */}
+      {categories && Object.keys(categories).length > 1 && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+          <button onClick={() => setCategory('')} style={{
+            padding: '0.4rem 0.85rem', borderRadius: 20, fontSize: '0.72rem', fontWeight: category === '' ? 600 : 400,
+            border: `1px solid ${category === '' ? theme.accentBorder : theme.border}`,
+            background: category === '' ? theme.accentBg : 'transparent',
+            color: category === '' ? theme.accent : theme.textSecondary,
+            cursor: 'pointer', transition: 'all 0.2s',
+          }}>Todas</button>
+          {Object.entries(categories)
+            .sort((a, b) => b[1] - a[1])
+            .map(([cat, count]) => (
+              <button key={cat} onClick={() => setCategory(cat)} style={{
+                padding: '0.4rem 0.85rem', borderRadius: 20, fontSize: '0.72rem', fontWeight: category === cat ? 600 : 400,
+                border: `1px solid ${category === cat ? theme.accentBorder : theme.border}`,
+                background: category === cat ? theme.accentBg : 'transparent',
+                color: category === cat ? theme.accent : theme.textSecondary,
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}>
+                {cat} <span style={{ opacity: 0.5 }}>{count}</span>
+              </button>
+            ))}
+        </div>
+      )}
 
       {/* Loading skeleton */}
       {loading && !markets.length ? (
