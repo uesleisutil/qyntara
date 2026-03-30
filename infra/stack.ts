@@ -204,6 +204,50 @@ export class PrediktStack extends cdk.Stack {
     }).addAlarmAction(new cw_actions.SnsAction(alertTopic));
 
     // ══════════════════════════════════════
+    // DYNAMODB — Point-in-Time Recovery
+    // ══════════════════════════════════════
+
+    // Enable PITR on all DynamoDB tables via a custom resource
+    const pitrFunction = new lambda.Function(this, 'EnablePITR', {
+      functionName: 'predikt-enable-pitr',
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'index.handler',
+      timeout: cdk.Duration.seconds(30),
+      code: lambda.Code.fromInline(`
+import boto3
+import cfnresponse
+
+def handler(event, context):
+    if event['RequestType'] == 'Delete':
+        cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+        return
+    client = boto3.client('dynamodb', region_name='us-east-1')
+    tables = event['ResourceProperties']['Tables']
+    for t in tables:
+        try:
+            client.update_continuous_backups(
+                TableName=t,
+                PointInTimeRecoverySpecification={'PointInTimeRecoveryEnabled': True}
+            )
+        except Exception as e:
+            print(f"PITR for {t}: {e}")
+    cfnresponse.send(event, context, cfnresponse.SUCCESS, {'tables': tables})
+`),
+    });
+
+    pitrFunction.addToRolePolicy(new cdk.aws_iam.PolicyStatement({
+      actions: ['dynamodb:UpdateContinuousBackups', 'dynamodb:DescribeContinuousBackups'],
+      resources: ['arn:aws:dynamodb:us-east-1:200093399689:table/predikt-*'],
+    }));
+
+    new cdk.CustomResource(this, 'PITRCustomResource', {
+      serviceToken: pitrFunction.functionArn,
+      properties: {
+        Tables: ['predikt-users', 'predikt-positions', 'predikt-notifications', 'predikt-tickets'],
+      },
+    });
+
+    // ══════════════════════════════════════
     // OUTPUTS
     // ══════════════════════════════════════
     new cdk.CfnOutput(this, 'ApiUrl', {

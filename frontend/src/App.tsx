@@ -7,10 +7,13 @@ import { PortfolioPage } from './pages/PortfolioPage';
 import { BillingPage } from './pages/BillingPage';
 import { LandingPage } from './pages/LandingPage';
 import { TrackRecordPage } from './pages/TrackRecordPage';
+import { WatchlistPage } from './pages/WatchlistPage';
+import { ComparePage } from './pages/ComparePage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminModelsPage } from './pages/admin/AdminModelsPage';
 import { AdminInfraPage } from './pages/admin/AdminInfraPage';
 import { AdminSupportPage } from './pages/admin/AdminSupportPage';
+import { AdminAuditPage } from './pages/admin/AdminAuditPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TermsPage } from './pages/TermsPage';
 import { PrivacyPage } from './pages/PrivacyPage';
@@ -27,10 +30,10 @@ import { theme, globalStyles } from './styles';
 import {
   BarChart3, Zap, GitCompare, Lock, User, LogOut,
   Users, Brain, Server, Briefcase, CreditCard,
-  Settings, ChevronDown, MessageCircle, Target,
+  Settings, ChevronDown, MessageCircle, Target, Star, Columns2, Shield,
 } from 'lucide-react';
 
-type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'track_record' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'terms' | 'privacy' | 'admin_users' | 'admin_models' | 'admin_infra' | 'admin_support';
+type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'track_record' | 'arbitrage' | 'portfolio' | 'watchlist' | 'compare' | 'billing' | 'settings' | 'terms' | 'privacy' | 'admin_users' | 'admin_models' | 'admin_infra' | 'admin_support' | 'admin_audit';
 
 const App: React.FC = () => {
   const [tab, setTab] = useState<Tab>('landing');
@@ -150,6 +153,8 @@ const App: React.FC = () => {
     { key: 'track_record', label: 'Track Record', icon: <Target size={14} />, pro: true },
     { key: 'arbitrage', label: 'Arbitragem', icon: <GitCompare size={14} />, pro: true },
     { key: 'portfolio', label: 'Portfólio', icon: <Briefcase size={14} /> },
+    { key: 'watchlist', label: 'Favoritos', icon: <Star size={14} /> },
+    { key: 'compare', label: 'Comparar', icon: <Columns2 size={14} /> },
     { key: 'billing', label: 'Planos', icon: <CreditCard size={14} /> },
   ];
   const adminTabs: { key: Tab; label: string; icon: React.ReactNode }[] = user?.is_admin ? [
@@ -157,6 +162,7 @@ const App: React.FC = () => {
     { key: 'admin_models', label: 'Modelos', icon: <Brain size={14} /> },
     { key: 'admin_infra', label: 'Infra', icon: <Server size={14} /> },
     { key: 'admin_support', label: 'Suporte', icon: <MessageCircle size={14} /> },
+    { key: 'admin_audit', label: 'Audit', icon: <Shield size={14} /> },
   ] : [];
 
   const tierColor = user?.tier === 'quant' ? theme.yellow : user?.tier === 'pro' ? theme.accent : '';
@@ -331,12 +337,15 @@ const App: React.FC = () => {
         {tab === 'track_record' && <TrackRecordPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'arbitrage' && <ArbitragePage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'portfolio' && <PortfolioPage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
+        {tab === 'watchlist' && <WatchlistPage dark={dark} onAuthRequired={() => setShowAuth(true)} onSelectMarket={openMarket} />}
+        {tab === 'compare' && <ComparePage dark={dark} onAuthRequired={() => setShowAuth(true)} />}
         {tab === 'billing' && <BillingPage dark={dark} />}
         {tab === 'settings' && <SettingsPage dark={dark} onSwitchTab={(t) => go(t as Tab)} />}
         {tab === 'admin_users' && user?.is_admin && <AdminUsersPage dark={dark} />}
         {tab === 'admin_models' && user?.is_admin && <AdminModelsPage dark={dark} />}
         {tab === 'admin_infra' && user?.is_admin && <AdminInfraPage dark={dark} />}
         {tab === 'admin_support' && user?.is_admin && <AdminSupportPage dark={dark} />}
+        {tab === 'admin_audit' && user?.is_admin && <AdminAuditPage dark={dark} />}
       </main>
 
       {showAuth && <AuthModal onClose={() => { setShowAuth(false); if (useAuthStore.getState().user && tab === 'landing') go('markets'); }} dark={dark} />}
