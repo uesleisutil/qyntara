@@ -3,7 +3,7 @@ Tests for core API endpoints.
 Uses FastAPI TestClient — no external services needed.
 """
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 

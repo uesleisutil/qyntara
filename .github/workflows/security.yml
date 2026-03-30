@@ -339,7 +339,7 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-          npx tsc --noEmit 2>&1 || {
+          npx tsc -b --noEmit 2>&1 || {
             echo "::error::TypeScript type errors found"
             exit 1
           }

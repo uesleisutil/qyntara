@@ -1,7 +1,6 @@
 """
 Tests for AI inference module.
 """
-import pytest
 import numpy as np
 from unittest.mock import patch, MagicMock
 
