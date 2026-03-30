@@ -122,9 +122,10 @@ class EdgeEstimator:
         y_v = torch.FloatTensor(y_val).unsqueeze(1).to(self.device)
 
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=1e-4)
+        steps_per_epoch = max(1, (len(X_t) + batch_size - 1) // batch_size)  # ceil division
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer, max_lr=lr, epochs=epochs,
-            steps_per_epoch=max(1, len(X_t) // batch_size),
+            steps_per_epoch=steps_per_epoch,
         )
         criterion = nn.BCELoss()
 
