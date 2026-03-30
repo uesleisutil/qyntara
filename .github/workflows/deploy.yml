@@ -14,7 +14,7 @@ env:
   LAMBDA_FUNCTION: predikt-api
   S3_FRONTEND: predikt-frontend-200093399689
   CLOUDFRONT_ID: E1483P7UGXDOFW
-  API_BASE: https://ldt4wmwolk.execute-api.us-east-1.amazonaws.com
+  API_BASE: https://api.qyntara.tech
 
 jobs:
   deploy:

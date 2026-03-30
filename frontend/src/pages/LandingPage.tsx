@@ -356,7 +356,11 @@ export const LandingPage: React.FC<Props> = ({ onGetStarted }) => {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12,
         }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Qyntara</span>
-          <span style={{ fontSize: '0.65rem', color: theme.textMuted }}>© 2026 · Inteligência para mercados de predição</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <a href="/termos" onClick={e => { e.preventDefault(); window.location.hash = 'terms'; }} style={{ fontSize: '0.62rem', color: theme.textMuted, textDecoration: 'none' }}>Termos de Uso</a>
+            <a href="/privacidade" onClick={e => { e.preventDefault(); window.location.hash = 'privacy'; }} style={{ fontSize: '0.62rem', color: theme.textMuted, textDecoration: 'none' }}>Privacidade</a>
+            <span style={{ fontSize: '0.62rem', color: theme.textMuted }}>© 2026</span>
+          </div>
         </footer>
 
       </div>

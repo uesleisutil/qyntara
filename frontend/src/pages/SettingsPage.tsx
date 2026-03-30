@@ -82,6 +82,13 @@ export const SettingsPage: React.FC<Props> = ({ onSwitchTab }) => {
         </div>
       </Section>
 
+      {/* API Key (Quant only) */}
+      {(tier === 'quant' || tier === 'enterprise') && (
+        <Section title="API Key" icon={<Key size={16} />}>
+          <ApiKeySection />
+        </Section>
+      )}
+
       {/* Support */}
       <Section title="Suporte" icon={<MessageCircle size={16} />}>
         <SupportSection tier={tier} />
@@ -661,6 +668,95 @@ const InlineReply: React.FC<{ onSend: (text: string) => void }> = ({ onSend }) =
         background: text.trim() ? theme.accent : theme.border,
         color: text.trim() ? '#fff' : theme.textMuted, cursor: text.trim() ? 'pointer' : 'default',
       }}><Send size={13} /></button>
+    </div>
+  );
+};
+
+/* ── API Key section ── */
+const ApiKeySection: React.FC = () => {
+  const [status, setStatus] = useState<{ has_key: boolean; created_at: string | null } | null>(null);
+  const [newKey, setNewKey] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    apiFetch('/api-key/status').then(r => r.json()).then(setStatus).catch(() => {});
+  }, []);
+
+  const handleGenerate = async () => {
+    if (status?.has_key && !confirm('Isso vai revogar sua chave atual e gerar uma nova. Continuar?')) return;
+    setLoading(true);
+    try {
+      if (status?.has_key) await apiFetch('/api-key/revoke', { method: 'DELETE' });
+      const res = await apiFetch('/api-key/generate', { method: 'POST' });
+      const data = await res.json();
+      if (data.api_key) {
+        setNewKey(data.api_key);
+        setStatus({ has_key: true, created_at: data.created_at });
+        useToastStore.getState().addToast('API key gerada!', 'success');
+      } else {
+        useToastStore.getState().addToast(data.detail || 'Erro.', 'error');
+      }
+    } catch { useToastStore.getState().addToast('Erro ao gerar.', 'error'); }
+    finally { setLoading(false); }
+  };
+
+  const handleRevoke = async () => {
+    if (!confirm('Revogar API key? Requests com esta chave vão parar de funcionar.')) return;
+    await apiFetch('/api-key/revoke', { method: 'DELETE' });
+    setStatus({ has_key: false, created_at: null });
+    setNewKey(null);
+    useToastStore.getState().addToast('API key revogada.', 'success');
+  };
+
+  return (
+    <div>
+      {newKey && (
+        <div style={{
+          padding: '0.75rem', borderRadius: 8, marginBottom: '1rem',
+          background: `${theme.green}08`, border: `1px solid ${theme.green}20`,
+        }}>
+          <div style={{ fontSize: '0.68rem', color: theme.green, fontWeight: 600, marginBottom: 6 }}>Sua nova API key (copie agora — não será mostrada novamente):</div>
+          <code style={{
+            display: 'block', padding: '0.5rem', borderRadius: 6, background: theme.bg,
+            border: `1px solid ${theme.border}`, fontSize: '0.72rem', fontFamily: 'monospace',
+            wordBreak: 'break-all', userSelect: 'all', cursor: 'text',
+          }}>{newKey}</code>
+        </div>
+      )}
+
+      {status?.has_key && !newKey && (
+        <div style={{ fontSize: '0.75rem', color: theme.textSecondary, marginBottom: '0.75rem' }}>
+          API key ativa · Criada em {status.created_at ? new Date(status.created_at).toLocaleDateString('pt-BR') : '—'}
+        </div>
+      )}
+
+      {/* Docs */}
+      <div style={{ fontSize: '0.72rem', color: theme.textMuted, marginBottom: '1rem', lineHeight: 1.6 }}>
+        <div style={{ fontWeight: 600, color: theme.textSecondary, marginBottom: 4 }}>Endpoints:</div>
+        <code style={{ display: 'block', padding: '0.4rem 0.6rem', borderRadius: 6, background: theme.bg, border: `1px solid ${theme.border}`, marginBottom: 4, fontSize: '0.65rem' }}>
+          GET /api/v1/markets?key=SUA_KEY&limit=50&source=polymarket&category=Política
+        </code>
+        <code style={{ display: 'block', padding: '0.4rem 0.6rem', borderRadius: 6, background: theme.bg, border: `1px solid ${theme.border}`, marginBottom: 8, fontSize: '0.65rem' }}>
+          GET /api/v1/signals?key=SUA_KEY&limit=20
+        </code>
+        <div style={{ fontSize: '0.62rem', color: theme.textMuted }}>
+          Base URL: <code>https://api.qyntara.tech</code> · Rate limit: 1000 req/min · Resposta: JSON
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button onClick={handleGenerate} disabled={loading} style={{
+          padding: '0.45rem 0.85rem', borderRadius: 6, border: 'none',
+          background: theme.accent, color: '#fff', fontWeight: 600, fontSize: '0.72rem', cursor: 'pointer',
+          opacity: loading ? 0.7 : 1,
+        }}>{status?.has_key ? 'Regenerar key' : 'Gerar API key'}</button>
+        {status?.has_key && (
+          <button onClick={handleRevoke} style={{
+            padding: '0.45rem 0.85rem', borderRadius: 6, border: `1px solid ${theme.red}20`,
+            background: 'transparent', color: theme.red, fontSize: '0.72rem', cursor: 'pointer',
+          }}>Revogar</button>
+        )}
+      </div>
     </div>
   );
 };

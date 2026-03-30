@@ -11,6 +11,8 @@ import { AdminModelsPage } from './pages/admin/AdminModelsPage';
 import { AdminInfraPage } from './pages/admin/AdminInfraPage';
 import { AdminSupportPage } from './pages/admin/AdminSupportPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { AuthModal } from './components/AuthModal';
 import { EmailVerifyBanner } from './components/EmailVerifyBanner';
 import { ToastContainer } from './components/ToastContainer';
@@ -26,7 +28,7 @@ import {
   Settings, ChevronDown, MessageCircle,
 } from 'lucide-react';
 
-type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'admin_users' | 'admin_models' | 'admin_infra' | 'admin_support';
+type Tab = 'landing' | 'markets' | 'market_detail' | 'signals' | 'arbitrage' | 'portfolio' | 'billing' | 'settings' | 'terms' | 'privacy' | 'admin_users' | 'admin_models' | 'admin_infra' | 'admin_support';
 
 const App: React.FC = () => {
   const [tab, setTab] = useState<Tab>('landing');
@@ -88,6 +90,21 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => { if (tab === 'landing' && user) go('markets'); }, [tab, user]);
+
+  // ── Terms/Privacy (accessible without login) ──
+  if (tab === 'terms' || tab === 'privacy') {
+    return (
+      <div style={{ minHeight: '100vh', background: theme.bg, color: theme.text, fontFamily: "'Inter', -apple-system, sans-serif" }}>
+        <style>{globalStyles}</style>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.7rem clamp(1rem, 4vw, 2rem)', borderBottom: `1px solid ${theme.border}` }}>
+          <span onClick={() => go('landing')} style={{ fontSize: '0.95rem', fontWeight: 700, letterSpacing: '-0.03em', cursor: 'pointer' }}>Qyntara</span>
+        </header>
+        {tab === 'terms' && <TermsPage onBack={() => go('landing')} />}
+        {tab === 'privacy' && <PrivacyPage onBack={() => go('landing')} />}
+        <ToastContainer />
+      </div>
+    );
+  }
 
   // ── Landing ──
   if (tab === 'landing' && !user) {
@@ -330,6 +347,24 @@ const App: React.FC = () => {
       </main>
 
       {showAuth && <AuthModal onClose={() => { setShowAuth(false); if (useAuthStore.getState().user && tab === 'landing') go('markets'); }} dark={dark} />}
+
+      {/* Footer */}
+      <footer style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8,
+        padding: '0.75rem clamp(1rem, 3vw, 1.5rem)', borderTop: `1px solid ${theme.border}`,
+        fontSize: '0.6rem', color: theme.textMuted,
+      }}>
+        <span>© 2026 Qyntara</span>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <span onClick={() => go('terms')} style={{ cursor: 'pointer', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.color = theme.textSecondary}
+            onMouseLeave={e => e.currentTarget.style.color = theme.textMuted}>Termos</span>
+          <span onClick={() => go('privacy')} style={{ cursor: 'pointer', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.color = theme.textSecondary}
+            onMouseLeave={e => e.currentTarget.style.color = theme.textMuted}>Privacidade</span>
+        </div>
+      </footer>
+
       <ToastContainer />
     </div>
   );

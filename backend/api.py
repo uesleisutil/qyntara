@@ -436,6 +436,24 @@ async def get_market_history(market_id: str, days: int = Query(7, ge=1, le=30)):
     return {"market_id": market_id, "history": history, "points": len(history)}
 
 
+@app.get("/markets/compare")
+async def compare_markets(
+    ids: str = Query(..., description="Comma-separated market IDs"),
+    user: dict | None = Depends(get_optional_user),
+):
+    """Compara múltiplos mercados side-by-side."""
+    _ensure_init()
+    market_ids = [mid.strip() for mid in ids.split(",")][:5]
+    result = []
+    for mid in market_ids:
+        m = next((m for m in _cache.get("markets", []) if m["market_id"] == mid), None)
+        if m:
+            item = {k: v for k, v in m.items() if k != "raw"}
+            item["history"] = load_price_history(mid, 7)
+            result.append(item)
+    return {"markets": result}
+
+
 @app.get("/signals")
 async def get_signals(
     limit: int = Query(20, ge=1, le=100),
@@ -587,6 +605,17 @@ async def admin_signal_distribution(admin: dict = Depends(require_admin)):
     return get_signal_distribution()
 
 
+@app.get("/signals/track-record")
+async def signal_track_record(user: dict = Depends(require_tier("pro"))):
+    """Histórico de performance dos sinais — acurácia do modelo."""
+    from .storage import load_json
+    record = load_json("models/signal_track_record.json") or {
+        "total_signals": 0, "resolved": 0, "correct": 0,
+        "accuracy": 0, "by_direction": {}, "recent": [],
+    }
+    return record
+
+
 @app.get("/admin/audit")
 async def admin_audit_log(
     limit: int = Query(100, ge=1, le=500),
@@ -594,6 +623,57 @@ async def admin_audit_log(
 ):
     from .security import get_audit_log
     return {"events": get_audit_log(limit)}
+
+
+# ══════════════════════════════════════
+# WATCHLIST
+# ══════════════════════════════════════
+
+@app.get("/watchlist")
+async def get_watchlist(user: dict = Depends(get_current_user)):
+    """Lista mercados favoritos do user."""
+    from .database import get_user_by_id
+    full = get_user_by_id(user["id"])
+    wl = full.get("watchlist", []) if full else []
+    # Enriquecer com dados atuais do mercado
+    markets_cache = _cache.get("markets", [])
+    result = []
+    for mid in wl:
+        m = next((m for m in markets_cache if m["market_id"] == mid), None)
+        if m:
+            result.append({k: v for k, v in m.items() if k != "raw"})
+    return {"watchlist": result}
+
+
+@app.post("/watchlist/{market_id}")
+async def add_to_watchlist(market_id: str, user: dict = Depends(get_current_user)):
+    """Adiciona mercado à watchlist."""
+    from .database import _table, USERS_TABLE
+    full = get_user_by_id(user["id"])
+    wl = list(full.get("watchlist", []) if full else [])
+    if market_id not in wl:
+        wl.append(market_id)
+        _table(USERS_TABLE).update_item(
+            Key={"id": user["id"]},
+            UpdateExpression="SET watchlist = :w",
+            ExpressionAttributeValues={":w": wl},
+        )
+    return {"ok": True, "count": len(wl)}
+
+
+@app.delete("/watchlist/{market_id}")
+async def remove_from_watchlist(market_id: str, user: dict = Depends(get_current_user)):
+    """Remove mercado da watchlist."""
+    from .database import _table, USERS_TABLE
+    full = get_user_by_id(user["id"])
+    wl = list(full.get("watchlist", []) if full else [])
+    wl = [m for m in wl if m != market_id]
+    _table(USERS_TABLE).update_item(
+        Key={"id": user["id"]},
+        UpdateExpression="SET watchlist = :w",
+        ExpressionAttributeValues={":w": wl},
+    )
+    return {"ok": True, "count": len(wl)}
 
 
 # ══════════════════════════════════════
@@ -706,15 +786,39 @@ async def generate_api_key(user: dict = Depends(require_tier("quant"))):
     """Gera API key pra acesso programático (Quant only)."""
     import secrets as sec
     from .database import _table, USERS_TABLE
+    import hashlib as hl
+    from datetime import datetime as dt, timezone as tz
     key = f"qyn_{sec.token_urlsafe(32)}"
-    key_hash = __import__('hashlib').sha256(key.encode()).hexdigest()
-    now = __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()
+    key_hash = hl.sha256(key.encode()).hexdigest()
+    now = dt.now(tz.utc).isoformat()
     _table(USERS_TABLE).update_item(
         Key={"id": user["id"]},
         UpdateExpression="SET api_key_hash = :k, api_key_created = :c, updated_at = :u",
         ExpressionAttributeValues={":k": key_hash, ":c": now, ":u": now},
     )
-    return {"api_key": key, "message": "Guarde esta chave — ela não será mostrada novamente."}
+    return {"api_key": key, "created_at": now, "message": "Guarde esta chave — ela não será mostrada novamente."}
+
+
+@app.get("/api-key/status")
+async def api_key_status(user: dict = Depends(get_current_user)):
+    """Verifica se o user tem API key ativa."""
+    full = get_user_by_id(user["id"])
+    has_key = bool(full and full.get("api_key_hash"))
+    created = full.get("api_key_created") if full else None
+    return {"has_key": has_key, "created_at": created}
+
+
+@app.delete("/api-key/revoke")
+async def revoke_api_key(user: dict = Depends(get_current_user)):
+    """Revoga a API key do user."""
+    from .database import _table, USERS_TABLE
+    from datetime import datetime as dt, timezone as tz
+    _table(USERS_TABLE).update_item(
+        Key={"id": user["id"]},
+        UpdateExpression="REMOVE api_key_hash, api_key_created SET updated_at = :u",
+        ExpressionAttributeValues={":u": dt.now(tz.utc).isoformat()},
+    )
+    return {"ok": True}
 
 
 @app.get("/api/v1/markets")

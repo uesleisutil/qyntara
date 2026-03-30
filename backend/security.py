@@ -31,6 +31,24 @@ logger = logging.getLogger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
 
+def get_tier_limit(request: Request) -> str:
+    """Retorna rate limit baseado no tier do user."""
+    # Tenta extrair tier do JWT
+    auth = request.headers.get("authorization", "")
+    if auth.startswith("Bearer "):
+        try:
+            import jwt
+            payload = jwt.decode(auth[7:], settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+            tier = payload.get("tier", "free")
+            if tier == "quant" or tier == "enterprise":
+                return "1000/minute"
+            if tier == "pro":
+                return "300/minute"
+        except Exception:
+            pass
+    return "60/minute"
+
+
 # ── Brute Force Protection ──
 
 _login_attempts: dict[str, list[float]] = defaultdict(list)

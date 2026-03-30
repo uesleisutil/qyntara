@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useApi } from '../hooks/useApi';
+import React, { useState, useEffect } from 'react';
+import { useApi, apiFetch } from '../hooks/useApi';
 import { useAuthStore } from '../store/authStore';
 import { theme } from '../styles';
-import { Search, Clock, DollarSign, Droplets, Lock } from 'lucide-react';
+import { Search, Clock, DollarSign, Droplets, Lock, Star } from 'lucide-react';
 
 interface Market {
   market_id: string; source: string; question: string; yes_price: number;
@@ -22,6 +22,27 @@ export const MarketsPage: React.FC<{ dark?: boolean; onSelectMarket?: (id: strin
   const { data: statsData } = useApi<any>('/stats', 60000);
   const markets = data?.markets || [];
   const categories = statsData?.categories as Record<string, number> | undefined;
+
+  // Watchlist
+  const [watchlist, setWatchlist] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!user) return;
+    apiFetch('/watchlist').then(r => r.json()).then(d => {
+      setWatchlist(new Set((d.watchlist || []).map((m: any) => m.market_id)));
+    }).catch(() => {});
+  }, [user]);
+
+  const toggleWatch = async (mid: string) => {
+    if (!user) return;
+    const isWatched = watchlist.has(mid);
+    if (isWatched) {
+      await apiFetch(`/watchlist/${mid}`, { method: 'DELETE' });
+      setWatchlist(prev => { const n = new Set(prev); n.delete(mid); return n; });
+    } else {
+      await apiFetch(`/watchlist/${mid}`, { method: 'POST' });
+      setWatchlist(prev => new Set(prev).add(mid));
+    }
+  };
 
   return (
     <div>
@@ -115,7 +136,8 @@ export const MarketsPage: React.FC<{ dark?: boolean; onSelectMarket?: (id: strin
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {markets.map((m, i) => (
-            <MarketRow key={`${m.source}-${m.market_id}`} m={m} i={i} onSelect={onSelectMarket} isGuest={isGuest} />
+            <MarketRow key={`${m.source}-${m.market_id}`} m={m} i={i} onSelect={onSelectMarket} isGuest={isGuest}
+              isWatched={watchlist.has(m.market_id)} onToggleWatch={() => toggleWatch(m.market_id)} />
           ))}
         </div>
       )}
@@ -123,7 +145,7 @@ export const MarketsPage: React.FC<{ dark?: boolean; onSelectMarket?: (id: strin
   );
 };
 
-const MarketRow: React.FC<{ m: Market; i: number; onSelect?: (id: string) => void; isGuest: boolean }> = ({ m, i, onSelect, isGuest }) => {
+const MarketRow: React.FC<{ m: Market; i: number; onSelect?: (id: string) => void; isGuest: boolean; isWatched: boolean; onToggleWatch: () => void }> = ({ m, i, onSelect, isGuest, isWatched, onToggleWatch }) => {
   const [hov, setHov] = useState(false);
   const pct = (m.yes_price * 100).toFixed(1);
   const color = m.yes_price > 0.6 ? theme.green : m.yes_price < 0.4 ? theme.red : theme.yellow;
@@ -141,6 +163,18 @@ const MarketRow: React.FC<{ m: Market; i: number; onSelect?: (id: string) => voi
         animation: `fadeIn 0.3s ease ${Math.min(i * 0.03, 0.5)}s both`,
       }}
     >
+      {/* Watchlist star */}
+      {!isGuest && (
+        <button onClick={e => { e.stopPropagation(); onToggleWatch(); }} style={{
+          background: 'none', border: 'none', cursor: 'pointer', padding: 2, flexShrink: 0,
+          color: isWatched ? theme.yellow : theme.border, transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => { if (!isWatched) e.currentTarget.style.color = theme.textMuted; }}
+        onMouseLeave={e => { if (!isWatched) e.currentTarget.style.color = theme.border; }}>
+          <Star size={13} fill={isWatched ? theme.yellow : 'none'} />
+        </button>
+      )}
+
       {/* Source dot */}
       <span style={{
         width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
